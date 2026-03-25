@@ -10,6 +10,8 @@ import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import LogoAvatar from '@/components/ui/LogoAvatar'
 import { StatusBadge } from '@/components/ui/Badge'
+import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
+import Insights from '@/components/dashboard/Insights'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -76,6 +78,9 @@ export default async function DashboardPage() {
               icon={<Users size={16} className="text-blue-500" />}
             />
           </div>
+
+          {/* Insights */}
+          <Insights subscriptions={subs} stats={stats} />
 
           <div className="grid lg:grid-cols-3 gap-4">
             {/* Upcoming renewals */}
@@ -258,15 +263,28 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
-        <span className="text-3xl">📋</span>
+        <span className="text-3xl">🦥</span>
       </div>
       <h2 className="text-lg font-semibold text-gray-900 mb-1">No subscriptions yet</h2>
       <p className="text-sm text-gray-400 max-w-xs mb-6">
-        Add your first subscription to start tracking your monthly spending.
+        Add your first subscription or load demo data to see how Perezoso works.
       </p>
-      <Link href="/subscriptions/new">
-        <Button icon={<Plus size={15} />}>Add your first subscription</Button>
-      </Link>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Link href="/subscriptions/new">
+          <Button icon={<Plus size={15} />}>Add subscription</Button>
+        </Link>
+        <LoadDemoButton />
+      </div>
     </div>
+  )
+}
+
+function LoadDemoButton() {
+  return (
+    <form action={loadDemoData}>
+      <Button type="submit" variant="secondary">
+        Try with demo data
+      </Button>
+    </form>
   )
 }
