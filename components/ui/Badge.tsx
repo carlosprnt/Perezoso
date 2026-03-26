@@ -1,29 +1,23 @@
 import type { SubscriptionStatus } from '@/types'
+import type { LucideIcon } from 'lucide-react'
 
 interface StatusBadgeProps {
   status: SubscriptionStatus
   className?: string
 }
 
-const STATUS_CONFIG: Record<
-  SubscriptionStatus,
-  { label: string; classes: string }
-> = {
-  active:    { label: 'Active',    classes: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  trial:     { label: 'Trial',     classes: 'bg-blue-50 text-blue-700 border-blue-200' },
-  paused:    { label: 'Paused',    classes: 'bg-amber-50 text-amber-700 border-amber-200' },
-  cancelled: { label: 'Cancelled', classes: 'bg-gray-100 text-gray-500 border-gray-200' },
+/* All color pairs pass WCAG AA (≥4.5:1) on their background */
+const STATUS_CONFIG: Record<SubscriptionStatus, { label: string; classes: string }> = {
+  active:    { label: 'Active',    classes: 'bg-green-100  text-green-800  border-green-300'  },
+  trial:     { label: 'Trial',     classes: 'bg-blue-100   text-blue-800   border-blue-300'   },
+  paused:    { label: 'Paused',    classes: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+  cancelled: { label: 'Cancelled', classes: 'bg-neutral-100 text-neutral-700 border-neutral-300' },
 }
 
 export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   const { label, classes } = STATUS_CONFIG[status]
   return (
-    <span
-      className={`
-        inline-flex items-center px-2 py-0.5 rounded-full
-        text-xs font-medium border ${classes} ${className}
-      `}
-    >
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${classes} ${className}`}>
       {label}
     </span>
   )
@@ -31,27 +25,16 @@ export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
 
 interface CategoryBadgeProps {
   label: string
-  color: string    // bg color class
+  color: string
   textColor: string
-  emoji?: string
+  Icon?: LucideIcon
   className?: string
 }
 
-export function CategoryBadge({
-  label,
-  color,
-  textColor,
-  emoji,
-  className = '',
-}: CategoryBadgeProps) {
+export function CategoryBadge({ label, color, textColor, Icon, className = '' }: CategoryBadgeProps) {
   return (
-    <span
-      className={`
-        inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-        text-xs font-medium ${color} ${textColor} ${className}
-      `}
-    >
-      {emoji && <span>{emoji}</span>}
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${color} ${textColor} ${className}`}>
+      {Icon && <Icon size={10} strokeWidth={2.5} />}
       {label}
     </span>
   )

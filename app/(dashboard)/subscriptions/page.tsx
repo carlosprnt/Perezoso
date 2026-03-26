@@ -3,11 +3,10 @@ import { enrichSubscriptions, getDashboardStats } from '@/lib/calculations/subsc
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Subscription, SubscriptionStatus, Category } from '@/types'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import SubscriptionCard from '@/components/subscriptions/SubscriptionCard'
-import SubscriptionFilters from '@/components/subscriptions/SubscriptionFilters'
-import { Suspense } from 'react'
+import FilterModal from '@/components/ui/FilterModal'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Subscriptions' }
@@ -37,33 +36,59 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
   }
 
   const stats = getDashboardStats(allSubs)
+  const hasActiveFilters = (params.status && params.status !== 'all') || (params.category && params.category !== 'all')
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Subscriptions</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-[#121212] tracking-tight">Subscriptions</h1>
+          <p className="text-sm text-[#616161] mt-0.5">
             {allSubs.length} total · {formatCurrency(stats.total_monthly_cost, 'EUR')} / mo
           </p>
         </div>
-        <Link href="/subscriptions/new">
-          <Button icon={<Plus size={15} />}>Add</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <FilterModal
+            currentStatus={params.status}
+            currentCategory={params.category}
+          />
+          <Link href="/subscriptions/new">
+            <Button icon={<Plus size={15} />}>Add</Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Suspense>
-        <SubscriptionFilters />
-      </Suspense>
+      {/* Active filter chips */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 flex-wrap animate-fade-in">
+          {params.status && params.status !== 'all' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#121212] text-white text-xs font-medium">
+              Status: {params.status}
+            </span>
+          )}
+          {params.category && params.category !== 'all' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#121212] text-white text-xs font-medium">
+              {params.category}
+            </span>
+          )}
+          <Link
+            href="/subscriptions"
+            className="text-xs text-[#616161] hover:text-[#121212] underline underline-offset-2 transition-colors duration-150"
+          >
+            Clear filters
+          </Link>
+        </div>
+      )}
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-3xl mb-3">🔍</p>
-          <p className="text-sm font-medium text-gray-900 mb-1">No subscriptions found</p>
-          <p className="text-xs text-gray-400 mb-5">
+        <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+          <div className="w-12 h-12 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] flex items-center justify-center mb-4">
+            <Search size={20} className="text-[#616161]" />
+          </div>
+          <p className="text-sm font-medium text-[#121212] mb-1">No subscriptions found</p>
+          <p className="text-xs text-[#616161] mb-5">
             {allSubs.length === 0
               ? "You haven't added any subscriptions yet."
               : "Try adjusting your filters."}
@@ -75,9 +100,9 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((sub) => (
-            <SubscriptionCard key={sub.id} subscription={sub} />
+        <div className="space-y-2">
+          {filtered.map((sub, index) => (
+            <SubscriptionCard key={sub.id} subscription={sub} index={index} />
           ))}
         </div>
       )}

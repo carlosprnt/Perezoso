@@ -70,7 +70,7 @@ export default function SubscriptionFilters() {
         >
           All categories
         </button>
-        {CATEGORIES.map(({ value, label, emoji }) => (
+        {CATEGORIES.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             onClick={() => updateFilter('category', value)}
@@ -83,7 +83,7 @@ export default function SubscriptionFilters() {
               }
             `}
           >
-            <span>{emoji}</span>
+            <Icon size={12} />
             {label}
           </button>
         ))}

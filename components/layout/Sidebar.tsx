@@ -32,7 +32,7 @@ export default function Sidebar({ profile }: SidebarProps) {
     <aside className="
       hidden lg:flex flex-col
       w-56 min-h-screen
-      bg-white border-r border-gray-100
+      bg-white border-r border-[#E5E5E5]
       px-3 py-6
       fixed left-0 top-0 bottom-0
     ">
@@ -45,7 +45,7 @@ export default function Sidebar({ profile }: SidebarProps) {
           height={32}
           className="rounded-xl flex-shrink-0"
         />
-        <span className="font-bold text-gray-900 text-base tracking-tight">Perezoso</span>
+        <span className="font-bold text-[#121212] text-base tracking-tight">Perezoso</span>
       </div>
 
       {/* Navigation */}
@@ -60,8 +60,8 @@ export default function Sidebar({ profile }: SidebarProps) {
                 flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium
                 transition-all duration-150
                 ${isActive
-                  ? 'bg-indigo-50 text-indigo-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-[#121212] text-white'
+                  : 'text-[#424242] hover:bg-[#F5F5F5] hover:text-[#121212]'
                 }
               `}
             >
@@ -73,17 +73,17 @@ export default function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* User / logout */}
-      <div className="border-t border-gray-100 pt-4 mt-4">
+      <div className="border-t border-[#E5E5E5] pt-4 mt-4">
         {profile?.full_name && (
           <div className="px-3 mb-3">
-            <p className="text-xs font-medium text-gray-900 truncate">{profile.full_name}</p>
+            <p className="text-xs font-medium text-[#121212] truncate">{profile.full_name}</p>
           </div>
         )}
         <button
           onClick={handleLogout}
           className="
             w-full flex items-center gap-2.5 px-3 py-2 rounded-xl
-            text-sm text-gray-500 hover:text-red-600 hover:bg-red-50
+            text-sm text-[#616161] hover:text-red-700 hover:bg-red-50
             transition-all duration-150
           "
         >

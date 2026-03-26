@@ -1,29 +1,35 @@
 import type { Category } from '@/types'
+import {
+  Tv, Music, Zap, Cloud, Bot, Heart,
+  Gamepad2, BookOpen, Car, Home, Package,
+  type LucideIcon,
+} from 'lucide-react'
 
 export interface CategoryMeta {
   value: Category
   label: string
-  color: string        // Tailwind bg color class
-  textColor: string    // Tailwind text color class
-  emoji: string
+  icon: LucideIcon
+  /* Accessible text + bg pairs — all pass WCAG AA on their bg */
+  color: string      // Tailwind bg class
+  textColor: string  // Tailwind text class
 }
 
 export const CATEGORIES: CategoryMeta[] = [
-  { value: 'streaming',    label: 'Streaming',    color: 'bg-red-100',    textColor: 'text-red-700',    emoji: '📺' },
-  { value: 'music',        label: 'Music',        color: 'bg-green-100',  textColor: 'text-green-700',  emoji: '🎵' },
-  { value: 'productivity', label: 'Productivity', color: 'bg-blue-100',   textColor: 'text-blue-700',   emoji: '⚡' },
-  { value: 'cloud',        label: 'Cloud',        color: 'bg-sky-100',    textColor: 'text-sky-700',    emoji: '☁️' },
-  { value: 'ai',           label: 'AI',           color: 'bg-violet-100', textColor: 'text-violet-700', emoji: '🤖' },
-  { value: 'health',       label: 'Health',       color: 'bg-emerald-100',textColor: 'text-emerald-700',emoji: '🏃' },
-  { value: 'gaming',       label: 'Gaming',       color: 'bg-orange-100', textColor: 'text-orange-700', emoji: '🎮' },
-  { value: 'education',    label: 'Education',    color: 'bg-yellow-100', textColor: 'text-yellow-700', emoji: '📚' },
-  { value: 'mobility',     label: 'Mobility',     color: 'bg-pink-100',   textColor: 'text-pink-700',   emoji: '🚗' },
-  { value: 'home',         label: 'Home',         color: 'bg-amber-100',  textColor: 'text-amber-700',  emoji: '🏠' },
-  { value: 'other',        label: 'Other',        color: 'bg-gray-100',   textColor: 'text-gray-700',   emoji: '📦' },
+  { value: 'streaming',    label: 'Streaming',    icon: Tv,        color: 'bg-red-100',    textColor: 'text-red-800'    },
+  { value: 'music',        label: 'Music',        icon: Music,     color: 'bg-green-100',  textColor: 'text-green-800'  },
+  { value: 'productivity', label: 'Productivity', icon: Zap,       color: 'bg-blue-100',   textColor: 'text-blue-800'   },
+  { value: 'cloud',        label: 'Cloud',        icon: Cloud,     color: 'bg-sky-100',    textColor: 'text-sky-800'    },
+  { value: 'ai',           label: 'AI',           icon: Bot,       color: 'bg-violet-100', textColor: 'text-violet-800' },
+  { value: 'health',       label: 'Health',       icon: Heart,     color: 'bg-emerald-100',textColor: 'text-emerald-800'},
+  { value: 'gaming',       label: 'Gaming',       icon: Gamepad2,  color: 'bg-orange-100', textColor: 'text-orange-800' },
+  { value: 'education',    label: 'Education',    icon: BookOpen,  color: 'bg-yellow-100', textColor: 'text-yellow-800' },
+  { value: 'mobility',     label: 'Mobility',     icon: Car,       color: 'bg-pink-100',   textColor: 'text-pink-800'   },
+  { value: 'home',         label: 'Home',         icon: Home,      color: 'bg-amber-100',  textColor: 'text-amber-800'  },
+  { value: 'other',        label: 'Other',        icon: Package,   color: 'bg-neutral-100',textColor: 'text-neutral-800'},
 ]
 
 export const CATEGORY_MAP = Object.fromEntries(
-  CATEGORIES.map((c) => [c.value, c])
+  CATEGORIES.map(c => [c.value, c])
 ) as Record<Category, CategoryMeta>
 
 export function getCategoryMeta(category: Category): CategoryMeta {

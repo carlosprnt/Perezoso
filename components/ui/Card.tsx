@@ -24,11 +24,10 @@ export function Card({
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-2xl border border-gray-100
-        shadow-[0_2px_12px_0_rgba(0,0,0,0.06)]
+        bg-white rounded-2xl border border-[#D4D4D4]
         ${PADDING[padding]}
-        ${hover ? 'hover:shadow-[0_4px_20px_0_rgba(0,0,0,0.10)] hover:border-gray-200 transition-all duration-200' : ''}
-        ${onClick ? 'cursor-pointer' : ''}
+        ${hover ? 'hover:border-[#A3A3A3] hover:bg-[#FAFAFA] transition-colors duration-150' : ''}
+        ${onClick ? 'cursor-pointer pressable' : ''}
         ${className}
       `}
     >
@@ -51,9 +50,9 @@ export function CardHeader({
   return (
     <div className={`flex items-center justify-between mb-4 ${className}`}>
       <div>
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-[#121212]">{title}</h3>
         {subtitle && (
-          <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+          <p className="text-xs text-[#616161] mt-0.5">{subtitle}</p>
         )}
       </div>
       {action && <div>{action}</div>}
