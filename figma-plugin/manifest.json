@@ -1,6 +1,6 @@
 {
-  "name": "Perezoso — Generate Screens",
-  "id": "perezoso-screens-generator",
+  "name": "URL → Figma Screens",
+  "id": "url-to-figma-screens",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",

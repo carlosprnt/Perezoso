@@ -1,71 +1,424 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      background: #F7F8FA;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding: 20px;
-      gap: 12px;
-    }
-    .logo {
-      width: 48px; height: 48px;
-      background: #6366F1;
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 22px; font-weight: 800;
-      margin-bottom: 4px;
-    }
-    h1 { font-size: 15px; font-weight: 700; color: #0D0F12; }
-    p  { font-size: 12px; color: #6B7280; text-align: center; max-width: 200px; line-height: 1.5; }
-    button {
-      width: 100%;
-      padding: 10px 16px;
-      background: #6366F1;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    button:hover { background: #4338CA; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    #status { font-size: 11px; color: #6B7280; min-height: 16px; }
-  </style>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, 'Inter', sans-serif; }
+  body { background: #F7F8FA; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .logo-row { display: flex; align-items: center; gap: 8px; }
+  .logo { width: 28px; height: 28px; background: #6366F1; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          color: white; font-weight: 800; font-size: 14px; }
+  .title { font-size: 13px; font-weight: 700; color: #0D0F12; }
+  .subtitle { font-size: 11px; color: #9BA3AF; }
+
+  label { font-size: 11px; font-weight: 600; color: #5C6370; display: block; margin-bottom: 5px; }
+
+  input[type="url"], input[type="number"], select {
+    width: 100%; padding: 8px 10px; font-size: 12px;
+    border: 1px solid #E8EAED; border-radius: 8px; background: white;
+    color: #0D0F12; outline: none;
+  }
+  input[type="url"]:focus, input[type="number"]:focus { border-color: #6366F1; }
+
+  .row { display: flex; gap: 8px; }
+  .row > div { flex: 1; }
+
+  .hint { font-size: 10px; color: #9BA3AF; margin-top: 3px; }
+
+  button {
+    width: 100%; padding: 9px; background: #6366F1; color: white;
+    border: none; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  button:hover:not(:disabled) { background: #4338CA; }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .progress { display: none; flex-direction: column; gap: 6px; }
+  .progress.visible { display: flex; }
+  .progress-bar-bg { height: 4px; background: #E8EAED; border-radius: 99px; overflow: hidden; }
+  .progress-bar { height: 100%; background: #6366F1; border-radius: 99px; width: 0%; transition: width 0.3s; }
+  .progress-label { font-size: 11px; color: #5C6370; text-align: center; }
+
+  .result { display: none; text-align: center; padding: 10px; background: #ECFDF5;
+            border-radius: 8px; font-size: 12px; color: #047857; font-weight: 600; }
+  .result.visible { display: block; }
+
+  .error-box { display: none; background: #FEF2F2; border-radius: 8px; padding: 10px;
+               font-size: 11px; color: #B91C1C; line-height: 1.5; }
+  .error-box.visible { display: block; }
+
+  .pages-found { font-size: 11px; color: #6366F1; font-weight: 500; min-height: 14px; }
+</style>
 </head>
 <body>
-  <div class="logo">P</div>
-  <h1>Perezoso Screens</h1>
-  <p>Genera los 4 screens principales del app en tu archivo de Figma.</p>
-  <button id="btn" onclick="generate()">Generate screens</button>
-  <span id="status"></span>
 
-  <script>
-    function generate() {
-      document.getElementById('btn').disabled = true;
-      document.getElementById('status').textContent = 'Generating…';
-      parent.postMessage({ pluginMessage: { type: 'generate' } }, '*');
+<div class="logo-row">
+  <div class="logo">U</div>
+  <div>
+    <div class="title">URL → Figma Screens</div>
+    <div class="subtitle">Extrae y convierte cualquier web en frames editables</div>
+  </div>
+</div>
+
+<div>
+  <label>URL de la web</label>
+  <input type="url" id="url" placeholder="https://perezoso.vercel.app" />
+  <div class="hint">Puede ser una URL pública, una app desplegada o un sitio estático.</div>
+</div>
+
+<div class="row">
+  <div>
+    <label>Pantallas máx.</label>
+    <input type="number" id="maxPages" value="6" min="1" max="20" />
+  </div>
+  <div>
+    <label>Tipo de frame</label>
+    <select id="viewport">
+      <option value="mobile">Mobile (390×844)</option>
+      <option value="desktop" selected>Desktop (1440×900)</option>
+      <option value="tablet">Tablet (768×1024)</option>
+    </select>
+  </div>
+</div>
+
+<div class="pages-found" id="pagesFound"></div>
+
+<button id="btn" onclick="run()">Extract screens</button>
+
+<div class="progress" id="progress">
+  <div class="progress-bar-bg"><div class="progress-bar" id="bar"></div></div>
+  <div class="progress-label" id="progressLabel">Fetching…</div>
+</div>
+
+<div class="result" id="result"></div>
+<div class="error-box" id="errorBox"></div>
+
+<script>
+// ── CORS PROXIES (try in order) ───────────────────────────────
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function fetchWithProxy(url) {
+  for (const makeProxy of PROXIES) {
+    try {
+      const res = await fetch(makeProxy(url), { signal: AbortSignal.timeout(12000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 100) return text;
+      }
+    } catch (_) {}
+  }
+  throw new Error(`Could not fetch ${url} — the site may block external requests.`);
+}
+
+// ── TAILWIND → STYLE MAPPING ─────────────────────────────────
+const TW_COLOR = {
+  'text-white':        '#FFFFFF', 'text-black':        '#000000',
+  'text-gray-900':     '#111827', 'text-gray-800':     '#1F2937',
+  'text-gray-700':     '#374151', 'text-gray-600':     '#4B5563',
+  'text-gray-500':     '#6B7280', 'text-gray-400':     '#9CA3AF',
+  'text-gray-300':     '#D1D5DB', 'text-gray-200':     '#E5E7EB',
+  'text-indigo-700':   '#4338CA', 'text-indigo-600':   '#4F46E5',
+  'text-indigo-500':   '#6366F1', 'text-indigo-400':   '#818CF8',
+  'text-violet-700':   '#6D28D9', 'text-violet-600':   '#7C3AED',
+  'text-emerald-700':  '#047857', 'text-emerald-600':  '#059669',
+  'text-amber-700':    '#B45309', 'text-amber-600':    '#D97706',
+  'text-red-700':      '#B91C1C', 'text-red-600':      '#DC2626',
+  'text-blue-700':     '#1D4ED8', 'text-blue-600':     '#2563EB',
+  'text-green-700':    '#15803D', 'text-green-600':    '#16A34A',
+  'text-pink-600':     '#DB2777', 'text-orange-600':   '#EA580C',
+};
+
+const TW_BG = {
+  'bg-white':          '#FFFFFF', 'bg-black':          '#000000',
+  'bg-gray-50':        '#F9FAFB', 'bg-gray-100':       '#F3F4F6',
+  'bg-gray-200':       '#E5E7EB', 'bg-gray-800':       '#1F2937',
+  'bg-gray-900':       '#111827',
+  'bg-indigo-600':     '#4F46E5', 'bg-indigo-500':     '#6366F1',
+  'bg-indigo-50':      '#EEF2FF', 'bg-indigo-100':     '#E0E7FF',
+  'bg-violet-600':     '#7C3AED', 'bg-violet-50':      '#F5F3FF',
+  'bg-emerald-600':    '#059669', 'bg-emerald-50':     '#ECFDF5',
+  'bg-amber-600':      '#D97706', 'bg-amber-50':       '#FFFBEB',
+  'bg-red-600':        '#DC2626', 'bg-red-50':         '#FEF2F2',
+  'bg-blue-600':       '#2563EB', 'bg-blue-50':        '#EFF6FF',
+  'bg-green-600':      '#16A34A', 'bg-green-50':       '#F0FDF4',
+  'bg-sky-50':         '#F0F9FF', 'bg-sky-600':        '#0284C7',
+  'bg-pink-50':        '#FDF2F8', 'bg-orange-50':      '#FFF7ED',
+};
+
+const TW_SIZE = {
+  'text-xs': 12, 'text-sm': 14, 'text-base': 16, 'text-lg': 18,
+  'text-xl': 20, 'text-2xl': 24, 'text-3xl': 30, 'text-4xl': 36,
+  'text-5xl': 48, 'text-6xl': 60,
+};
+
+const TW_WEIGHT = {
+  'font-thin': 'Thin', 'font-light': 'Light', 'font-normal': 'Regular',
+  'font-medium': 'Medium', 'font-semibold': 'Semi Bold',
+  'font-bold': 'Bold', 'font-extrabold': 'Extra Bold', 'font-black': 'Black',
+};
+
+const TW_RADIUS = {
+  'rounded-sm': 2, 'rounded': 4, 'rounded-md': 6, 'rounded-lg': 8,
+  'rounded-xl': 12, 'rounded-2xl': 16, 'rounded-3xl': 24, 'rounded-full': 9999,
+};
+
+const TW_PADDING = {
+  'p-1':4, 'p-2':8, 'p-3':12, 'p-4':16, 'p-5':20, 'p-6':24, 'p-8':32,
+  'px-2':{ h:8 }, 'px-3':{ h:12 }, 'px-4':{ h:16 }, 'px-6':{ h:24 },
+  'py-1':{ v:4 }, 'py-2':{ v:8 }, 'py-2.5':{ v:10 }, 'py-3':{ v:12 },
+};
+
+function classStyles(el) {
+  const cls = (el.className || '').split(' ');
+  const s = { color: null, bg: null, fontSize: null, fontWeight: null,
+              borderRadius: null, padding: 0, paddingH: 0, paddingV: 0 };
+  for (const c of cls) {
+    if (TW_COLOR[c])  s.color = TW_COLOR[c];
+    if (TW_BG[c])     s.bg    = TW_BG[c];
+    if (TW_SIZE[c])   s.fontSize = TW_SIZE[c];
+    if (TW_WEIGHT[c]) s.fontWeight = TW_WEIGHT[c];
+    if (TW_RADIUS[c]) s.borderRadius = TW_RADIUS[c];
+    if (TW_PADDING[c]) {
+      const p = TW_PADDING[c];
+      if (typeof p === 'number') s.padding = p;
+      else if (p.h) s.paddingH = p.h;
+      else if (p.v) s.paddingV = p.v;
     }
-    window.onmessage = (e) => {
-      const msg = e.data.pluginMessage;
-      if (msg?.type === 'done') {
-        document.getElementById('status').textContent = '✓ Done! ' + msg.count + ' screens created.';
-        document.getElementById('btn').disabled = false;
-        document.getElementById('btn').textContent = 'Generate again';
-      }
-      if (msg?.type === 'error') {
-        document.getElementById('status').textContent = '✗ ' + msg.message;
-        document.getElementById('btn').disabled = false;
-      }
+    // Check for inline color hints
+    if (c.includes('tracking-tight')) s.letterSpacing = -0.5;
+    if (c.includes('tabular-nums')) s.tabularNums = true;
+  }
+  return s;
+}
+
+// ── DOM EXTRACTION ────────────────────────────────────────────
+
+const SKIP_TAGS = new Set(['script','style','noscript','head','meta','link','br','hr','svg','path','g','defs']);
+const BLOCK_TAGS = new Set(['div','section','article','main','nav','header','footer','aside','form','ul','ol','li','table','tr','td','th','figure']);
+const TEXT_TAGS  = new Set(['p','h1','h2','h3','h4','h5','h6','span','a','label','button','strong','em','small','li','td','th','dt','dd','figcaption']);
+
+function isVisible(el) {
+  const cls = el.className || '';
+  if (/hidden|invisible|sr-only/.test(cls)) return false;
+  const style = el.getAttribute('style') || '';
+  if (/display\s*:\s*none|visibility\s*:\s*hidden/.test(style)) return false;
+  return true;
+}
+
+function getTextContent(el) {
+  return el.textContent?.replace(/\s+/g, ' ').trim() || '';
+}
+
+function extractElement(el, depth = 0) {
+  if (!el || el.nodeType !== 1) return null;
+  const tag = el.tagName?.toLowerCase();
+  if (!tag || SKIP_TAGS.has(tag)) return null;
+  if (!isVisible(el)) return null;
+
+  const styles = classStyles(el);
+  const text = getTextContent(el);
+
+  // Image
+  if (tag === 'img') {
+    return {
+      type: 'image',
+      src: el.getAttribute('src') || '',
+      alt: el.getAttribute('alt') || '',
+      styles,
     };
-  </script>
+  }
+
+  // Button / interactive
+  if (tag === 'button' || el.getAttribute('role') === 'button' ||
+      (tag === 'a' && el.className?.includes('btn'))) {
+    return {
+      type: 'button',
+      text: text.slice(0, 60),
+      styles,
+    };
+  }
+
+  // Text leaf
+  if (TEXT_TAGS.has(tag) && text.length > 0 && text.length < 500) {
+    const isHeading = /^h[1-6]$/.test(tag);
+    if (!styles.fontSize) {
+      styles.fontSize = tag === 'h1' ? 32 : tag === 'h2' ? 24 : tag === 'h3' ? 20 :
+                        tag === 'h4' ? 18 : tag === 'h5' ? 16 : 14;
+    }
+    if (!styles.fontWeight && isHeading) styles.fontWeight = 'Bold';
+    return {
+      type: 'text',
+      tag,
+      text: text.slice(0, 200),
+      styles,
+    };
+  }
+
+  // Container — recurse
+  if (BLOCK_TAGS.has(tag) && depth < 6) {
+    const children = [];
+    for (const child of el.children) {
+      const extracted = extractElement(child, depth + 1);
+      if (extracted) children.push(extracted);
+    }
+    // Only emit containers that have content
+    if (children.length === 0 && !text) return null;
+    // If single text content and no children, treat as text
+    if (children.length === 0 && text.length > 0 && text.length < 300) {
+      return { type: 'text', tag, text, styles };
+    }
+    return {
+      type: 'container',
+      tag,
+      role: el.getAttribute('role') || el.id || tag,
+      styles,
+      children,
+    };
+  }
+
+  return null;
+}
+
+function extractPage(html, url) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Title
+  const title = doc.title || new URL(url).pathname.split('/').pop() || 'Page';
+
+  // Extract images
+  const imgEls = [...doc.querySelectorAll('img[src]')]
+    .map(img => ({ src: img.src, alt: img.alt }))
+    .filter(i => i.src && !i.src.startsWith('data:'))
+    .slice(0, 20);
+
+  // Extract color palette from inline styles + meta theme-color
+  const colors = new Set();
+  const themeColor = doc.querySelector('meta[name="theme-color"]')?.getAttribute('content');
+  if (themeColor) colors.add(themeColor);
+  doc.querySelectorAll('[style]').forEach(el => {
+    const m = el.getAttribute('style').match(/#[0-9a-fA-F]{3,6}|rgb\([^)]+\)/g) || [];
+    m.forEach(c => colors.add(c));
+  });
+
+  // Extract body content
+  const body = doc.body;
+  const sections = [];
+  for (const child of body.children) {
+    const extracted = extractElement(child, 0);
+    if (extracted) sections.push(extracted);
+  }
+
+  // Find internal links for crawling
+  const baseHost = new URL(url).hostname;
+  const links = [...new Set(
+    [...doc.querySelectorAll('a[href]')]
+      .map(a => {
+        try {
+          const href = new URL(a.getAttribute('href'), url).href;
+          return new URL(href).hostname === baseHost ? href : null;
+        } catch { return null; }
+      })
+      .filter(Boolean)
+      .filter(l => !l.includes('#') && !l.match(/\.(pdf|zip|png|jpg|svg|ico)$/))
+  )];
+
+  return { title, url, sections, images: imgEls, links, colors: [...colors].slice(0, 20) };
+}
+
+// ── PROGRESS HELPERS ──────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById('bar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+// ── MAIN RUN ──────────────────────────────────────────────────
+async function run() {
+  const urlInput = document.getElementById('url').value.trim();
+  const maxPages = parseInt(document.getElementById('maxPages').value) || 6;
+  const viewport = document.getElementById('viewport').value;
+
+  if (!urlInput) return alert('Enter a URL first.');
+
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('progress').classList.add('visible');
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('errorBox').classList.remove('visible');
+  document.getElementById('pagesFound').textContent = '';
+
+  try {
+    const visited = new Set();
+    const queue = [urlInput];
+    const pages = [];
+
+    while (queue.length > 0 && pages.length < maxPages) {
+      const url = queue.shift();
+      if (visited.has(url)) continue;
+      visited.add(url);
+
+      const pct = Math.round((pages.length / maxPages) * 80);
+      setProgress(pct, `Fetching ${new URL(url).pathname || '/'}…`);
+
+      try {
+        const html = await fetchWithProxy(url);
+        const page = extractPage(html, url);
+        pages.push(page);
+
+        document.getElementById('pagesFound').textContent =
+          `${pages.length} screen${pages.length > 1 ? 's' : ''} found`;
+
+        // Enqueue new links
+        for (const link of page.links) {
+          if (!visited.has(link) && !queue.includes(link)) {
+            queue.push(link);
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to fetch', url, fetchErr.message);
+      }
+    }
+
+    if (pages.length === 0) throw new Error('No pages could be fetched. Check the URL.');
+
+    setProgress(90, 'Sending to Figma…');
+
+    parent.postMessage({
+      pluginMessage: { type: 'render', pages, viewport }
+    }, '*');
+
+  } catch (err) {
+    document.getElementById('errorBox').textContent = err.message;
+    document.getElementById('errorBox').classList.add('visible');
+    document.getElementById('progress').classList.remove('visible');
+    btn.disabled = false;
+  }
+}
+
+window.onmessage = e => {
+  const msg = e.data.pluginMessage;
+  if (!msg) return;
+  if (msg.type === 'done') {
+    setProgress(100, 'Done!');
+    document.getElementById('result').textContent =
+      `✓ ${msg.count} screen${msg.count > 1 ? 's' : ''} created in Figma`;
+    document.getElementById('result').classList.add('visible');
+    document.getElementById('btn').disabled = false;
+    document.getElementById('btn').textContent = 'Extract again';
+  }
+  if (msg.type === 'error') {
+    document.getElementById('errorBox').textContent = msg.message;
+    document.getElementById('errorBox').classList.add('visible');
+    document.getElementById('progress').classList.remove('visible');
+    document.getElementById('btn').disabled = false;
+  }
+};
+</script>
 </body>
 </html>
