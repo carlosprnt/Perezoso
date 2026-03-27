@@ -3,13 +3,30 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Plus, CreditCard } from 'lucide-react'
+import { LayoutGrid, Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from '@/components/subscriptions/PlatformPicker'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
 type AddStep = 'closed' | 'pick-platform' | 'form'
+
+// Custom tag+heart icon matching the reference design
+function TagHeartIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      width="22" height="22" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor"
+      strokeWidth={active ? 2.5 : 2}
+      strokeLinecap="round" strokeLinejoin="round"
+    >
+      {/* Tag/label shape */}
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      {/* Small heart inside the tag */}
+      <path d="M8.5 8.5c.5-1 2-1 2 .5 0 1-2 2-2 2s-2-1-2-2c0-1.5 1.5-1.5 2-.5z" strokeWidth="1.5" />
+    </svg>
+  )
+}
 
 export default function FloatingNav() {
   const pathname = usePathname()
@@ -26,46 +43,47 @@ export default function FloatingNav() {
     setPlatform(null)
   }
 
-  const isDash  = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
-  const isSubs  = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
+  const isDash = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+  const isSubs = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
 
   return (
     <>
-      {/* ── Floating pill nav — mobile only ───────────────────── */}
-      <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+      {/* ── Floating pill nav — mobile only, 10px from bottom ──── */}
+      <nav className="lg:hidden fixed bottom-[10px] left-1/2 -translate-x-1/2 z-50">
         <div
           className="
-            flex items-center gap-2
-            bg-white/90 backdrop-blur-md
+            flex items-center gap-1.5
+            bg-white/95 backdrop-blur-md
             rounded-full px-3 py-2.5
-            border border-[#E0E0E0]
-            shadow-[0_4px_24px_rgba(0,0,0,0.14)]
+            border border-[#DCDCDC]
+            shadow-[0_2px_16px_rgba(0,0,0,0.12)]
           "
         >
           {/* Dashboard */}
           <Link href="/dashboard">
             <div
               className={`
-                w-11 h-11 rounded-full flex items-center justify-center transition-colors
-                ${isDash ? 'bg-[#E8E8E8]' : 'hover:bg-[#F5F5F5]'}
+                w-12 h-12 rounded-full flex items-center justify-center transition-colors
+                ${isDash ? 'bg-[#EBEBEB]' : 'hover:bg-[#F5F5F5]'}
               `}
             >
-              <LayoutDashboard
+              <LayoutGrid
                 size={20}
                 strokeWidth={isDash ? 2.5 : 2}
-                className={isDash ? 'text-[#121212]' : 'text-[#888888]'}
+                className={isDash ? 'text-[#111111]' : 'text-[#888888]'}
               />
             </div>
           </Link>
 
-          {/* Add — prominent blue circle */}
+          {/* Add — wide rounded-rectangle pill button */}
           <button
             onClick={() => setAddStep('pick-platform')}
+            aria-label="Add subscription"
             className="
-              w-14 h-14 rounded-full
+              w-[108px] h-[54px] rounded-[27px]
               bg-[#3D3BF3]
               flex items-center justify-center
-              shadow-[0_2px_12px_rgba(61,59,243,0.4)]
+              shadow-[0_2px_14px_rgba(61,59,243,0.38)]
               active:scale-95 transition-transform duration-100
             "
           >
@@ -76,21 +94,19 @@ export default function FloatingNav() {
           <Link href="/subscriptions">
             <div
               className={`
-                w-11 h-11 rounded-full flex items-center justify-center transition-colors
-                ${isSubs ? 'bg-[#E8E8E8]' : 'hover:bg-[#F5F5F5]'}
+                w-12 h-12 rounded-full flex items-center justify-center transition-colors
+                ${isSubs ? 'bg-[#EBEBEB]' : 'hover:bg-[#F5F5F5]'}
               `}
             >
-              <CreditCard
-                size={20}
-                strokeWidth={isSubs ? 2.5 : 2}
-                className={isSubs ? 'text-[#121212]' : 'text-[#888888]'}
-              />
+              <TagHeartIcon active={isSubs} />
+              {/* apply colour via parent */}
+              <span className="sr-only">Subscriptions</span>
             </div>
           </Link>
         </div>
       </nav>
 
-      {/* ── Add subscription sheets ────────────────────────────── */}
+      {/* ── Add subscription sheets ─────────────────────────────── */}
       <BottomSheet
         isOpen={addStep === 'pick-platform'}
         onClose={closeSheets}

@@ -63,18 +63,16 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
       {allSubs.length > 0 && (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4">
-            <p className="text-xs font-medium text-[#616161]">Total</p>
-            <p className="text-2xl font-bold text-[#121212] mt-1 tabular-nums leading-none">
-              {allSubs.length}
+            <p className="text-xs font-medium text-[#888888]">Total</p>
+            <p className="text-xl font-bold text-[#111111] mt-1 tabular-nums leading-tight">
+              {allSubs.length} Subscriptions
             </p>
-            <p className="text-xs text-[#A3A3A3] mt-1">subscriptions</p>
           </div>
           <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4">
-            <p className="text-xs font-medium text-[#616161]">Monthly</p>
-            <p className="text-2xl font-bold text-[#121212] mt-1 tabular-nums leading-none">
+            <p className="text-xs font-medium text-[#888888]">Per month</p>
+            <p className="text-xl font-bold text-[#111111] mt-1 tabular-nums leading-tight">
               {formatCurrency(stats.total_monthly_cost, 'EUR')}
             </p>
-            <p className="text-xs text-[#A3A3A3] mt-1">/ month</p>
           </div>
         </div>
       )}
@@ -117,7 +115,7 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2.5">
           {filtered.map((sub, index) => (
             <SubscriptionCard key={sub.id} subscription={sub} index={index} />
           ))}
