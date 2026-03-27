@@ -6,10 +6,11 @@ import { createSubscription, updateSubscription, deleteSubscription } from '@/ap
 import { Button } from '@/components/ui/Button'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { CURRENCIES, BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react'
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, ChevronRight, Check } from 'lucide-react'
 import type { Subscription, BillingPeriod, SubscriptionStatus, UserShareMode, Category } from '@/types'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 import { getPlatformLogoUrl } from '@/lib/constants/platforms'
+import { CARD_COLOR_PRESETS } from '@/components/subscriptions/SubscriptionCard'
 
 interface SubscriptionFormProps {
   subscription?: Subscription
@@ -79,12 +80,14 @@ export default function SubscriptionForm({
     subscription?.trial_end_date ?? ''
   )
   const [notes, setNotes] = useState(subscription?.notes ?? '')
+  const [cardColor, setCardColor] = useState<string | null>(subscription?.card_color ?? null)
 
   // ── Helpers ───────────────────────────────────────────────
   function buildPayload() {
     return {
       name: name.trim(),
       logo_url: logoUrl.trim() || null,
+      card_color: cardColor,
       category,
       price_amount: parseFloat(priceAmount) || 0,
       currency,
@@ -162,6 +165,40 @@ export default function SubscriptionForm({
           className={inputCls}
           required
         />
+      </div>
+
+      {/* ── Card colour ───────────────────────────────────── */}
+      <div>
+        <label className={labelCls}>Card color</label>
+        <div className="flex gap-2.5 flex-wrap">
+          {CARD_COLOR_PRESETS.map(preset => {
+            const isSelected = cardColor === preset.hex
+            return (
+              <button
+                key={preset.hex ?? 'white'}
+                type="button"
+                title={preset.label}
+                onClick={() => setCardColor(preset.hex)}
+                className="relative w-9 h-9 rounded-full transition-all duration-150 focus:outline-none"
+                style={{
+                  background: preset.theme.bg,
+                  border: isSelected
+                    ? '2.5px solid #111111'
+                    : `1.5px solid ${preset.hex ? '#D4D4D4' : '#D4D4D4'}`,
+                  boxShadow: isSelected ? '0 0 0 3px rgba(0,0,0,0.12)' : 'none',
+                }}
+              >
+                {isSelected && (
+                  <Check
+                    size={14}
+                    strokeWidth={2.5}
+                    style={{ position: 'absolute', inset: 0, margin: 'auto', color: preset.theme.title }}
+                  />
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* ── Amount + Currency + Period (inline row) ───────── */}

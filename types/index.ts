@@ -40,6 +40,7 @@ export interface Subscription {
   user_share_mode: UserShareMode
   user_share_amount: number | null
   notes: string | null
+  card_color: string | null
   created_at: string
   updated_at: string
 }
