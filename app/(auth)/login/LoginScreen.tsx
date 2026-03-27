@@ -25,59 +25,93 @@ interface LogoConfig {
 }
 
 const LOGOS: LogoConfig[] = [
+  // ── Row 1 (top area) ────────────────────────────────────────────────────────
   {
     id: 'spotify', label: 'S',
     src: 'https://cdn.simpleicons.org/spotify/FFFFFF',
-    bg: '#1DB954', size: 80, radius: 20,
-    left: '5%', top: '14%',
-    xKeys: [0, 7, 2, -5, 0], yKeys: [0, -5, 9, 3, 0],
+    bg: '#1DB954', size: 78, radius: 20,
+    left: '4%', top: '10%',
+    xKeys: [0, 14, 5, -10, 0], yKeys: [0, -10, 16, 5, 0],
     duration: 7.2, delay: 0,
-    pileOffsetX: -140, pileRotate: 11, fallDelay: 0.00,
+    pileOffsetX: -155, pileRotate: 12, fallDelay: 0.00,
+  },
+  {
+    id: 'notion', label: 'N',
+    src: 'https://cdn.simpleicons.org/notion/FFFFFF',
+    bg: '#000000', size: 76, radius: 18,
+    left: '38%', top: '5%',
+    xKeys: [0, -8, 12, -4, 0], yKeys: [0, 14, -6, 10, 0],
+    duration: 8.8, delay: 0.6,
+    pileOffsetX: -15, pileRotate: -3, fallDelay: 0.04,
   },
   {
     id: 'netflix', label: 'N',
     src: 'https://cdn.simpleicons.org/netflix/FFFFFF',
-    bg: '#E50914', size: 80, radius: 20,
-    left: '65%', top: '12%',
-    xKeys: [0, -6, -2, 5, 0], yKeys: [0, 8, -4, 6, 0],
+    bg: '#E50914', size: 78, radius: 20,
+    left: '68%', top: '9%',
+    xKeys: [0, -12, -4, 9, 0], yKeys: [0, 14, -8, 12, 0],
     duration: 8.1, delay: 1.2,
-    pileOffsetX: 100, pileRotate: -8, fallDelay: 0.06,
+    pileOffsetX: 110, pileRotate: -9, fallDelay: 0.06,
   },
+
+  // ── Row 2 (middle area, orbits around Perezoso logo at ~top:22%) ────────────
+  {
+    id: 'google', label: 'G',
+    src: 'https://cdn.simpleicons.org/google/FFFFFF',
+    bg: '#4285F4', size: 74, radius: 18,
+    left: '3%', top: '34%',
+    xKeys: [0, 16, 6, -13, 0], yKeys: [0, -7, 18, -5, 0],
+    duration: 6.9, delay: 1.8,
+    pileOffsetX: -135, pileRotate: 8, fallDelay: 0.11,
+  },
+  {
+    id: 'openai', label: 'AI',
+    src: 'https://cdn.simpleicons.org/openai/FFFFFF',
+    bg: '#10A37F', size: 74, radius: 18,
+    left: '70%', top: '32%',
+    xKeys: [0, -14, -5, 11, 0], yKeys: [0, 12, -14, 6, 0],
+    duration: 9.0, delay: 0.4,
+    pileOffsetX: 60, pileRotate: 6, fallDelay: 0.14,
+  },
+
+  // ── Row 3 (lower-middle) ─────────────────────────────────────────────────────
   {
     id: 'amazon', label: 'A',
     src: 'https://cdn.simpleicons.org/amazon/FFFFFF',
-    bg: '#FF9900', size: 76, radius: 18,
-    left: '19%', top: '40%',
-    xKeys: [0, 8, 3, -6, 0], yKeys: [0, 4, -7, 5, 0],
+    bg: '#FF9900', size: 74, radius: 18,
+    left: '17%', top: '50%',
+    xKeys: [0, 13, 4, -11, 0], yKeys: [0, 8, -14, 9, 0],
     duration: 6.8, delay: 0.8,
-    pileOffsetX: -50, pileRotate: -5, fallDelay: 0.13,
+    pileOffsetX: -60, pileRotate: -6, fallDelay: 0.13,
   },
   {
     id: 'apple', label: '',
     src: 'https://cdn.simpleicons.org/apple/FFFFFF',
-    bg: '#1C1C1E', size: 76, radius: 18,
-    left: '62%', top: '43%',
-    xKeys: [0, -6, -3, 7, 0], yKeys: [0, 7, -3, -4, 0],
+    bg: '#1C1C1E', size: 74, radius: 18,
+    left: '63%', top: '48%',
+    xKeys: [0, -11, -6, 14, 0], yKeys: [0, 13, -6, -10, 0],
     duration: 9.2, delay: 2.1,
-    pileOffsetX: 40, pileRotate: 7, fallDelay: 0.19,
+    pileOffsetX: 45, pileRotate: 7, fallDelay: 0.19,
   },
+
+  // ── Row 4 (bottom, just above card) ─────────────────────────────────────────
   {
     id: 'youtube', label: 'YT',
     src: 'https://cdn.simpleicons.org/youtube/FFFFFF',
     bg: '#FF0000', size: 76, radius: 18,
-    left: '11%', top: '58%',
-    xKeys: [0, 9, 4, -7, 0], yKeys: [0, -5, 8, 2, 0],
+    left: '8%', top: '63%',
+    xKeys: [0, 15, 6, -12, 0], yKeys: [0, -10, 15, 4, 0],
     duration: 7.6, delay: 1.5,
-    pileOffsetX: -95, pileRotate: -13, fallDelay: 0.09,
+    pileOffsetX: -105, pileRotate: -14, fallDelay: 0.09,
   },
   {
     id: 'disneyplus', label: 'D+',
     src: 'https://cdn.simpleicons.org/disneyplus/FFFFFF',
-    bg: '#0D3B7A', size: 82, radius: 22,
-    left: '53%', top: '61%',
-    xKeys: [0, -7, -2, 6, 0], yKeys: [0, 6, -5, -4, 0],
+    bg: '#0D3B7A', size: 80, radius: 22,
+    left: '55%', top: '65%',
+    xKeys: [0, -13, -4, 11, 0], yKeys: [0, 11, -10, -8, 0],
     duration: 8.4, delay: 0.5,
-    pileOffsetX: 130, pileRotate: 4, fallDelay: 0.16,
+    pileOffsetX: 145, pileRotate: 5, fallDelay: 0.16,
   },
 ]
 
@@ -186,20 +220,10 @@ export default function LoginScreen() {
       {/* ── Hero zone ─────────────────────────────────────────────────────── */}
       <div className="absolute inset-0">
 
-        {/* Perezoso app icon — floats gently, then drops away */}
-        <motion.div
+        {/* Perezoso app icon — always static, centre anchor */}
+        <div
           className="absolute"
           style={{ left: '50%', marginLeft: -72, top: '22%' }}
-          animate={
-            isFalling
-              ? { y: 600, rotate: 18, scale: 0.6, opacity: 0 }
-              : { y: [0, -2, 0, 2, 0] }
-          }
-          transition={
-            isFalling
-              ? { type: 'spring', stiffness: 240, damping: 20, delay: 0.22 }
-              : { duration: 4, ease: 'easeInOut', repeat: Infinity }
-          }
         >
           <Image
             src="/logo.png"
@@ -209,7 +233,7 @@ export default function LoginScreen() {
             className="rounded-[34px]"
             priority
           />
-        </motion.div>
+        </div>
 
         {/* Floating service logos */}
         {LOGOS.map((logo) => {
