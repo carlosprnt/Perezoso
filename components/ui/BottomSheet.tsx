@@ -47,16 +47,16 @@ export default function BottomSheet({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — above nav (z-50) */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 animate-backdrop-in"
+        className="fixed inset-0 bg-black/50 z-[58] animate-backdrop-in"
         onClick={onClose}
       />
 
-      {/* Sheet — anchored to bottom, never taller than maxH */}
+      {/* Sheet — above nav (z-50) and backdrop */}
       <div
         className={`
-          fixed bottom-0 left-0 right-0 z-50
+          fixed bottom-0 left-0 right-0 z-[60]
           bg-white rounded-t-[28px]
           flex flex-col
           ${maxH}

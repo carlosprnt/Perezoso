@@ -40,7 +40,7 @@ function WalletCard({ sub, isNew }: { sub: SubscriptionWithCosts; isNew?: boolea
   return (
     <Link href={`/subscriptions/${sub.id}`}>
       <motion.div
-        className="w-full bg-white rounded-[28px] px-6 pt-6 pb-7 flex items-start gap-5 active:scale-[0.985] transition-transform duration-100 relative overflow-hidden"
+        className="w-full bg-white rounded-[28px] px-5 pt-5 pb-7 flex items-start gap-5 active:scale-[0.985] transition-transform duration-100 relative overflow-hidden"
         style={{ border: '1.5px solid #E8E8E8', minHeight: 'clamp(260px, 36vw, 320px)' }}
         // Shimmer glow on border
         animate={shimmer ? {
@@ -224,9 +224,9 @@ interface SubscriptionsViewProps {
 }
 
 // Stack offset: next card peeks 16px below the content row of the previous card.
-// Content row = pt-6 (24px) + avatar height (56px) + 16px gap = 96px from card top.
-// Overlap = cardHeight - 96px  →  marginTop = calc(96px - clamp(260px, 36vw, 320px))
-const STACK_VISIBLE_TOP = '96px'
+// Content row = pt-5 (20px) + avatar height (56px) + 16px gap = 92px from card top.
+// Overlap = cardHeight - 92px  →  marginTop = calc(92px - clamp(260px, 36vw, 320px))
+const STACK_VISIBLE_TOP = '92px'
 const CARD_HEIGHT_EXPR = 'clamp(260px, 36vw, 320px)'
 const STACK_MARGIN = `calc(${STACK_VISIBLE_TOP} - ${CARD_HEIGHT_EXPR})`
 
