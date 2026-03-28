@@ -15,7 +15,7 @@ export default function PlatformPicker({ onSelect }: PlatformPickerProps) {
       <div className="px-5 pt-4 pb-3 flex-shrink-0">
         <button
           onClick={() => onSelect(null)}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-[#D4D4D4] hover:border-[#A3A3A3] hover:bg-[#FAFAFA] transition-colors text-left"
+          className="w-full h-12 flex items-center gap-3 px-4 rounded-[10px] border border-dashed border-[#D4D4D4] hover:border-[#A3A3A3] hover:bg-[#FAFAFA] transition-colors text-left"
         >
           <div className="w-9 h-9 rounded-xl bg-[#F5F5F5] border border-[#E8E8E8] flex items-center justify-center flex-shrink-0">
             <PenLine size={15} className="text-[#666666]" />

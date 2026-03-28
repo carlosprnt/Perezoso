@@ -137,7 +137,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         <div className="pb-12 mt-2">
           <button
             onClick={() => setEditOpen(true)}
-            className="w-full h-10 rounded-xl bg-[#3D3BF3] text-white text-sm font-medium hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors pressable"
+            className="w-full h-12 rounded-[10px] bg-[#3D3BF3] text-white text-sm font-medium hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors pressable"
           >
             Edit subscription
           </button>

@@ -27,7 +27,7 @@ export default function AddSubscriptionFlow() {
     <>
       <button
         onClick={() => setStep('pick')}
-        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#121212] text-white text-sm font-medium hover:bg-[#2A2A2A] transition-colors pressable"
+        className="flex items-center gap-1.5 px-4 h-12 rounded-[10px] bg-[#3D3BF3] text-white text-sm font-medium hover:bg-[#3230D0] transition-colors pressable"
       >
         <Plus size={15} />
         Add

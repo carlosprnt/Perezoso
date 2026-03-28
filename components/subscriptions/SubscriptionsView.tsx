@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   motion, AnimatePresence,
   useScroll, useVelocity, useSpring, useTransform,
@@ -13,6 +13,7 @@ import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { CATEGORIES } from '@/lib/constants/categories'
+import { useElasticPullDown } from '@/lib/hooks/useElasticPullDown'
 import type { SubscriptionWithCosts, SubscriptionStatus, Category, DashboardStats } from '@/types'
 
 // ─── Category labels ───────────────────────────────────────────────────────
@@ -136,58 +137,16 @@ function CardStack({
   const rawVelocity = useVelocity(scrollY)
   const springVelocity = useSpring(rawVelocity, { stiffness: 180, damping: 28 })
 
-  // Overscroll stretch: pulling past the bottom of the page fans cards open
-  const [stretchPx, setStretchPx] = useState(0)
-  const stretchingRef = useRef(false)
-  const touchStartY = useRef(0)
-
-  useEffect(() => {
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY
-    }
-
-    const onTouchMove = (e: TouchEvent) => {
-      const atBottom =
-        window.scrollY + window.innerHeight >= document.body.scrollHeight - 4
-      if (!atBottom) return
-
-      const pull = e.touches[0].clientY - touchStartY.current // positive = pulling down
-      if (pull > 0) {
-        stretchingRef.current = true
-        // Resistance: slows as you pull further (sqrt curve), max ~60px
-        setStretchPx(Math.min(Math.sqrt(pull) * 3.2, 60))
-      }
-    }
-
-    const onTouchEnd = () => {
-      if (stretchingRef.current) {
-        stretchingRef.current = false
-        setStretchPx(0) // springs back via CSS transition
-      }
-    }
-
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: true })
-    window.addEventListener('touchend', onTouchEnd, { passive: true })
-    return () => {
-      window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchmove', onTouchMove)
-      window.removeEventListener('touchend', onTouchEnd)
-    }
-  }, [])
+  // Pull-down elastic: whole stack translates downward when over-pulling at top
+  const elasticY = useElasticPullDown()
 
   return (
-    <div className="relative">
+    <motion.div className="relative" style={{ y: elasticY }}>
       {subscriptions.map((sub, i) => (
         <div
           key={sub.id}
           style={{
-            marginTop: i === 0 ? 0
-              : `calc(${STACK_VISIBLE_TOP} + ${stretchPx}px - ${CARD_HEIGHT_EXPR})`,
-            // Snap back smoothly; no transition while actively pulling
-            transition: stretchingRef.current
-              ? 'none'
-              : 'margin-top 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            marginTop: i === 0 ? 0 : STACK_MARGIN,
             zIndex: i + 1,
             position: 'relative',
           }}
@@ -200,7 +159,7 @@ function CardStack({
           />
         </div>
       ))}
-    </div>
+    </motion.div>
   )
 }
 
@@ -272,7 +231,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
             <div className="flex flex-wrap gap-2">
               {STATUS_OPTIONS.map(opt => (
                 <button key={opt.value} onClick={() => setStatus(opt.value)}
-                  className={`flex items-center gap-1.5 px-4 h-10 rounded-2xl text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                  className={`flex items-center gap-1.5 px-4 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
                   {status === opt.value && <Check size={12} strokeWidth={3} />}
                   {opt.label}
                 </button>
@@ -283,7 +242,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
             <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">Category</p>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setCategory('all')}
-                className={`flex items-center gap-2 px-3 h-10 rounded-2xl text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
                 {category === 'all' && <Check size={12} strokeWidth={3} />}
                 All categories
               </button>
@@ -292,7 +251,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
                 const active = category === cat.value
                 return (
                   <button key={cat.value} onClick={() => setCategory(cat.value)}
-                    className={`flex items-center gap-2 px-3 h-10 rounded-2xl text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                    className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
                     <Icon size={13} strokeWidth={2} />
                     {cat.label}
                   </button>
@@ -304,11 +263,11 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
         <div className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0]"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
           <button onClick={reset}
-            className="flex-1 h-10 rounded-2xl text-sm font-semibold text-[#444444] bg-[#F5F5F5] transition-colors active:bg-[#ECECEC]">
+            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-[#444444] bg-[#F5F5F5] transition-colors active:bg-[#ECECEC]">
             Reset
           </button>
           <button onClick={apply}
-            className="flex-1 h-10 rounded-2xl text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
+            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
             Apply
           </button>
         </div>
@@ -346,7 +305,7 @@ export default function SubscriptionsView({
           <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">Subscriptions</h1>
           <button
             onClick={() => setFilterOpen(true)}
-            className="relative w-10 h-10 rounded-2xl bg-white flex items-center justify-center transition-colors active:bg-[#F0F0F0]"
+            className="relative w-10 h-12 rounded-[10px] bg-white flex items-center justify-center transition-colors active:bg-[#F0F0F0]"
             style={{ border: '1.5px solid #E0E0E0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
           >
             <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333]" />
