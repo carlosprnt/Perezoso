@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import {
-  motion, AnimatePresence,
+  motion, AnimatePresence, LayoutGroup,
   useScroll, useVelocity, useSpring, useTransform,
   type MotionValue,
 } from 'framer-motion'
-import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
 import { SlidersHorizontal, X, Check } from 'lucide-react'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
@@ -37,6 +37,8 @@ const STACK_VISIBLE_TOP = '92px'
 const CARD_HEIGHT_EXPR = 'clamp(260px, 36vw, 320px)'
 const STACK_MARGIN = `calc(${STACK_VISIBLE_TOP} - ${CARD_HEIGHT_EXPR})`
 
+const CARD_SPRING = { type: 'spring' as const, stiffness: 340, damping: 32, mass: 0.85 }
+
 // ─── Single wallet card ────────────────────────────────────────────────────
 interface WalletCardProps {
   sub: SubscriptionWithCosts
@@ -44,9 +46,11 @@ interface WalletCardProps {
   index: number
   /** Spring-smoothed scroll velocity from parent */
   velocityMv: MotionValue<number>
+  isSelected: boolean
+  onOpen: (sub: SubscriptionWithCosts) => void
 }
 
-function WalletCard({ sub, isNew, index, velocityMv }: WalletCardProps) {
+function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen }: WalletCardProps) {
   const [shimmer, setShimmer] = useState(isNew ?? false)
 
   useEffect(() => {
@@ -61,14 +65,21 @@ function WalletCard({ sub, isNew, index, velocityMv }: WalletCardProps) {
   const yOffset = useTransform(velocityMv, [-2500, 0, 2500], [maxShift, 0, -maxShift])
 
   return (
-    <Link href={`/subscriptions/${sub.id}`}>
+    // Parallax wrapper — must NOT have layoutId, otherwise the transform
+    // interferes with Framer Motion's position measurement during expansion.
+    <motion.div
+      style={{ y: yOffset, visibility: isSelected ? 'hidden' : undefined }}
+    >
       <motion.div
-        className="w-full bg-white rounded-[28px] px-5 pt-5 pb-7 flex items-start gap-5 active:scale-[0.985] transition-transform duration-100 relative overflow-hidden"
+        layoutId={`card-${sub.id}`}
+        onClick={() => onOpen(sub)}
+        className="w-full bg-white px-5 pt-5 pb-7 flex items-start gap-5 relative overflow-hidden cursor-pointer"
         style={{
           border: '1.5px solid #E8E8E8',
+          borderRadius: 28,
           minHeight: CARD_HEIGHT_EXPR,
-          y: yOffset,
         }}
+        whileTap={{ scale: 0.985 }}
         animate={shimmer ? {
           boxShadow: [
             '0 0 0px 0px rgba(61,59,243,0)',
@@ -79,15 +90,20 @@ function WalletCard({ sub, isNew, index, velocityMv }: WalletCardProps) {
           ],
         } : { boxShadow: '0 0 0px 0px rgba(61,59,243,0)' }}
         transition={shimmer ? {
+          layout: CARD_SPRING,
           duration: 2.8, ease: 'easeInOut', times: [0, 0.2, 0.5, 0.8, 1],
-        } : { duration: 0 }}
+        } : {
+          layout: CARD_SPRING,
+          duration: 0,
+        }}
       >
         {/* Sweep reflection on new card */}
         {isNew && (
           <motion.div
-            className="absolute inset-0 pointer-events-none rounded-[28px]"
+            className="absolute inset-0 pointer-events-none"
             style={{
               background: 'linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.72) 50%, transparent 80%)',
+              borderRadius: 28,
               zIndex: 10,
             }}
             initial={{ x: '-160%' }}
@@ -120,7 +136,7 @@ function WalletCard({ sub, isNew, index, velocityMv }: WalletCardProps) {
           </p>
         </div>
       </motion.div>
-    </Link>
+    </motion.div>
   )
 }
 
@@ -128,9 +144,13 @@ function WalletCard({ sub, isNew, index, velocityMv }: WalletCardProps) {
 function CardStack({
   subscriptions,
   newSubscriptionId,
+  selectedSubId,
+  onOpen,
 }: {
   subscriptions: SubscriptionWithCosts[]
   newSubscriptionId?: string
+  selectedSubId: string | null
+  onOpen: (sub: SubscriptionWithCosts) => void
 }) {
   // Organic scroll: spring-smoothed velocity drives per-card parallax
   const { scrollY } = useScroll()
@@ -156,6 +176,8 @@ function CardStack({
             isNew={sub.id === newSubscriptionId}
             index={i}
             velocityMv={springVelocity}
+            isSelected={sub.id === selectedSubId}
+            onOpen={onOpen}
           />
         </div>
       ))}
@@ -295,10 +317,27 @@ export default function SubscriptionsView({
   newSubscriptionId,
 }: SubscriptionsViewProps) {
   const [filterOpen, setFilterOpen] = useState(false)
+  // Track which card is expanded. `overlayVisible` controls AnimatePresence;
+  // `selectedSub` is cleared only after the exit animation completes so the
+  // card stays invisible during the collapse animation.
+  const [selectedSub, setSelectedSub] = useState<SubscriptionWithCosts | null>(null)
+  const [overlayVisible, setOverlayVisible] = useState(false)
+
+  function openSub(sub: SubscriptionWithCosts) {
+    setSelectedSub(sub)
+    setOverlayVisible(true)
+  }
+
+  function closeSub() {
+    setOverlayVisible(false)
+    // selectedSub is cleared in onExitComplete so the card ghost stays hidden
+    // while the collapse animation plays
+  }
+
   const hasActiveFilters = (currentStatus && currentStatus !== 'all') || (currentCategory && currentCategory !== 'all')
 
   return (
-    <>
+    <LayoutGroup>
       <div className="space-y-5">
         {/* ── Header ───────────────────────────────────────────── */}
         <div className="flex items-center justify-between">
@@ -360,9 +399,24 @@ export default function SubscriptionsView({
             </p>
           </div>
         ) : (
-          <CardStack subscriptions={subscriptions} newSubscriptionId={newSubscriptionId} />
+          <CardStack
+            subscriptions={subscriptions}
+            newSubscriptionId={newSubscriptionId}
+            selectedSubId={selectedSub?.id ?? null}
+            onOpen={openSub}
+          />
         )}
       </div>
+
+      {/* ── Card expansion overlay ────────────────────────────── */}
+      <AnimatePresence onExitComplete={() => setSelectedSub(null)}>
+        {overlayVisible && selectedSub && (
+          <SubscriptionDetailOverlay
+            sub={selectedSub}
+            onClose={closeSub}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Filter bottom sheet ───────────────────────────────── */}
       <AnimatePresence>
@@ -374,6 +428,6 @@ export default function SubscriptionsView({
           />
         )}
       </AnimatePresence>
-    </>
+    </LayoutGroup>
   )
 }
