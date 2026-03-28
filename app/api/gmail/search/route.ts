@@ -29,8 +29,14 @@ async function fetchJson<T>(url: string, token: string): Promise<T | null> {
 export async function GET(request: NextRequest) {
   const token = request.cookies.get('gmail_token')?.value
 
-  // ── Development mock mode ───────────────────────────────────────────────────
-  if (!token && process.env.GMAIL_MOCK === 'true') {
+  // ── Mock mode ───────────────────────────────────────────────────────────────
+  // Active when GMAIL_MOCK=true OR when no token exists in development.
+  // This lets you test the full import UI without a real Google account.
+  const isMock =
+    process.env.GMAIL_MOCK === 'true' ||
+    (!token && process.env.NODE_ENV === 'development')
+
+  if (isMock) {
     const { MOCK_GMAIL_MESSAGES } = await import('@/lib/gmail-mock')
     const candidates = detectSubscriptionsFromEmails(MOCK_GMAIL_MESSAGES)
     return NextResponse.json({ status: 'ok', candidates })
