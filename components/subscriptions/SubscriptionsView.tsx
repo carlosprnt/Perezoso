@@ -30,30 +30,30 @@ function WalletCard({ sub }: { sub: SubscriptionWithCosts }) {
   return (
     <Link href={`/subscriptions/${sub.id}`}>
       <div
-        className="w-full bg-white rounded-[28px] px-5 py-[18px] flex items-center gap-4 active:scale-[0.985] transition-transform duration-100"
-        style={{ border: '1.5px solid #E8E8E8' }}
+        className="w-full bg-white rounded-[28px] px-6 py-9 flex items-center gap-5 active:scale-[0.985] transition-transform duration-100"
+        style={{ border: '1.5px solid #E8E8E8', minHeight: 'clamp(130px, 18vw, 160px)' }}
       >
-        {/* Avatar */}
-        <SubscriptionAvatar name={sub.name} logoUrl={sub.logo_url} size="md" />
+        {/* Avatar — larger to fill taller card */}
+        <SubscriptionAvatar name={sub.name} logoUrl={sub.logo_url} size="lg" />
 
         {/* Name + category */}
         <div className="flex-1 min-w-0">
-          <p className="text-[19px] font-bold text-[#111111] leading-snug truncate">
+          <p className="text-[21px] font-bold text-[#111111] leading-snug truncate">
             {sub.name}
           </p>
-          <p className="text-[13px] text-[#999999] mt-0.5 leading-snug">
+          <p className="text-[14px] text-[#999999] mt-1 leading-snug">
             {CATEGORY_LABEL[sub.category] ?? sub.category}
           </p>
         </div>
 
         {/* Price + status */}
         <div className="text-right flex-shrink-0">
-          <p className="text-[15px] font-bold text-[#111111] tabular-nums leading-snug">
+          <p className="text-[16px] font-bold text-[#111111] tabular-nums leading-snug">
             {formatCurrency(sub.my_monthly_cost, sub.currency)}
             <span className="text-[13px] font-normal text-[#999999] ml-0.5">/mo</span>
           </p>
           <p
-            className="text-[13px] font-semibold mt-0.5 leading-snug"
+            className="text-[14px] font-semibold mt-1 leading-snug"
             style={{ color: STATUS_COLOR[sub.status] ?? '#9CA3AF' }}
           >
             {STATUS_LABEL[sub.status] ?? sub.status}

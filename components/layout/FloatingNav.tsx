@@ -5,11 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutGrid, Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
-import PlatformPicker from '@/components/subscriptions/PlatformPicker'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
-import type { PlatformPreset } from '@/lib/constants/platforms'
-
-type AddStep = 'closed' | 'pick-platform' | 'form'
 
 // Custom tag+heart icon matching the reference design
 function TagHeartIcon({ active }: { active: boolean }) {
@@ -20,9 +16,7 @@ function TagHeartIcon({ active }: { active: boolean }) {
       strokeWidth={active ? 2.5 : 2}
       strokeLinecap="round" strokeLinejoin="round"
     >
-      {/* Tag/label shape */}
       <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-      {/* Small heart inside the tag */}
       <path d="M8.5 8.5c.5-1 2-1 2 .5 0 1-2 2-2 2s-2-1-2-2c0-1.5 1.5-1.5 2-.5z" strokeWidth="1.5" />
     </svg>
   )
@@ -30,18 +24,7 @@ function TagHeartIcon({ active }: { active: boolean }) {
 
 export default function FloatingNav() {
   const pathname = usePathname()
-  const [addStep, setAddStep] = useState<AddStep>('closed')
-  const [platform, setPlatform] = useState<PlatformPreset | null>(null)
-
-  function handlePlatformSelect(p: PlatformPreset | null) {
-    setPlatform(p)
-    setAddStep('form')
-  }
-
-  function closeSheets() {
-    setAddStep('closed')
-    setPlatform(null)
-  }
+  const [addOpen, setAddOpen] = useState(false)
 
   const isDash = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
   const isSubs = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
@@ -75,9 +58,9 @@ export default function FloatingNav() {
             </div>
           </Link>
 
-          {/* Add — wide rounded-rectangle pill button */}
+          {/* Add — goes straight to form, no platform picker */}
           <button
-            onClick={() => setAddStep('pick-platform')}
+            onClick={() => setAddOpen(true)}
             aria-label="Add subscription"
             className="
               w-[108px] h-[54px] rounded-[27px]
@@ -99,33 +82,22 @@ export default function FloatingNav() {
               `}
             >
               <TagHeartIcon active={isSubs} />
-              {/* apply colour via parent */}
               <span className="sr-only">Subscriptions</span>
             </div>
           </Link>
         </div>
       </nav>
 
-      {/* ── Add subscription sheets ─────────────────────────────── */}
+      {/* ── Add subscription sheet — direct to form ─────────────── */}
       <BottomSheet
-        isOpen={addStep === 'pick-platform'}
-        onClose={closeSheets}
-        title="Add subscription"
-        height="tall"
-      >
-        <PlatformPicker onSelect={handlePlatformSelect} />
-      </BottomSheet>
-
-      <BottomSheet
-        isOpen={addStep === 'form'}
-        onClose={closeSheets}
-        title={platform ? platform.name : 'New subscription'}
+        isOpen={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="New subscription"
         height="tall"
       >
         <SubscriptionForm
           mode="create"
-          platformPreset={platform ?? undefined}
-          onCancel={closeSheets}
+          onCancel={() => setAddOpen(false)}
         />
       </BottomSheet>
     </>
