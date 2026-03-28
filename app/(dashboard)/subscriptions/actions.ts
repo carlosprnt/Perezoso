@@ -5,6 +5,20 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SubscriptionFormData } from '@/types'
 
+// Columns that may not exist yet (pending migrations).
+// If Supabase returns a schema-cache error for these, we retry without them.
+const OPTIONAL_COLUMNS = ['card_color'] as const
+
+function stripOptionalColumns(data: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...data }
+  for (const col of OPTIONAL_COLUMNS) delete out[col]
+  return out
+}
+
+function isSchemaError(message: string): boolean {
+  return message.includes('column') && message.includes('schema cache')
+}
+
 // ============================================================
 // CREATE
 // ============================================================
@@ -15,10 +29,15 @@ export async function createSubscription(formData: SubscriptionFormData) {
 
   if (!user) redirect('/login')
 
-  const { error } = await supabase.from('subscriptions').insert({
-    ...formData,
-    user_id: user.id,
-  })
+  const payload = { ...formData, user_id: user.id }
+  let { error } = await supabase.from('subscriptions').insert(payload)
+
+  // Retry without optional columns if DB schema is behind
+  if (error && isSchemaError(error.message)) {
+    const fallback = { ...stripOptionalColumns(payload as Record<string, unknown>), user_id: user.id }
+    const retry = await supabase.from('subscriptions').insert(fallback)
+    error = retry.error
+  }
 
   if (error) {
     return { error: error.message }
@@ -39,11 +58,22 @@ export async function updateSubscription(id: string, formData: SubscriptionFormD
 
   if (!user) redirect('/login')
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from('subscriptions')
     .update({ ...formData })
     .eq('id', id)
-    .eq('user_id', user.id) // Extra safety: only update own rows
+    .eq('user_id', user.id)
+
+  // Retry without optional columns if DB schema is behind
+  if (error && isSchemaError(error.message)) {
+    const fallback = stripOptionalColumns(formData as unknown as Record<string, unknown>)
+    const retry = await supabase
+      .from('subscriptions')
+      .update(fallback)
+      .eq('id', id)
+      .eq('user_id', user.id)
+    error = retry.error
+  }
 
   if (error) {
     return { error: error.message }
