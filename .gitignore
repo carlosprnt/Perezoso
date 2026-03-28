@@ -31,3 +31,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Supabase CLI temp files
+supabase/.temp/
