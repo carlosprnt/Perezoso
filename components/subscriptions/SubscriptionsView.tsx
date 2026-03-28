@@ -223,7 +223,12 @@ interface SubscriptionsViewProps {
   newSubscriptionId?: string
 }
 
-const STACK_OVERLAP = 20
+// Stack offset: next card peeks 16px below the content row of the previous card.
+// Content row = pt-6 (24px) + avatar height (56px) + 16px gap = 96px from card top.
+// Overlap = cardHeight - 96px  →  marginTop = calc(96px - clamp(260px, 36vw, 320px))
+const STACK_VISIBLE_TOP = '96px'
+const CARD_HEIGHT_EXPR = 'clamp(260px, 36vw, 320px)'
+const STACK_MARGIN = `calc(${STACK_VISIBLE_TOP} - ${CARD_HEIGHT_EXPR})`
 
 export default function SubscriptionsView({
   subscriptions,
@@ -304,7 +309,7 @@ export default function SubscriptionsView({
               <div
                 key={sub.id}
                 style={{
-                  marginTop: i === 0 ? 0 : -STACK_OVERLAP,
+                  marginTop: i === 0 ? 0 : STACK_MARGIN,
                   zIndex: i + 1,
                   position: 'relative',
                 }}
