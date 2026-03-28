@@ -52,9 +52,9 @@ export default function FloatingNav() {
       <nav className="lg:hidden fixed bottom-[10px] left-1/2 -translate-x-1/2 z-50">
         <div
           className="
-            flex items-center gap-1.5
+            flex items-center gap-2
             bg-white/95 backdrop-blur-md
-            rounded-full px-3 py-2.5
+            rounded-full px-5 py-2.5
             border border-[#DCDCDC]
             shadow-[0_2px_16px_rgba(0,0,0,0.12)]
           "

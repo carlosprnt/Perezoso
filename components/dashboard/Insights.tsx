@@ -84,20 +84,22 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
   if (insights.length === 0) return null
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {insights.map((insight, i) => (
         <div
           key={i}
-          className="bg-white rounded-2xl border border-[#D4D4D4] p-4 flex items-start gap-3 animate-fade-in"
+          className="bg-white rounded-[20px] border border-[#E8E8E8] p-4 flex flex-col gap-3 animate-fade-in"
           style={{ animationDelay: `${i * 50}ms` }}
         >
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${insight.color}`}>
+          {/* Icon */}
+          <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 ${insight.color}`}>
             {insight.icon}
           </div>
+          {/* Text */}
           <div className="min-w-0">
-            <p className="text-xs text-[#616161] font-medium mb-0.5">{insight.label}</p>
-            <p className="text-sm font-semibold text-[#121212] truncate">{insight.value}</p>
-            <p className="text-xs text-[#616161] truncate">{insight.sub}</p>
+            <p className="text-[12px] text-[#999999] font-medium leading-snug mb-0.5">{insight.label}</p>
+            <p className="text-[15px] font-bold text-[#111111] leading-snug truncate">{insight.value}</p>
+            <p className="text-[12px] text-[#999999] mt-0.5 leading-snug line-clamp-2">{insight.sub}</p>
           </div>
         </div>
       ))}
