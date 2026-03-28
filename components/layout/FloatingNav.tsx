@@ -7,9 +7,10 @@ import { LayoutGrid, Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from '@/components/subscriptions/PlatformPicker'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
+import GmailSubscriptionSearchSheet from '@/components/subscriptions/GmailSubscriptionSearchSheet'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
-type Step = 'closed' | 'pick' | 'form'
+type Step = 'closed' | 'pick' | 'form' | 'gmail'
 
 function TagHeartIcon({ active }: { active: boolean }) {
   return (
@@ -100,18 +101,16 @@ export default function FloatingNav() {
 
       {/* Step 1 — Platform list */}
       <BottomSheet isOpen={step === 'pick'} onClose={close} title="Create new" height="tall">
-        <PlatformPicker onSelect={handleSelect} />
+        <PlatformPicker onSelect={handleSelect} onGmailSearch={() => setStep('gmail')} />
       </BottomSheet>
 
       {/* Step 2 — Form */}
-      <BottomSheet
-        isOpen={step === 'form'}
-        onClose={close}
-        title="Create new"
-        height="tall"
-      >
+      <BottomSheet isOpen={step === 'form'} onClose={close} title="Create new" height="tall">
         <SubscriptionForm mode="create" platformPreset={platform ?? undefined} onCancel={close} />
       </BottomSheet>
+
+      {/* Gmail search sheet */}
+      <GmailSubscriptionSearchSheet isOpen={step === 'gmail'} onClose={close} />
     </>
   )
 }
