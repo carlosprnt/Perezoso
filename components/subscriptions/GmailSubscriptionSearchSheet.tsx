@@ -6,6 +6,7 @@ import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-reac
 import BottomSheet from '@/components/ui/BottomSheet'
 import GmailSubscriptionResultItem from './GmailSubscriptionResultItem'
 import { importSubscriptions } from '@/app/(dashboard)/subscriptions/actions'
+import { createClient } from '@/lib/supabase/client'
 import type { DetectedSubscription } from '@/types/detected-subscription'
 import type { SubscriptionFormData } from '@/types'
 
@@ -72,6 +73,24 @@ function requestGmailToken(clientId: string): Promise<string> {
       })
       client.requestAccessToken({ prompt: 'consent' })
     })
+  })
+}
+
+// ─── Supabase OAuth redirect fallback (when GIS client ID is not configured) ──
+// After redirect, /auth/gmail-callback stores the token in a cookie,
+// and the localStorage flag tells AddSubscriptionFlow to re-open this sheet.
+
+async function initiateSupabaseGmailAuth() {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('perezoso_gmail_pending', '1')
+  const supabase = createClient()
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      scopes: 'https://www.googleapis.com/auth/gmail.readonly',
+      queryParams: { access_type: 'offline', prompt: 'consent' },
+      redirectTo: `${window.location.origin}/auth/gmail-callback`,
+    },
   })
 }
 
@@ -169,24 +188,23 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
     }
   }, [isOpen, doSearch])
 
-  // ── Connect Gmail via GIS popup ────────────────────────────────────────────
+  // ── Connect Gmail ──────────────────────────────────────────────────────────
+  // • If NEXT_PUBLIC_GOOGLE_CLIENT_ID is set → GIS popup (no page redirect)
+  // • Otherwise → Supabase OAuth redirect (token captured in /auth/gmail-callback)
   async function connectGmail() {
-    if (!clientId) {
-      setSheetState({
-        type: 'error',
-        message: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set. Add it to your .env.local file.',
-      })
-      return
-    }
-    try {
-      const token = await requestGmailToken(clientId)
-      tokenRef.current = token
-      await doSearch(token)
-    } catch (err) {
-      // User closed the popup or denied permission — stay on not_connected
-      if (err instanceof Error && err.message !== 'Auth cancelled') {
-        setSheetState({ type: 'error', message: err.message })
+    if (clientId) {
+      try {
+        const token = await requestGmailToken(clientId)
+        tokenRef.current = token
+        await doSearch(token)
+      } catch (err) {
+        if (err instanceof Error && err.message !== 'Auth cancelled') {
+          setSheetState({ type: 'error', message: err.message })
+        }
       }
+    } else {
+      // Redirect flow — page will reload; AddSubscriptionFlow re-opens this sheet via localStorage
+      await initiateSupabaseGmailAuth()
     }
   }
 

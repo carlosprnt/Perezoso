@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from './PlatformPicker'
@@ -13,6 +13,16 @@ type Step = 'closed' | 'pick' | 'form' | 'gmail'
 export default function AddSubscriptionFlow() {
   const [step, setStep] = useState<Step>('closed')
   const [platform, setPlatform] = useState<PlatformPreset | null>(null)
+
+  // Re-open Gmail sheet after Supabase OAuth redirect (fallback flow)
+  useEffect(() => {
+    const pending = localStorage.getItem('perezoso_gmail_pending')
+    if (pending === '1') {
+      localStorage.removeItem('perezoso_gmail_pending')
+      const t = setTimeout(() => setStep('gmail'), 350)
+      return () => clearTimeout(t)
+    }
+  }, [])
 
   function handleSelect(p: PlatformPreset | null) {
     setPlatform(p)

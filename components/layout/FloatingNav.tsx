@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutGrid, Plus } from 'lucide-react'
@@ -26,6 +26,15 @@ export default function FloatingNav() {
   const pathname = usePathname()
   const [step, setStep] = useState<Step>('closed')
   const [platform, setPlatform] = useState<PlatformPreset | null>(null)
+
+  useEffect(() => {
+    const pending = localStorage.getItem('perezoso_gmail_pending')
+    if (pending === '1') {
+      localStorage.removeItem('perezoso_gmail_pending')
+      const t = setTimeout(() => setStep('gmail'), 350)
+      return () => clearTimeout(t)
+    }
+  }, [])
 
   function handleSelect(p: PlatformPreset | null) {
     setPlatform(p)
