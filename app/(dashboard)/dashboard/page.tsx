@@ -53,7 +53,7 @@ export default async function DashboardPage() {
       ) : (
         <>
           {/* Stats row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[8px]">
             <StatCard
               label="Monthly"
               value={formatCurrency(stats.total_monthly_cost, 'EUR')}
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
           {/* Insights */}
           <Insights subscriptions={subs} stats={stats} />
 
-          <div className="grid lg:grid-cols-3 gap-3">
+          <div className="grid lg:grid-cols-3 gap-[8px]">
             {/* Upcoming renewals */}
             <div className="lg:col-span-2">
               <Card>
@@ -250,7 +250,7 @@ function StatCard({
         rounded-2xl p-4 border
         ${accent
           ? 'bg-[#121212] border-[#121212] text-white'
-          : 'bg-white border-[#D4D4D4]'
+          : 'bg-white border-[#E8E8E8]'
         }
       `}
     >

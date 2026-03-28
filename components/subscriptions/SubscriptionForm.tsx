@@ -161,7 +161,7 @@ export default function SubscriptionForm({
           placeholder="Netflix, Spotify, Notion…"
           value={name}
           onChange={e => setName(e.target.value)}
-          autoFocus={mode === 'create' && !platformPreset?.name}
+          autoFocus={false}
           className={inputCls}
           required
         />
@@ -323,16 +323,16 @@ export default function SubscriptionForm({
       {/* ── Next billing date ─────────────────────────────── */}
       <div>
         <label className={labelCls}>Next billing date</label>
-        <div className="relative">
+        <div className="relative w-full overflow-hidden">
           <Calendar
             size={15}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A3A3A3] pointer-events-none"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A3A3A3] pointer-events-none z-10"
           />
           <input
             type="date"
             value={nextBillingDate}
             onChange={e => setNextBillingDate(e.target.value)}
-            className={inputCls + ' pl-10'}
+            className={inputCls + ' pl-10 w-full min-w-0 max-w-full'}
           />
         </div>
       </div>

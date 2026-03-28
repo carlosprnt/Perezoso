@@ -108,7 +108,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
     <AnimatePresence>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 bg-black/40 z-40"
+        className="fixed inset-0 bg-black/40 z-[59]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -118,7 +118,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
 
       {/* Sheet */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[28px]"
+        className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-[28px]"
         style={{ border: '1px solid #E5E5E5', borderBottom: 'none' }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -263,7 +263,7 @@ export default function SubscriptionsView({
 
         {/* ── Summary cards ────────────────────────────────────── */}
         {allCount > 0 && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-[8px]">
             <div className="bg-white rounded-[20px] p-4" style={{ border: '1.5px solid #E8E8E8' }}>
               <p className="text-[13px] text-[#999999] font-medium">Total</p>
               <p className="text-[18px] font-bold text-[#111111] mt-1 leading-tight tabular-nums">
@@ -312,7 +312,7 @@ export default function SubscriptionsView({
                 key={sub.id}
                 style={{
                   marginTop: i === 0 ? 0 : -STACK_OVERLAP,
-                  zIndex: subscriptions.length - i,
+                  zIndex: i + 1,        // first card lowest, last card on top
                   position: 'relative',
                 }}
                 initial={{ y: 70, opacity: 0 }}

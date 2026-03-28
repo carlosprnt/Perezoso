@@ -24,7 +24,7 @@ export function Card({
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-2xl border border-[#D4D4D4]
+        bg-white rounded-2xl border border-[#E8E8E8]
         ${PADDING[padding]}
         ${hover ? 'hover:border-[#A3A3A3] hover:bg-[#FAFAFA] transition-colors duration-150' : ''}
         ${onClick ? 'cursor-pointer pressable' : ''}

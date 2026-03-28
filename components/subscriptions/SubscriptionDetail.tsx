@@ -32,10 +32,10 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
 
   return (
     <>
-      <div className="min-h-screen bg-[#F7F8FA]">
+      <div className="min-h-screen bg-[#F7F8FA] -mx-4 sm:-mx-6 px-4 sm:px-6">
 
         {/* Top nav */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 bg-[#F7F8FA]">
+        <div className="flex items-center justify-between pt-1 pb-4 bg-[#F7F8FA]">
           <button
             onClick={() => router.back()}
             className="w-9 h-9 rounded-xl flex items-center justify-center bg-white border border-[#E5E5E5] hover:border-[#D4D4D4] transition-colors"
@@ -56,7 +56,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         </div>
 
         {/* Hero card */}
-        <div className="mx-5 mb-4 bg-white rounded-2xl border border-[#E5E5E5] p-6 flex flex-col items-center text-center">
+        <div className="mb-2 bg-white rounded-2xl border border-[#E8E8E8] p-6 flex flex-col items-center text-center">
           <SubscriptionAvatar name={sub.name} logoUrl={sub.logo_url} size="xl" />
 
           <h1 className="text-xl font-bold text-[#121212] mt-4 mb-2 leading-tight">
@@ -82,7 +82,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         </div>
 
         {/* Cost breakdown */}
-        <div className="mx-5 mb-4 bg-white rounded-2xl border border-[#E5E5E5] p-4">
+        <div className="mb-2 bg-white rounded-2xl border border-[#E8E8E8] p-4">
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs text-[#616161] mb-1">
@@ -104,7 +104,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         </div>
 
         {/* Detail rows */}
-        <div className="mx-5 mb-4 bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
+        <div className="mb-2 bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
           <DetailRow
             icon={<Tag size={15} />}
             label="Category"
@@ -133,14 +133,14 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
 
         {/* Notes */}
         {sub.notes && (
-          <div className="mx-5 mb-4 bg-white rounded-2xl border border-[#E5E5E5] p-4">
+          <div className="mb-2 bg-white rounded-2xl border border-[#E8E8E8] p-4">
             <p className="text-xs font-medium text-[#A3A3A3] uppercase tracking-wide mb-2">Notes</p>
             <p className="text-sm text-[#424242] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
           </div>
         )}
 
         {/* CTA */}
-        <div className="px-5 pb-12">
+        <div className="pb-12 mt-2">
           <button
             onClick={() => setEditOpen(true)}
             className="
