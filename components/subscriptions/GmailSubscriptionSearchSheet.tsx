@@ -263,9 +263,11 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
           <motion.div key="not_connected" {...fadeSlide}
             className="flex flex-col items-center px-5 py-8 text-center gap-5"
           >
-            <div className="w-16 h-16 rounded-2xl bg-[#F5F5FF] flex items-center justify-center">
-              <Mail size={28} className="text-[#3D3BF3]" />
-            </div>
+            <img
+              src="/perezoso-gmail.png"
+              alt="Perezoso mailman"
+              className="w-44 h-44 object-contain"
+            />
             <div>
               <p className="text-[16px] font-bold text-[#111111]">Connect Gmail</p>
               <p className="text-[13px] text-[#666666] mt-1.5 leading-relaxed max-w-xs mx-auto">
