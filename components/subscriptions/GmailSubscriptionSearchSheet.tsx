@@ -265,13 +265,11 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
           <motion.div key="not_connected" {...fadeSlide}
             className="flex flex-col items-center px-5 pt-2 pb-6 text-center gap-4"
           >
-            <motion.img
+            <img
               src="/1C67E800-A121-400E-BC6B-8AE7BE1BD9FE.jpeg"
               alt="Perezoso mailman"
               className="w-44 h-44 object-contain"
               onError={e => { (e.target as HTMLImageElement).src = '/logo.png' }}
-              animate={{ scaleX: [1, 1.10, 1], scaleY: [1, 0.94, 1], y: [0, -6, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div>
               <p className="text-[16px] font-bold text-[#111111]">{t('gmail.connectTitle')}</p>
@@ -398,13 +396,11 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
           <motion.div key="empty" {...fadeSlide}
             className="flex flex-col items-center justify-center pt-4 pb-8 px-6 text-center gap-4"
           >
-            <motion.img
+            <img
               src="/1C67E800-A121-400E-BC6B-8AE7BE1BD9FE.jpeg"
               alt="Perezoso mailman"
               className="w-40 h-40 object-contain"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-              animate={{ scaleX: [1, 1.10, 1], scaleY: [1, 0.94, 1], y: [0, -6, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div>
               <p className="text-[15px] font-semibold text-[#111111]">{t('gmail.empty')}</p>
