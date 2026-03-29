@@ -1,36 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { detectSubscriptionsFromEmails, type GmailMessageHeader, KNOWN_DOMAINS } from '@/lib/subscription-detection'
 
-// ── Gmail search query ────────────────────────────────────────────────────────
-// Two-pronged strategy:
-//   1. Subject keywords (English + Spanish) → catch generic billing emails
-//   2. from: known domains → catch emails with non-standard subjects (e.g. "Enjoy Netflix")
-// Combined with OR so either condition is sufficient.
+// ── Search strategy ──────────────────────────────────────────────────────────
+// We run TWO independent searches in parallel and merge their results:
+//
+//  A) DOMAIN search  — from:@netflix.com OR from:@spotify.com OR …
+//     Language-agnostic: catches any email from a known subscription service
+//     regardless of the subject language ("Enjoy Netflix", "Tu plan de Spotify", etc.)
+//     Domains split into chunks of 50 to stay within URL limits.
+//
+//  B) KEYWORD search — subject:receipt OR subject:factura OR …
+//     Catches billing emails from unknown / long-tail services in EN & ES.
+//
+// Both searches are deduped by message ID before fetching metadata.
 
-const buildGmailQuery = () => {
-  const subjectTerms = [
+const TIME_FILTER = 'newer_than:18m -in:spam'
+
+// Split known domains into chunks of 50 for separate queries
+function buildDomainQueries(): string[] {
+  const chunks: string[][] = []
+  for (let i = 0; i < KNOWN_DOMAINS.length; i += 50) {
+    chunks.push(KNOWN_DOMAINS.slice(i, i + 50))
+  }
+  return chunks.map(chunk =>
+    `(${chunk.map(d => `from:@${d}`).join(' OR ')}) ${TIME_FILTER}`,
+  )
+}
+
+// Single keyword query covering EN + ES (+ FR/DE/IT)
+const KEYWORD_QUERY = (() => {
+  const terms = [
     // English
     'receipt', 'invoice', 'subscription', 'renewal', 'billing',
     'charged', 'membership', 'billed', '"payment confirmation"',
     '"payment processed"', '"payment received"', '"order confirmation"',
-    '"your plan"', '"auto-renewal"', 'statement',
+    '"auto-renewal"', 'statement',
     // Spanish
     'factura', 'suscripción', 'renovación', 'cobro', 'cargo',
-    '"confirmación de pago"', '"recibo de pago"', '"confirmación de pedido"',
-    '"tu plan"', 'membresía', '"pago realizado"', '"pago confirmado"',
-    // French / German / Italian (common in Europe)
+    '"confirmación de pago"', '"recibo de pago"', '"tu plan"',
+    'membresía', '"pago realizado"', '"pago confirmado"',
+    // French / German / Italian
     'abonnement', 'rechnung', 'abbonamento', 'reçu',
-  ].map(t => `subject:${t}`).join(' OR ')
+  ]
+  return `(${terms.map(t => `subject:${t}`).join(' OR ')}) ${TIME_FILTER}`
+})()
 
-  const fromTerms = KNOWN_DOMAINS
-    .slice(0, 30) // Gmail query length limit ~500 chars for from: terms
-    .map(d => `from:@${d}`)
-    .join(' OR ')
+const DOMAIN_QUERIES = buildDomainQueries()
 
-  return `(${subjectTerms} OR ${fromTerms}) newer_than:18m -in:spam`
-}
-
-const GMAIL_SEARCH_QUERY = buildGmailQuery()
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface GmailMessageRef { id: string }
 interface GmailHeader { name: string; value: string }
@@ -48,6 +65,27 @@ async function fetchJson<T>(url: string, token: string): Promise<T | null> {
   if (res.status === 401) throw new Error('token_expired')
   if (!res.ok) return null
   return res.json() as Promise<T>
+}
+
+/** Collect all message IDs for a single query, paginating up to `limit`. */
+async function searchMessages(query: string, token: string, limit = 200): Promise<string[]> {
+  const ids: string[] = []
+  let pageToken: string | undefined
+
+  while (ids.length < limit) {
+    const pageSize = Math.min(limit - ids.length, 500)
+    const url =
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages` +
+      `?q=${encodeURIComponent(query)}&maxResults=${pageSize}&fields=messages(id),nextPageToken` +
+      (pageToken ? `&pageToken=${pageToken}` : '')
+
+    const page = await fetchJson<{ messages?: GmailMessageRef[]; nextPageToken?: string }>(url, token)
+    const batch = (page?.messages ?? []).map(m => m.id)
+    ids.push(...batch)
+    pageToken = page?.nextPageToken
+    if (!pageToken || batch.length === 0) break
+  }
+  return ids
 }
 
 export async function GET(request: NextRequest) {
@@ -73,39 +111,31 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Search Gmail — paginate up to 400 results (Gmail max per page = 500)
-    const allMessageIds: string[] = []
-    let pageToken: string | undefined
+    // 1. Run domain and keyword searches in parallel
+    const [keywordIds, ...domainIdSets] = await Promise.all([
+      searchMessages(KEYWORD_QUERY, token, 200),
+      ...DOMAIN_QUERIES.map(q => searchMessages(q, token, 200)),
+    ])
 
-    while (allMessageIds.length < 400) {
-      const remaining = 400 - allMessageIds.length
-      const pageSize = Math.min(remaining, 500)
-      const url =
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages` +
-        `?q=${encodeURIComponent(GMAIL_SEARCH_QUERY)}&maxResults=${pageSize}&fields=messages(id),nextPageToken` +
-        (pageToken ? `&pageToken=${pageToken}` : '')
-
-      const page = await fetchJson<{ messages?: GmailMessageRef[]; nextPageToken?: string }>(url, token)
-      const ids = (page?.messages ?? []).map(m => m.id)
-      allMessageIds.push(...ids)
-      pageToken = page?.nextPageToken
-      if (!pageToken || ids.length === 0) break
+    // Deduplicate — domain hits take priority (already language-agnostic)
+    const seen = new Set<string>()
+    const messageIds: string[] = []
+    for (const id of [...domainIdSets.flat(), ...keywordIds]) {
+      if (!seen.has(id)) { seen.add(id); messageIds.push(id) }
     }
-
-    const messageIds = allMessageIds.slice(0, 400)
 
     if (messageIds.length === 0) {
       return NextResponse.json({ status: 'ok', candidates: [] })
     }
 
-    // 2. Fetch metadata + snippet in batches of 50 to avoid rate limits
+    // 2. Fetch metadata + snippet in batches of 50
     const metaUrl = (id: string) =>
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}` +
       `?format=minimal&fields=id,snippet,payload/headers`
 
     const BATCH = 50
     const rawMessages: (GmailMessage | null)[] = []
-    for (let i = 0; i < messageIds.length; i += BATCH) {
+    for (let i = 0; i < Math.min(messageIds.length, 400); i += BATCH) {
       const chunk = messageIds.slice(i, i + BATCH)
       const results = await Promise.all(
         chunk.map(id => fetchJson<GmailMessage>(metaUrl(id), token).catch(() => null)),
@@ -113,7 +143,7 @@ export async function GET(request: NextRequest) {
       rawMessages.push(...results)
     }
 
-    // 3. Parse into flat objects
+    // 3. Parse headers
     const headers: GmailMessageHeader[] = rawMessages
       .filter((m): m is GmailMessage => !!m)
       .map(msg => {
@@ -131,7 +161,7 @@ export async function GET(request: NextRequest) {
       })
       .filter(h => h.from)
 
-    // 4. Run detection
+    // 4. Detect
     const candidates = detectSubscriptionsFromEmails(headers)
 
     return NextResponse.json({ status: 'ok', candidates })
