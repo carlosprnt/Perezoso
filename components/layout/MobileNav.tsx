@@ -26,14 +26,28 @@ export default function MobileNav() {
           <Link
             key={href}
             href={href}
-            className={`
-              flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl
-              transition-all duration-150 text-center min-w-0
-              ${isActive ? 'text-[#121212]' : 'text-[#757575] hover:text-[#424242]'}
-            `}
+            className="flex flex-col items-center gap-1 min-w-0 transition-colors duration-150"
           >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium leading-none">{label}</span>
+            {/* Wide pill indicator around icon */}
+            <div
+              className={`
+                flex items-center justify-center
+                px-7 py-1.5 rounded-full
+                transition-all duration-200
+                ${isActive ? 'bg-[#121212]/[0.08]' : ''}
+              `}
+            >
+              <Icon
+                size={20}
+                strokeWidth={isActive ? 2.5 : 2}
+                className={isActive ? 'text-[#121212]' : 'text-[#888888]'}
+              />
+            </div>
+            <span
+              className={`text-[10px] font-medium leading-none ${isActive ? 'text-[#121212]' : 'text-[#888888]'}`}
+            >
+              {label}
+            </span>
           </Link>
         )
       })}
