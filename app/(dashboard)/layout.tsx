@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
@@ -24,20 +23,12 @@ export default async function DashboardLayout({
     .single()
 
   // Detect locale from Google account metadata
+  // (cookie is written by middleware; we derive it here to hydrate LocaleProvider)
   const googleLocale =
     user.user_metadata?.locale ??
     user.user_metadata?.language ??
     null
   const detectedLocale = detectLocale(googleLocale)
-
-  // Persist detected locale in a cookie so server components can read it
-  const cookieStore = await cookies()
-  if (cookieStore.get('perezoso_locale')?.value !== detectedLocale) {
-    cookieStore.set('perezoso_locale', detectedLocale, {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 365,
-    })
-  }
 
   return (
     <LocaleProvider locale={detectedLocale}>

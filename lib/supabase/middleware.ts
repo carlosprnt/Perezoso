@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { detectLocale } from '@/lib/i18n/translations'
 
 /**
  * Refreshes the Supabase session from the middleware.
@@ -63,6 +64,23 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
+  }
+
+  // Persist detected locale in a cookie so Server Components can read it
+  if (user) {
+    const googleLocale =
+      user.user_metadata?.locale ??
+      user.user_metadata?.language ??
+      null
+    const detectedLocale = detectLocale(googleLocale)
+    const currentLocale = request.cookies.get('perezoso_locale')?.value
+    if (currentLocale !== detectedLocale) {
+      supabaseResponse.cookies.set('perezoso_locale', detectedLocale, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: 'lax',
+      })
+    }
   }
 
   return supabaseResponse
