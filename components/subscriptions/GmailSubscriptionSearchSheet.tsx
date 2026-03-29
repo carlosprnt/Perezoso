@@ -267,6 +267,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               src="/perezoso-gmail.png"
               alt="Perezoso mailman"
               className="w-44 h-44 object-contain"
+              onError={e => { (e.target as HTMLImageElement).src = '/logo.png' }}
             />
             <div>
               <p className="text-[16px] font-bold text-[#111111]">Connect Gmail</p>
