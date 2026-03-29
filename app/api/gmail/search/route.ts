@@ -73,28 +73,45 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Search Gmail
-    const searchUrl =
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages` +
-      `?q=${encodeURIComponent(GMAIL_SEARCH_QUERY)}&maxResults=80&fields=messages(id),nextPageToken`
+    // 1. Search Gmail — paginate up to 400 results (Gmail max per page = 500)
+    const allMessageIds: string[] = []
+    let pageToken: string | undefined
 
-    const searchData = await fetchJson<{ messages?: GmailMessageRef[] }>(searchUrl, token)
-    const messageIds = (searchData?.messages ?? []).map(m => m.id)
+    while (allMessageIds.length < 400) {
+      const remaining = 400 - allMessageIds.length
+      const pageSize = Math.min(remaining, 500)
+      const url =
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages` +
+        `?q=${encodeURIComponent(GMAIL_SEARCH_QUERY)}&maxResults=${pageSize}&fields=messages(id),nextPageToken` +
+        (pageToken ? `&pageToken=${pageToken}` : '')
+
+      const page = await fetchJson<{ messages?: GmailMessageRef[]; nextPageToken?: string }>(url, token)
+      const ids = (page?.messages ?? []).map(m => m.id)
+      allMessageIds.push(...ids)
+      pageToken = page?.nextPageToken
+      if (!pageToken || ids.length === 0) break
+    }
+
+    const messageIds = allMessageIds.slice(0, 400)
 
     if (messageIds.length === 0) {
       return NextResponse.json({ status: 'ok', candidates: [] })
     }
 
-    // 2. Fetch message metadata + snippet in parallel
-    // Using format=minimal gives us: snippet (email preview ~500 chars) + headers
-    const idsToFetch = messageIds.slice(0, 60)
+    // 2. Fetch metadata + snippet in batches of 50 to avoid rate limits
     const metaUrl = (id: string) =>
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}` +
       `?format=minimal&fields=id,snippet,payload/headers`
 
-    const rawMessages = await Promise.all(
-      idsToFetch.map(id => fetchJson<GmailMessage>(metaUrl(id), token).catch(() => null)),
-    )
+    const BATCH = 50
+    const rawMessages: (GmailMessage | null)[] = []
+    for (let i = 0; i < messageIds.length; i += BATCH) {
+      const chunk = messageIds.slice(i, i + BATCH)
+      const results = await Promise.all(
+        chunk.map(id => fetchJson<GmailMessage>(metaUrl(id), token).catch(() => null)),
+      )
+      rawMessages.push(...results)
+    }
 
     // 3. Parse into flat objects
     const headers: GmailMessageHeader[] = rawMessages
