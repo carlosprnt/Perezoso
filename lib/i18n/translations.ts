@@ -349,9 +349,11 @@ export const SUPPORTED_LOCALES: Locale[] = ['en', 'es']
 export type Translations = typeof en
 export const translations: Record<Locale, Translations> = { en, es }
 
-export function detectLocale(googleLocale?: string | null): Locale {
-  if (!googleLocale) return 'en'
-  const lang = googleLocale.toLowerCase().split(/[-_]/)[0]
+export function detectLocale(rawLocale?: string | null): Locale {
+  if (!rawLocale) return 'en'
+  // Handle Accept-Language ("es-ES,es;q=0.9,en;q=0.8") and plain locale ("es", "es-ES")
+  const primary = rawLocale.split(',')[0]
+  const lang = primary.toLowerCase().split(/[-_;]/)[0].trim()
   return (SUPPORTED_LOCALES as string[]).includes(lang) ? lang as Locale : 'en'
 }
 

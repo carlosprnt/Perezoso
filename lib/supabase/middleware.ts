@@ -68,9 +68,12 @@ export async function updateSession(request: NextRequest) {
 
   // Persist detected locale in a cookie so Server Components can read it
   if (user) {
+    // Prefer Google account locale from OAuth metadata; fall back to browser
+    // Accept-Language (which mirrors the device/OS language, matching Gmail's UI)
     const googleLocale =
       user.user_metadata?.locale ??
       user.user_metadata?.language ??
+      request.headers.get('accept-language') ??
       null
     const detectedLocale = detectLocale(googleLocale)
     const currentLocale = request.cookies.get('perezoso_locale')?.value

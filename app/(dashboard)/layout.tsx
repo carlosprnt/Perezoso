@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
@@ -22,11 +23,12 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single()
 
-  // Detect locale from Google account metadata
-  // (cookie is written by middleware; we derive it here to hydrate LocaleProvider)
+  // Detect locale: Google metadata → Accept-Language header → 'en'
+  const headersList = await headers()
   const googleLocale =
-    user.user_metadata?.locale ??
-    user.user_metadata?.language ??
+    user!.user_metadata?.locale ??
+    user!.user_metadata?.language ??
+    headersList.get('accept-language') ??
     null
   const detectedLocale = detectLocale(googleLocale)
 
