@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutGrid, Plus } from 'lucide-react'
+import { motion } from 'framer-motion'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from '@/components/subscriptions/PlatformPicker'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
@@ -12,6 +13,10 @@ import { useT } from '@/lib/i18n/LocaleProvider'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
 type Step = 'closed' | 'pick' | 'form' | 'gmail'
+
+// Button width + gap — used to compute sliding bg offset
+const BTN_W = 64
+const GAP = 8
 
 function TagHeartIcon({ active }: { active: boolean }) {
   return (
@@ -51,37 +56,44 @@ export default function FloatingNav() {
   const isDash = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
   const isSubs = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
 
+  // x offset of the sliding bg: 0 = dashboard, BTN_W+GAP = subscriptions
+  const bgX = isSubs ? BTN_W + GAP : 0
+
   return (
     <>
-      {/* ── Floating nav — mobile only ─────────────────────────────────────── */}
+      {/* ── Floating nav bar — mobile only ──────────────────────────────────── */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-center z-50 pointer-events-none"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
         style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {/* Wrapper — anchors the + button relative to the pill */}
-        <div className="relative pointer-events-auto">
-
-          {/* Pill nav container: 152px wide, 8px padding, 8px gap */}
+        {/* Pill — centered */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+        >
           <div
-            className="flex items-center gap-2 rounded-full"
+            className="relative flex items-center rounded-full overflow-hidden"
             style={{
-              width: 152,
-              height: 64,
               padding: 8,
+              gap: GAP,
               background: 'rgba(255,255,255,0.80)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid #BCBCBC',
             }}
           >
-            {/* Dashboard */}
+            {/* Sliding black background — sits behind icons */}
+            <motion.div
+              className="absolute rounded-full bg-[#111111]"
+              style={{ width: BTN_W, height: 48, top: 8, left: 8 }}
+              animate={{ x: bgX }}
+              transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
+            />
+
+            {/* Dashboard button */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
               <div
-                className="flex items-center justify-center rounded-full transition-colors duration-150"
-                style={{
-                  width: 58,
-                  height: 48,
-                  background: isDash ? '#111111' : '#F3F3F3',
-                }}
+                className="relative z-10 flex items-center justify-center rounded-full"
+                style={{ width: BTN_W, height: 48 }}
               >
                 <LayoutGrid
                   size={20}
@@ -91,38 +103,31 @@ export default function FloatingNav() {
               </div>
             </Link>
 
-            {/* Subscriptions */}
+            {/* Subscriptions button */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
               <div
-                className="flex items-center justify-center rounded-full transition-colors duration-150"
-                style={{
-                  width: 58,
-                  height: 48,
-                  background: isSubs ? '#111111' : '#F3F3F3',
-                  color: isSubs ? '#ffffff' : '#111111',
-                }}
+                className="relative z-10 flex items-center justify-center rounded-full"
+                style={{ width: BTN_W, height: 48, color: isSubs ? '#ffffff' : '#111111' }}
               >
                 <TagHeartIcon active={isSubs} />
               </div>
             </Link>
           </div>
-
-          {/* + button: 48px, 16px to the right of the pill, vertically centered */}
-          <button
-            onClick={() => setStep('pick')}
-            aria-label="Add subscription"
-            className="absolute -translate-y-1/2 flex items-center justify-center rounded-full bg-[#3D3BF3] active:scale-95 transition-transform duration-100"
-            style={{
-              width: 48,
-              height: 48,
-              left: 'calc(100% + 16px)',
-              top: '50%',
-              boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
-            }}
-          >
-            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-          </button>
         </div>
+
+        {/* + button — fixed to right edge, vertically centered in nav bar */}
+        <button
+          onClick={() => setStep('pick')}
+          aria-label="Add subscription"
+          className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-auto flex items-center justify-center rounded-full bg-[#3D3BF3] active:scale-95 transition-transform duration-100"
+          style={{
+            width: 48,
+            height: 48,
+            boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
+          }}
+        >
+          <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+        </button>
       </nav>
 
       {/* Step 1 — Platform picker */}
