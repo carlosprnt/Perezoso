@@ -9,6 +9,8 @@ interface BottomSheetProps {
   title?: string
   children: ReactNode
   height?: 'auto' | 'tall' | 'full'
+  /** Override z-index (default: backdrop=58, sheet=60). Use higher values inside overlays. */
+  zIndex?: number
 }
 
 export default function BottomSheet({
@@ -17,6 +19,7 @@ export default function BottomSheet({
   title,
   children,
   height = 'tall',
+  zIndex,
 }: BottomSheetProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -47,22 +50,23 @@ export default function BottomSheet({
 
   return (
     <>
-      {/* Backdrop — above nav (z-50) */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-[58] animate-backdrop-in"
+        className="fixed inset-0 bg-black/50 animate-backdrop-in"
+        style={{ zIndex: zIndex ? zIndex - 1 : 58 }}
         onClick={onClose}
       />
 
-      {/* Sheet — above nav (z-50) and backdrop */}
+      {/* Sheet */}
       <div
         className={`
-          fixed bottom-0 left-0 right-0 z-[60]
+          fixed bottom-0 left-0 right-0
           bg-white rounded-t-[28px]
           flex flex-col
           ${maxH}
           animate-slide-up
         `}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ zIndex: zIndex ?? 60, paddingBottom: 'env(safe-area-inset-bottom)' }}
         // Prevent touch events from reaching the backdrop
         onClick={e => e.stopPropagation()}
       >
