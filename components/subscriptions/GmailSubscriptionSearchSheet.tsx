@@ -266,7 +266,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
             className="flex flex-col items-center px-5 py-8 text-center gap-5"
           >
             <img
-              src="/perezoso-gmail.png"
+              src="/1C67E800-A121-400E-BC6B-8AE7BE1BD9FE.jpeg"
               alt="Perezoso mailman"
               className="w-44 h-44 object-contain"
               onError={e => { (e.target as HTMLImageElement).src = '/logo.png' }}
@@ -397,7 +397,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
             className="flex flex-col items-center justify-center py-16 px-6 text-center gap-5"
           >
             <img
-              src="/perezoso-gmail.png"
+              src="/1C67E800-A121-400E-BC6B-8AE7BE1BD9FE.jpeg"
               alt="Perezoso mailman"
               className="w-40 h-40 object-contain"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
