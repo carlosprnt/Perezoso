@@ -396,9 +396,12 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
           <motion.div key="empty" {...fadeSlide}
             className="flex flex-col items-center justify-center py-16 px-6 text-center gap-5"
           >
-            <div className="w-16 h-16 rounded-2xl bg-[#F5F5F5] flex items-center justify-center">
-              <Mail size={28} className="text-[#AAAAAA]" />
-            </div>
+            <img
+              src="/perezoso-gmail.png"
+              alt="Perezoso mailman"
+              className="w-40 h-40 object-contain"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+            />
             <div>
               <p className="text-[15px] font-semibold text-[#111111]">{t('gmail.empty')}</p>
               <p className="text-[13px] text-[#999999] mt-1 leading-relaxed">
