@@ -213,7 +213,7 @@ export default function SubscriptionForm({
             placeholder="9.99"
             value={priceAmount}
             onChange={e => setPriceAmount(e.target.value)}
-            className="flex-1 px-3.5 py-2.5 text-sm text-[#121212] placeholder:text-[#A3A3A3] outline-none bg-transparent min-w-0"
+            className="flex-1 px-3.5 py-2.5 text-sm text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#A3A3A3] dark:placeholder:text-[#636366] outline-none bg-transparent min-w-0"
             required
           />
           {/* Currency fixed to EUR */}

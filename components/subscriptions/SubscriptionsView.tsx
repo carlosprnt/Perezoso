@@ -174,8 +174,8 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
           <div className="text-right flex-shrink-0">
             {numSkeleton ? (
               <div className="flex flex-col items-end gap-1.5">
-                <div className="h-5 w-20 rounded-lg bg-[#EFEFEF] animate-pulse" />
-                <div className="h-4 w-12 rounded-md bg-[#EFEFEF] animate-pulse" />
+                <div className="h-5 w-20 rounded-lg bg-[#EFEFEF] dark:bg-[#3A3A3C] animate-pulse" />
+                <div className="h-4 w-12 rounded-md bg-[#EFEFEF] dark:bg-[#3A3A3C] animate-pulse" />
               </div>
             ) : (
               <>

@@ -17,7 +17,7 @@ export default function MobileNav() {
   return (
     <nav className="
       lg:hidden fixed bottom-0 left-0 right-0
-      bg-white border-t border-[#E5E5E5]
+      bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5E5] dark:border-[#2C2C2E]
       flex items-center justify-around
       px-4 py-2 safe-area-pb
       z-50
@@ -36,13 +36,13 @@ export default function MobileNav() {
                 flex items-center justify-center
                 px-7 py-1.5 rounded-full
                 transition-all duration-200
-                ${isActive ? 'bg-[#121212]/[0.08]' : ''}
+                ${isActive ? 'bg-[#121212]/[0.08] dark:bg-[#F2F2F7]/[0.1]' : ''}
               `}
             >
               <Icon
                 size={20}
                 strokeWidth={isActive ? 2.5 : 2}
-                className={isActive ? 'text-[#121212]' : 'text-[#888888]'}
+                className={isActive ? 'text-[#121212] dark:text-[#F2F2F7]' : 'text-[#888888] dark:text-[#636366]'}
               />
             </div>
             <span

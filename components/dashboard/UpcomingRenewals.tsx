@@ -35,7 +35,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
     if (days === 0) return 'text-[#DC2626]'
     if (days <= 3) return 'text-[#E05D1B]'
     if (days <= 7) return 'text-[#D97706]'
-    return 'text-[#121212]'
+    return 'text-[#121212] dark:text-[#F2F2F7]'
   }
 
   return (

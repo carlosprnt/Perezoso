@@ -77,8 +77,8 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
           relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
           border transition-colors duration-150 pressable
           ${activeFilterCount > 0
-            ? 'bg-[#121212] text-white border-[#121212]'
-            : 'bg-white text-[#424242] border-[#D4D4D4] hover:border-[#A3A3A3]'
+            ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'
+            : 'bg-white dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2] border-[#D4D4D4] dark:border-[#3A3A3C] hover:border-[#A3A3A3] dark:hover:border-[#636366]'
           }
         `}
       >
@@ -102,7 +102,7 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
           {/* Sheet — slides up on mobile, centered on desktop */}
           <div
             className="
-              fixed z-50 bg-white
+              fixed z-50 bg-white dark:bg-[#1C1C1E]
               bottom-0 left-0 right-0
               rounded-t-2xl
               animate-slide-up
@@ -110,20 +110,20 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
               sm:-translate-x-1/2 sm:-translate-y-1/2
               sm:w-[440px] sm:rounded-2xl
               sm:animate-fade-in-scale
-              border border-[#D4D4D4]
+              border border-[#D4D4D4] dark:border-[#2C2C2E]
             "
           >
             {/* Handle (mobile) */}
             <div className="flex justify-center pt-3 pb-1 sm:hidden">
-              <div className="w-10 h-1 bg-[#D4D4D4] rounded-full" />
+              <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5]">
-              <h2 className="text-base font-semibold text-[#121212]">Filters</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5] dark:border-[#2C2C2E]">
+              <h2 className="text-base font-semibold text-[#121212] dark:text-[#F2F2F7]">Filters</h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-[#616161] hover:bg-[#F5F5F5] transition-colors"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-[#616161] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors"
               >
                 <X size={16} />
               </button>
@@ -132,7 +132,7 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
             <div className="px-5 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
               {/* Status */}
               <div>
-                <p className="text-xs font-semibold text-[#424242] uppercase tracking-widest mb-3">Status</p>
+                <p className="text-xs font-semibold text-[#424242] dark:text-[#AEAEB2] uppercase tracking-widest mb-3">Status</p>
                 <div className="flex flex-wrap gap-2">
                   {STATUS_OPTIONS.map(opt => (
                     <button
@@ -142,8 +142,8 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
                         flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
                         border transition-colors duration-150
                         ${status === opt.value
-                          ? 'bg-[#121212] text-white border-[#121212]'
-                          : 'bg-white text-[#424242] border-[#D4D4D4] hover:border-[#A3A3A3]'
+                          ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'
+                          : 'bg-white dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2] border-[#D4D4D4] dark:border-[#3A3A3C] hover:border-[#A3A3A3] dark:hover:border-[#636366]'
                         }
                       `}
                     >
@@ -156,7 +156,7 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
 
               {/* Category */}
               <div>
-                <p className="text-xs font-semibold text-[#424242] uppercase tracking-widest mb-3">Category</p>
+                <p className="text-xs font-semibold text-[#424242] dark:text-[#AEAEB2] uppercase tracking-widest mb-3">Category</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setCategory('all')}
@@ -199,7 +199,7 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 px-5 py-4 border-t border-[#E5E5E5]">
+            <div className="flex gap-3 px-5 py-4 border-t border-[#E5E5E5] dark:border-[#2C2C2E]">
               <Button variant="secondary" onClick={reset} className="flex-1">
                 Reset
               </Button>
