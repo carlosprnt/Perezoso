@@ -142,11 +142,9 @@ body {
   --border-card: #E8E8E8;
   --border-nav-btn: #E0E0E0;
   --border-result-item: #EDEDED;
-  --sticky-header-bg: rgba(247, 248, 250, 0.82);
 }
 .dark {
   --border-card: #2C2C2E;
   --border-nav-btn: #3A3A3C;
   --border-result-item: #3A3A3C;
-  --sticky-header-bg: rgba(17, 17, 17, 0.82);
 }

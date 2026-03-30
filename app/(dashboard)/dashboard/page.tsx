@@ -11,7 +11,7 @@ import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import UpcomingRenewals from '@/components/dashboard/UpcomingRenewals'
 import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
-import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
+import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import Insights from '@/components/dashboard/Insights'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
@@ -69,21 +69,15 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      {/* Sticky header */}
-      <div
-        className="sticky top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-3 backdrop-blur-[20px]"
-        style={{ background: 'var(--sticky-header-bg)' }}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('dashboard.title')}</h1>
-            <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-0.5">{t('dashboard.subtitle')}</p>
-          </div>
-          <UserAvatarMenu shareText={shareText} />
-        </div>
-      </div>
+      {/* Header — sticky but below content (z-[0]), fades as cards scroll over */}
+      <DashboardHeader
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
+        shareText={shareText}
+      />
 
-      <div className="space-y-[8px] mt-3">
+      {/* Content — higher z-index, scrolls over the header */}
+      <div className="relative z-[1] space-y-[8px] mt-2">
 
       {isEmpty ? (
         <EmptyState t={t} />

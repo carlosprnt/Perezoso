@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   motion, AnimatePresence, LayoutGroup,
-  useScroll, useVelocity, useSpring, useTransform,
+  useScroll, useVelocity, useSpring, useTransform, useMotionTemplate,
   type MotionValue,
 } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
@@ -464,6 +464,12 @@ export default function SubscriptionsView({
   const [filterOpen, setFilterOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [sortMode, setSortMode] = useState<SortMode>('alphabetical')
+
+  // ── Header scroll-fade: content scrolls OVER the header ──────────────────
+  const { scrollY } = useScroll()
+  const headerOpacity = useTransform(scrollY, [0, 130], [1, 0])
+  const headerBlurPx  = useTransform(scrollY, [0, 130], [0, 8])
+  const headerFilter  = useMotionTemplate`blur(${headerBlurPx}px)`
   const [selectedSub, setSelectedSub] = useState<SubscriptionWithCosts | null>(null)
   const [overlayVisible, setOverlayVisible] = useState(false)
   const [closingSubId, setClosingSubId] = useState<string | null>(null)
@@ -503,10 +509,12 @@ export default function SubscriptionsView({
 
   return (
     <LayoutGroup>
-      {/* ── Sticky header zone: title + sort + summary ───────── */}
-      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 backdrop-blur-[20px]"
-        style={{ background: 'var(--sticky-header-bg)' }}>
-
+      {/* ── Sticky header zone — sits BEHIND cards (low z-index)
+              fades + blurs as cards scroll over it ─────────────── */}
+      <motion.div
+        className="sticky top-0 z-[0] pb-4"
+        style={{ opacity: headerOpacity, filter: headerFilter }}
+      >
         {/* Title row */}
         <div className="flex items-center justify-between pt-2">
           <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
@@ -568,10 +576,10 @@ export default function SubscriptionsView({
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* ── Below sticky: filter chips + card list ────────────── */}
-      <div className="space-y-5 mt-5">
+      {/* ── Cards — higher z-index, scroll over the header ────── */}
+      <div className="relative z-[1] space-y-5 mt-2">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -630,8 +638,10 @@ export default function SubscriptionsView({
       />
 
       {/* ── Calendar bottom sheet ─────────────────────────────── */}
-      <BottomSheet isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} height="full" margin>
-        <CalendarView subscriptions={subscriptions} />
+      <BottomSheet isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} height="full">
+        <div className="px-5 pt-3">
+          <CalendarView subscriptions={subscriptions} />
+        </div>
       </BottomSheet>
 
     </LayoutGroup>
