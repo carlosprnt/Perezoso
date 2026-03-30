@@ -50,6 +50,25 @@ const STATUS_COLOR: Record<string, string> = {
   active: '#16A34A', trial: '#D97706', paused: '#E07B1A', cancelled: '#EF4444',
 }
 
+// ─── Sorting ───────────────────────────────────────────────────────────────
+type SortMode = 'alphabetical' | 'recently_added' | 'recently_updated' | 'price_high' | 'price_low'
+
+function sortSubscriptions(subs: SubscriptionWithCosts[], mode: SortMode): SubscriptionWithCosts[] {
+  const s = [...subs]
+  switch (mode) {
+    case 'alphabetical':
+      return s.sort((a, b) => a.name.localeCompare(b.name))
+    case 'recently_added':
+      return s.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    case 'recently_updated':
+      return s.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    case 'price_high':
+      return s.sort((a, b) => b.my_monthly_cost - a.my_monthly_cost)
+    case 'price_low':
+      return s.sort((a, b) => a.my_monthly_cost - b.my_monthly_cost)
+  }
+}
+
 // ─── Stack geometry ────────────────────────────────────────────────────────
 // Cards have content-driven height. Each card peeks ~92px from behind the next.
 // STACK_MARGIN = -(avg_card_height - peek) ≈ -(180 - 92) = -88px
@@ -367,6 +386,74 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
   )
 }
 
+// ─── Sort bottom sheet ─────────────────────────────────────────────────────
+function SortSheet({
+  current,
+  onSelect,
+  onClose,
+}: {
+  current: SortMode
+  onSelect: (mode: SortMode) => void
+  onClose: () => void
+}) {
+  const t = useT()
+
+  const options: { mode: SortMode; label: string }[] = [
+    { mode: 'alphabetical',    label: t('subscriptions.sortAlphabetical') },
+    { mode: 'recently_added',  label: t('subscriptions.sortRecentlyAdded') },
+    { mode: 'recently_updated',label: t('subscriptions.sortRecentlyUpdated') },
+    { mode: 'price_high',      label: t('subscriptions.sortPriceHigh') },
+    { mode: 'price_low',       label: t('subscriptions.sortPriceLow') },
+  ]
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black/40 z-[59]"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-[28px]"
+        style={{ border: '1px solid #E5E5E5', borderBottom: 'none' }}
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+      >
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-[#DADADA] rounded-full" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0F0]">
+          <h2 className="text-[17px] font-semibold text-[#111111]">{t('subscriptions.sortBy')}</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-2xl bg-[#F5F5F5] flex items-center justify-center">
+            <X size={15} strokeWidth={2.5} className="text-[#666666]" />
+          </button>
+        </div>
+        <div className="px-5 py-3 space-y-1" style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}>
+          {options.map(({ mode, label }) => {
+            const active = current === mode
+            return (
+              <button
+                key={mode}
+                onClick={() => { onSelect(mode); onClose() }}
+                className={`w-full flex items-center justify-between px-4 h-12 rounded-[12px] text-[15px] transition-colors duration-100 ${active ? 'bg-[#F0F0FF] text-[#3D3BF3] font-semibold' : 'text-[#111111] font-medium active:bg-[#F5F5F5]'}`}
+              >
+                {label}
+                {active && <Check size={16} strokeWidth={2.5} className="text-[#3D3BF3]" />}
+              </button>
+            )
+          })}
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 // ─── Main view ─────────────────────────────────────────────────────────────
 interface SubscriptionsViewProps {
   subscriptions: SubscriptionWithCosts[]
@@ -387,6 +474,8 @@ export default function SubscriptionsView({
 }: SubscriptionsViewProps) {
   const t = useT()
   const [filterOpen, setFilterOpen] = useState(false)
+  const [sortOpen, setSortOpen] = useState(false)
+  const [sortMode, setSortMode] = useState<SortMode>('alphabetical')
   const [selectedSub, setSelectedSub] = useState<SubscriptionWithCosts | null>(null)
   const [overlayVisible, setOverlayVisible] = useState(false)
   const [closingSubId, setClosingSubId] = useState<string | null>(null)
@@ -422,21 +511,43 @@ export default function SubscriptionsView({
 
   const hasActiveFilters = (currentStatus && currentStatus !== 'all') || (currentCategory && currentCategory !== 'all')
 
+  const sortedSubscriptions = sortSubscriptions(subscriptions, sortMode)
+
+  const SORT_LABELS: Record<SortMode, string> = {
+    alphabetical:    t('subscriptions.sortAlphabetical'),
+    recently_added:  t('subscriptions.sortRecentlyAdded'),
+    recently_updated:t('subscriptions.sortRecentlyUpdated'),
+    price_high:      t('subscriptions.sortPriceHigh'),
+    price_low:       t('subscriptions.sortPriceLow'),
+  }
+
   return (
     <LayoutGroup>
       <div className="space-y-5">
         {/* ── Header ───────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">{t('subscriptions.title')}</h1>
+        <div>
+          <div className="flex items-center justify-between">
+            <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">{t('subscriptions.title')}</h1>
+            <button
+              onClick={() => setFilterOpen(true)}
+              className="relative w-10 h-10 rounded-[10px] bg-white flex items-center justify-center transition-colors active:bg-[#F0F0F0]"
+              style={{ border: '1.5px solid #E0E0E0' }}
+            >
+              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333]" />
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
+              )}
+            </button>
+          </div>
+
+          {/* Sort control */}
           <button
-            onClick={() => setFilterOpen(true)}
-            className="relative w-10 h-10 rounded-[10px] bg-white flex items-center justify-center transition-colors active:bg-[#F0F0F0]"
-            style={{ border: '1.5px solid #E0E0E0' }}
+            onClick={() => setSortOpen(true)}
+            className="mt-1.5 flex items-center gap-1 active:opacity-60 transition-opacity"
           >
-            <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333]" />
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
-            )}
+            <span className="text-[13px] text-[#999999]">{t('subscriptions.sortBy')} ·</span>
+            <span className="text-[13px] font-medium text-[#444444]">{SORT_LABELS[sortMode]}</span>
+            <ChevronsUpDown size={11} className="text-[#BBBBBB] ml-0.5" />
           </button>
         </div>
 
@@ -445,8 +556,8 @@ export default function SubscriptionsView({
           <div className="grid grid-cols-2 gap-[8px]">
             <div className="bg-white rounded-[20px] p-4" style={{ border: '1.5px solid #E8E8E8' }}>
               <p className="text-[13px] text-[#999999] font-medium">{t('subscriptions.total')}</p>
-              <p className="text-[18px] font-bold text-[#111111] mt-1 leading-tight tabular-nums">
-                {t('subscriptions.count', { count: allCount })}
+              <p className="text-[22px] font-bold text-[#111111] mt-1 leading-tight tabular-nums">
+                {allCount}
               </p>
             </div>
 
@@ -490,7 +601,7 @@ export default function SubscriptionsView({
         )}
 
         {/* ── Wallet stacked card list ──────────────────────────── */}
-        {subscriptions.length === 0 ? (
+        {sortedSubscriptions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-sm font-medium text-[#111111] mb-1">
               {allCount === 0 ? t('subscriptions.noSubscriptions') : t('subscriptions.noResults')}
@@ -501,7 +612,7 @@ export default function SubscriptionsView({
           </div>
         ) : (
           <CardStack
-            subscriptions={subscriptions}
+            subscriptions={sortedSubscriptions}
             newSubscriptionId={newSubscriptionId}
             selectedSubId={selectedSub?.id ?? null}
             onOpen={openSub}
@@ -529,6 +640,17 @@ export default function SubscriptionsView({
             currentStatus={currentStatus}
             currentCategory={currentCategory}
             onClose={() => setFilterOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Sort bottom sheet ─────────────────────────────────── */}
+      <AnimatePresence>
+        {sortOpen && (
+          <SortSheet
+            current={sortMode}
+            onSelect={setSortMode}
+            onClose={() => setSortOpen(false)}
           />
         )}
       </AnimatePresence>
