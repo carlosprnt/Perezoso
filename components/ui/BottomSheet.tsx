@@ -61,6 +61,25 @@ export default function BottomSheet({
     }
   }, [isOpen])
 
+  // ── iOS-style peek bounce: hints that pulling down dismisses ─────────────
+  useEffect(() => {
+    if (!isOpen) return
+    let t1: ReturnType<typeof setTimeout>
+    let t2: ReturnType<typeof setTimeout>
+    // Wait for slide-up animation (300ms) then peek down and spring back
+    t1 = setTimeout(() => {
+      if (!sheetRef.current) return
+      sheetRef.current.style.transition = 'transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1)'
+      sheetRef.current.style.transform  = 'translateY(22px)'
+      t2 = setTimeout(() => {
+        if (!sheetRef.current) return
+        sheetRef.current.style.transition = 'transform 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        sheetRef.current.style.transform  = ''
+      }, 380)
+    }, 340)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [isOpen])
+
   // ── Scroll-to-dismiss: pull down from scrollTop=0 ─────────────────────────
   useEffect(() => {
     const scrollEl = scrollRef.current

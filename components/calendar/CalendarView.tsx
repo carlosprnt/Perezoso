@@ -133,7 +133,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
       onClick={hasSubs ? onClick : undefined}
       className={`
         flex flex-col items-start p-2 rounded-[12px] min-h-[80px]
-        transition-all duration-100 select-none bg-white dark:bg-[#1C1C1E]
+        transition-all duration-100 select-none bg-[#F5F5F5] dark:bg-[#2C2C2E]
         ${hasSubs ? 'active:scale-[0.96] cursor-pointer' : 'cursor-default'}
       `}
       style={isToday ? { border: '1.5px solid #3D3BF3' } : { border: '1.5px solid transparent' }}

@@ -546,10 +546,7 @@ export default function SubscriptionsView({
 
         {/* Summary card */}
         {allCount > 0 && (
-          <div
-            className="mt-3 bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 flex items-center justify-between"
-            style={{ border: '1.5px solid var(--border-card)' }}
-          >
+          <div className="mt-3 bg-[#F5F5F5] dark:bg-[#2C2C2E] rounded-[20px] p-4 flex items-center justify-between">
             <div>
               <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium">{t('subscriptions.total')}</p>
               <p className="text-[22px] font-bold text-[#111111] dark:text-[#F2F2F7] mt-0.5 leading-tight tabular-nums">
@@ -579,7 +576,7 @@ export default function SubscriptionsView({
       </motion.div>
 
       {/* ── Cards — higher z-index, scroll over the header ────── */}
-      <div className="relative z-[1] space-y-5 mt-2">
+      <div className="relative z-[1] space-y-5 mt-5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -639,7 +636,7 @@ export default function SubscriptionsView({
 
       {/* ── Calendar bottom sheet ─────────────────────────────── */}
       <BottomSheet isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} height="full">
-        <div className="px-5 pt-3">
+        <div className="px-5 pt-3 pb-5">
           <CalendarView subscriptions={subscriptions} />
         </div>
       </BottomSheet>
