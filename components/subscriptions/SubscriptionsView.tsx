@@ -8,7 +8,7 @@ import {
 } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
-import { SlidersHorizontal, CalendarDays, X, Check, ChevronsUpDown } from 'lucide-react'
+import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
@@ -283,22 +283,18 @@ function CardStack({
 // ─── Filter bottom sheet ───────────────────────────────────────────────────
 
 interface FilterSheetProps {
+  isOpen: boolean
   currentStatus: string
   currentCategory: string
   onClose: () => void
 }
 
-function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetProps) {
+function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: FilterSheetProps) {
   const t = useT()
   const router = useRouter()
   const pathname = usePathname()
   const [status, setStatus] = useState<SubscriptionStatus | 'all'>((currentStatus as SubscriptionStatus) ?? 'all')
   const [category, setCategory] = useState<Category | 'all'>((currentCategory as Category) ?? 'all')
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
 
   function apply() {
     const p = new URLSearchParams()
@@ -313,83 +309,66 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
     onClose()
   }
 
+  const footer = (
+    <div
+      className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
+      style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+    >
+      <button onClick={reset}
+        className="flex-1 h-12 rounded-full text-sm font-semibold text-[#444444] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#2C2C2E] transition-colors active:bg-[#ECECEC] dark:active:bg-[#3A3A3C]">
+        {t('subscriptions.reset')}
+      </button>
+      <button onClick={apply}
+        className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
+        {t('subscriptions.apply')}
+      </button>
+    </div>
+  )
+
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 bg-black/40 z-[59]"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        onClick={onClose}
-      />
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1C1C1E] rounded-t-[28px]"
-        style={{ border: '1px solid var(--border-card)', borderBottom: 'none' }}
-        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-        transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-      >
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#DADADA] dark:bg-[#3A3A3C] rounded-full" />
-        </div>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0F0] dark:border-[#2C2C2E]">
-          <h2 className="text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7]">{t('sheets.filter')}</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center">
-            <X size={15} strokeWidth={2.5} className="text-[#666666] dark:text-[#AEAEB2]" />
-          </button>
-        </div>
-        <div className="px-5 py-5 space-y-6 max-h-[60vh] overflow-y-auto">
-          <div>
-            <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterStatus')}</p>
-            <div className="flex flex-wrap gap-2">
-              {([
-                { value: 'all' as const, label: t('common.all') },
-                { value: 'active' as const, label: t('status.active') },
-                { value: 'trial' as const, label: t('status.trial') },
-                { value: 'paused' as const, label: t('status.paused') },
-                { value: 'cancelled' as const, label: t('status.cancelled') },
-              ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
-                <button key={opt.value} onClick={() => setStatus(opt.value)}
-                  className={`flex items-center gap-1.5 px-4 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
-                  {status === opt.value && <Check size={12} strokeWidth={3} />}
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setCategory('all')}
-                className={`flex items-center gap-2 px-3 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
-                {category === 'all' && <Check size={12} strokeWidth={3} />}
-                {t('subscriptions.allCategories')}
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={t('sheets.filter')} footer={footer}>
+      <div className="px-5 pt-2 pb-5 space-y-6">
+        <div>
+          <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterStatus')}</p>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { value: 'all' as const, label: t('common.all') },
+              { value: 'active' as const, label: t('status.active') },
+              { value: 'trial' as const, label: t('status.trial') },
+              { value: 'paused' as const, label: t('status.paused') },
+              { value: 'cancelled' as const, label: t('status.cancelled') },
+            ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
+              <button key={opt.value} onClick={() => setStatus(opt.value)}
+                className={`flex items-center gap-1.5 px-4 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+                {status === opt.value && <Check size={12} strokeWidth={3} />}
+                {opt.label}
               </button>
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon
-                const active = category === cat.value
-                return (
-                  <button key={cat.value} onClick={() => setCategory(cat.value)}
-                    className={`flex items-center gap-2 px-3 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
-                    <Icon size={13} strokeWidth={2} />
-                    {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
-                  </button>
-                )
-              })}
-            </div>
+            ))}
           </div>
         </div>
-        <div className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
-          style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
-          <button onClick={reset}
-            className="flex-1 h-12 rounded-2xl text-sm font-semibold text-[#444444] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#2C2C2E] transition-colors active:bg-[#ECECEC] dark:active:bg-[#3A3A3C]">
-            {t('subscriptions.reset')}
-          </button>
-          <button onClick={apply}
-            className="flex-1 h-12 rounded-2xl text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
-            {t('subscriptions.apply')}
-          </button>
+        <div>
+          <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setCategory('all')}
+              className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+              {category === 'all' && <Check size={12} strokeWidth={3} />}
+              {t('subscriptions.allCategories')}
+            </button>
+            {CATEGORIES.map(cat => {
+              const Icon = cat.icon
+              const active = category === cat.value
+              return (
+                <button key={cat.value} onClick={() => setCategory(cat.value)}
+                  className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+                  <Icon size={13} strokeWidth={2} />
+                  {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </BottomSheet>
   )
 }
 
@@ -524,42 +503,43 @@ export default function SubscriptionsView({
 
   return (
     <LayoutGroup>
-      <div className="space-y-5">
-        {/* ── Header ───────────────────────────────────────────── */}
-        <div>
-          <div className="flex items-center justify-between">
-            <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCalendarOpen(true)}
-                className="w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-                style={{ border: '1.5px solid var(--border-nav-btn)' }}
-              >
-                <CalendarDays size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
-              </button>
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-                style={{ border: '1.5px solid var(--border-nav-btn)' }}
-              >
-                <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
-                {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
-                )}
-              </button>
-            </div>
-          </div>
+      {/* ── Sticky header zone: title + sort + summary ───────── */}
+      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 backdrop-blur-[20px]"
+        style={{ background: 'var(--sticky-header-bg)' }}>
 
-          {/* Sort control */}
-          <div className="mt-0.5">
-            <SortDropdown current={sortMode} onSelect={setSortMode} />
+        {/* Title row */}
+        <div className="flex items-center justify-between pt-2">
+          <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCalendarOpen(true)}
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
+              style={{ border: '1.5px solid var(--border-nav-btn)' }}
+            >
+              <CalendarDays size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
+            </button>
+            <button
+              onClick={() => setFilterOpen(true)}
+              className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
+              style={{ border: '1.5px solid var(--border-nav-btn)' }}
+            >
+              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
+              )}
+            </button>
           </div>
         </div>
 
-        {/* ── Summary card (merged) ─────────────────────────────── */}
+        {/* Sort control */}
+        <div className="mt-0.5">
+          <SortDropdown current={sortMode} onSelect={setSortMode} />
+        </div>
+
+        {/* Summary card */}
         {allCount > 0 && (
           <div
-            className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 flex items-center justify-between"
+            className="mt-3 bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 flex items-center justify-between"
             style={{ border: '1.5px solid var(--border-card)' }}
           >
             <div>
@@ -568,8 +548,6 @@ export default function SubscriptionsView({
                 {allCount}
               </p>
             </div>
-
-            {/* Tappable cost section — toggles monthly ↔ yearly */}
             <button
               onClick={toggleViewMode}
               className="text-right active:opacity-60 transition-opacity duration-100"
@@ -590,7 +568,10 @@ export default function SubscriptionsView({
             </button>
           </div>
         )}
+      </div>
 
+      {/* ── Below sticky: filter chips + card list ────────────── */}
+      <div className="space-y-5 mt-5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -607,7 +588,7 @@ export default function SubscriptionsView({
           </div>
         )}
 
-        {/* ── Wallet stacked card list ──────────────────────────── */}
+        {/* Wallet stacked card list */}
         {sortedSubscriptions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-sm font-medium text-[#111111] dark:text-[#F2F2F7] mb-1">
@@ -641,18 +622,15 @@ export default function SubscriptionsView({
       </AnimatePresence>
 
       {/* ── Filter bottom sheet ───────────────────────────────── */}
-      <AnimatePresence>
-        {filterOpen && (
-          <FilterSheet
-            currentStatus={currentStatus}
-            currentCategory={currentCategory}
-            onClose={() => setFilterOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      <FilterSheet
+        isOpen={filterOpen}
+        currentStatus={currentStatus}
+        currentCategory={currentCategory}
+        onClose={() => setFilterOpen(false)}
+      />
 
       {/* ── Calendar bottom sheet ─────────────────────────────── */}
-      <BottomSheet isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} height="full">
+      <BottomSheet isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} height="full" margin>
         <CalendarView subscriptions={subscriptions} />
       </BottomSheet>
 

@@ -8,7 +8,11 @@ interface BottomSheetProps {
   onClose: () => void
   title?: string
   children: ReactNode
+  footer?: ReactNode
+  /** Full-height variant */
   height?: 'auto' | 'tall' | 'full'
+  /** 20px margin on all sides — floats the sheet (calendar style) */
+  margin?: boolean
   zIndex?: number
 }
 
@@ -17,13 +21,18 @@ export default function BottomSheet({
   onClose,
   title,
   children,
+  footer,
   height = 'tall',
+  margin = false,
   zIndex,
 }: BottomSheetProps) {
-  const scrollRef  = useRef<HTMLDivElement>(null)
-  const sheetRef   = useRef<HTMLDivElement>(null)
+  const scrollRef    = useRef<HTMLDivElement>(null)
+  const sheetRef     = useRef<HTMLDivElement>(null)
   const savedScrollY = useRef(0)
   const touchStartY  = useRef(0)
+  // Keep onClose stable in effects
+  const onCloseRef   = useRef(onClose)
+  useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
   // ── Body scroll lock (iOS-safe: position:fixed approach) ─────────────────
   useEffect(() => {
@@ -53,27 +62,69 @@ export default function BottomSheet({
     if (isOpen && scrollRef.current) {
       scrollRef.current.scrollTop = 0
     }
-    // Reset sheet position when opened
     if (isOpen && sheetRef.current) {
       sheetRef.current.style.transform  = ''
       sheetRef.current.style.transition = ''
     }
   }, [isOpen])
 
+  // ── Scroll-to-dismiss: pulling down from scroll-top closes the sheet ──────
+  useEffect(() => {
+    const scrollEl = scrollRef.current
+    const sheetEl  = sheetRef.current
+    if (!isOpen || !scrollEl || !sheetEl) return
+
+    let startY         = 0
+    let startScrollTop = 0
+    let isDismissing   = false
+
+    function onStart(e: TouchEvent) {
+      startY         = e.touches[0].clientY
+      startScrollTop = scrollEl!.scrollTop
+      isDismissing   = false
+    }
+
+    function onMove(e: TouchEvent) {
+      const dy = e.touches[0].clientY - startY
+      // Only intercept if we started at the very top AND pulling down
+      if (startScrollTop === 0 && dy > 8) {
+        isDismissing = true
+        e.preventDefault()
+        sheetEl!.style.transition = 'none'
+        sheetEl!.style.transform  = `translateY(${Math.max(0, dy - 8)}px)`
+      }
+    }
+
+    function onEnd(e: TouchEvent) {
+      const dy = e.changedTouches[0].clientY - startY
+      if (!isDismissing) return
+      isDismissing = false
+      if (dy > 100) {
+        sheetEl!.style.transition = 'transform 0.28s cubic-bezier(0.4,0,1,1)'
+        sheetEl!.style.transform  = 'translateY(100%)'
+        setTimeout(() => onCloseRef.current(), 260)
+      } else {
+        sheetEl!.style.transition = 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)'
+        sheetEl!.style.transform  = ''
+      }
+    }
+
+    scrollEl.addEventListener('touchstart', onStart, { passive: true })
+    scrollEl.addEventListener('touchmove',  onMove,  { passive: false })
+    scrollEl.addEventListener('touchend',   onEnd,   { passive: true })
+    return () => {
+      scrollEl.removeEventListener('touchstart', onStart)
+      scrollEl.removeEventListener('touchmove',  onMove)
+      scrollEl.removeEventListener('touchend',   onEnd)
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
-  const maxH = {
-    auto: 'max-h-[80dvh]',
-    tall: 'max-h-[82dvh]',
-    full: 'max-h-[92dvh]',
-  }[height]
-
-  // ── Handle drag-to-dismiss ────────────────────────────────────────────────
+  // ── Handle drag-to-dismiss (from top handle bar) ──────────────────────────
   function onHandleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY
-    if (sheetRef.current) {
-      sheetRef.current.style.transition = 'none'
-    }
+    if (sheetRef.current) sheetRef.current.style.transition = 'none'
   }
 
   function onHandleTouchMove(e: React.TouchEvent) {
@@ -88,16 +139,25 @@ export default function BottomSheet({
     const dy = e.changedTouches[0].clientY - touchStartY.current
     if (!sheetRef.current) return
     if (dy > 120) {
-      // Animate out then close
       sheetRef.current.style.transition = 'transform 0.28s cubic-bezier(0.4,0,1,1)'
       sheetRef.current.style.transform  = 'translateY(100%)'
       setTimeout(onClose, 260)
     } else {
-      // Snap back
       sheetRef.current.style.transition = 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)'
       sheetRef.current.style.transform  = ''
     }
   }
+
+  // ── Sizing ────────────────────────────────────────────────────────────────
+  const maxH = {
+    auto: 'max-h-[80dvh]',
+    tall: 'max-h-[82dvh]',
+    full: 'max-h-[92dvh]',
+  }[height]
+
+  const positionCls = margin
+    ? 'fixed inset-5 rounded-[28px]'
+    : 'fixed bottom-0 left-0 right-0 rounded-t-[28px]'
 
   return (
     <>
@@ -112,32 +172,41 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={`
-          fixed bottom-0 left-0 right-0
-          bg-white dark:bg-[#1C1C1E] rounded-t-[28px]
+          ${positionCls}
+          bg-white dark:bg-[#1C1C1E]
           flex flex-col
-          ${maxH}
+          ${margin ? '' : maxH}
           animate-slide-up
         `}
-        style={{ zIndex: zIndex ?? 60, paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{
+          zIndex: zIndex ?? 60,
+          ...(margin
+            ? {}
+            : { paddingBottom: 'env(safe-area-inset-bottom)' }),
+        }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Handle — drag zone */}
-        <div
-          className="flex-shrink-0 flex justify-center pt-3 pb-2 touch-none select-none"
-          onTouchStart={onHandleTouchStart}
-          onTouchMove={onHandleTouchMove}
-          onTouchEnd={onHandleTouchEnd}
-        >
-          <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
-        </div>
+        {/* Handle — drag zone (hidden when margin mode, drag-dismiss still works via scroll) */}
+        {!margin && (
+          <div
+            className="flex-shrink-0 flex justify-center pt-3 pb-2 touch-none select-none"
+            onTouchStart={onHandleTouchStart}
+            onTouchMove={onHandleTouchMove}
+            onTouchEnd={onHandleTouchEnd}
+          >
+            <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
+          </div>
+        )}
 
         {/* Header */}
-        {title && (
-          <div className="flex-shrink-0 flex items-center justify-between px-5 py-3">
-            <h2 className="text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7]">{title}</h2>
+        {(title || margin) && (
+          <div className="flex-shrink-0 flex items-center justify-between px-5 py-4">
+            {title ? (
+              <h2 className="text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7]">{title}</h2>
+            ) : <div />}
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] transition-colors active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C]"
+              className="w-8 h-8 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] transition-colors active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C]"
             >
               <X size={16} strokeWidth={2.5} />
             </button>
@@ -147,7 +216,7 @@ export default function BottomSheet({
         {/* Scrollable content */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-x-hidden"
+          className="flex-1 overflow-x-hidden min-h-0"
           style={{
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
@@ -156,6 +225,13 @@ export default function BottomSheet({
         >
           {children}
         </div>
+
+        {/* Optional footer (action buttons etc.) */}
+        {footer && (
+          <div className="flex-shrink-0">
+            {footer}
+          </div>
+        )}
       </div>
     </>
   )

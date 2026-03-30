@@ -68,15 +68,22 @@ export default async function DashboardPage() {
   const shareText = `My monthly subscriptions: ${formatCurrency(stats.total_monthly_cost, 'EUR')} across ${subs.length} subscriptions — tracked with Perezoso 🦥`
 
   return (
-    <div className="space-y-[8px]">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2">
-        <div>
-          <h1 className="text-2xl font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('dashboard.title')}</h1>
-          <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-0.5">{t('dashboard.subtitle')}</p>
+    <div>
+      {/* Sticky header */}
+      <div
+        className="sticky top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-3 backdrop-blur-[20px]"
+        style={{ background: 'var(--sticky-header-bg)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('dashboard.title')}</h1>
+            <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-0.5">{t('dashboard.subtitle')}</p>
+          </div>
+          <UserAvatarMenu shareText={shareText} />
         </div>
-        <UserAvatarMenu shareText={shareText} />
       </div>
+
+      <div className="space-y-[8px] mt-3">
 
       {isEmpty ? (
         <EmptyState t={t} />
@@ -228,6 +235,7 @@ export default async function DashboardPage() {
           )}
         </>
       )}
+      </div>
     </div>
   )
 }
