@@ -118,7 +118,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
       <motion.div
         layoutId={`card-${sub.id}`}
         onClick={() => onOpen(sub)}
-        className="w-full bg-white px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
+        className="w-full bg-white dark:bg-[#1C1C1E] px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
         style={{
           border: '1.5px solid #E8E8E8',
           borderRadius: 28,
@@ -165,8 +165,8 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
           />
 
           <div className="flex-1 min-w-0">
-            <p className="text-[21px] font-bold text-[#111111] leading-snug truncate">{sub.name}</p>
-            <p className="text-[14px] text-[#999999] mt-1 leading-snug">
+            <p className="text-[21px] font-bold text-[#111111] dark:text-[#F2F2F7] leading-snug truncate">{sub.name}</p>
+            <p className="text-[14px] text-[#999999] dark:text-[#636366] mt-1 leading-snug">
               {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
             </p>
           </div>
@@ -179,11 +179,11 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
               </div>
             ) : (
               <>
-                <p className="text-[16px] font-bold text-[#111111] tabular-nums leading-snug">
+                <p className="text-[16px] font-bold text-[#111111] dark:text-[#F2F2F7] tabular-nums leading-snug">
                   {viewMode === 'monthly'
                     ? formatCurrency(sub.my_monthly_cost, sub.currency)
                     : formatCurrency(sub.my_annual_cost, sub.currency)}
-                  <span className="text-[13px] font-normal text-[#999999] ml-0.5">
+                  <span className="text-[13px] font-normal text-[#999999] dark:text-[#636366] ml-0.5">
                     {viewMode === 'monthly' ? '/mo' : '/yr'}
                   </span>
                 </p>
@@ -199,21 +199,21 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         {/* Billing progress */}
         {sub.next_billing_date && (
           <div className="mt-5">
-            <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-2">
+            <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-2">
               {t('detail.nextBillingSection')}
             </p>
             <div className="w-full rounded-full overflow-hidden" style={{ height: 4, background: 'rgba(0,0,0,0.07)' }}>
               <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, background: '#22C55E' }} />
             </div>
             <div className="flex justify-between items-center mt-1.5">
-              <span className="text-[12px] text-[#999999]">
+              <span className="text-[12px] text-[#999999] dark:text-[#636366]">
                 {daysLeft === 0
                   ? t('dashboard.dueToday')
                   : daysLeft === 1
                   ? t('dashboard.tomorrow')
                   : t('dashboard.inDays').replace('{days}', String(daysLeft))}
               </span>
-              <span className="text-[12px] text-[#999999]">{nextDateFormatted}</span>
+              <span className="text-[12px] text-[#999999] dark:text-[#636366]">{nextDateFormatted}</span>
             </div>
           </div>
         )}
@@ -315,23 +315,23 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
         onClick={onClose}
       />
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-[28px]"
+        className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1C1C1E] rounded-t-[28px]"
         style={{ border: '1px solid #E5E5E5', borderBottom: 'none' }}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 380, damping: 36 }}
       >
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#DADADA] rounded-full" />
+          <div className="w-10 h-1 bg-[#DADADA] dark:bg-[#3A3A3C] rounded-full" />
         </div>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0F0]">
-          <h2 className="text-[17px] font-semibold text-[#111111]">{t('sheets.filter')}</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-2xl bg-[#F5F5F5] flex items-center justify-center">
-            <X size={15} strokeWidth={2.5} className="text-[#666666]" />
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0F0] dark:border-[#2C2C2E]">
+          <h2 className="text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7]">{t('sheets.filter')}</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center">
+            <X size={15} strokeWidth={2.5} className="text-[#666666] dark:text-[#AEAEB2]" />
           </button>
         </div>
         <div className="px-5 py-5 space-y-6 max-h-[60vh] overflow-y-auto">
           <div>
-            <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">{t('subscriptions.filterStatus')}</p>
+            <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterStatus')}</p>
             <div className="flex flex-wrap gap-2">
               {([
                 { value: 'all' as const, label: t('common.all') },
@@ -341,7 +341,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
                 { value: 'cancelled' as const, label: t('status.cancelled') },
               ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
                 <button key={opt.value} onClick={() => setStatus(opt.value)}
-                  className={`flex items-center gap-1.5 px-4 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                  className={`flex items-center gap-1.5 px-4 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                   {status === opt.value && <Check size={12} strokeWidth={3} />}
                   {opt.label}
                 </button>
@@ -349,10 +349,10 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
             </div>
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
+            <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setCategory('all')}
-                className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                 {category === 'all' && <Check size={12} strokeWidth={3} />}
                 {t('subscriptions.allCategories')}
               </button>
@@ -361,7 +361,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
                 const active = category === cat.value
                 return (
                   <button key={cat.value} onClick={() => setCategory(cat.value)}
-                    className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white text-[#444444] border-[#E0E0E0]'}`}>
+                    className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                     <Icon size={13} strokeWidth={2} />
                     {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
                   </button>
@@ -370,10 +370,10 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
             </div>
           </div>
         </div>
-        <div className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0]"
+        <div className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
           <button onClick={reset}
-            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-[#444444] bg-[#F5F5F5] transition-colors active:bg-[#ECECEC]">
+            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-[#444444] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#2C2C2E] transition-colors active:bg-[#ECECEC] dark:active:bg-[#3A3A3C]">
             {t('subscriptions.reset')}
           </button>
           <button onClick={apply}
@@ -426,14 +426,14 @@ function SortDropdown({
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-1 active:opacity-60 transition-opacity"
       >
-        <span className="text-[13px] text-[#999999]">{t('subscriptions.sortBy')} ·</span>
-        <span className="text-[13px] font-medium text-[#444444]">{currentLabel}</span>
-        <ChevronsUpDown size={11} className="text-[#BBBBBB] ml-0.5" />
+        <span className="text-[13px] text-[#999999] dark:text-[#636366]">{t('subscriptions.sortBy')} ·</span>
+        <span className="text-[13px] font-medium text-[#444444] dark:text-[#AEAEB2]">{currentLabel}</span>
+        <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#636366] ml-0.5" />
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl border border-[#E5E5E5] shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden z-50 animate-fade-in-scale">
+        <div className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden z-50 animate-fade-in-scale">
           <div className="py-1.5">
             {options.map(({ mode, label }) => {
               const active = current === mode
@@ -441,7 +441,7 @@ function SortDropdown({
                 <button
                   key={mode}
                   onClick={() => { onSelect(mode); setOpen(false) }}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors text-left ${active ? 'text-[#3D3BF3] font-semibold bg-[#F0F0FF]' : 'text-[#424242] font-medium hover:bg-[#F5F5F5]'}`}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors text-left ${active ? 'text-[#3D3BF3] font-semibold bg-[#F0F0FF] dark:bg-[#2A2A4A]' : 'text-[#424242] dark:text-[#AEAEB2] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#3D3BF3] flex-shrink-0" />}
@@ -519,13 +519,13 @@ export default function SubscriptionsView({
         {/* ── Header ───────────────────────────────────────────── */}
         <div>
           <div className="flex items-center justify-between">
-            <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">{t('subscriptions.title')}</h1>
+            <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
             <button
               onClick={() => setFilterOpen(true)}
-              className="relative w-10 h-10 rounded-[10px] bg-white flex items-center justify-center transition-colors active:bg-[#F0F0F0]"
+              className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
               style={{ border: '1.5px solid #E0E0E0' }}
             >
-              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333]" />
+              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
               {hasActiveFilters && (
                 <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
               )}
@@ -541,9 +541,9 @@ export default function SubscriptionsView({
         {/* ── Summary cards ────────────────────────────────────── */}
         {allCount > 0 && (
           <div className="grid grid-cols-2 gap-[8px]">
-            <div className="bg-white rounded-[20px] p-4" style={{ border: '1.5px solid #E8E8E8' }}>
-              <p className="text-[13px] text-[#999999] font-medium">{t('subscriptions.total')}</p>
-              <p className="text-[22px] font-bold text-[#111111] mt-1 leading-tight tabular-nums">
+            <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4" style={{ border: '1.5px solid #E8E8E8' }}>
+              <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium">{t('subscriptions.total')}</p>
+              <p className="text-[22px] font-bold text-[#111111] dark:text-[#F2F2F7] mt-1 leading-tight tabular-nums">
                 {allCount}
               </p>
             </div>
@@ -551,17 +551,17 @@ export default function SubscriptionsView({
             {/* Tappable cost card — toggles monthly ↔ yearly */}
             <button
               onClick={toggleViewMode}
-              className="bg-white rounded-[20px] p-4 text-left active:scale-[0.97] transition-transform duration-100"
+              className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 text-left active:scale-[0.97] transition-transform duration-100"
               style={{ border: '1.5px solid #E8E8E8' }}
             >
-              <p className="text-[13px] text-[#999999] font-medium flex items-center gap-1.5">
+              <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium flex items-center gap-1.5">
                 {viewMode === 'monthly' ? t('subscriptions.perMonth') : t('subscriptions.perYear')}
-                <ChevronsUpDown size={11} className="text-[#BBBBBB]" />
+                <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#636366]" />
               </p>
               {numSkeleton ? (
-                <div className="h-[26px] w-24 rounded-lg bg-[#EFEFEF] animate-pulse mt-1" />
+                <div className="h-[26px] w-24 rounded-lg bg-[#EFEFEF] dark:bg-[#2C2C2E] animate-pulse mt-1" />
               ) : (
-                <p className="text-[18px] font-bold text-[#111111] mt-1 leading-tight tabular-nums">
+                <p className="text-[18px] font-bold text-[#111111] dark:text-[#F2F2F7] mt-1 leading-tight tabular-nums">
                   {viewMode === 'monthly'
                     ? formatCurrency(stats.total_monthly_cost, 'EUR')
                     : formatCurrency(stats.total_annual_cost, 'EUR')}

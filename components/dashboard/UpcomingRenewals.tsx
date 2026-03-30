@@ -50,10 +50,10 @@ export default function UpcomingRenewals({ renewals }: Props) {
               corner="rounded-[8px]"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold text-[#121212] truncate leading-snug">
+              <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">
                 {r.subscription.name}
               </p>
-              <p className="text-[12px] text-[#737373] mt-0.5">
+              <p className="text-[12px] text-[#737373] dark:text-[#636366] mt-0.5">
                 {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)}
                 {' '}{t('dashboard.perMonth')}
               </p>
@@ -70,7 +70,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
       {remaining > 0 && (
         <button
           onClick={() => setVisible((v) => v + PAGE_SIZE)}
-          className="w-full text-center text-[13px] font-medium text-[#3D3BF3] pt-3 mt-3 border-t border-[#F5F5F5] active:opacity-70 transition-opacity"
+          className="w-full text-center text-[13px] font-medium text-[#3D3BF3] pt-3 mt-3 border-t border-[#F5F5F5] dark:border-[#2C2C2E] active:opacity-70 transition-opacity"
         >
           {t('dashboard.showMore').replace('{count}', String(remaining))}
         </button>

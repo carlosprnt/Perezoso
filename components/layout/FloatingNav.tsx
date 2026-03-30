@@ -10,6 +10,7 @@ import PlatformPicker from '@/components/subscriptions/PlatformPicker'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import GmailSubscriptionSearchSheet from '@/components/subscriptions/GmailSubscriptionSearchSheet'
 import { useT } from '@/lib/i18n/LocaleProvider'
+import { useTheme } from '@/components/ui/ThemeProvider'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
 type Step = 'closed' | 'pick' | 'form' | 'gmail'
@@ -32,6 +33,8 @@ function TagHeartIcon({ active }: { active: boolean }) {
 export default function FloatingNav() {
   const t = useT()
   const pathname = usePathname()
+  const { theme } = useTheme()
+  const isDarkMode = theme === 'dark'
   const [step, setStep] = useState<Step>('closed')
   const [platform, setPlatform] = useState<PlatformPreset | null>(null)
 
@@ -57,8 +60,12 @@ export default function FloatingNav() {
   const isSubs = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
   const isCal  = pathname === '/calendar'  || pathname.startsWith('/calendar/')
 
-  // x offset of the sliding black bg: Dashboard=0, Subscriptions=1, Calendar=2
+  // x offset of the sliding bg: Dashboard=0, Subscriptions=1, Calendar=2
   const bgX = isCal ? (BTN_W + GAP) * 2 : isSubs ? BTN_W + GAP : 0
+
+  // Icon colors depend on dark mode
+  const activeIconColor = isDarkMode ? '#111111' : '#ffffff'
+  const inactiveIconColor = isDarkMode ? '#AEAEB2' : '#111111'
 
   // Bottom offset: 16px + safe-area
   const bottomOffset = 'calc(16px + env(safe-area-inset-bottom))'
@@ -74,28 +81,34 @@ export default function FloatingNav() {
           style={{ bottom: bottomOffset }}
         >
           <div
-            className="relative flex items-center rounded-full overflow-hidden"
+            className="floating-pill relative flex items-center rounded-full overflow-hidden"
             style={{
               padding: PAD,
               gap: GAP,
-              background: 'rgba(255,255,255,0.65)',
+              background: isDarkMode ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.65)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid #BCBCBC',
+              border: `1px solid ${isDarkMode ? '#3A3A3C' : '#BCBCBC'}`,
             }}
           >
-            {/* Static EEEEEE backgrounds — always visible behind each button */}
-            <div className="absolute rounded-full bg-[#EEEEEE]"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD }} />
-            <div className="absolute rounded-full bg-[#EEEEEE]"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + BTN_W + GAP }} />
-            <div className="absolute rounded-full bg-[#EEEEEE]"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + (BTN_W + GAP) * 2 }} />
+            {/* Static backgrounds — always visible behind each button */}
+            <div
+              className="absolute rounded-full"
+              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
+            />
+            <div
+              className="absolute rounded-full"
+              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + BTN_W + GAP, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
+            />
+            <div
+              className="absolute rounded-full"
+              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + (BTN_W + GAP) * 2, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
+            />
 
-            {/* Sliding black background */}
+            {/* Sliding indicator */}
             <motion.div
-              className="absolute rounded-full bg-[#111111]"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, zIndex: 1 }}
+              className="absolute rounded-full"
+              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, zIndex: 1, backgroundColor: isDarkMode ? '#F2F2F7' : '#111111' }}
               animate={{ x: bgX }}
               transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
             />
@@ -106,14 +119,14 @@ export default function FloatingNav() {
                 style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
               >
                 <LayoutGrid size={20} strokeWidth={2}
-                  color={isDash ? '#ffffff' : '#111111'} />
+                  color={isDash ? activeIconColor : inactiveIconColor} />
               </div>
             </Link>
 
             {/* Subscriptions button */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
               <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? '#ffffff' : '#111111' }}
+                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? activeIconColor : inactiveIconColor }}
               >
                 <TagHeartIcon active={false} />
               </div>
@@ -125,7 +138,7 @@ export default function FloatingNav() {
                 style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
               >
                 <CalendarDays size={20} strokeWidth={2}
-                  color={isCal ? '#ffffff' : '#111111'} />
+                  color={isCal ? activeIconColor : inactiveIconColor} />
               </div>
             </Link>
           </div>

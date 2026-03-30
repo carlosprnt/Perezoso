@@ -33,7 +33,7 @@ export default function Sidebar({ profile }: SidebarProps) {
     <aside className="
       hidden lg:flex flex-col
       w-56 min-h-screen
-      bg-white border-r border-[#E5E5E5]
+      bg-white dark:bg-[#1C1C1E] border-r border-[#E5E5E5] dark:border-[#2C2C2E]
       px-3 py-6
       fixed left-0 top-0 bottom-0
     ">
@@ -46,7 +46,7 @@ export default function Sidebar({ profile }: SidebarProps) {
           height={32}
           className="rounded-xl flex-shrink-0"
         />
-        <span className="font-bold text-[#121212] text-base tracking-tight">Perezoso</span>
+        <span className="font-bold text-[#121212] dark:text-[#F2F2F7] text-base tracking-tight">Perezoso</span>
       </div>
 
       {/* Navigation */}
@@ -61,8 +61,8 @@ export default function Sidebar({ profile }: SidebarProps) {
                 flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium
                 transition-all duration-150
                 ${isActive
-                  ? 'bg-[#121212] text-white'
-                  : 'text-[#424242] hover:bg-[#F5F5F5] hover:text-[#121212]'
+                  ? 'bg-[#121212] text-white dark:bg-[#F2F2F7] dark:text-[#111111]'
+                  : 'text-[#424242] hover:bg-[#F5F5F5] hover:text-[#121212] dark:text-[#AEAEB2] dark:hover:bg-[#2C2C2E] dark:hover:text-[#F2F2F7]'
                 }
               `}
             >
@@ -74,10 +74,10 @@ export default function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* User / logout */}
-      <div className="border-t border-[#E5E5E5] pt-4 mt-4">
+      <div className="border-t border-[#E5E5E5] dark:border-[#2C2C2E] pt-4 mt-4">
         {profile?.full_name && (
           <div className="px-3 mb-3">
-            <p className="text-xs font-medium text-[#121212] truncate">{profile.full_name}</p>
+            <p className="text-xs font-medium text-[#121212] dark:text-[#F2F2F7] truncate">{profile.full_name}</p>
           </div>
         )}
         <button
@@ -85,6 +85,7 @@ export default function Sidebar({ profile }: SidebarProps) {
           className="
             w-full flex items-center gap-2.5 px-3 py-2 rounded-xl
             text-sm text-[#616161] hover:text-red-700 hover:bg-red-50
+            dark:text-[#636366] dark:hover:text-red-400 dark:hover:bg-red-900/20
             transition-all duration-150
           "
         >

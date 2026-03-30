@@ -30,9 +30,9 @@ function InsightCell({
       <div className={`w-7 h-7 rounded-lg flex items-center justify-center mb-2.5 flex-shrink-0 ${iconCls}`}>
         {icon}
       </div>
-      <p className="text-[11px] text-[#999999] font-medium uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-[14px] font-bold text-[#111111] leading-snug truncate">{value}</p>
-      {sub && <p className="text-[12px] text-[#999999] mt-0.5 leading-snug line-clamp-2">{sub}</p>}
+      <p className="text-[11px] text-[#999999] dark:text-[#636366] font-medium uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-[14px] font-bold text-[#111111] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
+      {sub && <p className="text-[12px] text-[#999999] dark:text-[#636366] mt-0.5 leading-snug line-clamp-2">{sub}</p>}
     </div>
   )
 }
@@ -62,7 +62,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
   )
 
   return (
-    <div className="bg-white rounded-[20px] border border-[#E8E8E8] overflow-hidden">
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] border border-[#E8E8E8] dark:border-[#2C2C2E] overflow-hidden">
       <div className="grid grid-cols-2">
 
         {/* ① Highest cost */}
@@ -76,7 +76,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
               ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} / mo · ${getCategoryMeta(highest.category).label}`
               : ''
           }
-          border="border-r border-b border-[#F0F0F0]"
+          border="border-r border-b border-[#F0F0F0] dark:border-[#2C2C2E]"
         />
 
         {/* ② Top category */}
@@ -90,7 +90,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
               ? `${formatCurrency(topCat.monthly_cost, 'EUR')} / mo · ${topCat.count} subs`
               : ''
           }
-          border="border-b border-[#F0F0F0]"
+          border="border-b border-[#F0F0F0] dark:border-[#2C2C2E]"
         />
 
         {/* ③ Shared plans */}
@@ -104,7 +104,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
               ? `Saving ${formatCurrency(sharedSavings, 'EUR')} / mo`
               : ''
           }
-          border="border-r border-[#F0F0F0]"
+          border="border-r border-[#F0F0F0] dark:border-[#2C2C2E]"
         />
 
         {/* ④ Renews soon */}

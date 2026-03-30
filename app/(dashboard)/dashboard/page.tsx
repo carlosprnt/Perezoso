@@ -72,8 +72,8 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between pb-2">
         <div>
-          <h1 className="text-2xl font-bold text-[#121212] tracking-tight">{t('dashboard.title')}</h1>
-          <p className="text-sm text-[#737373] mt-0.5">{t('dashboard.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('dashboard.title')}</h1>
+          <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-0.5">{t('dashboard.subtitle')}</p>
         </div>
         <UserAvatarMenu shareText={shareText} />
       </div>
@@ -83,27 +83,27 @@ export default async function DashboardPage() {
       ) : (
         <>
           {/* Monthly + Yearly — wide horizontal card */}
-          <div className="bg-white rounded-2xl border border-[#E8E8E8] p-5">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
             <div className="grid grid-cols-2">
-              <div className="pr-5 border-r border-[#F0F0F0]">
+              <div className="pr-5 border-r border-[#F0F0F0] dark:border-[#2C2C2E]">
                 <div className="flex items-center gap-1.5 mb-3">
-                  <TrendingUp size={13} className="text-[#737373]" />
-                  <span className="text-xs font-medium text-[#737373]">{t('dashboard.monthly')}</span>
+                  <TrendingUp size={13} className="text-[#737373] dark:text-[#636366]" />
+                  <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.monthly')}</span>
                 </div>
-                <p className="text-[28px] font-bold text-[#121212] tabular-nums tracking-tight leading-none">
+                <p className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">
                   {formatCurrency(stats.total_monthly_cost, 'EUR')}
                 </p>
-                <p className="text-xs text-[#737373] mt-1.5">{t('dashboard.spendPerMonth')}</p>
+                <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{t('dashboard.spendPerMonth')}</p>
               </div>
               <div className="pl-5">
                 <div className="flex items-center gap-1.5 mb-3">
-                  <Calendar size={13} className="text-[#737373]" />
-                  <span className="text-xs font-medium text-[#737373]">{t('dashboard.yearly')}</span>
+                  <Calendar size={13} className="text-[#737373] dark:text-[#636366]" />
+                  <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.yearly')}</span>
                 </div>
-                <p className="text-[28px] font-bold text-[#121212] tabular-nums tracking-tight leading-none">
+                <p className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">
                   {formatCurrency(stats.total_annual_cost, 'EUR')}
                 </p>
-                <p className="text-xs text-[#737373] mt-1.5">{t('dashboard.projectedAnnual')}</p>
+                <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{t('dashboard.projectedAnnual')}</p>
               </div>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
                     return (
                       <div key={category}>
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[15px] text-[#121212] font-medium flex items-center gap-2">
+                          <span className="text-[15px] text-[#121212] dark:text-[#F2F2F7] font-medium flex items-center gap-2">
                             <span
                               className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
                               style={{ backgroundColor: iconBg }}
@@ -162,11 +162,11 @@ export default async function DashboardPage() {
                             </span>
                             {t(`categories.${category}` as Parameters<typeof t>[0])}
                           </span>
-                          <span className="text-[15px] font-semibold text-[#121212] tabular-nums">
+                          <span className="text-[15px] font-semibold text-[#121212] dark:text-[#F2F2F7] tabular-nums">
                             {formatCurrency(monthly_cost, 'EUR')}
                           </span>
                         </div>
-                        <div className="h-1 bg-[#F5F5F5] rounded-full overflow-hidden">
+                        <div className="h-1 bg-[#F5F5F5] dark:bg-[#2C2C2E] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor }}
@@ -192,9 +192,9 @@ export default async function DashboardPage() {
                 {top3.map((sub, i) => (
                   <div
                     key={sub.id}
-                    className="flex-shrink-0 w-[185px] snap-start rounded-[16px] bg-[#F7F8FA] border border-[#F0F0F0] p-4"
+                    className="flex-shrink-0 w-[185px] snap-start rounded-[16px] bg-[#F7F8FA] dark:bg-[#232325] border border-[#F0F0F0] dark:border-[#2C2C2E] p-4"
                   >
-                    <span className="text-[11px] font-bold text-[#B0B0B0] uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-[#B0B0B0] dark:text-[#636366] uppercase tracking-wider">
                       #{i + 1}
                     </span>
                     <div className="mt-2 mb-3">
@@ -205,20 +205,20 @@ export default async function DashboardPage() {
                         corner="rounded-[8px]"
                       />
                     </div>
-                    <p className="text-[14px] font-bold text-[#121212] truncate leading-snug">{sub.name}</p>
+                    <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">{sub.name}</p>
                     {sub.is_shared ? (
                       <div className="mt-1.5 space-y-0.5">
-                        <p className="text-[12px] text-[#737373]">
+                        <p className="text-[12px] text-[#737373] dark:text-[#636366]">
                           Total: {formatCurrency(sub.monthly_equivalent_cost, sub.currency)}/mo
                         </p>
-                        <p className="text-[13px] font-semibold text-[#121212]">
+                        <p className="text-[13px] font-semibold text-[#121212] dark:text-[#F2F2F7]">
                           {t('dashboard.yourShare')}: {formatCurrency(sub.my_monthly_cost, sub.currency)}/mo
                         </p>
                       </div>
                     ) : (
-                      <p className="text-[15px] font-bold text-[#121212] tabular-nums mt-1.5">
+                      <p className="text-[15px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums mt-1.5">
                         {formatCurrency(sub.my_monthly_cost, sub.currency)}
-                        <span className="text-[12px] font-normal text-[#737373] ml-0.5">/mo</span>
+                        <span className="text-[12px] font-normal text-[#737373] dark:text-[#636366] ml-0.5">/mo</span>
                       </p>
                     )}
                   </div>
@@ -246,15 +246,15 @@ function SmallStatCard({
   icon: React.ReactNode
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E8E8] p-4">
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-4">
       <div className="flex items-center gap-1.5 mb-2.5">
         {icon}
-        <span className="text-xs font-medium text-[#737373]">{label}</span>
+        <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{label}</span>
       </div>
-      <p className="text-[22px] font-bold text-[#121212] tabular-nums tracking-tight leading-none">
+      <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">
         {value}
       </p>
-      <p className="text-xs text-[#737373] mt-1.5">{sub}</p>
+      <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{sub}</p>
     </div>
   )
 }
