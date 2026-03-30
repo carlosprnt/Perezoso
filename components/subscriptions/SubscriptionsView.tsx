@@ -51,10 +51,9 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 // ─── Stack geometry ────────────────────────────────────────────────────────
-// pt-5 (20px) + avatar h-14 (56px) + 16px gap = 92px visible per card
-const STACK_VISIBLE_TOP = '92px'
-const CARD_HEIGHT_EXPR = 'clamp(260px, 36vw, 320px)'
-const STACK_MARGIN = `calc(${STACK_VISIBLE_TOP} - ${CARD_HEIGHT_EXPR})`
+// Cards have content-driven height. Each card peeks ~92px from behind the next.
+// STACK_MARGIN = -(avg_card_height - peek) ≈ -(180 - 92) = -88px
+const STACK_MARGIN = '-88px'
 
 const CARD_SPRING = { type: 'spring' as const, stiffness: 340, damping: 32, mass: 0.85 }
 
@@ -104,7 +103,6 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         style={{
           border: '1.5px solid #E8E8E8',
           borderRadius: 28,
-          minHeight: CARD_HEIGHT_EXPR,
         }}
         whileTap={{ scale: 0.985 }}
         animate={shimmer ? {
@@ -140,7 +138,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         )}
 
         {/* Top row */}
-        <div className="flex items-start gap-5 flex-1">
+        <div className="flex items-start gap-5">
           <SubscriptionAvatar
             name={sub.name}
             logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
@@ -185,8 +183,8 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
             <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-2">
               {t('detail.nextBillingSection')}
             </p>
-            <div className="w-full rounded-full overflow-hidden" style={{ height: 4, background: 'rgba(0,0,0,0.08)' }}>
-              <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, background: 'rgba(0,0,0,0.30)' }} />
+            <div className="w-full rounded-full overflow-hidden" style={{ height: 4, background: 'rgba(0,0,0,0.07)' }}>
+              <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, background: '#22C55E' }} />
             </div>
             <div className="flex justify-between items-center mt-1.5">
               <span className="text-[12px] text-[#999999]">

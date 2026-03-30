@@ -222,7 +222,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
               <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.07)' }}>
                 <div
                   className="h-full rounded-full"
-                  style={{ width: `${Math.round(billingProg * 100)}%`, background: '#3D3BF3' }}
+                  style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }}
                 />
               </div>
               <div className="flex justify-between items-center mt-2.5">
