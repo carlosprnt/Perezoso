@@ -14,6 +14,7 @@ const en = {
   nav: {
     dashboard: 'Dashboard',
     subscriptions: 'Subscriptions',
+    calendar: 'Calendar',
   },
   dashboard: {
     title: 'Dashboard',
@@ -77,6 +78,21 @@ const en = {
     perMonth: 'per month',
     annually: 'Annually',
     edit: 'Edit subscription',
+    billingSection: 'Billing',
+    organizationSection: 'Organization',
+    billingCycle: 'Billing cycle',
+    amount: 'Amount',
+    sharedWith: 'Shared with',
+    people: 'people',
+  },
+  calendar: {
+    title: 'Calendar',
+    subtitle: 'Renewal calendar',
+    total: 'Total',
+    upcoming: 'Upcoming',
+    noRenewals: 'No renewals this month.',
+    dayTotal: 'Total for the day',
+    renewalsOn: 'on',
   },
   form: {
     name: 'Name',
@@ -197,6 +213,7 @@ const es: typeof en = {
   nav: {
     dashboard: 'Panel',
     subscriptions: 'Suscripciones',
+    calendar: 'Calendario',
   },
   dashboard: {
     title: 'Panel',
@@ -260,6 +277,21 @@ const es: typeof en = {
     perMonth: 'por mes',
     annually: 'Anualmente',
     edit: 'Editar suscripción',
+    billingSection: 'Facturación',
+    organizationSection: 'Organización',
+    billingCycle: 'Ciclo de facturación',
+    amount: 'Importe',
+    sharedWith: 'Compartida con',
+    people: 'personas',
+  },
+  calendar: {
+    title: 'Calendario',
+    subtitle: 'Calendario de renovaciones',
+    total: 'Total',
+    upcoming: 'Próximos',
+    noRenewals: 'Sin renovaciones este mes.',
+    dayTotal: 'Total del día',
+    renewalsOn: 'el',
   },
   form: {
     name: 'Nombre',

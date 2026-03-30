@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, Plus } from 'lucide-react'
+import { LayoutGrid, Plus, CalendarDays } from 'lucide-react'
 import { motion } from 'framer-motion'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from '@/components/subscriptions/PlatformPicker'
@@ -54,10 +54,11 @@ export default function FloatingNav() {
   }
 
   const isDash = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+  const isCal  = pathname === '/calendar'  || pathname.startsWith('/calendar/')
   const isSubs = pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
 
-  // x offset of the sliding black bg
-  const bgX = isSubs ? BTN_W + GAP : 0
+  // x offset of the sliding black bg: 3 positions
+  const bgX = isSubs ? (BTN_W + GAP) * 2 : isCal ? BTN_W + GAP : 0
 
   // Bottom offset: 16px + safe-area
   const bottomOffset = 'calc(16px + env(safe-area-inset-bottom))'
@@ -88,6 +89,8 @@ export default function FloatingNav() {
               style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD }} />
             <div className="absolute rounded-full bg-[#EEEEEE]"
               style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + BTN_W + GAP }} />
+            <div className="absolute rounded-full bg-[#EEEEEE]"
+              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + (BTN_W + GAP) * 2 }} />
 
             {/* Sliding black background */}
             <motion.div
@@ -104,6 +107,16 @@ export default function FloatingNav() {
               >
                 <LayoutGrid size={20} strokeWidth={2}
                   color={isDash ? '#ffffff' : '#111111'} />
+              </div>
+            </Link>
+
+            {/* Calendar button */}
+            <Link href="/calendar" aria-label={t('nav.calendar')}>
+              <div className="relative flex items-center justify-center rounded-full"
+                style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+              >
+                <CalendarDays size={20} strokeWidth={2}
+                  color={isCal ? '#ffffff' : '#111111'} />
               </div>
             </Link>
 

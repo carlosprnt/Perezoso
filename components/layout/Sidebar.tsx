@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, CreditCard, LogOut } from 'lucide-react'
+import { LayoutDashboard, CreditCard, CalendarDays, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { Profile } from '@/types'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',        icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/subscriptions',    icon: CreditCard,      label: 'Subscriptions' },
+  { href: '/dashboard',     icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/calendar',      icon: CalendarDays,    label: 'Calendar' },
+  { href: '/subscriptions', icon: CreditCard,      label: 'Subscriptions' },
 ]
 
 interface SidebarProps {

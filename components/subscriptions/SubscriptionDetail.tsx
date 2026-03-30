@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Calendar, Tag, Zap, Users } from 'lucide-react'
+import {
+  ArrowLeft, Calendar, Tag, Zap, Users,
+  RefreshCw, CreditCard, PieChart,
+} from 'lucide-react'
 import SubscriptionAvatar from './SubscriptionAvatar'
 import BottomSheet from '@/components/ui/BottomSheet'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
@@ -15,6 +18,7 @@ import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { SubscriptionWithCosts } from '@/types'
 
 // ─── Billing helpers ──────────────────────────────────────────────────────────
+
 function billingPeriodDays(period: string, intervalCount: number): number {
   const base: Record<string, number> = { weekly: 7, monthly: 30, quarterly: 91, yearly: 365 }
   return (base[period] ?? 30) * intervalCount
@@ -47,6 +51,41 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
   cancelled: { color: '#DC2626', bg: '#FEF2F2' },
 }
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
+      <div className="px-4 pt-3.5 pb-2.5">
+        <p className="text-[11px] font-semibold text-[#A0A0A0] uppercase tracking-wider">{title}</p>
+      </div>
+      <div className="border-t border-[#F0F0F0]">{children}</div>
+    </div>
+  )
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+  last = false,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+  last?: boolean
+}) {
+  return (
+    <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? '' : 'border-b border-[#F0F0F0]'}`}>
+      <span className="text-[#C0C0C0] flex-shrink-0">{icon}</span>
+      <span className="text-sm text-[#737373] flex-1 leading-tight">{label}</span>
+      <span className="text-sm font-medium text-[#121212] text-right leading-tight">{value}</span>
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 interface SubscriptionDetailProps {
   subscription: SubscriptionWithCosts
 }
@@ -63,6 +102,14 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
   const meta = getCategoryMeta(sub.category)
   const CategoryIcon = meta.icon
   const status = STATUS_CONFIG[sub.status] ?? STATUS_CONFIG.active
+  const billingLabel = BILLING_PERIOD_LABELS[sub.billing_period] ?? sub.billing_period
+
+  const daysLabel =
+    daysLeft === 0
+      ? t('dashboard.dueToday')
+      : daysLeft === 1
+      ? t('dashboard.tomorrow')
+      : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
   return (
     <>
@@ -81,33 +128,40 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
           </button>
         </div>
 
-        {/* Hero — logo + title + status directly on background, no card */}
+        {/* Hero */}
         <div className="flex flex-col items-center text-center pb-6">
           <SubscriptionAvatar
             name={sub.name}
             logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
             size="xl"
+            corner="rounded-[8px]"
           />
-          <h1 className="text-[22px] font-bold text-[#121212] mt-4 mb-2 leading-tight">
+          <h1 className="text-[22px] font-bold text-[#121212] mt-4 mb-3 leading-tight">
             {sub.name}
           </h1>
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-            style={{ color: status.color, backgroundColor: status.bg }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
-            {t(`status.${sub.status}` as Parameters<typeof t>[0])}
-            {sub.is_shared && (
-              <span className="ml-1 flex items-center gap-1 opacity-70">
-                · <Users size={11} /> {sub.shared_with_count}
-              </span>
-            )}
-          </span>
+          <div className="flex items-center flex-wrap justify-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              style={{ color: status.color, backgroundColor: status.bg }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+              {t(`status.${sub.status}` as Parameters<typeof t>[0])}
+              {sub.is_shared && (
+                <span className="ml-1 flex items-center gap-1 opacity-70">
+                  · <Users size={11} /> {sub.shared_with_count}
+                </span>
+              )}
+            </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] text-[#424242]">
+              {billingLabel}
+            </span>
+          </div>
         </div>
 
-        {/* Content cards */}
-        <div className="space-y-[8px]">
-          {/* Cost breakdown */}
+        {/* Content sections */}
+        <div className="space-y-3">
+
+          {/* Cost hero card */}
           <div className="bg-white rounded-2xl border border-[#E8E8E8] p-4">
             <div className="flex items-end justify-between">
               <div>
@@ -125,69 +179,101 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
             </div>
           </div>
 
-          {/* Detail rows */}
-          <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
+          {/* Billing section */}
+          <SectionCard title={t('detail.billingSection')}>
+            {sub.next_billing_date && (
+              <DetailRow
+                icon={<Calendar size={15} />}
+                label={t('detail.nextBilling')}
+                value={
+                  <span className="flex flex-col items-end gap-0.5">
+                    <span>{formatRelativeDate(sub.next_billing_date)}</span>
+                    <span className="text-xs text-[#A0A0A0] font-normal">{nextDateFormatted}</span>
+                  </span>
+                }
+              />
+            )}
+            <DetailRow
+              icon={<RefreshCw size={15} />}
+              label={t('detail.billingCycle')}
+              value={billingLabel}
+            />
+            <DetailRow
+              icon={<CreditCard size={15} />}
+              label={t('detail.amount')}
+              value={formatCurrency(sub.price_amount, sub.currency)}
+            />
+            {sub.is_shared && (
+              <DetailRow
+                icon={<Users size={15} />}
+                label={t('detail.sharedWith')}
+                value={`${sub.shared_with_count} ${t('detail.people')}`}
+              />
+            )}
+            {sub.is_shared && (
+              <DetailRow
+                icon={<PieChart size={15} />}
+                label={t('detail.nextBillingSection')}
+                value={`${formatCurrency(sub.my_monthly_cost, sub.currency)} / ${locale === 'es' ? 'mes' : 'mo'}`}
+                last={!sub.next_billing_date}
+              />
+            )}
+
+            {/* Billing progress timeline */}
+            {sub.next_billing_date && (
+              <div className="px-4 pt-3 pb-4 border-t border-[#F0F0F0]">
+                <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }}
+                  />
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs font-semibold text-[#121212]">{daysLabel}</span>
+                  <span className="text-xs text-[#A0A0A0]">{nextDateFormatted}</span>
+                </div>
+              </div>
+            )}
+          </SectionCard>
+
+          {/* Organization section */}
+          <SectionCard title={t('detail.organizationSection')}>
             <DetailRow
               icon={<Tag size={15} />}
               label={t('detail.category')}
               value={
                 <span className="flex items-center gap-1.5">
-                  <CategoryIcon size={13} />{t(`categories.${sub.category}` as Parameters<typeof t>[0])}
+                  <CategoryIcon size={13} />
+                  {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
                 </span>
               }
+              last={!sub.trial_end_date}
             />
-            {sub.next_billing_date && (
-              <DetailRow
-                icon={<Calendar size={15} />}
-                label={t('detail.nextBilling')}
-                value={formatRelativeDate(sub.next_billing_date)}
-              />
-            )}
             {sub.trial_end_date && (
               <DetailRow
                 icon={<Zap size={15} />}
                 label={t('detail.trialEnds')}
                 value={formatRelativeDate(sub.trial_end_date)}
+                last
               />
             )}
-          </div>
+          </SectionCard>
 
           {/* Notes */}
           {sub.notes && (
-            <div className="bg-white rounded-2xl border border-[#E8E8E8] p-4">
-              <p className="text-xs font-medium text-[#737373] mb-2">{t('detail.notes')}</p>
-              <p className="text-sm text-[#424242] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
-            </div>
-          )}
-
-          {/* Próximo cobro — billing timeline */}
-          {sub.next_billing_date && (
-            <div className="bg-white rounded-2xl border border-[#E8E8E8] p-4" style={{ marginTop: 20 }}>
-              <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-                {t('detail.nextBillingSection')}
-              </p>
-              <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.07)' }}>
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }}
-                />
+            <div className="bg-white rounded-2xl border border-[#E8E8E8] overflow-hidden">
+              <div className="px-4 pt-3.5 pb-2.5">
+                <p className="text-[11px] font-semibold text-[#A0A0A0] uppercase tracking-wider">{t('detail.notes')}</p>
               </div>
-              <div className="flex justify-between items-center mt-2.5">
-                <span className="text-sm font-semibold text-[#121212]">
-                  {daysLeft === 0
-                    ? t('dashboard.dueToday')
-                    : daysLeft === 1
-                    ? t('dashboard.tomorrow')
-                    : t('dashboard.inDays').replace('{days}', String(daysLeft))}
-                </span>
-                <span className="text-sm text-[#737373]">{nextDateFormatted}</span>
+              <div className="border-t border-[#F0F0F0] px-4 py-4">
+                <p className="text-sm text-[#424242] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Fixed CTA */}
+      {/* Fixed edit CTA */}
       <div
         className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] px-4 pt-3 z-10"
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
@@ -214,23 +300,5 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         />
       </BottomSheet>
     </>
-  )
-}
-
-function DetailRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: React.ReactNode
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#F0F0F0] last:border-b-0">
-      <span className="text-[#B0B0B0] flex-shrink-0">{icon}</span>
-      <span className="text-sm text-[#737373] flex-1">{label}</span>
-      <span className="text-sm font-medium text-[#121212]">{value}</span>
-    </div>
   )
 }
