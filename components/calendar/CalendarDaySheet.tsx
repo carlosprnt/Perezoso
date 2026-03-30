@@ -70,37 +70,37 @@ export default function CalendarDaySheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 animate-backdrop-in z-[58]"
+        className="fixed inset-0 bg-black/60 animate-backdrop-in z-[58]"
         onClick={onClose}
       />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[28px] flex flex-col max-h-[80dvh] animate-slide-up z-[60]"
+        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] rounded-t-[28px] flex flex-col max-h-[80dvh] animate-slide-up z-[60]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}
         <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#D4D4D4] rounded-full" />
+          <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
         </div>
 
         {/* Header */}
         <div className="flex-shrink-0 flex items-start justify-between px-5 pt-2 pb-4">
           <div>
-            <p className="text-[17px] font-bold text-[#121212] capitalize">{dateLabel}</p>
+            <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] capitalize">{dateLabel}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[13px] font-semibold text-[#3D3BF3] tabular-nums">
                 {formatCurrency(dayTotal, currency)}
               </span>
-              <span className="text-[13px] text-[#888888]">{t('calendar.total').toLowerCase()}</span>
-              <span className="w-px h-3 bg-[#D4D4D4]" />
-              <span className="text-[13px] text-[#888888]">{daysLeftLabel}</span>
+              <span className="text-[13px] text-[#888888] dark:text-[#636366]">{t('calendar.total').toLowerCase()}</span>
+              <span className="w-px h-3 bg-[#D4D4D4] dark:bg-[#3A3A3C]" />
+              <span className="text-[13px] text-[#888888] dark:text-[#636366]">{daysLeftLabel}</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] flex items-center justify-center text-[#666666] active:bg-[#EBEBEB] transition-colors mt-0.5"
+            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors mt-0.5"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -153,7 +153,7 @@ function SubscriptionRow({
       : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
   return (
-    <div className="flex items-center gap-3 bg-[#F7F8FA] rounded-2xl px-3.5 py-3 border border-[#F0F0F0]">
+    <div className="flex items-center gap-3 bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl px-3.5 py-3 border border-[#F0F0F0] dark:border-[#2C2C2E]">
       <SubscriptionAvatar
         name={sub.name}
         logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
@@ -161,15 +161,15 @@ function SubscriptionRow({
         corner="rounded-[8px]"
       />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#121212] truncate">{sub.name}</p>
-        <p className="text-xs text-[#888888] mt-0.5">
+        <p className="text-sm font-semibold text-[#121212] dark:text-[#F2F2F7] truncate">{sub.name}</p>
+        <p className="text-xs text-[#888888] dark:text-[#636366] mt-0.5">
           {daysLeftLabel}
           <span className="mx-1">·</span>
           {dateLabel}
         </p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-sm font-semibold text-[#121212] tabular-nums">
+        <p className="text-sm font-semibold text-[#121212] dark:text-[#F2F2F7] tabular-nums">
           {formatCurrency(sub.price_amount, sub.currency)}
         </p>
       </div>

@@ -133,7 +133,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
       onClick={hasSubs ? onClick : undefined}
       className={`
         flex flex-col items-start p-2 rounded-[12px] min-h-[80px]
-        transition-all duration-100 select-none bg-white
+        transition-all duration-100 select-none bg-white dark:bg-[#1C1C1E]
         ${hasSubs ? 'active:scale-[0.96] cursor-pointer' : 'cursor-default'}
       `}
       style={isToday ? { border: '1.5px solid #3D3BF3' } : { border: '1.5px solid transparent' }}
@@ -142,7 +142,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
       <span
         className={`
           text-[13px] font-medium leading-none flex-shrink-0
-          ${isToday ? 'text-[#3D3BF3] font-semibold' : hasSubs ? 'text-[#121212]' : 'text-[#A0A0A0]'}
+          ${isToday ? 'text-[#3D3BF3] font-semibold' : hasSubs ? 'text-[#121212] dark:text-[#F2F2F7]' : 'text-[#A0A0A0] dark:text-[#636366]'}
         `}
       >
         {day}
@@ -157,7 +157,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
             size={32}
           />
           {subscriptions.length > 1 && (
-            <span className="text-[9px] font-semibold text-[#888888] leading-none bg-[#F0F0F0] px-[5px] py-[3px] rounded-full">
+            <span className="text-[9px] font-semibold text-[#888888] dark:text-[#636366] leading-none bg-[#F0F0F0] dark:bg-[#2C2C2E] px-[5px] py-[3px] rounded-full">
               +{subscriptions.length - 1}
             </span>
           )}
@@ -233,26 +233,26 @@ export default function CalendarView({ subscriptions }: Props) {
       {/* ── Page header: month title + right-aligned circular nav ─────────── */}
       <div className="mb-1 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <h1 className="text-[28px] font-bold text-[#111111] tracking-tight capitalize leading-none">
+          <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight capitalize leading-none">
             {monthName}{yearLabel}
           </h1>
           {/* Circular nav buttons — right-aligned, filter-button style */}
           <div className="flex items-center gap-2">
             <button
               onClick={prevMonth}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white active:bg-[#F0F0F0] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#2C2C2E] active:bg-[#F0F0F0] dark:active:bg-[#3A3A3C] transition-colors"
               style={{ border: '1.5px solid #E0E0E0' }}
               aria-label="Previous month"
             >
-              <ChevronLeft size={17} strokeWidth={2} className="text-[#333333]" />
+              <ChevronLeft size={17} strokeWidth={2} className="text-[#333333] dark:text-[#AEAEB2]" />
             </button>
             <button
               onClick={nextMonth}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white active:bg-[#F0F0F0] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#2C2C2E] active:bg-[#F0F0F0] dark:active:bg-[#3A3A3C] transition-colors"
               style={{ border: '1.5px solid #E0E0E0' }}
               aria-label="Next month"
             >
-              <ChevronRight size={17} strokeWidth={2} className="text-[#333333]" />
+              <ChevronRight size={17} strokeWidth={2} className="text-[#333333] dark:text-[#AEAEB2]" />
             </button>
           </div>
         </div>
@@ -260,14 +260,14 @@ export default function CalendarView({ subscriptions }: Props) {
 
       {/* ── Month summary — unified subtitle style ────────────────────────── */}
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-        <span className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider">
           <span className="tabular-nums">
             {formatCurrency(monthTotal.amount, monthTotal.currency)}
           </span>
           {' '}{t('calendar.total')}
         </span>
-        <span className="w-px h-3 bg-[#D4D4D4]" />
-        <span className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider">
+        <span className="w-px h-3 bg-[#D4D4D4] dark:bg-[#3A3A3C]" />
+        <span className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider">
           {totalSubsThisMonth === 0
             ? t('calendar.noRenewals')
             : `${totalSubsThisMonth} ${totalSubsThisMonth === 1
@@ -281,7 +281,7 @@ export default function CalendarView({ subscriptions }: Props) {
         {weekdays.map(label => (
           <div
             key={label}
-            className="text-center text-[11px] font-medium text-[#A0A0A0] tracking-wide py-1"
+            className="text-center text-[11px] font-medium text-[#A0A0A0] dark:text-[#636366] tracking-wide py-1"
           >
             {label}
           </div>

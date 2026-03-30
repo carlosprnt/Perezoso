@@ -202,17 +202,17 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
           transition={{ delay: 0.22, duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           {/* Cost hero card */}
-          <div className="bg-[#F7F8FA] rounded-2xl border border-[#F0F0F0] p-4">
+          <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-3xl font-bold text-[#121212] tabular-nums leading-none">
+                <p className="text-3xl font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-none">
                   {formatCurrency(sub.my_monthly_cost, sub.currency)}
                 </p>
-                <p className="text-sm text-[#737373] mt-1">{t('detail.perMonth')}</p>
+                <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-[#737373] mb-0.5">{t('detail.annually')}</p>
-                <p className="text-lg font-semibold text-[#424242] tabular-nums">
+                <p className="text-xs text-[#737373] dark:text-[#AEAEB2] mb-0.5">{t('detail.annually')}</p>
+                <p className="text-lg font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
                   {formatCurrency(sub.my_annual_cost, sub.currency)}
                 </p>
               </div>
@@ -261,7 +261,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
 
             {/* Billing progress timeline */}
             {sub.next_billing_date && (
-              <div className="px-4 pt-3 pb-4 border-t border-[#EBEBEB]">
+              <div className="px-4 pt-3 pb-4 border-t border-[#EBEBEB] dark:border-[#2C2C2E]">
                 <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
                   <div
                     className="h-full rounded-full"
@@ -269,8 +269,8 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
                   />
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs font-semibold text-[#121212]">{daysLabel}</span>
-                  <span className="text-xs text-[#A0A0A0]">{nextDateFormatted}</span>
+                  <span className="text-xs font-semibold text-[#121212] dark:text-[#F2F2F7]">{daysLabel}</span>
+                  <span className="text-xs text-[#A0A0A0] dark:text-[#636366]">{nextDateFormatted}</span>
                 </div>
               </div>
             )}
@@ -301,12 +301,12 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
 
           {/* Notes */}
           {sub.notes && (
-            <div className="bg-[#F7F8FA] rounded-2xl border border-[#F0F0F0] overflow-hidden">
+            <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] overflow-hidden">
               <div className="px-4 pt-3.5 pb-2.5">
-                <p className="text-[11px] font-semibold text-[#A0A0A0] uppercase tracking-wider">{t('detail.notes')}</p>
+                <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#636366] uppercase tracking-wider">{t('detail.notes')}</p>
               </div>
-              <div className="border-t border-[#EBEBEB] px-4 py-4">
-                <p className="text-sm text-[#424242] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
+              <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E] px-4 py-4">
+                <p className="text-sm text-[#424242] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
               </div>
             </div>
           )}
@@ -314,7 +314,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
 
         {/* Fixed CTA at bottom */}
         <div
-          className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] px-4 pt-3"
+          className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
         >
           <button
