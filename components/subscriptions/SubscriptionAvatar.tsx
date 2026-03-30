@@ -10,6 +10,8 @@ interface SubscriptionAvatarProps {
   /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug} */
   simpleIconSlug?: string | null
   size?: 'sm' | 'md' | 'md48' | 'lg' | 'xl'
+  /** Override corner radius class. Defaults to 'rounded-xl' (12px). Use e.g. 'rounded-[8px]' for 8px. */
+  corner?: string
 }
 
 const SIZE = {
@@ -27,6 +29,7 @@ export default function SubscriptionAvatar({
   logoUrl,
   simpleIconSlug,
   size = 'md',
+  corner = 'rounded-xl',
 }: SubscriptionAvatarProps) {
   const [imgError, setImgError] = useState(false)
   const { cls, text } = SIZE[size]
@@ -47,7 +50,7 @@ export default function SubscriptionAvatar({
 
     return (
       <div
-        className={`${cls} rounded-xl overflow-hidden flex-shrink-0 border border-[#E0E0E0] ${isAuto ? 'bg-[#F5F5F5] flex items-center justify-center' : ''}`}
+        className={`${cls} ${corner} overflow-hidden flex-shrink-0 border border-[#E0E0E0] ${isAuto ? 'bg-[#F5F5F5] flex items-center justify-center' : ''}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -66,7 +69,7 @@ export default function SubscriptionAvatar({
   // Initials fallback — deterministic pastel background
   return (
     <div
-      className={`${cls} rounded-xl flex-shrink-0 flex items-center justify-center select-none border border-[#E0E0E0] ${text}`}
+      className={`${cls} ${corner} flex-shrink-0 flex items-center justify-center select-none border border-[#E0E0E0] ${text}`}
       style={{ backgroundColor: bg, color: fg }}
       aria-label={`${name} avatar`}
     >

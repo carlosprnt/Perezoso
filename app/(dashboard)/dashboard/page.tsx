@@ -1,14 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getHighestCostSubscription, getUpcomingRenewals } from '@/lib/calculations/subscriptions'
+import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getUpcomingRenewals, getTopExpensiveSubscriptions } from '@/lib/calculations/subscriptions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getCategoryMeta } from '@/lib/constants/categories'
-import { formatRelativeDate } from '@/lib/utils/dates'
 import type { Subscription } from '@/types'
 import Link from 'next/link'
 import { TrendingUp, Calendar, Users, Zap, Plus } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
+import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
+import UpcomingRenewals from '@/components/dashboard/UpcomingRenewals'
 import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
 import Insights from '@/components/dashboard/Insights'
@@ -59,16 +60,12 @@ export default async function DashboardPage() {
   const subs = enrichSubscriptions((rawSubs ?? []) as Subscription[])
   const stats = getDashboardStats(subs)
   const topCategories = getTopSpendCategories(subs, 4)
-  const highest = getHighestCostSubscription(subs)
-  const upcoming = getUpcomingRenewals(subs, 30)
+  const upcoming = getUpcomingRenewals(subs, 365)
+  const top3 = getTopExpensiveSubscriptions(subs, 3)
 
   const isEmpty = subs.length === 0
 
   const shareText = `My monthly subscriptions: ${formatCurrency(stats.total_monthly_cost, 'EUR')} across ${subs.length} subscriptions — tracked with Perezoso 🦥`
-
-  const upcomingSubtitle = upcoming.length === 1
-    ? t('dashboard.next30days', { count: upcoming.length })
-    : t('dashboard.next30daysPlural', { count: upcoming.length })
 
   return (
     <div className="space-y-[8px]">
@@ -134,44 +131,8 @@ export default async function DashboardPage() {
             {/* Upcoming renewals */}
             <div className="lg:col-span-2">
               <Card>
-                <CardHeader
-                  title={t('dashboard.upcomingRenewals')}
-                  subtitle={upcomingSubtitle}
-                />
-                {upcoming.length === 0 ? (
-                  <p className="text-sm text-[#737373] py-2">{t('dashboard.noUpcoming')}</p>
-                ) : (
-                  <div className="space-y-3">
-                    {upcoming.slice(0, 6).map((r) => (
-                      <div key={r.subscription.id} className="flex items-center gap-3">
-                        <SubscriptionAvatar
-                          name={r.subscription.name}
-                          logoUrl={r.subscription.logo_url}
-                          size="sm"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#121212] truncate">{r.subscription.name}</p>
-                          <p className="text-xs text-[#737373]">
-                            {r.days_until === 0 ? (
-                              <span className="text-[#DC2626] font-medium">{t('dashboard.dueToday')}</span>
-                            ) : r.days_until === 1 ? (
-                              <span className="text-[#D97706] font-medium">{t('dashboard.tomorrow')}</span>
-                            ) : (
-                              t('dashboard.inDays', { days: r.days_until })
-                            )}
-                            {' · '}{formatRelativeDate(r.subscription.next_billing_date)}
-                          </p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-semibold text-[#121212] tabular-nums">
-                            {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)}
-                          </p>
-                          <p className="text-xs text-[#737373]">{t('dashboard.perMonth')}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <CardHeader title={t('dashboard.upcomingRenewals')} />
+                <UpcomingRenewals renewals={upcoming} />
               </Card>
             </div>
 
@@ -217,29 +178,54 @@ export default async function DashboardPage() {
                 </div>
               </Card>
 
-              {/* Highest cost */}
-              {highest && (
-                <Card>
-                  <CardHeader title={t('dashboard.mostExpensive')} />
-                  <div className="flex items-center gap-3 mt-3">
-                    <SubscriptionAvatar name={highest.name} logoUrl={highest.logo_url} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#121212] truncate">{highest.name}</p>
-                      <p className="text-xs text-[#737373]">
-                        {formatCurrency(highest.price_amount, highest.currency)} / {highest.billing_period}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-[#F0F0F0] flex justify-between items-center">
-                    <span className="text-xs text-[#737373]">{t('dashboard.annualEquiv')}</span>
-                    <span className="text-sm font-bold text-[#121212] tabular-nums">
-                      {formatCurrency(highest.my_annual_cost, highest.currency)}
-                    </span>
-                  </div>
-                </Card>
-              )}
             </div>
           </div>
+
+          {/* Top 3 most expensive */}
+          {top3.length > 0 && (
+            <Card>
+              <CardHeader title={t('dashboard.topExpensive')} />
+              <div
+                className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {top3.map((sub, i) => (
+                  <div
+                    key={sub.id}
+                    className="flex-shrink-0 w-[185px] snap-start rounded-[16px] bg-[#F7F8FA] border border-[#F0F0F0] p-4"
+                  >
+                    <span className="text-[11px] font-bold text-[#B0B0B0] uppercase tracking-wider">
+                      #{i + 1}
+                    </span>
+                    <div className="mt-2 mb-3">
+                      <SubscriptionAvatar
+                        name={sub.name}
+                        logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
+                        size="md"
+                        corner="rounded-[8px]"
+                      />
+                    </div>
+                    <p className="text-[14px] font-bold text-[#121212] truncate leading-snug">{sub.name}</p>
+                    {sub.is_shared ? (
+                      <div className="mt-1.5 space-y-0.5">
+                        <p className="text-[12px] text-[#737373]">
+                          Total: {formatCurrency(sub.monthly_equivalent_cost, sub.currency)}/mo
+                        </p>
+                        <p className="text-[13px] font-semibold text-[#121212]">
+                          {t('dashboard.yourShare')}: {formatCurrency(sub.my_monthly_cost, sub.currency)}/mo
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-[15px] font-bold text-[#121212] tabular-nums mt-1.5">
+                        {formatCurrency(sub.my_monthly_cost, sub.currency)}
+                        <span className="text-[12px] font-normal text-[#737373] ml-0.5">/mo</span>
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </>
       )}
     </div>

@@ -190,3 +190,13 @@ export function getHighestCostSubscription(
     s.my_monthly_cost > max.my_monthly_cost ? s : max
   )
 }
+
+export function getTopExpensiveSubscriptions(
+  subs: SubscriptionWithCosts[],
+  limit = 3
+): SubscriptionWithCosts[] {
+  return subs
+    .filter((s) => s.status === 'active' || s.status === 'trial')
+    .sort((a, b) => b.my_monthly_cost - a.my_monthly_cost)
+    .slice(0, limit)
+}
