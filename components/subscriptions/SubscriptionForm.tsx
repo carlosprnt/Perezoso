@@ -24,7 +24,7 @@ interface SubscriptionFormProps {
 
 function Section({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-5 mb-3 bg-[#1C1C1E] rounded-2xl overflow-hidden">
+    <div className="mx-5 mb-3 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#EFEFEF] dark:border-[#2C2C2E]">
       {children}
     </div>
   )
@@ -42,10 +42,10 @@ function Row({
   return (
     <div
       className={`flex items-center justify-between px-4 min-h-[52px] py-3 ${
-        last ? '' : 'border-b border-[#2C2C2E]'
+        last ? '' : 'border-b border-[#EFEFEF] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#F2F2F7]">{label}</span>
+      <span className="text-[16px] text-[#111111] dark:text-[#F2F2F7]">{label}</span>
       <div className="flex items-center gap-1 flex-shrink-0 ml-4">{children}</div>
     </div>
   )
@@ -66,13 +66,13 @@ function SelectRow({
   return (
     <div
       className={`relative flex items-center justify-between px-4 min-h-[52px] py-3 ${
-        last ? '' : 'border-b border-[#2C2C2E]'
+        last ? '' : 'border-b border-[#EFEFEF] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#F2F2F7] pointer-events-none">{label}</span>
+      <span className="text-[16px] text-[#111111] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
       <div className="flex items-center gap-1 flex-shrink-0 ml-4 pointer-events-none">
-        <span className="text-[15px] text-[#AEAEB2]">{value}</span>
-        <ChevronsUpDown size={13} className="text-[#636366]" />
+        <span className="text-[15px] text-[#666666] dark:text-[#AEAEB2]">{value}</span>
+        <ChevronsUpDown size={13} className="text-[#999999] dark:text-[#636366]" />
       </div>
       {/* Transparent native select covers the entire row */}
       <div className="absolute inset-0">{children}</div>
@@ -103,12 +103,12 @@ function DateRow({
   return (
     <label
       className={`relative flex items-center justify-between px-4 min-h-[52px] py-3 cursor-pointer ${
-        last ? '' : 'border-b border-[#2C2C2E]'
+        last ? '' : 'border-b border-[#EFEFEF] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#F2F2F7] pointer-events-none">{label}</span>
+      <span className="text-[16px] text-[#111111] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
       <div className="flex-shrink-0 ml-4 pointer-events-none">
-        <span className="bg-[#3A3A3C] rounded-full px-3 py-1.5 text-[13px] font-medium text-[#F2F2F7]">
+        <span className="bg-[#EFEFEF] dark:bg-[#3A3A3C] rounded-full px-3 py-1.5 text-[13px] font-medium text-[#111111] dark:text-[#F2F2F7]">
           {formatted}
         </span>
       </div>
@@ -140,7 +140,7 @@ function Toggle({
       />
       <div
         className="
-          w-11 h-6 rounded-full bg-[#3A3A3C]
+          w-11 h-6 rounded-full bg-[#DADADA] dark:bg-[#3A3A3C]
           peer-checked:bg-[#3D3BF3]
           after:content-[''] after:absolute after:top-[2px] after:left-[2px]
           after:bg-white after:rounded-full after:h-5 after:w-5
@@ -271,13 +271,13 @@ export default function SubscriptionForm({
 
       {/* ── Header: title + save button ──────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-5 pt-2 pb-4">
-        <h1 className="text-[28px] font-bold text-[#F2F2F7] tracking-tight leading-tight">
+        <h1 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight leading-tight">
           {mode === 'create' ? t('sheets.createNew') : t('sheets.editSubscription')}
         </h1>
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2 rounded-full bg-[#2C2C2E] text-[#F2F2F7] text-[15px] font-medium disabled:opacity-40 active:bg-[#3A3A3C] transition-colors"
+          className="px-5 py-2 rounded-full bg-[#EFEFEF] dark:bg-[#2C2C2E] text-[#111111] dark:text-[#F2F2F7] text-[15px] font-medium disabled:opacity-40 active:bg-[#E0E0E0] dark:active:bg-[#3A3A3C] transition-colors"
         >
           {isPending ? '…' : t('form.saveChanges')}
         </button>
@@ -295,7 +295,7 @@ export default function SubscriptionForm({
         )}
 
         {/* ── Hero card: avatar + name + price ────────────────────────── */}
-        <div className="mx-5 mb-3 bg-[#1C1C1E] rounded-2xl p-4 flex items-center gap-3">
+        <div className="mx-5 mb-3 bg-[#F5F5F5] dark:bg-[#1C1C1E] rounded-2xl p-4 flex items-center gap-3 border border-[#EFEFEF] dark:border-[#2C2C2E]">
           <SubscriptionAvatar
             name={name || 'New'}
             logoUrl={resolveSubscriptionLogoUrl(name, logoUrl || null)}
@@ -309,10 +309,10 @@ export default function SubscriptionForm({
               onChange={e => setName(e.target.value)}
               placeholder={t('form.namePlaceholder')}
               autoFocus={false}
-              className="w-full bg-transparent text-[17px] font-semibold text-[#F2F2F7] placeholder:text-[#636366] outline-none leading-snug"
+              className="w-full bg-transparent text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none leading-snug"
             />
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="bg-[#2C2C2E] text-[#AEAEB2] text-[12px] font-semibold px-2 py-0.5 rounded-lg">
+              <span className="bg-[#E8E8E8] dark:bg-[#2C2C2E] text-[#555555] dark:text-[#AEAEB2] text-[12px] font-semibold px-2 py-0.5 rounded-lg">
                 €
               </span>
               <input
@@ -322,7 +322,7 @@ export default function SubscriptionForm({
                 value={priceAmount}
                 onChange={e => setPriceAmount(e.target.value)}
                 placeholder="0.00"
-                className="bg-transparent text-[15px] text-[#AEAEB2] placeholder:text-[#636366] outline-none w-28 tabular-nums"
+                className="bg-transparent text-[15px] text-[#555555] dark:text-[#AEAEB2] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none w-28 tabular-nums"
               />
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function SubscriptionForm({
                 min="1"
                 value={billingIntervalCount}
                 onChange={e => setBillingIntervalCount(e.target.value)}
-                className="bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#F2F2F7] outline-none w-20 text-right tabular-nums"
+                className="bg-[#EFEFEF] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#111111] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums"
               />
             </Row>
           )}
@@ -431,7 +431,7 @@ export default function SubscriptionForm({
                   min="2"
                   value={sharedWithCount}
                   onChange={e => setSharedWithCount(e.target.value)}
-                  className="bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#F2F2F7] outline-none w-20 text-right tabular-nums"
+                  className="bg-[#EFEFEF] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#111111] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums"
                 />
               </Row>
               <SelectRow
@@ -457,7 +457,7 @@ export default function SubscriptionForm({
                     value={userShareAmount}
                     onChange={e => setUserShareAmount(e.target.value)}
                     placeholder="4.99"
-                    className="bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#F2F2F7] placeholder:text-[#636366] outline-none w-24 text-right tabular-nums"
+                    className="bg-[#EFEFEF] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[15px] text-[#111111] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none w-24 text-right tabular-nums"
                   />
                 </Row>
               )}
@@ -473,7 +473,7 @@ export default function SubscriptionForm({
               value={logoUrl}
               onChange={e => setLogoUrl(e.target.value)}
               placeholder="https://…"
-              className="bg-transparent text-[15px] text-[#AEAEB2] placeholder:text-[#636366] outline-none text-right w-40 truncate"
+              className="bg-transparent text-[15px] text-[#555555] dark:text-[#AEAEB2] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none text-right w-40 truncate"
             />
           </Row>
           <Row label={t('form.notes')} last>
@@ -482,14 +482,14 @@ export default function SubscriptionForm({
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder={t('form.notesPlaceholder')}
-              className="bg-transparent text-[15px] text-[#AEAEB2] placeholder:text-[#636366] outline-none text-right w-40 truncate"
+              className="bg-transparent text-[15px] text-[#555555] dark:text-[#AEAEB2] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none text-right w-40 truncate"
             />
           </Row>
         </Section>
 
         {/* ── Status change (active mode — paused/cancelled) ──────────── */}
         {status === 'active' && (
-          <div className="mx-5 mb-3">
+          <div className="mx-5 mb-3 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#EFEFEF] dark:border-[#2C2C2E]">
             <SelectRow
               label={t('form.status')}
               value={t(`status.${status}` as Parameters<typeof t>[0])}
@@ -524,7 +524,7 @@ export default function SubscriptionForm({
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="h-12 px-5 rounded-2xl bg-[#2C2C2E] text-[#AEAEB2] text-sm font-medium"
+                  className="h-12 px-5 rounded-2xl bg-[#EFEFEF] dark:bg-[#2C2C2E] text-[#444444] dark:text-[#AEAEB2] text-sm font-medium"
                 >
                   {t('form.keepIt')}
                 </button>
@@ -533,7 +533,7 @@ export default function SubscriptionForm({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full h-12 rounded-2xl bg-[#1C1C1E] text-red-500 text-sm font-medium active:bg-[#2C2C2E] transition-colors"
+                className="w-full h-12 rounded-2xl bg-[#F5F5F5] dark:bg-[#1C1C1E] text-red-500 dark:text-red-500 text-sm font-medium active:bg-[#EBEBEB] dark:active:bg-[#2C2C2E] transition-colors"
               >
                 {t('form.delete')}
               </button>
@@ -546,7 +546,7 @@ export default function SubscriptionForm({
           <button
             type="button"
             onClick={onCancel ?? (() => router.back())}
-            className="w-full h-12 rounded-2xl bg-[#1C1C1E] text-[#AEAEB2] text-sm font-medium active:bg-[#2C2C2E] transition-colors"
+            className="w-full h-12 rounded-2xl bg-[#F5F5F5] dark:bg-[#1C1C1E] text-[#444444] dark:text-[#AEAEB2] text-sm font-medium active:bg-[#EBEBEB] dark:active:bg-[#2C2C2E] transition-colors"
           >
             {t('form.cancel')}
           </button>

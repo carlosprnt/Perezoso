@@ -132,7 +132,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
     <button
       onClick={hasSubs ? onClick : undefined}
       className={`
-        flex flex-col items-start p-2 rounded-[12px] min-h-[80px]
+        w-full flex flex-col items-start p-2 rounded-[12px] min-h-[80px]
         transition-all duration-100 select-none bg-[#F5F5F5] dark:bg-[#2C2C2E]
         ${hasSubs ? 'active:scale-[0.96] cursor-pointer' : 'cursor-default'}
       `}

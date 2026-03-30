@@ -11,14 +11,15 @@ interface Props {
 
 export default function DashboardHeader({ title, subtitle, shareText }: Props) {
   const { scrollY } = useScroll()
-  const opacity  = useTransform(scrollY, [0, 130], [1, 0])
-  const blurPx   = useTransform(scrollY, [0, 130], [0, 8])
-  const filter   = useMotionTemplate`blur(${blurPx}px)`
+  const opacity       = useTransform(scrollY, [0, 130], [1, 0])
+  const blurPx        = useTransform(scrollY, [0, 130], [0, 8])
+  const filter        = useMotionTemplate`blur(${blurPx}px)`
+  const pointerEvents = useTransform(opacity, (v) => v < 0.05 ? 'none' : 'auto')
 
   return (
     <motion.div
-      className="sticky top-0 z-[0] pb-3 pt-1"
-      style={{ opacity, filter }}
+      className="sticky top-0 z-[20] pb-3 pt-1"
+      style={{ opacity, filter, pointerEvents }}
     >
       <div className="flex items-center justify-between py-2">
         <div>

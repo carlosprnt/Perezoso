@@ -467,9 +467,10 @@ export default function SubscriptionsView({
 
   // ── Header scroll-fade: content scrolls OVER the header ──────────────────
   const { scrollY } = useScroll()
-  const headerOpacity = useTransform(scrollY, [0, 130], [1, 0])
-  const headerBlurPx  = useTransform(scrollY, [0, 130], [0, 8])
-  const headerFilter  = useMotionTemplate`blur(${headerBlurPx}px)`
+  const headerOpacity      = useTransform(scrollY, [0, 130], [1, 0])
+  const headerBlurPx       = useTransform(scrollY, [0, 130], [0, 8])
+  const headerFilter       = useMotionTemplate`blur(${headerBlurPx}px)`
+  const headerPointerEvents = useTransform(headerOpacity, (v) => v < 0.05 ? 'none' : 'auto')
   const [selectedSub, setSelectedSub] = useState<SubscriptionWithCosts | null>(null)
   const [overlayVisible, setOverlayVisible] = useState(false)
   const [closingSubId, setClosingSubId] = useState<string | null>(null)
@@ -512,8 +513,8 @@ export default function SubscriptionsView({
       {/* ── Sticky header zone — sits BEHIND cards (low z-index)
               fades + blurs as cards scroll over it ─────────────── */}
       <motion.div
-        className="sticky top-0 z-[0] pb-4"
-        style={{ opacity: headerOpacity, filter: headerFilter }}
+        className="sticky top-0 z-[20] pb-4"
+        style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
       >
         {/* Title row */}
         <div className="flex items-center justify-between pt-2">
@@ -546,7 +547,7 @@ export default function SubscriptionsView({
 
         {/* Summary card */}
         {allCount > 0 && (
-          <div className="mt-3 bg-[#F5F5F5] dark:bg-[#2C2C2E] rounded-[20px] p-4 flex items-center justify-between">
+          <div className="mt-3 bg-[#EBEBEB] dark:bg-[#2C2C2E] rounded-[20px] p-4 flex items-center justify-between">
             <div>
               <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium">{t('subscriptions.total')}</p>
               <p className="text-[22px] font-bold text-[#111111] dark:text-[#F2F2F7] mt-0.5 leading-tight tabular-nums">
