@@ -20,14 +20,14 @@ export default function PlatformPicker({ onSelect, onGmailSearch }: PlatformPick
         {onGmailSearch && (
           <button
             onClick={onGmailSearch}
-            className="flex flex-col items-center justify-center gap-2.5 px-3 py-5 rounded-2xl border border-[#3D3BF3] bg-[#F5F5FF] active:bg-[#EDEDFF] transition-colors text-center"
+            className="flex flex-col items-center justify-center gap-2.5 px-3 py-5 rounded-2xl border border-[#3D3BF3] bg-[#F5F5FF] dark:bg-[#1E1D3A] active:bg-[#EDEDFF] dark:active:bg-[#252340] transition-colors text-center"
           >
             <div className="w-11 h-11 rounded-2xl bg-[#3D3BF3] flex items-center justify-center flex-shrink-0">
               <Mail size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-[#3D3BF3] leading-snug">{t('picker.searchGmail')}</p>
-              <p className="text-[11px] text-[#7B79F7] mt-0.5 leading-snug">{t('picker.searchGmailDesc')}</p>
+              <p className="text-[13px] font-semibold text-[#3D3BF3] dark:text-[#8B89FF] leading-snug">{t('picker.searchGmail')}</p>
+              <p className="text-[11px] text-[#7B79F7] dark:text-[#6E6CAA] mt-0.5 leading-snug">{t('picker.searchGmailDesc')}</p>
             </div>
           </button>
         )}

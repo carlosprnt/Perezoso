@@ -31,11 +31,8 @@ export default function UpcomingRenewals({ renewals }: Props) {
     return t('dashboard.days').replace('{count}', String(days))
   }
 
-  function daysColor(days: number): string {
-    if (days === 0) return 'text-[#DC2626]'
-    if (days <= 3) return 'text-[#E05D1B]'
-    if (days <= 7) return 'text-[#D97706]'
-    return 'text-[#121212] dark:text-[#F2F2F7]'
+  function daysColor(_days: number): string {
+    return 'text-[#737373] dark:text-[#AEAEB2]'
   }
 
   return (
@@ -59,7 +56,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className={`text-[14px] font-bold tabular-nums ${daysColor(r.days_until)}`}>
+              <p className={`text-[14px] font-medium tabular-nums ${daysColor(r.days_until)}`}>
                 {daysLabel(r.days_until)}
               </p>
             </div>

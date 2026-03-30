@@ -280,7 +280,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
       >
         <button
           onClick={() => setEditOpen(true)}
-          className="w-full h-12 rounded-[10px] bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
+          className="w-full h-12 rounded-2xl bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
         >
           {t('detail.edit')}
         </button>

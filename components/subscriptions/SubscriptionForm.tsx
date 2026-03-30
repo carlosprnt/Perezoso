@@ -273,7 +273,7 @@ export default function SubscriptionForm({
                   type="button"
                   onClick={() => setCategory(cat.value)}
                   className={`
-                    flex-shrink-0 flex items-center gap-2 px-5 h-12 rounded-[10px] text-sm font-medium
+                    flex-shrink-0 flex items-center gap-2 px-5 h-12 rounded-2xl text-sm font-medium
                     border transition-colors duration-150
                     ${active
                       ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'
@@ -299,7 +299,7 @@ export default function SubscriptionForm({
                   type="button"
                   onClick={() => setCategory(cat.value)}
                   className={`
-                    flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium
+                    flex items-center gap-2 px-3 h-12 rounded-2xl text-sm font-medium
                     border transition-colors duration-150
                     ${active
                       ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'

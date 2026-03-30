@@ -341,7 +341,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
                 { value: 'cancelled' as const, label: t('status.cancelled') },
               ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
                 <button key={opt.value} onClick={() => setStatus(opt.value)}
-                  className={`flex items-center gap-1.5 px-4 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+                  className={`flex items-center gap-1.5 px-4 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                   {status === opt.value && <Check size={12} strokeWidth={3} />}
                   {opt.label}
                 </button>
@@ -352,7 +352,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
             <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setCategory('all')}
-                className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+                className={`flex items-center gap-2 px-3 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                 {category === 'all' && <Check size={12} strokeWidth={3} />}
                 {t('subscriptions.allCategories')}
               </button>
@@ -361,7 +361,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
                 const active = category === cat.value
                 return (
                   <button key={cat.value} onClick={() => setCategory(cat.value)}
-                    className={`flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
+                    className={`flex items-center gap-2 px-3 h-12 rounded-2xl text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                     <Icon size={13} strokeWidth={2} />
                     {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
                   </button>
@@ -373,11 +373,11 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
         <div className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
           <button onClick={reset}
-            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-[#444444] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#2C2C2E] transition-colors active:bg-[#ECECEC] dark:active:bg-[#3A3A3C]">
+            className="flex-1 h-12 rounded-2xl text-sm font-semibold text-[#444444] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#2C2C2E] transition-colors active:bg-[#ECECEC] dark:active:bg-[#3A3A3C]">
             {t('subscriptions.reset')}
           </button>
           <button onClick={apply}
-            className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
+            className="flex-1 h-12 rounded-2xl text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
             {t('subscriptions.apply')}
           </button>
         </div>
