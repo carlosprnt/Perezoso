@@ -77,7 +77,7 @@ function CellLogo({ name, logoUrl, size }: { name: string; logoUrl: string | nul
   if (logoUrl) {
     return (
       <div
-        className="overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E4E4E4]"
+        className="overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E4E4E4] dark:border-[#3A3A3C]"
         style={{
           width: size,
           height: size,
@@ -100,7 +100,7 @@ function CellLogo({ name, logoUrl, size }: { name: string; logoUrl: string | nul
 
   return (
     <div
-      className="flex-shrink-0 flex items-center justify-center border border-[#E4E4E4]"
+      className="flex-shrink-0 flex items-center justify-center border border-[#E4E4E4] dark:border-[#3A3A3C]"
       style={{
         width: size,
         height: size,
@@ -241,7 +241,7 @@ export default function CalendarView({ subscriptions }: Props) {
             <button
               onClick={prevMonth}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#2C2C2E] active:bg-[#F0F0F0] dark:active:bg-[#3A3A3C] transition-colors"
-              style={{ border: '1.5px solid #E0E0E0' }}
+              style={{ border: '1.5px solid var(--border-nav-btn)' }}
               aria-label="Previous month"
             >
               <ChevronLeft size={17} strokeWidth={2} className="text-[#333333] dark:text-[#AEAEB2]" />
@@ -249,7 +249,7 @@ export default function CalendarView({ subscriptions }: Props) {
             <button
               onClick={nextMonth}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#2C2C2E] active:bg-[#F0F0F0] dark:active:bg-[#3A3A3C] transition-colors"
-              style={{ border: '1.5px solid #E0E0E0' }}
+              style={{ border: '1.5px solid var(--border-nav-btn)' }}
               aria-label="Next month"
             >
               <ChevronRight size={17} strokeWidth={2} className="text-[#333333] dark:text-[#AEAEB2]" />

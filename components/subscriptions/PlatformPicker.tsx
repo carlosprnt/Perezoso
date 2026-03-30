@@ -35,21 +35,21 @@ export default function PlatformPicker({ onSelect, onGmailSearch }: PlatformPick
         {/* Manual entry */}
         <button
           onClick={() => onSelect(null)}
-          className="flex flex-col items-center justify-center gap-2.5 px-3 py-5 rounded-2xl border border-[#E8E8E8] bg-white active:bg-[#FAFAFA] transition-colors text-center"
+          className="flex flex-col items-center justify-center gap-2.5 px-3 py-5 rounded-2xl border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white dark:bg-[#2C2C2E] active:bg-[#FAFAFA] dark:active:bg-[#3A3A3C] transition-colors text-center"
         >
-          <div className="w-11 h-11 rounded-2xl bg-[#F5F5F5] border border-[#E8E8E8] flex items-center justify-center flex-shrink-0">
-            <PenLine size={18} className="text-[#666666]" />
+          <div className="w-11 h-11 rounded-2xl bg-[#F5F5F5] dark:bg-[#1C1C1E] border border-[#E8E8E8] dark:border-[#3A3A3C] flex items-center justify-center flex-shrink-0">
+            <PenLine size={18} className="text-[#666666] dark:text-[#AEAEB2]" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-[#111111] leading-snug">{t('picker.enterManually')}</p>
-            <p className="text-[11px] text-[#999999] mt-0.5 leading-snug">{t('picker.enterManuallyDesc')}</p>
+            <p className="text-[13px] font-semibold text-[#111111] dark:text-[#F2F2F7] leading-snug">{t('picker.enterManually')}</p>
+            <p className="text-[11px] text-[#999999] dark:text-[#636366] mt-0.5 leading-snug">{t('picker.enterManuallyDesc')}</p>
           </div>
         </button>
       </div>
 
       {/* Section label */}
       <div className="px-5 pb-2 flex-shrink-0">
-        <p className="text-[11px] font-semibold text-[#AAAAAA] uppercase tracking-wider">
+        <p className="text-[11px] font-semibold text-[#AAAAAA] dark:text-[#636366] uppercase tracking-wider">
           {t('picker.popularPlatforms')}
         </p>
       </div>
@@ -61,14 +61,14 @@ export default function PlatformPicker({ onSelect, onGmailSearch }: PlatformPick
             <button
               key={platform.id}
               onClick={() => onSelect(platform)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F5] transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
             >
               <SubscriptionAvatar
                 name={platform.name}
                 logoUrl={resolvePlatformLogoUrl(platform)}
                 size="sm"
               />
-              <span className="text-sm font-medium text-[#111111]">{platform.name}</span>
+              <span className="text-sm font-medium text-[#111111] dark:text-[#F2F2F7]">{platform.name}</span>
             </button>
           ))}
         </div>

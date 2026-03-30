@@ -139,16 +139,16 @@ export default function SubscriptionForm({
 
   // ── Shared input style ────────────────────────────────────
   const inputCls =
-    'w-full px-3.5 py-2.5 border border-[#D4D4D4] rounded-xl text-sm text-[#121212] placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-[#121212]/10 focus:border-[#121212] transition-all bg-white'
+    'w-full px-3.5 py-2.5 border border-[#D4D4D4] dark:border-[#3A3A3C] rounded-xl text-sm text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#A3A3A3] dark:placeholder:text-[#636366] focus:outline-none focus:ring-2 focus:ring-[#121212]/10 dark:focus:ring-white/5 focus:border-[#121212] dark:focus:border-[#636366] transition-all bg-white dark:bg-[#2C2C2E]'
 
-  const labelCls = 'text-xs font-medium text-[#424242] block mb-1.5'
+  const labelCls = 'text-xs font-medium text-[#424242] dark:text-[#AEAEB2] block mb-1.5'
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col">
       <div className="px-5 py-4 space-y-5 pb-4">
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-[#991B1B] text-sm rounded-xl px-4 py-3">
+        <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-[#991B1B] dark:text-red-400 text-sm rounded-xl px-4 py-3">
           <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
           {error}
         </div>
@@ -205,7 +205,7 @@ export default function SubscriptionForm({
       {/* ── Amount + Period (inline row) ──────────────────── */}
       <div>
         <label className={labelCls}>{t('form.amount')} *</label>
-        <div className="flex rounded-xl border border-[#D4D4D4] focus-within:ring-2 focus-within:ring-[#121212]/10 focus-within:border-[#121212] transition-all overflow-hidden bg-white">
+        <div className="flex rounded-xl border border-[#D4D4D4] dark:border-[#3A3A3C] focus-within:ring-2 focus-within:ring-[#121212]/10 dark:focus-within:ring-white/5 focus-within:border-[#121212] dark:focus-within:border-[#636366] transition-all overflow-hidden bg-white dark:bg-[#2C2C2E]">
           <input
             type="number"
             min="0"
@@ -217,13 +217,13 @@ export default function SubscriptionForm({
             required
           />
           {/* Currency fixed to EUR */}
-          <span className="px-3 py-2.5 text-sm font-medium text-[#424242] bg-[#F5F5F5] border-l border-[#D4D4D4] flex items-center select-none">
+          <span className="px-3 py-2.5 text-sm font-medium text-[#424242] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#1C1C1E] border-l border-[#D4D4D4] dark:border-[#3A3A3C] flex items-center select-none">
             EUR
           </span>
           <select
             value={billingPeriod}
             onChange={e => setBillingPeriod(e.target.value as BillingPeriod)}
-            className="px-2 py-2.5 text-sm text-[#424242] bg-[#F5F5F5] border-l border-[#D4D4D4] outline-none cursor-pointer"
+            className="px-2 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] bg-[#F5F5F5] dark:bg-[#1C1C1E] border-l border-[#D4D4D4] dark:border-[#3A3A3C] outline-none cursor-pointer"
           >
             {Object.keys(BILLING_PERIOD_LABELS).map((v) => (
               <option key={v} value={v}>{t(`billing.${v}` as Parameters<typeof t>[0])}</option>
@@ -244,7 +244,7 @@ export default function SubscriptionForm({
             onChange={e => setBillingIntervalCount(e.target.value)}
             className={inputCls}
           />
-          <p className="text-xs text-[#616161] mt-1">{t('form.trialEveryNMonthsHint')}</p>
+          <p className="text-xs text-[#616161] dark:text-[#636366] mt-1">{t('form.trialEveryNMonthsHint')}</p>
         </div>
       )}
 
@@ -255,7 +255,7 @@ export default function SubscriptionForm({
           <button
             type="button"
             onClick={() => setShowAllCategories(v => !v)}
-            className="text-xs text-[#616161] hover:text-[#121212] transition-colors"
+            className="text-xs text-[#616161] dark:text-[#AEAEB2] hover:text-[#121212] dark:hover:text-[#F2F2F7] transition-colors"
           >
             {showAllCategories ? t('form.showLess') : t('form.viewAll')}
           </button>
@@ -276,8 +276,8 @@ export default function SubscriptionForm({
                     flex-shrink-0 flex items-center gap-2 px-5 h-12 rounded-[10px] text-sm font-medium
                     border transition-colors duration-150
                     ${active
-                      ? 'bg-[#121212] text-white border-[#121212]'
-                      : 'bg-white text-[#424242] border-[#D4D4D4] hover:border-[#A3A3A3]'
+                      ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'
+                      : 'bg-white dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2] border-[#D4D4D4] dark:border-[#3A3A3C] hover:border-[#A3A3A3] dark:hover:border-[#636366]'
                     }
                   `}
                 >
@@ -302,8 +302,8 @@ export default function SubscriptionForm({
                     flex items-center gap-2 px-3 h-12 rounded-[10px] text-sm font-medium
                     border transition-colors duration-150
                     ${active
-                      ? 'bg-[#121212] text-white border-[#121212]'
-                      : 'bg-white text-[#424242] border-[#D4D4D4] hover:border-[#A3A3A3]'
+                      ? 'bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] border-[#121212] dark:border-[#F2F2F7]'
+                      : 'bg-white dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2] border-[#D4D4D4] dark:border-[#3A3A3C] hover:border-[#A3A3A3] dark:hover:border-[#636366]'
                     }
                   `}
                 >
@@ -339,12 +339,12 @@ export default function SubscriptionForm({
         <button
           type="button"
           onClick={() => setShowMore(v => !v)}
-          className="w-full flex items-center justify-between py-2 text-sm font-medium text-[#616161] hover:text-[#121212] transition-colors"
+          className="w-full flex items-center justify-between py-2 text-sm font-medium text-[#616161] dark:text-[#AEAEB2] hover:text-[#121212] dark:hover:text-[#F2F2F7] transition-colors"
         >
           <span className="flex items-center gap-2">
             {t('form.moreOptions')}
             {moreOptionsCount > 0 && !showMore && (
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#121212] text-white text-[10px] font-bold">
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#121212] dark:bg-[#F2F2F7] text-white dark:text-[#111111] text-[10px] font-bold">
                 {moreOptionsCount}
               </span>
             )}
@@ -356,7 +356,7 @@ export default function SubscriptionForm({
           className="overflow-hidden transition-all duration-300 ease-in-out"
           style={{ maxHeight: showMore ? '1000px' : '0' }}
         >
-          <div className="space-y-4 pt-3 border-t border-[#F0F0F0]">
+          <div className="space-y-4 pt-3 border-t border-[#F0F0F0] dark:border-[#2C2C2E]">
 
             {/* Status */}
             <div>
@@ -417,11 +417,11 @@ export default function SubscriptionForm({
                     transition-colors duration-200
                   " />
                 </div>
-                <span className="text-sm font-medium text-[#121212]">{t('form.shared')}</span>
+                <span className="text-sm font-medium text-[#121212] dark:text-[#F2F2F7]">{t('form.shared')}</span>
               </label>
 
               {isShared && (
-                <div className="pl-4 border-l-2 border-[#E5E5E5] space-y-3 animate-fade-in">
+                <div className="pl-4 border-l-2 border-[#E5E5E5] dark:border-[#3A3A3C] space-y-3 animate-fade-in">
                   <div>
                     <label className={labelCls}>{t('form.sharedCount')}</label>
                     <input
@@ -431,7 +431,7 @@ export default function SubscriptionForm({
                       onChange={e => setSharedWithCount(e.target.value)}
                       className={inputCls}
                     />
-                    <p className="text-xs text-[#616161] mt-1">{t('form.sharedCountMin')}</p>
+                    <p className="text-xs text-[#616161] dark:text-[#636366] mt-1">{t('form.sharedCountMin')}</p>
                   </div>
                   <div>
                     <label className={labelCls}>{t('form.splitMode')}</label>
@@ -478,7 +478,7 @@ export default function SubscriptionForm({
                 onChange={e => setLogoUrl(e.target.value)}
                 className={inputCls}
               />
-              <p className="text-xs text-[#A3A3A3] mt-1">
+              <p className="text-xs text-[#A3A3A3] dark:text-[#636366] mt-1">
                 {t('form.logoUrlHint')}
               </p>
             </div>
@@ -502,7 +502,7 @@ export default function SubscriptionForm({
 
       {/* ── Sticky actions ────────────────────────────────── */}
       <div
-        className="sticky bottom-0 bg-white border-t border-[#F0F0F0] px-5 py-4 space-y-3"
+        className="sticky bottom-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-5 py-4 space-y-3"
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
       >
         <div className="flex gap-2">
@@ -521,7 +521,7 @@ export default function SubscriptionForm({
 
         {/* Delete — separated visually, below main CTAs */}
         {mode === 'edit' && (
-          <div className="border-t border-[#F0F0F0] pt-3">
+          <div className="border-t border-[#F0F0F0] dark:border-[#2C2C2E] pt-3">
             {showDeleteConfirm ? (
               <div className="flex gap-2 animate-fade-in">
                 <Button

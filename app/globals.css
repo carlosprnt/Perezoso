@@ -136,3 +136,15 @@ body {
   background: rgba(28, 28, 30, 0.85) !important;
   border-color: #3A3A3C !important;
 }
+
+/* ── CSS variables for inline-style borders that can't use Tailwind dark: ── */
+:root {
+  --border-card: #E8E8E8;
+  --border-nav-btn: #E0E0E0;
+  --border-result-item: #EDEDED;
+}
+.dark {
+  --border-card: #2C2C2E;
+  --border-nav-btn: #3A3A3C;
+  --border-result-item: #3A3A3C;
+}

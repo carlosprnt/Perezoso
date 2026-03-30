@@ -120,7 +120,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         onClick={() => onOpen(sub)}
         className="w-full bg-white dark:bg-[#1C1C1E] px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
         style={{
-          border: '1.5px solid #E8E8E8',
+          border: '1.5px solid var(--border-card)',
           borderRadius: 28,
         }}
         whileTap={{ scale: 0.985 }}
@@ -316,7 +316,7 @@ function FilterSheet({ currentStatus, currentCategory, onClose }: FilterSheetPro
       />
       <motion.div
         className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1C1C1E] rounded-t-[28px]"
-        style={{ border: '1px solid #E5E5E5', borderBottom: 'none' }}
+        style={{ border: '1px solid var(--border-card)', borderBottom: 'none' }}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 380, damping: 36 }}
       >
@@ -523,7 +523,7 @@ export default function SubscriptionsView({
             <button
               onClick={() => setFilterOpen(true)}
               className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-              style={{ border: '1.5px solid #E0E0E0' }}
+              style={{ border: '1.5px solid var(--border-nav-btn)' }}
             >
               <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
               {hasActiveFilters && (
@@ -541,7 +541,7 @@ export default function SubscriptionsView({
         {/* ── Summary cards ────────────────────────────────────── */}
         {allCount > 0 && (
           <div className="grid grid-cols-2 gap-[8px]">
-            <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4" style={{ border: '1.5px solid #E8E8E8' }}>
+            <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4" style={{ border: '1.5px solid var(--border-card)' }}>
               <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium">{t('subscriptions.total')}</p>
               <p className="text-[22px] font-bold text-[#111111] dark:text-[#F2F2F7] mt-1 leading-tight tabular-nums">
                 {allCount}
@@ -552,7 +552,7 @@ export default function SubscriptionsView({
             <button
               onClick={toggleViewMode}
               className="bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 text-left active:scale-[0.97] transition-transform duration-100"
-              style={{ border: '1.5px solid #E8E8E8' }}
+              style={{ border: '1.5px solid var(--border-card)' }}
             >
               <p className="text-[13px] text-[#999999] dark:text-[#636366] font-medium flex items-center gap-1.5">
                 {viewMode === 'monthly' ? t('subscriptions.perMonth') : t('subscriptions.perYear')}
@@ -590,10 +590,10 @@ export default function SubscriptionsView({
         {/* ── Wallet stacked card list ──────────────────────────── */}
         {sortedSubscriptions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-sm font-medium text-[#111111] mb-1">
+            <p className="text-sm font-medium text-[#111111] dark:text-[#F2F2F7] mb-1">
               {allCount === 0 ? t('subscriptions.noSubscriptions') : t('subscriptions.noResults')}
             </p>
-            <p className="text-xs text-[#888888]">
+            <p className="text-xs text-[#888888] dark:text-[#636366]">
               {allCount === 0 ? t('subscriptions.getStarted') : t('subscriptions.noResultsHint')}
             </p>
           </div>
