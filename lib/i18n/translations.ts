@@ -61,6 +61,7 @@ const en = {
   detail: {
     category: 'Category',
     nextBilling: 'Next billing',
+    nextBillingSection: 'Next charge',
     trialEnds: 'Trial ends',
     notes: 'Notes',
     perMonth: 'per month',
@@ -233,6 +234,7 @@ const es: typeof en = {
   detail: {
     category: 'Categoría',
     nextBilling: 'Próxima factura',
+    nextBillingSection: 'Próximo cobro',
     trialEnds: 'Fin de prueba',
     notes: 'Notas',
     perMonth: 'por mes',

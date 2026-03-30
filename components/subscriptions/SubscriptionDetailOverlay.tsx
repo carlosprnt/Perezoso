@@ -11,8 +11,34 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { formatRelativeDate } from '@/lib/utils/dates'
 import { getCategoryMeta } from '@/lib/constants/categories'
 import { BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
-import { useT } from '@/lib/i18n/LocaleProvider'
+import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { SubscriptionWithCosts } from '@/types'
+
+// ─── Billing helpers ──────────────────────────────────────────────────────────
+function billingPeriodDays(period: string, intervalCount: number): number {
+  const base: Record<string, number> = { weekly: 7, monthly: 30, quarterly: 91, yearly: 365 }
+  return (base[period] ?? 30) * intervalCount
+}
+function billingProgress(nextBillingDate: string | null, period: string, intervalCount: number): number {
+  if (!nextBillingDate) return 0
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const next = new Date(nextBillingDate); next.setHours(0, 0, 0, 0)
+  const totalDays = billingPeriodDays(period, intervalCount)
+  const daysLeft = Math.max(0, Math.round((next.getTime() - today.getTime()) / 86_400_000))
+  return Math.min(1, Math.max(0, (totalDays - daysLeft) / totalDays))
+}
+function daysUntilBilling(nextBillingDate: string | null): number {
+  if (!nextBillingDate) return 0
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const next = new Date(nextBillingDate); next.setHours(0, 0, 0, 0)
+  return Math.max(0, Math.round((next.getTime() - today.getTime()) / 86_400_000))
+}
+function formatShortDate(dateStr: string | null, locale: string): string {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  })
+}
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
   active:    { color: '#16A34A', bg: '#F0FDF4' },
@@ -33,7 +59,12 @@ interface Props {
 
 export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: Props) {
   const t = useT()
+  const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
+
+  const billingProg = billingProgress(sub.next_billing_date, sub.billing_period, sub.billing_interval_count)
+  const daysLeft = daysUntilBilling(sub.next_billing_date)
+  const nextDateFormatted = formatShortDate(sub.next_billing_date, locale)
   const meta = getCategoryMeta(sub.category)
   const CategoryIcon = meta.icon
   const status = STATUS_CONFIG[sub.status] ?? STATUS_CONFIG.active
@@ -176,6 +207,34 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
             <div className="bg-[#F7F8FA] rounded-2xl border border-[#F0F0F0] p-4">
               <p className="text-xs font-medium text-[#737373] mb-2">{t('detail.notes')}</p>
               <p className="text-sm text-[#424242] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
+            </div>
+          )}
+
+          {/* Próximo cobro — billing timeline */}
+          {sub.next_billing_date && (
+            <div
+              className="bg-[#F7F8FA] rounded-2xl border border-[#F0F0F0] p-4"
+              style={{ marginTop: 20 }}
+            >
+              <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
+                {t('detail.nextBillingSection')}
+              </p>
+              <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.07)' }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.round(billingProg * 100)}%`, background: '#3D3BF3' }}
+                />
+              </div>
+              <div className="flex justify-between items-center mt-2.5">
+                <span className="text-sm font-semibold text-[#121212]">
+                  {daysLeft === 0
+                    ? t('dashboard.dueToday')
+                    : daysLeft === 1
+                    ? t('dashboard.tomorrow')
+                    : t('dashboard.inDays').replace('{days}', String(daysLeft))}
+                </span>
+                <span className="text-sm text-[#737373]">{nextDateFormatted}</span>
+              </div>
             </div>
           )}
         </motion.div>

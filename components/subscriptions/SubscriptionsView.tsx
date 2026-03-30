@@ -181,7 +181,10 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
 
         {/* Billing progress */}
         {sub.next_billing_date && (
-          <div className="mt-4">
+          <div className="mt-5">
+            <p className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-2">
+              {t('detail.nextBillingSection')}
+            </p>
             <div className="w-full rounded-full overflow-hidden" style={{ height: 4, background: 'rgba(0,0,0,0.08)' }}>
               <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, background: 'rgba(0,0,0,0.30)' }} />
             </div>

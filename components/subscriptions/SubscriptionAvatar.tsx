@@ -51,7 +51,7 @@ export default function SubscriptionAvatar({
           alt={name}
           width={SIZE[size].px}
           height={SIZE[size].px}
-          className="w-[62%] h-[62%] object-contain"
+          className="w-[88%] h-[88%] object-contain"
           onError={() => setImgError(true)}
           loading="lazy"
         />
