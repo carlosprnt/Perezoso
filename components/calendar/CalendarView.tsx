@@ -66,25 +66,31 @@ function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
 }
 
-// ─── Tiny avatar for calendar cells ──────────────────────────────────────────
+// ─── Cell logo — large, fills most of the cell bottom area ──────────────────
 
-function TinyAvatar({ name, logoUrl }: { name: string; logoUrl: string | null }) {
+function CellLogo({ name, logoUrl, size }: { name: string; logoUrl: string | null; size: number }) {
   const { bg, fg } = getAvatarPastel(name)
   const initial = getInitials(name)[0] ?? '?'
   const isAuto = logoUrl?.includes('cdn.simpleicons.org') ?? false
+  const r = Math.round(size * 0.22) // ~22% corner radius
 
   if (logoUrl) {
     return (
       <div
-        className="w-[20px] h-[20px] rounded-[5px] overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E4E4E4]"
-        style={{ background: isAuto ? '#F5F5F5' : 'transparent' }}
+        className="overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E4E4E4]"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: r,
+          background: isAuto ? '#F5F5F5' : 'transparent',
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={logoUrl}
           alt={name}
-          width={20}
-          height={20}
+          width={size}
+          height={size}
           className={isAuto ? 'w-[84%] h-[84%] object-contain' : 'w-full h-full object-cover'}
           loading="lazy"
         />
@@ -94,8 +100,16 @@ function TinyAvatar({ name, logoUrl }: { name: string; logoUrl: string | null })
 
   return (
     <div
-      className="w-[20px] h-[20px] rounded-[5px] flex-shrink-0 flex items-center justify-center text-[8px] font-bold border border-[#E4E4E4]"
-      style={{ backgroundColor: bg, color: fg }}
+      className="flex-shrink-0 flex items-center justify-center border border-[#E4E4E4]"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: r,
+        backgroundColor: bg,
+        color: fg,
+        fontSize: Math.round(size * 0.38),
+        fontWeight: 700,
+      }}
     >
       {initial}
     </div>
@@ -119,32 +133,28 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
       onClick={hasSubs ? onClick : undefined}
       className={`
         flex flex-col items-start p-2 rounded-[12px] min-h-[80px]
-        transition-all duration-100 select-none
+        transition-all duration-100 select-none bg-white
         ${hasSubs ? 'active:scale-[0.96] cursor-pointer' : 'cursor-default'}
-        bg-white
       `}
+      style={isToday ? { border: '1.5px solid #3D3BF3' } : { border: '1.5px solid transparent' }}
     >
-      {/* Day number — circle highlight for today */}
+      {/* Day number — plain, no circle */}
       <span
         className={`
-          w-[27px] h-[27px] flex items-center justify-center rounded-full
           text-[13px] font-medium leading-none flex-shrink-0
-          ${isToday
-            ? 'bg-[#3D3BF3] text-white font-semibold'
-            : hasSubs
-              ? 'text-[#121212]'
-              : 'text-[#A0A0A0]'}
+          ${isToday ? 'text-[#3D3BF3] font-semibold' : hasSubs ? 'text-[#121212]' : 'text-[#A0A0A0]'}
         `}
       >
         {day}
       </span>
 
-      {/* Subscription indicators — pushed to bottom */}
+      {/* Logo fills the lower portion of the cell */}
       {hasSubs && (
-        <div className="flex items-center gap-[3px] mt-auto pt-1">
-          <TinyAvatar
+        <div className="flex flex-col items-start gap-[3px] mt-auto w-full">
+          <CellLogo
             name={subscriptions[0].name}
             logoUrl={resolveSubscriptionLogoUrl(subscriptions[0].name, subscriptions[0].logo_url)}
+            size={32}
           />
           {subscriptions.length > 1 && (
             <span className="text-[9px] font-semibold text-[#888888] leading-none bg-[#F0F0F0] px-[5px] py-[3px] rounded-full">
@@ -220,58 +230,50 @@ export default function CalendarView({ subscriptions }: Props) {
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 160px)' }}>
 
-      {/* ── Page header: month title + navigation ─────────────────────────── */}
+      {/* ── Page header: month title + right-aligned circular nav ─────────── */}
       <div className="mb-1 flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-[32px] font-bold text-[#121212] tracking-tight capitalize leading-none">
+        <div className="flex items-center justify-between">
+          <h1 className="text-[28px] font-bold text-[#111111] tracking-tight capitalize leading-none">
             {monthName}{yearLabel}
           </h1>
-          {/* Inline prev/next — live in the header, NOT inside the calendar card */}
-          <div className="flex items-center gap-0.5 self-end mb-0.5">
+          {/* Circular nav buttons — right-aligned, filter-button style */}
+          <div className="flex items-center gap-2">
             <button
               onClick={prevMonth}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-[#A0A0A0] active:text-[#121212] active:bg-[#EBEBEB] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white active:bg-[#F0F0F0] transition-colors"
+              style={{ border: '1.5px solid #E0E0E0' }}
               aria-label="Previous month"
             >
-              <ChevronLeft size={17} strokeWidth={2.5} />
+              <ChevronLeft size={17} strokeWidth={2} className="text-[#333333]" />
             </button>
             <button
               onClick={nextMonth}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-[#A0A0A0] active:text-[#121212] active:bg-[#EBEBEB] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white active:bg-[#F0F0F0] transition-colors"
+              style={{ border: '1.5px solid #E0E0E0' }}
               aria-label="Next month"
             >
-              <ChevronRight size={17} strokeWidth={2.5} />
+              <ChevronRight size={17} strokeWidth={2} className="text-[#333333]" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Month summary ─────────────────────────────────────────────────── */}
+      {/* ── Month summary — unified subtitle style ────────────────────────── */}
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-        <span className="text-[14px] text-[#121212]">
-          <span className="font-semibold tabular-nums">
+        <span className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider">
+          <span className="tabular-nums">
             {formatCurrency(monthTotal.amount, monthTotal.currency)}
           </span>
-          {' '}
-          <span className="text-[#888888]">{t('calendar.total')}</span>
+          {' '}{t('calendar.total')}
         </span>
-        {totalSubsThisMonth > 0 && (
-          <>
-            <span className="w-px h-3.5 bg-[#D4D4D4]" />
-            <span className="text-[14px] text-[#888888]">
-              {totalSubsThisMonth}{' '}
-              {totalSubsThisMonth === 1
+        <span className="w-px h-3 bg-[#D4D4D4]" />
+        <span className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider">
+          {totalSubsThisMonth === 0
+            ? t('calendar.noRenewals')
+            : `${totalSubsThisMonth} ${totalSubsThisMonth === 1
                 ? (locale === 'es' ? 'renovación' : 'renewal')
-                : (locale === 'es' ? 'renovaciones' : 'renewals')}
-            </span>
-          </>
-        )}
-        {totalSubsThisMonth === 0 && (
-          <>
-            <span className="w-px h-3.5 bg-[#D4D4D4]" />
-            <span className="text-[14px] text-[#888888]">{t('calendar.noRenewals')}</span>
-          </>
-        )}
+                : (locale === 'es' ? 'renovaciones' : 'renewals')}`}
+        </span>
       </div>
 
       {/* ── Weekday labels — free-floating, no container ──────────────────── */}

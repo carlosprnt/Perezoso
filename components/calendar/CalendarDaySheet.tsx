@@ -109,10 +109,10 @@ export default function CalendarDaySheet({
         {/* Subscription list */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-4"
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-8"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <div className="space-y-2">
+          <div className="space-y-2 pb-8">
             {subscriptions.map(sub => (
               <SubscriptionRow key={sub.id} sub={sub} year={year} month={month} day={day} locale={locale} t={t} />
             ))}
