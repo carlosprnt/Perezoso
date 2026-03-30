@@ -330,7 +330,6 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
       <BottomSheet
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
-        title={t('sheets.editSubscription')}
         height="full"
         zIndex={80}
       >

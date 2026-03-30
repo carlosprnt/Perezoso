@@ -290,7 +290,6 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
       <BottomSheet
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
-        title={t('sheets.editSubscription')}
         height="full"
       >
         <SubscriptionForm

@@ -55,7 +55,7 @@ export default function AddSubscriptionFlow() {
       </BottomSheet>
 
       {/* Step 2 — Form */}
-      <BottomSheet isOpen={step === 'form'} onClose={close} title={t('sheets.createNew')} height="tall">
+      <BottomSheet isOpen={step === 'form'} onClose={close} height="full">
         <SubscriptionForm mode="create" platformPreset={platform ?? undefined} onCancel={close} />
       </BottomSheet>
 
