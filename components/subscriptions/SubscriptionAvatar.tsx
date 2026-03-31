@@ -50,7 +50,7 @@ export default function SubscriptionAvatar({
 
     return (
       <div
-        className={`${cls} ${corner} overflow-hidden flex-shrink-0 border border-[#E0E0E0] dark:border-[#3A3A3C] ${isAuto ? 'bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center' : ''}`}
+        className={`${cls} ${corner} overflow-hidden flex-shrink-0 border border-[#E0E0E0] dark:border-[#3A3A3C] ${isAuto ? 'bg-[#F5F5F5] dark:bg-white flex items-center justify-center' : ''}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
