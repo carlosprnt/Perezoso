@@ -1,108 +1,114 @@
-import { SkeletonStatWide, SkeletonStatSmall } from '@/components/ui/Skeleton'
+const S = 'bg-[#EBEBEB] dark:bg-[#2C2C2E] animate-pulse rounded-lg'
 
 export default function DashboardLoading() {
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1.5">
-          <div className="animate-pulse h-7 w-32 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-lg" />
-          <div className="animate-pulse h-3.5 w-44 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md" />
+    <div className="space-y-2">
+
+      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
+      <div className="pb-5 space-y-3">
+        {/* Greeting row */}
+        <div className="flex items-center justify-between">
+          <div className={`${S} h-5 w-28`} />
+          <div className={`${S} w-9 h-9 rounded-full`} />
         </div>
-        <div className="animate-pulse w-9 h-9 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-full" />
+        {/* Main statement — 2 lines big text */}
+        <div className="space-y-2">
+          <div className={`${S} h-9 w-full`} />
+          <div className={`${S} h-9 w-4/5`} />
+        </div>
+        {/* Supporting statement */}
+        <div className={`${S} h-5 w-3/4`} />
       </div>
 
-      {/* Wide Monthly + Yearly card */}
-      <SkeletonStatWide />
-
-      {/* Active + Shared small cards */}
-      <div className="grid grid-cols-2 gap-[8px]">
-        <SkeletonStatSmall />
-        <SkeletonStatSmall />
+      {/* ── Insights 2×2 ─────────────────────────────────────────────────────── */}
+      <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] overflow-hidden">
+        <div className="grid grid-cols-2">
+          {[
+            'border-r border-b',
+            'border-b',
+            'border-r',
+            '',
+          ].map((border, i) => (
+            <div
+              key={i}
+              className={`p-4 ${border} border-[#F7F8FA] dark:border-[#111111]`}
+            >
+              {/* Icon container 40×40 */}
+              <div className={`${S} w-10 h-10 rounded-2xl mb-2.5`} />
+              {/* Label */}
+              <div className={`${S} h-3 w-20 mb-1.5`} />
+              {/* Value */}
+              <div className={`${S} h-5 w-24`} />
+              {/* Sub */}
+              <div className={`${S} h-3 w-28 mt-1`} />
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Main grid */}
-      <div className="grid lg:grid-cols-3 gap-[8px]">
-        {/* Upcoming renewals */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
-          <div className="animate-pulse space-y-1.5 mb-5">
-            <div className="h-5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-lg w-40" />
-            <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-28" />
+      {/* ── Renewals + Categories ─────────────────────────────────────────────── */}
+      <div className="grid lg:grid-cols-3 gap-2">
+
+        {/* Renewals */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#1C1C1E] rounded-2xl p-5">
+          {/* Title row + calendar button */}
+          <div className="flex items-center justify-between mb-4">
+            <div className={`${S} h-5 w-40`} />
+            <div className={`${S} w-8 h-8 rounded-xl`} />
           </div>
-          <div className="space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div className="w-9 h-9 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl flex-shrink-0" />
+          <div className="space-y-3.5">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                {/* Logo 40×40, radius 16 */}
+                <div className={`${S} w-10 h-10 rounded-2xl flex-shrink-0`} />
                 <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-1/2" />
-                  <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-1/3" />
+                  <div className={`${S} h-3.5 w-1/2`} />
+                  <div className={`${S} h-3 w-1/3`} />
                 </div>
-                <div className="h-4 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-14" />
+                <div className={`${S} h-3.5 w-14`} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right column */}
-        <div className="space-y-[8px]">
-          {/* Top categories */}
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
-            <div className="animate-pulse h-5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-lg w-32 mb-4" />
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="flex justify-between mb-1.5">
-                    <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-20" />
-                    <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-12" />
-                  </div>
-                  <div className="h-1 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-full" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Most expensive */}
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
-            <div className="animate-pulse space-y-3">
-              <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-24" />
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-2/3" />
-                  <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-1/2" />
-                </div>
+        {/* Categories */}
+        <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5">
+          <div className={`${S} h-5 w-36 mb-4`} />
+          {/* Segmented bar 56px */}
+          <div className={`${S} h-14 w-full rounded-2xl mb-4`} />
+          {/* Legend rows */}
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-2.5 px-2.5 py-1.5">
+                <div className={`${S} w-2.5 h-2.5 rounded-full flex-shrink-0`} />
+                <div className={`${S} h-3 flex-1`} />
+                <div className={`${S} h-3 w-12`} />
+                <div className={`${S} h-3 w-6`} />
               </div>
-              <div className="pt-3 border-t border-[#F0F0F0] dark:border-[#2C2C2E] flex justify-between">
-                <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-20" />
-                <div className="h-4 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-14" />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Active subscriptions */}
-      <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
-        <div className="animate-pulse flex items-center justify-between mb-4">
-          <div className="h-5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-lg w-40" />
-          <div className="h-3.5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-14" />
-        </div>
-        <div className="space-y-1">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 px-2 py-2.5 animate-pulse">
-              <div className="w-9 h-9 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl flex-shrink-0" />
-              <div className="flex-1 space-y-1.5">
-                <div className="h-3.5 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-1/2" />
-                <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-1/4" />
-              </div>
-              <div className="text-right space-y-1">
-                <div className="h-4 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-14" />
-                <div className="h-3 bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-md w-8 ml-auto" />
-              </div>
+      {/* ── Top expensive ────────────────────────────────────────────────────── */}
+      <div className="mt-3">
+        <div className={`${S} h-5 w-48 mb-4`} />
+        <div className="flex gap-3 overflow-hidden">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-[185px] bg-white dark:bg-[#1C1C1E] rounded-[16px] p-4 space-y-2"
+            >
+              <div className={`${S} h-3 w-6`} />
+              {/* Logo md = 44px */}
+              <div className={`${S} w-11 h-11 rounded-[8px]`} />
+              <div className={`${S} h-4 w-24`} />
+              <div className={`${S} h-4 w-16`} />
             </div>
           ))}
         </div>
       </div>
+
     </div>
   )
 }
