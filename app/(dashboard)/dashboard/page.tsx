@@ -51,19 +51,22 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      {/* Hero — sticky, fades+blurs as content scrolls over it */}
+      {!isEmpty && (
+        <DashboardSummaryHero
+          firstName={firstName}
+          stats={stats}
+          sharedCount={sharedCount}
+          shareText={shareText}
+        />
+      )}
+
+      {/* Cards — z-[1], scroll over the fading hero */}
       <DashboardCardStack>
         {isEmpty ? (
           <EmptyState t={t} />
         ) : (
           <>
-            {/* Narrative header — replaces old sticky header + metric cards */}
-            <DashboardSummaryHero
-              firstName={firstName}
-              stats={stats}
-              sharedCount={sharedCount}
-              shareText={shareText}
-            />
-
             {/* Insights grid */}
             <Insights subscriptions={subs} stats={stats} />
 
