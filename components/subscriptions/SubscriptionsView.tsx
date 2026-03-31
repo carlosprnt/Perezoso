@@ -341,13 +341,12 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
           <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterStatus')}</p>
           <div className="flex flex-wrap gap-2">
             {([
-              { value: 'all' as const, label: t('common.all') },
               { value: 'active' as const, label: t('status.active') },
               { value: 'trial' as const, label: t('status.trial') },
               { value: 'paused' as const, label: t('status.paused') },
               { value: 'cancelled' as const, label: t('status.cancelled') },
             ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
-              <button key={opt.value} onClick={() => setStatus(opt.value)}
+              <button key={opt.value} onClick={() => setStatus(s => s === opt.value ? 'all' : opt.value)}
                 className={`flex items-center gap-1.5 px-4 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                 {status === opt.value && <Check size={12} strokeWidth={3} />}
                 {opt.label}
@@ -358,16 +357,11 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
         <div>
           <p className="text-[11px] font-semibold text-[#888888] dark:text-[#636366] uppercase tracking-wider mb-3">{t('subscriptions.filterCategory')}</p>
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setCategory('all')}
-              className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${category === 'all' ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
-              {category === 'all' && <Check size={12} strokeWidth={3} />}
-              {t('subscriptions.allCategories')}
-            </button>
             {CATEGORIES.map(cat => {
               const Icon = cat.icon
               const active = category === cat.value
               return (
-                <button key={cat.value} onClick={() => setCategory(cat.value)}
+                <button key={cat.value} onClick={() => setCategory(c => c === cat.value ? 'all' : cat.value)}
                   className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E0E0E0] dark:border-[#3A3A3C]'}`}>
                   <Icon size={13} strokeWidth={2} />
                   {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
