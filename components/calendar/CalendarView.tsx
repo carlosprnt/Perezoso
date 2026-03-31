@@ -294,7 +294,7 @@ export default function CalendarView({ subscriptions }: Props) {
         className="flex-1"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
+          gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
           gridTemplateRows: `repeat(${numWeeks}, 1fr)`,
           gap: '5px',
           minHeight: `${numWeeks * 80 + (numWeeks - 1) * 5}px`,
