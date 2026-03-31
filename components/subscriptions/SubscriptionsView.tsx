@@ -556,6 +556,7 @@ export default function SubscriptionsView({
                 {allCount}
               </p>
             </div>
+            <div className="w-px self-stretch bg-[#EFEFEF] dark:bg-[#2C2C2E] my-1" />
             <button
               onClick={toggleViewMode}
               className="text-left active:opacity-60 transition-opacity duration-100"
