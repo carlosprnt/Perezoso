@@ -64,11 +64,10 @@ export default async function DashboardPage() {
         <EmptyState t={t} />
       ) : (
         <>
-          {/* Four stats — single card with inset dividers */}
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E]">
-            {/* Top row: Monthly | Yearly */}
+          {/* Monthly + Yearly */}
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-5">
             <div className="grid grid-cols-2">
-              <div className="p-5">
+              <div className="pr-5">
                 <div className="flex items-center gap-1.5 mb-3">
                   <TrendingUp size={13} className="text-[#737373] dark:text-[#636366]" />
                   <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.monthly')}</span>
@@ -77,10 +76,10 @@ export default async function DashboardPage() {
                   {formatCurrency(stats.total_monthly_cost, 'EUR')}
                 </p>
               </div>
-              {/* Vertical divider with inset */}
               <div className="flex">
-                <div className="w-px bg-[#F0F0F0] dark:bg-[#2C2C2E] my-4" />
-                <div className="p-5 flex-1">
+                {/* Vertical divider with inset margin */}
+                <div className="w-px bg-[#F0F0F0] dark:bg-[#2C2C2E] my-3 flex-shrink-0" />
+                <div className="pl-5 flex-1">
                   <div className="flex items-center gap-1.5 mb-3">
                     <Calendar size={13} className="text-[#737373] dark:text-[#636366]" />
                     <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.yearly')}</span>
@@ -91,34 +90,22 @@ export default async function DashboardPage() {
                 </div>
               </div>
             </div>
-            {/* Horizontal divider with inset */}
-            <div className="h-px bg-[#F0F0F0] dark:bg-[#2C2C2E] mx-4" />
-            {/* Bottom row: Active | Shared */}
-            <div className="grid grid-cols-2">
-              <div className="p-5">
-                <div className="flex items-center gap-1.5 mb-2.5">
-                  <Zap size={13} className="text-[#737373] dark:text-[#636366]" />
-                  <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.active')}</span>
-                </div>
-                <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">
-                  {String(stats.active_count + stats.trial_count)}
-                </p>
-                <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{t('dashboard.onTrial', { count: stats.trial_count })}</p>
-              </div>
-              <div className="flex">
-                <div className="w-px bg-[#F0F0F0] dark:bg-[#2C2C2E] my-4" />
-                <div className="p-5 flex-1">
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <Users size={13} className="text-[#737373] dark:text-[#636366]" />
-                    <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{t('dashboard.shared')}</span>
-                  </div>
-                  <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">
-                    {formatCurrency(stats.shared_monthly_cost, 'EUR')}
-                  </p>
-                  <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{t('dashboard.yourSharePerMonth')}</p>
-                </div>
-              </div>
-            </div>
+          </div>
+
+          {/* Active + Shared */}
+          <div className="grid grid-cols-2 gap-[8px]">
+            <SmallStatCard
+              label={t('dashboard.active')}
+              value={String(stats.active_count + stats.trial_count)}
+              sub={t('dashboard.onTrial', { count: stats.trial_count })}
+              icon={<Zap size={13} className="text-[#737373]" />}
+            />
+            <SmallStatCard
+              label={t('dashboard.shared')}
+              value={formatCurrency(stats.shared_monthly_cost, 'EUR')}
+              sub={t('dashboard.yourSharePerMonth')}
+              icon={<Users size={13} className="text-[#737373]" />}
+            />
           </div>
 
           {/* Insights */}
@@ -153,6 +140,21 @@ export default async function DashboardPage() {
         </>
       )}
       </div>
+    </div>
+  )
+}
+
+// ── Small stat card ───────────────────────────────────────────────────────────
+
+function SmallStatCard({ label, value, sub, icon }: { label: string; value: string; sub: string; icon: React.ReactNode }) {
+  return (
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-4">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        {icon}
+        <span className="text-xs font-medium text-[#737373] dark:text-[#636366]">{label}</span>
+      </div>
+      <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums tracking-tight leading-none">{value}</p>
+      <p className="text-xs text-[#737373] dark:text-[#636366] mt-1.5">{sub}</p>
     </div>
   )
 }

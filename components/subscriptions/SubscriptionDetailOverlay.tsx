@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
   X, Calendar, Tag, Zap, Users,
@@ -114,11 +115,11 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
       ? t('dashboard.tomorrow')
       : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
-  return (
+  const content = (
     <>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-[70] bg-black/40"
+        className="fixed inset-0 z-[200] bg-black/40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -129,7 +130,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
       {/* Bottom sheet */}
       <motion.div
         layoutId={isClosing ? undefined : `card-${sub.id}`}
-        className="fixed bottom-0 left-0 right-0 z-[72] bg-white dark:bg-[#1C1C1E] flex flex-col"
+        className="fixed bottom-0 left-0 right-0 z-[202] bg-white dark:bg-[#1C1C1E] flex flex-col"
         style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
         animate={{ y: 0 }}
         exit={{ y: '100%', transition: { type: 'spring', stiffness: 320, damping: 34, mass: 0.9 } }}
@@ -331,7 +332,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
         height="full"
-        zIndex={80}
+        zIndex={210}
       >
         <SubscriptionForm
           mode="edit"
@@ -341,4 +342,6 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
       </BottomSheet>
     </>
   )
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : null
 }

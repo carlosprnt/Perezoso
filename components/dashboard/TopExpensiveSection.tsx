@@ -32,7 +32,7 @@ export default function TopExpensiveSection({ subscriptions }: Props) {
   return (
     <>
       <div
-        className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory"
+        className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory -mx-5 px-5"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {subscriptions.map((sub, i) => (
