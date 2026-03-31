@@ -435,7 +435,7 @@ function SortDropdown({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-auto min-w-max bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
+        <div className="absolute top-full left-0 mt-2 w-44 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
           <div className="p-2">
             {options.map(({ mode, label }) => {
               const active = current === mode
@@ -443,7 +443,7 @@ function SortDropdown({
                 <button
                   key={mode}
                   onClick={() => { onSelect(mode); setOpen(false) }}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] whitespace-nowrap ${active ? 'text-[#3D3BF3] font-semibold bg-[#F0F0FF] dark:bg-[#2A2A4A]' : 'text-[#424242] dark:text-[#AEAEB2] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#3D3BF3] bg-[#F0F0FF] dark:bg-[#2A2A4A]' : 'text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#3D3BF3] flex-shrink-0" />}
