@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
+import SwipeNavigation from '@/components/layout/SwipeNavigation'
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider'
 import { detectLocale } from '@/lib/i18n/translations'
 import type { Profile } from '@/types'
@@ -40,7 +41,9 @@ export default async function DashboardLayout({
         {/* Main content — offset by sidebar width on desktop */}
         <main className="lg:pl-56 pb-28 lg:pb-0 min-h-screen">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
-            {children}
+            <SwipeNavigation>
+              {children}
+            </SwipeNavigation>
           </div>
         </main>
 
