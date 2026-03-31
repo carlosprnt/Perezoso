@@ -85,7 +85,7 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     // Coin flip: 900° = 2.5 full turns, always lands on the opposite face
     if (!flipping.current) {
       flipping.current = true
-      setFlipDuration('0.5s')
+      setFlipDuration('0.45s')
       setCoinDeg(d => d + 900)
       setTimeout(() => { flipping.current = false }, 500)
     }
@@ -184,7 +184,7 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
           style={{
             transformStyle:  'preserve-3d',
             transform:       `rotateY(${coinDeg}deg)`,
-            transition:      `transform ${flipDuration} cubic-bezier(0.22, 1, 0.36, 1)`,
+            transition:      `transform ${flipDuration} cubic-bezier(0.05, 0.95, 0.2, 1)`,
             position:        'relative',
             width:           '100%',
             height:          '100%',
