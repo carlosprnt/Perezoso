@@ -291,7 +291,7 @@ const es: typeof en = {
   detail: {
     category: 'Categoría',
     nextBilling: 'Siguiente cobro',
-    nextBillingSection: 'Tu coste mensual',
+    nextBillingSection: 'Siguiente cobro',
     trialEnds: 'Fin de prueba',
     notes: 'Notas',
     perMonth: 'Al mes',
