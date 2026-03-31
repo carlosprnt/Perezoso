@@ -113,11 +113,17 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
   const maxShift = (index + 1) * 2.5 // px; very subtle
   const yOffset = useTransform(velocityMv, [-2500, 0, 2500], [maxShift, 0, -maxShift])
 
+  // Scale down as card exits viewport from the top
+  const cardRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: cardRef, offset: ['start start', 'end start'] })
+  const exitScale = useTransform(scrollYProgress, [0, 1], [1, 0.9])
+
   return (
     // Parallax wrapper — must NOT have layoutId, otherwise the transform
     // interferes with Framer Motion's position measurement during expansion.
     <motion.div
-      style={{ y: yOffset, visibility: isSelected ? 'hidden' : undefined }}
+      ref={cardRef}
+      style={{ y: yOffset, scale: exitScale, transformOrigin: 'center bottom', visibility: isSelected ? 'hidden' : undefined }}
     >
       <motion.div
         layoutId={`card-${sub.id}`}
