@@ -36,7 +36,7 @@ export default function DashboardSummaryHero({
 
   return (
     <motion.div
-      className="sticky top-0 z-[20] pb-5 bg-[#F7F8FA] dark:bg-[#111111]"
+      className="sticky top-0 z-0 pb-5 bg-[#F7F8FA] dark:bg-[#111111]"
       style={{ opacity, filter, pointerEvents }}
     >
       {/* Row: greeting + avatar */}
