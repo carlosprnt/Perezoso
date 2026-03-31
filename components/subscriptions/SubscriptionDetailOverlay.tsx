@@ -15,6 +15,11 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { formatRelativeDate } from '@/lib/utils/dates'
 import { getCategoryMeta } from '@/lib/constants/categories'
 import { BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
+
+const BILLING_PERIOD_LABELS_ES: Record<string, string> = {
+  monthly: 'Mensual', yearly: 'Anual', quarterly: 'Trimestral',
+  weekly: 'Semanal', custom: 'Personalizado',
+}
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { SubscriptionWithCosts } from '@/types'
 
@@ -54,13 +59,10 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+function PlainCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] overflow-hidden">
-      <div className="px-4 pt-3.5 pb-2.5">
-        <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#636366] uppercase tracking-wider">{title}</p>
-      </div>
-      <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E]">{children}</div>
+      {children}
     </div>
   )
 }
@@ -107,7 +109,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const meta = getCategoryMeta(sub.category)
   const CategoryIcon = meta.icon
   const status = STATUS_CONFIG[sub.status] ?? STATUS_CONFIG.active
-  const billingLabel = BILLING_PERIOD_LABELS[sub.billing_period] ?? sub.billing_period
+  const billingLabel = (locale === 'es' ? BILLING_PERIOD_LABELS_ES : BILLING_PERIOD_LABELS)[sub.billing_period] ?? sub.billing_period
 
   const daysLabel =
     daysLeft === 0 ? t('dashboard.dueToday')
@@ -210,9 +212,6 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   </span>
                 )}
               </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2]">
-                {billingLabel}
-              </span>
             </div>
           </div>
 
@@ -228,7 +227,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
+                  <p className="text-lg font-semibold text-[#121212] dark:text-[#F2F2F7] tabular-nums">
                     {formatCurrency(sub.my_annual_cost, sub.currency)}
                   </p>
                   <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.annually')}</p>
@@ -237,21 +236,16 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             </div>
 
             {/* Billing */}
-            <SectionCard title={t('detail.billingSection')}>
+            <PlainCard>
               {sub.next_billing_date && (
                 <DetailRow
                   icon={<Calendar size={15} />}
                   label={t('detail.nextBilling')}
-                  value={
-                    <span className="flex flex-col items-end gap-0.5">
-                      <span>{formatRelativeDate(sub.next_billing_date)}</span>
-                      <span className="text-xs text-[#A0A0A0] font-normal">{nextDateFormatted}</span>
-                    </span>
-                  }
+                  value={nextDateFormatted}
                 />
               )}
-              <DetailRow icon={<RefreshCw size={15} />} label={t('detail.billingCycle')} value={billingLabel} />
               <DetailRow icon={<CreditCard size={15} />} label={t('detail.amount')} value={formatCurrency(sub.price_amount, sub.currency)} />
+              <DetailRow icon={<RefreshCw size={15} />} label={t('detail.billingCycle')} value={billingLabel} />
               {sub.is_shared && (
                 <DetailRow icon={<Users size={15} />} label={t('detail.sharedWith')} value={`${sub.shared_with_count} ${t('detail.people')}`} />
               )}
@@ -260,7 +254,6 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   icon={<PieChart size={15} />}
                   label={t('detail.nextBillingSection')}
                   value={`${formatCurrency(sub.my_monthly_cost, sub.currency)} / ${locale === 'es' ? 'mes' : 'mo'}`}
-                  last={!sub.next_billing_date}
                 />
               )}
               {sub.next_billing_date && (
@@ -268,16 +261,15 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
                     <div className="h-full rounded-full" style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }} />
                   </div>
-                  <div className="flex justify-between items-center mt-2">
+                  <div className="flex justify-end items-center mt-2">
                     <span className="text-xs font-semibold text-[#121212] dark:text-[#F2F2F7]">{daysLabel}</span>
-                    <span className="text-xs text-[#A0A0A0] dark:text-[#636366]">{nextDateFormatted}</span>
                   </div>
                 </div>
               )}
-            </SectionCard>
+            </PlainCard>
 
             {/* Organisation */}
-            <SectionCard title={t('detail.organizationSection')}>
+            <PlainCard>
               <DetailRow
                 icon={<Tag size={15} />}
                 label={t('detail.category')}
@@ -292,7 +284,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
               {sub.trial_end_date && (
                 <DetailRow icon={<Zap size={15} />} label={t('detail.trialEnds')} value={formatRelativeDate(sub.trial_end_date)} last />
               )}
-            </SectionCard>
+            </PlainCard>
 
             {/* Notes */}
             {sub.notes && (
