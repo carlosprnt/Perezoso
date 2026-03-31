@@ -154,12 +154,12 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
 
       {/* Bottom sheet */}
       <motion.div
-        layoutId={isClosing ? undefined : `card-${sub.id}`}
         className="fixed bottom-0 left-0 right-0 z-[202] bg-white dark:bg-[#1C1C1E] flex flex-col"
         style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
+        initial={{ y: '100%' }}
         animate={{ y: 0 }}
-        exit={{ y: '100%', transition: { type: 'spring', stiffness: 320, damping: 34, mass: 0.9 } }}
-        transition={{ layout: SPRING }}
+        exit={{ y: '100%' }}
+        transition={SPRING}
       >
         {/* Handle bar */}
         <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
