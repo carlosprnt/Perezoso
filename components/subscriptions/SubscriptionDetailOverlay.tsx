@@ -103,13 +103,16 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Lock body scroll while overlay is open.
-  // overflow:hidden keeps window.scrollY intact (no position jump),
-  // which also lets useEffectiveScrollY keep headers correctly faded.
   useEffect(() => {
     savedScrollY.current = window.scrollY
-    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${savedScrollY.current}px`
+    document.body.style.width = '100%'
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, savedScrollY.current)
     }
   }, [])
 
@@ -219,13 +222,9 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
         </motion.div>
 
         {/* Scrollable content */}
-        <motion.div
+        <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-4 space-y-3 pb-28"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ delay: 0.22, duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex-1 overflow-y-auto overscroll-none px-4 space-y-3 pb-28"
         >
           {/* Cost hero card */}
           <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
@@ -336,7 +335,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Fixed CTA at bottom */}
         <div
