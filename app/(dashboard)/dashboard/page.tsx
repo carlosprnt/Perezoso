@@ -133,7 +133,7 @@ export default async function DashboardPage() {
 
           {/* Top 3 most expensive */}
           {top3.length > 0 && (
-            <div>
+            <div className="overflow-x-hidden">
               <h3 className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
                 {t('dashboard.topExpensive')}
               </h3>
