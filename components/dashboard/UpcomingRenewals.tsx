@@ -54,7 +54,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
               name={r.subscription.name}
               logoUrl={resolveSubscriptionLogoUrl(r.subscription.name, r.subscription.logo_url)}
               size="sm40"
-              corner="rounded-2xl"
+              corner="rounded-[8px]"
             />
             <div className="flex-1 min-w-0">
               <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">
