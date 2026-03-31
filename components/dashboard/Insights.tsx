@@ -1,8 +1,12 @@
+'use client'
+
 import type { SubscriptionWithCosts, DashboardStats } from '@/types'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getHighestCostSubscription, getTopSpendCategories, getUpcomingRenewals } from '@/lib/calculations/subscriptions'
 import { getCategoryMeta } from '@/lib/constants/categories'
 import { AlertCircle, TrendingUp, Users } from 'lucide-react'
+import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
+import type { Category } from '@/types'
 
 interface InsightsProps {
   subscriptions: SubscriptionWithCosts[]
@@ -39,6 +43,9 @@ function InsightCell({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Insights({ subscriptions, stats }: InsightsProps) {
+  const t = useT()
+  const locale = useLocale()
+
   const highest = getHighestCostSubscription(subscriptions)
   const topCategories = getTopSpendCategories(subscriptions, 3)
   const urgentRenewals = getUpcomingRenewals(subscriptions, 7)
@@ -52,7 +59,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
   if (!highest && !topCat && sharedSubs.length === 0 && !nextRenewal) return null
 
   // Top category meta
-  const catMeta = topCat ? getCategoryMeta(topCat.category) : null
+  const catMeta = topCat ? getCategoryMeta(topCat.category as Category) : null
   const CatIcon = catMeta?.icon
 
   // Shared savings
@@ -60,6 +67,21 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
     (acc, s) => acc + (s.monthly_equivalent_cost - s.my_monthly_cost),
     0
   )
+
+  const perMonth = t('dashboard.perMonth')
+
+  // "Renews soon" sub-label
+  const renewsSub = nextRenewal
+    ? (() => {
+        const d = nextRenewal.days_until
+        const when = d === 0
+          ? t('dashboard.dueToday')
+          : d === 1
+          ? t('dashboard.tomorrow')
+          : t('dashboard.inDays').replace('{days}', String(d))
+        return `${when} · ${formatCurrency(nextRenewal.subscription.my_monthly_cost, nextRenewal.subscription.currency)}`
+      })()
+    : ''
 
   return (
     <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] border border-[#E8E8E8] dark:border-[#2C2C2E] overflow-hidden">
@@ -69,11 +91,11 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         <InsightCell
           icon={<TrendingUp size={13} />}
           iconCls="bg-[#F5F5F5] text-[#424242]"
-          label="Highest cost"
+          label={t('dashboard.highestCost')}
           value={highest?.name ?? '—'}
           sub={
             highest
-              ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} / mo · ${getCategoryMeta(highest.category).label}`
+              ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} ${perMonth} · ${t(`categories.${highest.category}` as Parameters<typeof t>[0])}`
               : ''
           }
           border="border-r border-b border-[#F0F0F0] dark:border-[#2C2C2E]"
@@ -83,11 +105,11 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         <InsightCell
           icon={CatIcon ? <CatIcon size={13} /> : null}
           iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#424242]'}
-          label="Top category"
-          value={catMeta?.label ?? '—'}
+          label={t('dashboard.topCategory')}
+          value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
           sub={
             topCat
-              ? `${formatCurrency(topCat.monthly_cost, 'EUR')} / mo · ${topCat.count} subs`
+              ? `${formatCurrency(topCat.monthly_cost, 'EUR')} ${perMonth} · ${topCat.count} ${locale === 'es' ? 'suscr.' : 'subs'}`
               : ''
           }
           border="border-b border-[#F0F0F0] dark:border-[#2C2C2E]"
@@ -97,11 +119,15 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         <InsightCell
           icon={<Users size={13} />}
           iconCls="bg-blue-100 text-blue-700"
-          label="Shared plans"
-          value={sharedSubs.length > 0 ? `${sharedSubs.length} plan${sharedSubs.length > 1 ? 's' : ''}` : 'None'}
+          label={t('dashboard.sharedPlans')}
+          value={
+            sharedSubs.length > 0
+              ? `${sharedSubs.length} ${locale === 'es' ? (sharedSubs.length === 1 ? 'plan' : 'planes') : (sharedSubs.length === 1 ? 'plan' : 'plans')}`
+              : t('dashboard.noPlans')
+          }
           sub={
             sharedSubs.length > 0
-              ? `Saving ${formatCurrency(sharedSavings, 'EUR')} / mo`
+              ? t('dashboard.saving').replace('{amount}', `${formatCurrency(sharedSavings, 'EUR')} ${perMonth}`)
               : ''
           }
           border="border-r border-[#F0F0F0] dark:border-[#2C2C2E]"
@@ -111,13 +137,9 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         <InsightCell
           icon={<AlertCircle size={13} />}
           iconCls="bg-amber-100 text-amber-700"
-          label="Renews soon"
-          value={nextRenewal?.subscription.name ?? 'None'}
-          sub={
-            nextRenewal
-              ? `${nextRenewal.days_until === 0 ? 'Today' : `In ${nextRenewal.days_until} day${nextRenewal.days_until === 1 ? '' : 's'}`} · ${formatCurrency(nextRenewal.subscription.my_monthly_cost, nextRenewal.subscription.currency)}`
-              : ''
-          }
+          label={t('dashboard.renewsSoon')}
+          value={nextRenewal?.subscription.name ?? t('dashboard.noPlans')}
+          sub={renewsSub}
           border=""
         />
 
