@@ -20,26 +20,30 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
   const [imgError, setImgError] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
   const [user, setUser] = useState<{ name: string; avatarUrl: string | null; email: string | null } | null>(null)
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const buttonRef   = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Coin flip state: accumulate rotateY in multiples of 900° (2.5 turns → always opposite face)
+  const [coinDeg, setCoinDeg]     = useState(0)
+  const flipping                  = useRef(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser({
-          name: data.user.user_metadata?.full_name ?? data.user.email ?? 'Account',
+          name:      data.user.user_metadata?.full_name ?? data.user.email ?? 'Account',
           avatarUrl: data.user.user_metadata?.avatar_url ?? null,
-          email: data.user.email ?? null,
+          email:     data.user.email ?? null,
         })
       }
     })
   }, [])
 
-  // Close on outside click
+  // Close on outside click / scroll
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
-      const insideButton = buttonRef.current?.contains(e.target as Node)
+      const insideButton   = buttonRef.current?.contains(e.target as Node)
       const insideDropdown = dropdownRef.current?.contains(e.target as Node)
       if (!insideButton && !insideDropdown) setOpen(false)
     }
@@ -62,6 +66,16 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     setOpen(o => !o)
   }
 
+  function handleAvatarClick() {
+    // Coin flip: 900° = 2.5 full turns, always lands on the opposite face
+    if (!flipping.current) {
+      flipping.current = true
+      setCoinDeg(d => d + 900)
+      setTimeout(() => { flipping.current = false }, 500)
+    }
+    handleOpen()
+  }
+
   async function handleShare() {
     setOpen(false)
     if (navigator.share) {
@@ -80,9 +94,17 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     router.refresh()
   }
 
-  const name = user?.name ?? ''
+  const name     = user?.name ?? ''
   const { bg, fg } = getAvatarPastel(name || 'User')
   const initials = getInitials(name || 'U')
+
+  // Face A = avatar (coinDeg % 360 ≈ 0°), Face B = logo (coinDeg % 360 ≈ 180°)
+  const faceStyle: React.CSSProperties = {
+    position: 'absolute', inset: 0,
+    borderRadius: '50%', overflow: 'hidden',
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden' as any,
+  }
 
   const dropdown = open ? (
     <div
@@ -136,28 +158,56 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     <div className="relative">
       <button
         ref={buttonRef}
-        onClick={handleOpen}
-        className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 focus:outline-none ring-2 ring-transparent focus:ring-[#D4D4D4] transition-all"
+        onClick={handleAvatarClick}
+        className="w-10 h-10 flex-shrink-0 focus:outline-none"
+        style={{ perspective: '200px' }}
         aria-label="Account menu"
       >
-        {user?.avatarUrl && !imgError ? (
-          <Image
-            src={user.avatarUrl}
-            alt={name}
-            width={40}
-            height={40}
-            className="w-full h-full object-cover"
-            unoptimized
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center text-sm font-semibold"
-            style={{ backgroundColor: bg, color: fg }}
-          >
-            {initials}
+        {/* 3-D flip container */}
+        <div
+          style={{
+            transformStyle:  'preserve-3d',
+            transform:       `rotateY(${coinDeg}deg)`,
+            transition:      'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            position:        'relative',
+            width:           '100%',
+            height:          '100%',
+            borderRadius:    '50%',
+          }}
+        >
+          {/* Face A — Gmail avatar */}
+          <div style={faceStyle}>
+            {user?.avatarUrl && !imgError ? (
+              <Image
+                src={user.avatarUrl}
+                alt={name}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                unoptimized
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-sm font-semibold"
+                style={{ backgroundColor: bg, color: fg }}
+              >
+                {initials}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Face B — Perezoso logo */}
+          <div style={{ ...faceStyle, transform: 'rotateY(180deg)' }}>
+            <Image
+              src="/logo.png"
+              alt="Perezoso"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
       </button>
 
       {typeof document !== 'undefined' && createPortal(dropdown, document.body)}
