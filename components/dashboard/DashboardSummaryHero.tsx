@@ -29,14 +29,14 @@ export default function DashboardSummaryHero({
 
       {/* Row: greeting + avatar (with dropdown) */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[17px] font-semibold text-[#424242] dark:text-[#AEAEB2]">
+        <p className="text-[17px] font-semibold text-black dark:text-[#F2F2F7]">
           Hola, {name}.
         </p>
         <UserAvatarMenu shareText={shareText} />
       </div>
 
       {/* Main statement */}
-      <p className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-[1.2] tracking-tight mb-4">
+      <p className="text-[33px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-[1.2] tracking-tight mb-4">
         Tu pago mensual es de{' '}
         <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
         {' '}y al año gastas{' '}
@@ -44,7 +44,7 @@ export default function DashboardSummaryHero({
       </p>
 
       {/* Supporting statement */}
-      <p className="text-[18px] font-medium text-[#424242] dark:text-[#AEAEB2] leading-relaxed">
+      <p className="text-[18px] font-medium text-black dark:text-[#F2F2F7] leading-relaxed">
         Tienes{' '}
         <span className="font-semibold text-[#3D3BF3] dark:text-[#8B89FF]">
           {total} {total === 1 ? 'suscripción activa' : 'suscripciones activas'}
