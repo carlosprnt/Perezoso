@@ -9,7 +9,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
-import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
+import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown, ArrowUpDown } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
@@ -418,11 +418,11 @@ function SortDropdown({
       {/* Trigger */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 active:opacity-60 transition-opacity"
+        className="flex items-center gap-1.5 active:opacity-60 transition-opacity"
       >
-        <span className="text-[13px] text-[#999999] dark:text-[#636366]">{t('subscriptions.sortBy')} ·</span>
+        <ArrowUpDown size={13} className="text-[#999999] dark:text-[#636366]" />
         <span className="text-[13px] font-medium text-[#444444] dark:text-[#AEAEB2]">{currentLabel}</span>
-        <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#636366] ml-0.5" />
+        <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#636366]" />
       </button>
 
       {/* Dropdown */}
