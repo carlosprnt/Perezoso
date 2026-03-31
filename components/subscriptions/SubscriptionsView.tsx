@@ -257,15 +257,17 @@ function CardStack({
   const rawVelocity = useVelocity(scrollY)
   const springVelocity = useSpring(rawVelocity, { stiffness: 180, damping: 28 })
 
-  // Expand card gap as user scrolls — starts at ~2% scroll, full effect by 120px
-  const gapExtra = useTransform(scrollY, [0, 20], [0, 24])
+  // Expand gap relative to when the stack itself starts scrolling through viewport
+  const stackRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: stackRef, offset: ['start 0.9', 'end start'] })
+  const gapExtra = useTransform(scrollYProgress, [0, 0.04], [0, 24])
   const dynamicMargin = useTransform(gapExtra, v => `${STACK_MARGIN_PX + v}px`)
 
   // Pull-down elastic: whole stack translates downward when over-pulling at top
   const elasticY = useElasticPullDown()
 
   return (
-    <motion.div className="relative" style={{ y: elasticY }}>
+    <motion.div ref={stackRef} className="relative" style={{ y: elasticY }}>
       {subscriptions.map((sub, i) => (
         <motion.div
           key={sub.id}
