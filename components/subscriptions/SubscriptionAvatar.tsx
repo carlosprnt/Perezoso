@@ -9,13 +9,14 @@ interface SubscriptionAvatarProps {
   logoUrl?: string | null
   /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug} */
   simpleIconSlug?: string | null
-  size?: 'sm' | 'md' | 'md48' | 'lg' | 'xl'
+  size?: 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl'
   /** Override corner radius class. Defaults to 'rounded-xl' (12px). Use e.g. 'rounded-[8px]' for 8px. */
   corner?: string
 }
 
 const SIZE = {
   sm:   { cls: 'w-9 h-9',            text: 'text-xs font-semibold',  px: 36  },
+  sm40: { cls: 'w-10 h-10',          text: 'text-xs font-semibold',  px: 40  },
   md:   { cls: 'w-11 h-11',          text: 'text-sm font-semibold',  px: 44  },
   md48: { cls: 'w-12 h-12',          text: 'text-sm font-semibold',  px: 48  },
   lg:   { cls: 'w-14 h-14',          text: 'text-base font-bold',    px: 56  },
