@@ -76,8 +76,8 @@ function sortSubscriptions(subs: SubscriptionWithCosts[], mode: SortMode): Subsc
 
 // ─── Stack geometry ────────────────────────────────────────────────────────
 // Cards have content-driven height. Each card peeks ~92px from behind the next.
-// STACK_MARGIN = -(avg_card_height - peek) ≈ -(180 - 92) = -88px
-const STACK_MARGIN_PX = -88
+// STACK_MARGIN = -(avg_card_height - peek) ≈ -(180 - 92) = -88px, +12px gap
+const STACK_MARGIN_PX = -76
 
 const CARD_SPRING = { type: 'spring' as const, stiffness: 340, damping: 32, mass: 0.85 }
 
