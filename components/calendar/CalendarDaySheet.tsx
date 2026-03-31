@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
@@ -66,7 +67,7 @@ export default function CalendarDaySheet({
       ? locale === 'es' ? `Hace ${Math.abs(daysLeft)} días` : `${Math.abs(daysLeft)} days ago`
       : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
-  return (
+  const content = (
     <>
       {/* Backdrop */}
       <div
@@ -88,8 +89,10 @@ export default function CalendarDaySheet({
         {/* Header */}
         <div className="flex-shrink-0 flex items-start justify-between px-5 pt-2 pb-4">
           <div>
-            <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] capitalize">{dateLabel}</p>
-            <div className="flex items-center gap-2 mt-1">
+            <h2 className="text-[28px] font-bold text-[#111111] dark:text-[#F2F2F7] tracking-tight capitalize leading-none">
+              {dateLabel}
+            </h2>
+            <div className="flex items-center gap-2 mt-2">
               <span className="text-[13px] font-semibold text-[#3D3BF3] tabular-nums">
                 {formatCurrency(dayTotal, currency)}
               </span>
@@ -100,7 +103,7 @@ export default function CalendarDaySheet({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors mt-0.5"
+            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors mt-1"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -121,6 +124,8 @@ export default function CalendarDaySheet({
       </div>
     </>
   )
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : null
 }
 
 function SubscriptionRow({
