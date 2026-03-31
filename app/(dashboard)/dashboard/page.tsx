@@ -10,7 +10,6 @@ import UpcomingRenewals from '@/components/dashboard/UpcomingRenewals'
 import TopExpensiveSection from '@/components/dashboard/TopExpensiveSection'
 import TopCategoriesSection from '@/components/dashboard/TopCategoriesSection'
 import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
-import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import DashboardCardStack from '@/components/dashboard/DashboardCardStack'
 import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
 import Insights from '@/components/dashboard/Insights'
@@ -24,9 +23,7 @@ export default async function DashboardPage() {
   const t = await getServerT()
 
   const { data: { user } } = await supabase.auth.getUser()
-  const fullName: string = user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? ''
-  const firstName = fullName.split(' ')[0]
-  const avatarUrl: string | null = user?.user_metadata?.avatar_url ?? null
+  const firstName = (user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? '').split(' ')[0]
 
   const { data: rawSubs } = await supabase
     .from('subscriptions')
@@ -45,7 +42,6 @@ export default async function DashboardPage() {
   const isEmpty = subs.length === 0
 
   const shareText = `My monthly subscriptions: ${formatCurrency(stats.total_monthly_cost, 'EUR')} across ${subs.length} subscriptions — tracked with Perezoso 🦥`
-  const greeting = firstName ? `Hola, ${firstName}` : t('dashboard.title')
 
   const categoryRows = topCategories.map(({ category, monthly_cost }) => ({
     category,
@@ -55,25 +51,17 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      {/* Sticky header — fades as content scrolls over */}
-      <DashboardHeader
-        title={greeting}
-        subtitle={t('dashboard.subtitle')}
-        shareText={shareText}
-      />
-
       <DashboardCardStack>
         {isEmpty ? (
           <EmptyState t={t} />
         ) : (
           <>
-            {/* Editorial summary hero */}
+            {/* Narrative header — replaces old sticky header + metric cards */}
             <DashboardSummaryHero
               firstName={firstName}
-              fullName={fullName}
-              avatarUrl={avatarUrl}
               stats={stats}
               sharedCount={sharedCount}
+              shareText={shareText}
             />
 
             {/* Insights grid */}
