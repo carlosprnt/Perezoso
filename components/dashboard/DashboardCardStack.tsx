@@ -16,7 +16,7 @@ export default function DashboardCardStack({ children }: { children: React.React
 
   return (
     <motion.div
-      className="relative z-[1] mt-2"
+      className="relative z-[1] mt-2 bg-[#F7F8FA] dark:bg-[#111111]"
       style={{ display: 'flex', flexDirection: 'column', rowGap }}
     >
       {children}
