@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSubscription, updateSubscription, deleteSubscription } from '@/app/(dashboard)/subscriptions/actions'
 import { CATEGORIES } from '@/lib/constants/categories'
@@ -164,6 +164,7 @@ export default function SubscriptionForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const prefill = platformPreset ? getPrefilledPlatformValues(platformPreset) : null
 
@@ -205,6 +206,56 @@ export default function SubscriptionForm({
   )
   const [notes, setNotes] = useState(subscription?.notes ?? '')
   const [currency, setCurrency] = useState(subscription?.currency ?? 'EUR')
+
+  // ── Dirty state detection ────────────────────────────────────────────────
+  const initialSnapshot = useRef({
+    name: subscription?.name ?? prefill?.name ?? '',
+    priceAmount: subscription?.price_amount?.toString() ?? prefill?.priceAmount ?? '',
+    billingPeriod: subscription?.billing_period ?? (prefill?.billingPeriod as BillingPeriod) ?? 'monthly',
+    category: subscription?.category ?? (prefill?.category as Category) ?? 'other',
+    nextBillingDate: subscription?.next_billing_date ?? '',
+    logoUrl: subscription?.logo_url ?? prefill?.logoUrl ?? '',
+    status: subscription?.status ?? 'active',
+    billingIntervalCount: subscription?.billing_interval_count?.toString() ?? '1',
+    isShared: subscription?.is_shared ?? false,
+    sharedWithCount: subscription?.shared_with_count?.toString() ?? '2',
+    userShareMode: subscription?.user_share_mode ?? 'split_evenly',
+    userShareAmount: subscription?.user_share_amount?.toString() ?? '',
+    trialEndDate: subscription?.trial_end_date ?? '',
+    notes: subscription?.notes ?? '',
+    currency: subscription?.currency ?? 'EUR',
+  })
+
+  const isDirty = useMemo(() => {
+    const s = initialSnapshot.current
+    return (
+      name !== s.name ||
+      priceAmount !== s.priceAmount ||
+      billingPeriod !== s.billingPeriod ||
+      category !== s.category ||
+      nextBillingDate !== s.nextBillingDate ||
+      logoUrl !== s.logoUrl ||
+      status !== s.status ||
+      billingIntervalCount !== s.billingIntervalCount ||
+      isShared !== s.isShared ||
+      sharedWithCount !== s.sharedWithCount ||
+      userShareMode !== s.userShareMode ||
+      userShareAmount !== s.userShareAmount ||
+      trialEndDate !== s.trialEndDate ||
+      notes !== s.notes ||
+      currency !== s.currency
+    )
+  }, [name, priceAmount, billingPeriod, category, nextBillingDate, logoUrl, status,
+      billingIntervalCount, isShared, sharedWithCount, userShareMode, userShareAmount,
+      trialEndDate, notes, currency])
+
+  function requestClose() {
+    if (isDirty) {
+      setShowCancelConfirm(true)
+    } else {
+      if (onCancel) onCancel(); else router.back()
+    }
+  }
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const isTrial = status === 'trial'
@@ -269,7 +320,7 @@ export default function SubscriptionForm({
   const currencySymbol = CURRENCIES.find(c => c.code === currency)?.symbol ?? currency
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col" style={{ minHeight: '100%' }}>
+    <form onSubmit={handleSubmit} className="flex flex-col" style={{ minHeight: '100%', position: 'relative' }}>
 
       {/* ── Header: title + close ────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-5 pt-3 pb-3">
@@ -278,7 +329,7 @@ export default function SubscriptionForm({
         </h2>
         <button
           type="button"
-          onClick={onCancel ?? (() => router.back())}
+          onClick={requestClose}
           className="w-8 h-8 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] transition-colors active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C]"
         >
           <X size={16} strokeWidth={2.5} />
@@ -553,9 +604,9 @@ export default function SubscriptionForm({
 
       </div>
 
-      {/* ── Save button — sticky at the bottom of the scroll container ── */}
+      {/* ── Save + Cancel buttons — sticky at the bottom ────────────── */}
       <div
-        className="flex-shrink-0 sticky bottom-0 px-5 pt-3 pb-5 bg-white dark:bg-[#1C1C1E] border-t border-[#EFEFEF] dark:border-[#2C2C2E]"
+        className="flex-shrink-0 sticky bottom-0 px-5 pt-3 bg-white dark:bg-[#1C1C1E] border-t border-[#EFEFEF] dark:border-[#2C2C2E]"
         style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
       >
         <button
@@ -565,8 +616,52 @@ export default function SubscriptionForm({
         >
           {isPending ? '…' : t('form.saveChanges')}
         </button>
+        <button
+          type="button"
+          onClick={requestClose}
+          className="w-full h-11 mt-2 rounded-full text-[15px] font-medium text-[#555555] dark:text-[#AEAEB2] active:opacity-60 transition-opacity"
+        >
+          {t('form.cancel')}
+        </button>
       </div>
 
+      {/* ── Discard changes confirmation ─────────────────────────────── */}
+      {showCancelConfirm && (
+        <div
+          className="absolute inset-0 z-10 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => setShowCancelConfirm(false)}
+        >
+          <div
+            className="w-full bg-white dark:bg-[#1C1C1E] rounded-t-3xl px-5 pt-5 pb-6"
+            style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-[17px] font-semibold text-[#111111] dark:text-[#F2F2F7] mb-1">
+              {t('form.discardTitle')}
+            </h3>
+            <p className="text-[14px] text-[#737373] dark:text-[#AEAEB2] mb-5">
+              {t('form.discardMessage')}
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => { if (onCancel) onCancel(); else router.back() }}
+                className="w-full h-12 rounded-full bg-red-500 text-white text-[15px] font-semibold active:opacity-80 transition-opacity"
+              >
+                {t('form.discardConfirm')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirm(false)}
+                className="w-full h-12 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#111111] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity"
+              >
+                {t('form.keepEditing')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
