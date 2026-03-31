@@ -48,7 +48,7 @@ const en = {
     tryDemo: 'Try with demo data',
   },
   subscriptions: {
-    title: 'Subscriptions',
+    title: 'My subscriptions',
     total: 'Total',
     perMonth: 'Per month',
     perYear: 'Per year',
@@ -254,7 +254,7 @@ const es: typeof en = {
     tryDemo: 'Probar con datos de demo',
   },
   subscriptions: {
-    title: 'Suscripciones',
+    title: 'Mis suscripciones',
     total: 'Total',
     perMonth: 'Por mes',
     perYear: 'Por año',
