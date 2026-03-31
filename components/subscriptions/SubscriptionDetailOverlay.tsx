@@ -164,7 +164,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
         {/* Atmospheric brand tint — light mode */}
         <div aria-hidden className="dark:hidden" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360, background: brandTint.gradientLight, opacity: 0.80, pointerEvents: 'none', zIndex: 0 }} />
         {/* Atmospheric brand tint — dark mode */}
-        <div aria-hidden className="hidden dark:block" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360, background: brandTint.gradientDark, opacity: 0.45, pointerEvents: 'none', zIndex: 0 }} />
+        <div aria-hidden className="hidden dark:block" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360, background: brandTint.gradientDark, opacity: 0.45, filter: 'blur(18px)', pointerEvents: 'none', zIndex: 0 }} />
 
         {/* Handle + fixed close button row */}
         <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px 12px' }}>
