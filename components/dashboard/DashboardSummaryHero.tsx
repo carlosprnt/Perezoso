@@ -22,8 +22,8 @@ export default function DashboardSummaryHero({
   currency = 'EUR',
 }: Props) {
   const scrollY       = useEffectiveScrollY()
-  const opacity       = useTransform(scrollY, [0, 140], [1, 0])
-  const blurPx        = useTransform(scrollY, [0, 140], [0, 8])
+  const opacity       = useTransform(scrollY, [0, 220], [1, 0])
+  const blurPx        = useTransform(scrollY, [0, 220], [0, 8])
   const filter        = useMotionTemplate`blur(${blurPx}px)`
   const pointerEvents = useTransform(opacity, v => v < 0.05 ? 'none' : 'auto')
 
