@@ -532,14 +532,12 @@ export default function SubscriptionsView({
             <button
               onClick={() => setCalendarOpen(true)}
               className="w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-              style={{ border: '1.5px solid var(--border-nav-btn)' }}
             >
               <CalendarDays size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
             </button>
             <button
               onClick={() => setFilterOpen(true)}
               className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-              style={{ border: '1.5px solid var(--border-nav-btn)' }}
             >
               <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
               {hasActiveFilters && (
