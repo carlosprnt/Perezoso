@@ -37,13 +37,20 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
 
   // Close on outside click
   useEffect(() => {
-    function handler(e: MouseEvent) {
+    function onMouseDown(e: MouseEvent) {
       const insideButton = buttonRef.current?.contains(e.target as Node)
       const insideDropdown = dropdownRef.current?.contains(e.target as Node)
       if (!insideButton && !insideDropdown) setOpen(false)
     }
-    if (open) document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    function onScroll() { setOpen(false) }
+    if (open) {
+      document.addEventListener('mousedown', onMouseDown)
+      window.addEventListener('scroll', onScroll, { passive: true })
+    }
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [open])
 
   function handleOpen() {
