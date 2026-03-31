@@ -143,9 +143,9 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
         {day}
       </span>
 
-      {/* Logo fills the lower portion of the cell */}
+      {/* Logo centered in the remaining cell space */}
       {hasSubs && (
-        <div className="flex flex-col items-start gap-[3px] mt-auto w-full">
+        <div className="flex flex-col items-center gap-[3px] mt-auto w-full">
           <CellLogo
             name={subscriptions[0].name}
             logoUrl={resolveSubscriptionLogoUrl(subscriptions[0].name, subscriptions[0].logo_url)}
