@@ -429,7 +429,7 @@ function SortDropdown({
         className="flex items-center gap-1 active:opacity-60 transition-opacity"
       >
         <span className="text-[13px] text-[#999999] dark:text-[#636366]">{t('subscriptions.sortBy')}:</span>
-        <span className="text-[13px] font-medium text-[#444444] dark:text-[#AEAEB2]">{currentLabel}</span>
+        <span className="text-[13px] text-[#444444] dark:text-[#AEAEB2]">{currentLabel}</span>
         <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#636366] ml-0.5" />
       </button>
 

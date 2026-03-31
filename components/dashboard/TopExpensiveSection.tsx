@@ -35,7 +35,7 @@ export default function TopExpensiveSection({ subscriptions }: Props) {
         className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory -mx-5"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex-shrink-0 w-2" />
+        <div className="flex-shrink-0 w-5" />
         {subscriptions.map((sub, i) => (
           <button
             key={sub.id}
@@ -71,7 +71,7 @@ export default function TopExpensiveSection({ subscriptions }: Props) {
             )}
           </button>
         ))}
-        <div className="flex-shrink-0 w-2" />
+        <div className="flex-shrink-0 w-5" />
       </div>
 
       <AnimatePresence onExitComplete={() => { setSelectedSub(null); setClosingSubId(null) }}>
