@@ -95,14 +95,14 @@ interface Props {
   isClosing?: boolean
 }
 
-export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: Props) {
+export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const t = useT()
   const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
   const savedScrollY = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Lock body scroll while overlay is open.
+  // Lock body scroll
   useEffect(() => {
     savedScrollY.current = window.scrollY
     document.body.style.position = 'fixed'
@@ -116,16 +116,29 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
     }
   }, [])
 
-  // iOS ignores overflow:hidden on body — prevent touchmove outside the
-  // inner scroll container so the page underneath can't drift.
+  // Prevent body scroll on iOS (body is fixed but iOS still scrolls without this)
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    const onTouchMove = (e: TouchEvent) => {
-      if (!el.contains(e.target as Node)) e.preventDefault()
+    let startY = 0
+    const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY }
+    const onMove = (e: TouchEvent) => {
+      if (!el.contains(e.target as Node)) {
+        e.preventDefault()
+        return
+      }
+      const dy = e.touches[0].clientY - startY
+      const { scrollTop, scrollHeight, clientHeight } = el
+      if ((scrollTop <= 0 && dy > 0) || (scrollTop + clientHeight >= scrollHeight && dy < 0)) {
+        e.preventDefault()
+      }
     }
-    document.addEventListener('touchmove', onTouchMove, { passive: false })
-    return () => document.removeEventListener('touchmove', onTouchMove)
+    document.addEventListener('touchstart', onStart, { passive: true })
+    document.addEventListener('touchmove', onMove, { passive: false })
+    return () => {
+      document.removeEventListener('touchstart', onStart)
+      document.removeEventListener('touchmove', onMove)
+    }
   }, [])
 
   const billingProg = billingProgress(sub.next_billing_date, sub.billing_period, sub.billing_interval_count)
@@ -151,11 +164,11 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.32 }}
+        transition={{ duration: 0.25 }}
         onClick={onClose}
       />
 
-      {/* Bottom sheet */}
+      {/* Sheet — flex column, max 92dvh, CTA is a normal flex child (not absolute) */}
       <motion.div
         className="fixed bottom-0 left-0 right-0 z-[202] bg-white dark:bg-[#1C1C1E] flex flex-col"
         style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
@@ -164,35 +177,23 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
         exit={{ y: '100%' }}
         transition={SPRING}
       >
-        {/* Handle bar */}
+        {/* Handle */}
         <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
         </div>
 
-        {/* Close button */}
-        <motion.div
-          className="flex-shrink-0 flex justify-end px-5 pt-1 pb-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ delay: 0.12, duration: 0.16 }}
-        >
+        {/* Close */}
+        <div className="flex-shrink-0 flex justify-end px-5 pt-1 pb-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
-        </motion.div>
+        </div>
 
         {/* Hero */}
-        <motion.div
-          className="flex-shrink-0 flex flex-col items-center text-center px-6 pb-5"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ delay: 0.16, duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
+        <div className="flex-shrink-0 flex flex-col items-center text-center px-6 pb-5">
           <SubscriptionAvatar
             name={sub.name}
             logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
@@ -219,12 +220,17 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
               {billingLabel}
             </span>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Scrollable content */}
+        {/*
+          Scrollable area.
+          min-h-0 is required: without it, flex-1 uses content height as min-height
+          and iOS Safari never creates a real scroll context → scroll gets stuck.
+        */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto overscroll-none px-4 space-y-3 pb-28"
+          className="flex-1 min-h-0 overflow-y-auto px-4 space-y-3 pb-4"
+          style={{ overscrollBehavior: 'none' }}
         >
           {/* Cost hero card */}
           <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
@@ -284,7 +290,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
               />
             )}
 
-            {/* Billing progress timeline */}
+            {/* Billing progress */}
             {sub.next_billing_date && (
               <div className="px-4 pt-3 pb-4 border-t border-[#EBEBEB] dark:border-[#2C2C2E]">
                 <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
@@ -337,9 +343,9 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
           )}
         </div>
 
-        {/* Fixed CTA at bottom */}
+        {/* CTA — normal flex child, not absolute, so it never overlaps the scroll area */}
         <div
-          className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3"
+          className="flex-shrink-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
         >
           <button
