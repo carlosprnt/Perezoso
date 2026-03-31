@@ -100,6 +100,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
   const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
   const savedScrollY = useRef(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Lock body scroll while overlay is open
   useEffect(() => {
@@ -112,6 +113,27 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
       document.body.style.top = ''
       document.body.style.width = ''
       window.scrollTo(0, savedScrollY.current)
+    }
+  }, [])
+
+  // Prevent touch scroll from locking when hitting boundaries of inner scroll container
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    let startY = 0
+    const onTouchStart = (e: TouchEvent) => { startY = e.touches[0].clientY }
+    const onTouchMove = (e: TouchEvent) => {
+      const deltaY = e.touches[0].clientY - startY
+      const { scrollTop, scrollHeight, clientHeight } = el
+      const atTop = scrollTop <= 0 && deltaY > 0
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && deltaY < 0
+      if (atTop || atBottom) e.preventDefault()
+    }
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
     }
   }, [])
 
@@ -210,6 +232,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose, isClosing }: P
 
         {/* Scrollable content */}
         <motion.div
+          ref={scrollRef}
           className="flex-1 overflow-y-auto overscroll-contain px-4 space-y-3 pb-28"
           style={{ WebkitOverflowScrolling: 'touch' }}
           initial={{ opacity: 0, y: 12 }}
