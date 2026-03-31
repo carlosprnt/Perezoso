@@ -93,33 +93,33 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const t = useT()
   const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
-  const savedScrollY = useRef(0)
+  const overlayRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Lock body scroll
   useEffect(() => {
-    savedScrollY.current = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${savedScrollY.current}px`
-    document.body.style.width = '100%'
-    return () => {
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, savedScrollY.current)
-    }
-  }, [])
+    // Prevent desktop wheel scroll without using position:fixed on the body.
+    // position:fixed on body is the root cause of iOS inner-scroll breaking.
+    const html = document.documentElement
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = document.body.style.overflow
+    html.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
 
-  // Prevent body scroll on iOS — only block touches outside the scroll container,
-  // no boundary detection (overscroll-behavior:none handles that at CSS level)
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const prevent = (e: TouchEvent) => {
-      if (!el.contains(e.target as Node)) e.preventDefault()
+    // Prevent iOS touch scroll on everything except our scroll container.
+    // Attaching to the overlay element (not document) avoids interfering
+    // with anything outside the modal.
+    const overlay = overlayRef.current
+    const preventScroll = (e: TouchEvent) => {
+      if (scrollRef.current && scrollRef.current.contains(e.target as Node)) return
+      e.preventDefault()
     }
-    document.addEventListener('touchmove', prevent, { passive: false })
-    return () => document.removeEventListener('touchmove', prevent)
+    overlay?.addEventListener('touchmove', preventScroll, { passive: false })
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      document.body.style.overflow = prevBodyOverflow
+      overlay?.removeEventListener('touchmove', preventScroll)
+    }
   }, [])
 
   const billingProg = billingProgress(sub.next_billing_date, sub.billing_period, sub.billing_interval_count)
@@ -136,10 +136,11 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
     : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
   const content = (
-    <>
+    // Outer container: fixed inset-0, captures all interaction
+    <div ref={overlayRef} className="fixed inset-0 z-[200]">
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-[200] bg-black/40"
+        className="absolute inset-0 bg-black/40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -149,7 +150,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
 
       {/* Sheet */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[202] bg-white dark:bg-[#1C1C1E] flex flex-col"
+        className="absolute bottom-0 left-0 right-0 z-10 bg-white dark:bg-[#1C1C1E] flex flex-col"
         style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -162,17 +163,16 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
         </div>
 
         {/*
-          Single scroll container — owns everything from the close button down
-          including the CTA (sticky). This is the only layout that works reliably
-          on iOS: one scroll owner, no absolute/fixed children inside it.
-
-          min-h-0 is mandatory: without it flex-1 uses content height as implicit
-          min-height and iOS never creates a real scroll context.
+          Scroll container.
+          flex-1 min-h-0: makes the div fill remaining space and shrink below
+          its content height — without min-h-0, iOS Safari never creates a real
+          scroll context because the implicit min-height equals the content height.
+          overflow-y: auto: the natural scroll context iOS expects.
         */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-scroll"
-          style={{ overscrollBehavior: 'none' }}
+          className="flex-1 min-h-0 overflow-y-auto"
+          style={{ overscrollBehavior: 'contain' }}
         >
           {/* Close */}
           <div className="flex justify-end px-5 pt-1 pb-2">
@@ -214,8 +214,8 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             </div>
           </div>
 
-          {/* Content cards */}
-          <div className="px-4 space-y-3">
+          {/* Content */}
+          <div className="px-4 space-y-3 pb-8">
             {/* Cost card */}
             <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
               <div className="flex items-end justify-between">
@@ -234,7 +234,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
               </div>
             </div>
 
-            {/* Billing section */}
+            {/* Billing */}
             <SectionCard title={t('detail.billingSection')}>
               {sub.next_billing_date && (
                 <DetailRow
@@ -248,22 +248,10 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   }
                 />
               )}
-              <DetailRow
-                icon={<RefreshCw size={15} />}
-                label={t('detail.billingCycle')}
-                value={billingLabel}
-              />
-              <DetailRow
-                icon={<CreditCard size={15} />}
-                label={t('detail.amount')}
-                value={formatCurrency(sub.price_amount, sub.currency)}
-              />
+              <DetailRow icon={<RefreshCw size={15} />} label={t('detail.billingCycle')} value={billingLabel} />
+              <DetailRow icon={<CreditCard size={15} />} label={t('detail.amount')} value={formatCurrency(sub.price_amount, sub.currency)} />
               {sub.is_shared && (
-                <DetailRow
-                  icon={<Users size={15} />}
-                  label={t('detail.sharedWith')}
-                  value={`${sub.shared_with_count} ${t('detail.people')}`}
-                />
+                <DetailRow icon={<Users size={15} />} label={t('detail.sharedWith')} value={`${sub.shared_with_count} ${t('detail.people')}`} />
               )}
               {sub.is_shared && (
                 <DetailRow
@@ -286,7 +274,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
               )}
             </SectionCard>
 
-            {/* Organization section */}
+            {/* Organisation */}
             <SectionCard title={t('detail.organizationSection')}>
               <DetailRow
                 icon={<Tag size={15} />}
@@ -300,12 +288,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                 last={!sub.trial_end_date}
               />
               {sub.trial_end_date && (
-                <DetailRow
-                  icon={<Zap size={15} />}
-                  label={t('detail.trialEnds')}
-                  value={formatRelativeDate(sub.trial_end_date)}
-                  last
-                />
+                <DetailRow icon={<Zap size={15} />} label={t('detail.trialEnds')} value={formatRelativeDate(sub.trial_end_date)} last />
               )}
             </SectionCard>
 
@@ -320,37 +303,25 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                 </div>
               </div>
             )}
-          </div>
 
-          {/* CTA — at the bottom of the content, no fixed/sticky */}
-          <div
-            className="px-4 pt-3 mt-3"
-            style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
-          >
-            <button
-              onClick={() => setEditOpen(true)}
-              className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
-            >
-              {t('detail.edit')}
-            </button>
+            {/* CTA */}
+            <div className="pt-1" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+              <button
+                onClick={() => setEditOpen(true)}
+                className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
+              >
+                {t('detail.edit')}
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
 
       {/* Edit sheet */}
-      <BottomSheet
-        isOpen={editOpen}
-        onClose={() => setEditOpen(false)}
-        height="full"
-        zIndex={210}
-      >
-        <SubscriptionForm
-          mode="edit"
-          subscription={sub}
-          onCancel={() => setEditOpen(false)}
-        />
+      <BottomSheet isOpen={editOpen} onClose={() => setEditOpen(false)} height="full" zIndex={210}>
+        <SubscriptionForm mode="edit" subscription={sub} onCancel={() => setEditOpen(false)} />
       </BottomSheet>
-    </>
+    </div>
   )
 
   return typeof document !== 'undefined' ? createPortal(content, document.body) : null

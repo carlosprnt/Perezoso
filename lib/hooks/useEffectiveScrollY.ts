@@ -4,9 +4,9 @@ import { useEffect } from 'react'
 import { useMotionValue } from 'framer-motion'
 
 /**
- * Like Framer Motion's useScroll().scrollY but stays frozen at the saved
- * scroll position when the body is locked (position: fixed).
- * This prevents headers from reappearing when a modal locks the scroll.
+ * Like Framer Motion's useScroll().scrollY but stays frozen at the correct
+ * position when the overlay is open (body overflow:hidden preserves window.scrollY,
+ * so we just read it normally — no position:fixed tricks needed).
  */
 export function useEffectiveScrollY() {
   const scrollYMv = useMotionValue(
@@ -15,8 +15,9 @@ export function useEffectiveScrollY() {
 
   useEffect(() => {
     function update() {
+      // With overflow:hidden body lock, window.scrollY is already preserved.
+      // With position:fixed body lock (legacy), read from body.style.top.
       if (document.body.style.position === 'fixed') {
-        // Body is locked — read frozen position from top offset
         const top = parseInt(document.body.style.top || '0', 10)
         scrollYMv.set(Math.abs(top))
       } else {
@@ -24,10 +25,7 @@ export function useEffectiveScrollY() {
       }
     }
 
-    // Track scroll normally
     window.addEventListener('scroll', update, { passive: true })
-
-    // Also react when body style changes (lock / unlock)
     const observer = new MutationObserver(update)
     observer.observe(document.body, { attributes: true, attributeFilter: ['style'] })
 
