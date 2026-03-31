@@ -13,6 +13,7 @@ import TopCategoriesSection from '@/components/dashboard/TopCategoriesSection'
 import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
 import DashboardCardStack from '@/components/dashboard/DashboardCardStack'
 import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
+import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
@@ -81,7 +82,10 @@ export default async function DashboardPage() {
             <div className="grid lg:grid-cols-3 gap-[8px]">
               <div className="lg:col-span-2">
                 <Card>
-                  <CardHeader title={t('dashboard.upcomingRenewals')} />
+                  <CardHeader
+                    title={t('dashboard.upcomingRenewals')}
+                    action={<CalendarModalButton subscriptions={subs} />}
+                  />
                   <UpcomingRenewals renewals={upcoming} />
                 </Card>
               </div>
