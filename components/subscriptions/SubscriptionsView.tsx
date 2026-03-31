@@ -395,7 +395,6 @@ function SortDropdown({
 
   const options: { mode: SortMode; label: string }[] = [
     { mode: 'alphabetical',     label: t('subscriptions.sortAlphabetical') },
-    { mode: 'by_category',      label: t('subscriptions.sortByCategory') },
     { mode: 'recently_added',   label: t('subscriptions.sortRecentlyAdded') },
     { mode: 'recently_updated', label: t('subscriptions.sortRecentlyUpdated') },
     { mode: 'price_high',       label: t('subscriptions.sortPriceHigh') },
