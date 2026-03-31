@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { CalendarDays } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
@@ -12,6 +13,10 @@ export default function CalendarModalButton({
   subscriptions: SubscriptionWithCosts[]
 }) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Only render portal on the client
+  useEffect(() => { setMounted(true) }, [])
 
   return (
     <>
@@ -23,11 +28,16 @@ export default function CalendarModalButton({
         <CalendarDays size={16} strokeWidth={2} />
       </button>
 
-      <BottomSheet isOpen={open} onClose={() => setOpen(false)} height="full">
-        <div className="px-5 pt-3 pb-5">
-          <CalendarView subscriptions={subscriptions} />
-        </div>
-      </BottomSheet>
+      {/* Portal to document.body so z-index is in the root stacking context,
+          above FloatingNav (z-50) and DashboardCardStack (z-10) */}
+      {mounted && createPortal(
+        <BottomSheet isOpen={open} onClose={() => setOpen(false)} height="full">
+          <div className="px-5 pt-3 pb-5">
+            <CalendarView subscriptions={subscriptions} />
+          </div>
+        </BottomSheet>,
+        document.body
+      )}
     </>
   )
 }
