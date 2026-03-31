@@ -536,6 +536,15 @@ export default function SubscriptionForm({
               placeholder="https://…"
               className="bg-transparent text-[16px] text-[#555555] dark:text-[#AEAEB2] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none text-right w-40 truncate" style={{ fontSize: 16 }}
             />
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={() => setLogoUrl('')}
+                className="ml-1 flex-shrink-0 text-[#BBBBBB] dark:text-[#636366] active:text-[#888888] transition-colors"
+              >
+                <X size={15} strokeWidth={2.5} />
+              </button>
+            )}
           </Row>
           <Row label={t('form.notes')} last>
             <input
