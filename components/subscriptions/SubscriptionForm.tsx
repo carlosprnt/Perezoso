@@ -618,20 +618,22 @@ export default function SubscriptionForm({
         className="flex-shrink-0 sticky bottom-0 px-5 pt-3 bg-white dark:bg-[#1C1C1E] border-t border-[#EFEFEF] dark:border-[#2C2C2E]"
         style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
       >
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold disabled:opacity-40 active:bg-[#3230D0] transition-colors"
-        >
-          {isPending ? '…' : t('form.saveChanges')}
-        </button>
-        <button
-          type="button"
-          onClick={requestClose}
-          className="w-full h-11 mt-2 rounded-full text-[15px] font-medium text-[#555555] dark:text-[#AEAEB2] active:opacity-60 transition-opacity"
-        >
-          {t('form.cancel')}
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={requestClose}
+            className="h-12 px-5 rounded-full border border-[#E0E0E0] dark:border-[#3A3A3C] text-[15px] font-medium text-[#444444] dark:text-[#AEAEB2] active:bg-[#F5F5F5] dark:active:bg-[#2C2C2E] transition-colors flex-shrink-0"
+          >
+            {t('form.cancel')}
+          </button>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold disabled:opacity-40 active:bg-[#3230D0] transition-colors"
+          >
+            {isPending ? '…' : t('form.saveChanges')}
+          </button>
+        </div>
       </div>
 
       {/* ── Discard changes confirmation ─────────────────────────────── */}
