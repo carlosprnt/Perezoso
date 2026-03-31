@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Calendar, Tag, Zap, Users,
   RefreshCw, CreditCard, PieChart,
@@ -52,8 +52,6 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
   cancelled: { color: '#DC2626', bg: '#FEF2F2' },
 }
 
-const SPRING = { type: 'spring' as const, stiffness: 340, damping: 32, mass: 0.85 }
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -93,33 +91,14 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const t = useT()
   const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
-  const overlayRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  // Lock body scroll. We use overflow:hidden (not position:fixed) so iOS
+  // never enters the broken fixed-body scroll mode.
   useEffect(() => {
-    // Prevent desktop wheel scroll without using position:fixed on the body.
-    // position:fixed on body is the root cause of iOS inner-scroll breaking.
-    const html = document.documentElement
-    const prevHtmlOverflow = html.style.overflow
-    const prevBodyOverflow = document.body.style.overflow
-    html.style.overflow = 'hidden'
+    const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-
-    // Prevent iOS touch scroll on everything except our scroll container.
-    // Attaching to the overlay element (not document) avoids interfering
-    // with anything outside the modal.
-    const overlay = overlayRef.current
-    const preventScroll = (e: TouchEvent) => {
-      if (scrollRef.current && scrollRef.current.contains(e.target as Node)) return
-      e.preventDefault()
-    }
-    overlay?.addEventListener('touchmove', preventScroll, { passive: false })
-
-    return () => {
-      html.style.overflow = prevHtmlOverflow
-      document.body.style.overflow = prevBodyOverflow
-      overlay?.removeEventListener('touchmove', preventScroll)
-    }
+    return () => { document.body.style.overflow = prev }
   }, [])
 
   const billingProg = billingProgress(sub.next_billing_date, sub.billing_period, sub.billing_interval_count)
@@ -135,50 +114,80 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
     : daysLeft === 1 ? t('dashboard.tomorrow')
     : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
+  /*
+   * Layout follows the reference pattern:
+   *   overlay  → position:fixed, full screen, display:flex, align-items:flex-end
+   *   sheet    → child of overlay, NOT itself fixed — inherits the fixed context
+   *
+   * This is the layout iOS uses correctly:
+   * - The overlay captures all touches → body never scrolls
+   * - The sheet is a normal block child positioned at the bottom via flexbox
+   * - The scroll container inside the sheet scrolls freely with no interference
+   */
   const content = (
-    // Outer container: fixed inset-0, captures all interaction
-    <div ref={overlayRef} className="fixed inset-0 z-[200]">
-      {/* Backdrop */}
+    <motion.div
+      // Overlay — full screen fixed container, sheet sits at the bottom
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 200,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0)',
+      }}
+      initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
+      animate={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+      exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+    >
+      {/* Sheet — NOT position:fixed, just a flex child at the bottom */}
       <motion.div
-        className="absolute inset-0 bg-black/40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        onClick={onClose}
-      />
-
-      {/* Sheet */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 z-10 bg-white dark:bg-[#1C1C1E] flex flex-col"
-        style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={SPRING}
+        style={{
+          width: '100%',
+          maxHeight: '92dvh',
+          background: 'var(--sheet-bg, white)',
+          borderRadius: '24px 24px 0 0',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',         // clips the scroll container to the sheet bounds
+        }}
+        className="bg-white dark:bg-[#1C1C1E]"
+        initial={{ transform: 'translateY(100%)' }}
+        animate={{ transform: 'translateY(0%)' }}
+        exit={{ transform: 'translateY(100%)' }}
+        transition={{ type: 'spring', stiffness: 340, damping: 32, mass: 0.85 }}
+        onClick={(e) => e.stopPropagation()}   // don't close when tapping sheet
       >
         {/* Handle */}
-        <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
         </div>
 
         {/*
-          Scroll container.
-          flex-1 min-h-0: makes the div fill remaining space and shrink below
-          its content height — without min-h-0, iOS Safari never creates a real
-          scroll context because the implicit min-height equals the content height.
-          overflow-y: auto: the natural scroll context iOS expects.
-        */}
+         * Single scroll container that owns everything below the handle.
+         * Rules:
+         *  - flex:1 + minHeight:0  → fills remaining sheet height; minHeight:0
+         *    is mandatory so iOS Safari creates a real scroll context instead of
+         *    using content height as the implicit minimum.
+         *  - overflowY:'auto'      → native scroll, no JS touch hacks needed
+         *  - overscrollBehavior:'contain' → bounce stays inside; doesn't chain up
+         */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto"
-          style={{ overscrollBehavior: 'contain' }}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
+          }}
         >
-          {/* Close */}
+          {/* Close button */}
           <div className="flex justify-end px-5 pt-1 pb-2">
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors"
+              className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666] dark:text-[#AEAEB2] active:opacity-60 transition-opacity"
             >
               <X size={16} strokeWidth={2.5} />
             </button>
@@ -214,9 +223,9 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             </div>
           </div>
 
-          {/* Content */}
-          <div className="px-4 space-y-3 pb-8">
-            {/* Cost card */}
+          {/* Cards */}
+          <div className="px-4 space-y-3 pb-10">
+            {/* Cost */}
             <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
               <div className="flex items-end justify-between">
                 <div>
@@ -305,10 +314,10 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             )}
 
             {/* CTA */}
-            <div className="pt-1" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+            <div style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => setEditOpen(true)}
-                className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
+                className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold active:opacity-80 transition-opacity"
               >
                 {t('detail.edit')}
               </button>
@@ -316,13 +325,15 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
           </div>
         </div>
       </motion.div>
+    </motion.div>
+  )
 
-      {/* Edit sheet */}
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(content, document.body)}
       <BottomSheet isOpen={editOpen} onClose={() => setEditOpen(false)} height="full" zIndex={210}>
         <SubscriptionForm mode="edit" subscription={sub} onCancel={() => setEditOpen(false)} />
       </BottomSheet>
-    </div>
+    </>
   )
-
-  return typeof document !== 'undefined' ? createPortal(content, document.body) : null
 }
