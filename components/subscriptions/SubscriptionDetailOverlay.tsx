@@ -327,12 +327,13 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
     </motion.div>
   )
 
-  return (
+  return typeof document !== 'undefined' ? createPortal(
     <>
-      {typeof document !== 'undefined' && createPortal(content, document.body)}
+      {content}
       <BottomSheet isOpen={editOpen} onClose={() => setEditOpen(false)} height="full" zIndex={210}>
         <SubscriptionForm mode="edit" subscription={sub} onCancel={() => setEditOpen(false)} />
       </BottomSheet>
-    </>
-  )
+    </>,
+    document.body
+  ) : null
 }
