@@ -32,7 +32,8 @@ export function useElasticPullDown(): MotionValue<number> {
 
     const onTouchMove = (e: TouchEvent) => {
       // Don't interfere when a modal is open (body scroll is locked)
-      if (document.body.style.overflow === 'hidden') return
+      // BottomSheet uses position:fixed; SubscriptionDetailOverlay uses overflow:hidden
+      if (document.body.style.overflow === 'hidden' || document.body.style.position === 'fixed') return
 
       const delta = e.touches[0].clientY - startYRef.current
 
