@@ -176,12 +176,12 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
         />
 
         {/* Handle + fixed close button row */}
-        <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px 4px' }}>
+        <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px 12px' }}>
           <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
           <button
             onClick={onClose}
-            style={{ position: 'absolute', right: 16 }}
-            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666] dark:text-[#AEAEB2] active:opacity-60 transition-opacity"
+            style={{ position: 'absolute', top: 16, right: 16, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+            className="w-8 h-8 rounded-2xl bg-white/90 dark:bg-[#2C2C2E]/90 flex items-center justify-center text-[#666] dark:text-[#AEAEB2] active:opacity-60 transition-opacity"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
