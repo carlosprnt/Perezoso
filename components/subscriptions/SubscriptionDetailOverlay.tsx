@@ -68,15 +68,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 function DetailRow({
-  icon,
-  label,
-  value,
-  last = false,
+  icon, label, value, last = false,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: React.ReactNode
-  last?: boolean
+  icon: React.ReactNode; label: string; value: React.ReactNode; last?: boolean
 }) {
   return (
     <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? '' : 'border-b border-[#EBEBEB] dark:border-[#2C2C2E]'}`}>
@@ -116,29 +110,16 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
     }
   }, [])
 
-  // Prevent body scroll on iOS (body is fixed but iOS still scrolls without this)
+  // Prevent body scroll on iOS — only block touches outside the scroll container,
+  // no boundary detection (overscroll-behavior:none handles that at CSS level)
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    let startY = 0
-    const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY }
-    const onMove = (e: TouchEvent) => {
-      if (!el.contains(e.target as Node)) {
-        e.preventDefault()
-        return
-      }
-      const dy = e.touches[0].clientY - startY
-      const { scrollTop, scrollHeight, clientHeight } = el
-      if ((scrollTop <= 0 && dy > 0) || (scrollTop + clientHeight >= scrollHeight && dy < 0)) {
-        e.preventDefault()
-      }
+    const prevent = (e: TouchEvent) => {
+      if (!el.contains(e.target as Node)) e.preventDefault()
     }
-    document.addEventListener('touchstart', onStart, { passive: true })
-    document.addEventListener('touchmove', onMove, { passive: false })
-    return () => {
-      document.removeEventListener('touchstart', onStart)
-      document.removeEventListener('touchmove', onMove)
-    }
+    document.addEventListener('touchmove', prevent, { passive: false })
+    return () => document.removeEventListener('touchmove', prevent)
   }, [])
 
   const billingProg = billingProgress(sub.next_billing_date, sub.billing_period, sub.billing_interval_count)
@@ -150,11 +131,9 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const billingLabel = BILLING_PERIOD_LABELS[sub.billing_period] ?? sub.billing_period
 
   const daysLabel =
-    daysLeft === 0
-      ? t('dashboard.dueToday')
-      : daysLeft === 1
-      ? t('dashboard.tomorrow')
-      : t('dashboard.inDays').replace('{days}', String(daysLeft))
+    daysLeft === 0 ? t('dashboard.dueToday')
+    : daysLeft === 1 ? t('dashboard.tomorrow')
+    : t('dashboard.inDays').replace('{days}', String(daysLeft))
 
   const content = (
     <>
@@ -168,7 +147,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
         onClick={onClose}
       />
 
-      {/* Sheet — flex column, max 92dvh, CTA is a normal flex child (not absolute) */}
+      {/* Sheet */}
       <motion.div
         className="fixed bottom-0 left-0 right-0 z-[202] bg-white dark:bg-[#1C1C1E] flex flex-col"
         style={{ borderRadius: '28px 28px 0 0', maxHeight: '92dvh' }}
@@ -182,178 +161,179 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
           <div className="w-10 h-1 bg-[#D4D4D4] dark:bg-[#3A3A3C] rounded-full" />
         </div>
 
-        {/* Close */}
-        <div className="flex-shrink-0 flex justify-end px-5 pt-1 pb-2">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors"
-          >
-            <X size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Hero */}
-        <div className="flex-shrink-0 flex flex-col items-center text-center px-6 pb-5">
-          <SubscriptionAvatar
-            name={sub.name}
-            logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
-            size="xl"
-            corner="rounded-[8px]"
-          />
-          <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
-            {sub.name}
-          </h1>
-          <div className="flex items-center flex-wrap justify-center gap-2">
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ color: status.color, backgroundColor: status.bg }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
-              {t(`status.${sub.status}` as Parameters<typeof t>[0])}
-              {sub.is_shared && (
-                <span className="ml-1 flex items-center gap-1 opacity-70">
-                  · <Users size={11} /> {sub.shared_with_count}
-                </span>
-              )}
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2]">
-              {billingLabel}
-            </span>
-          </div>
-        </div>
-
         {/*
-          Scrollable area.
-          min-h-0 is required: without it, flex-1 uses content height as min-height
-          and iOS Safari never creates a real scroll context → scroll gets stuck.
+          Single scroll container — owns everything from the close button down
+          including the CTA (sticky). This is the only layout that works reliably
+          on iOS: one scroll owner, no absolute/fixed children inside it.
+
+          min-h-0 is mandatory: without it flex-1 uses content height as implicit
+          min-height and iOS never creates a real scroll context.
         */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto px-4 space-y-3 pb-4"
+          className="flex-1 min-h-0 overflow-y-scroll"
           style={{ overscrollBehavior: 'none' }}
         >
-          {/* Cost hero card */}
-          <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-3xl font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-none">
-                  {formatCurrency(sub.my_monthly_cost, sub.currency)}
-                </p>
-                <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
-                  {formatCurrency(sub.my_annual_cost, sub.currency)}
-                </p>
-                <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.annually')}</p>
-              </div>
+          {/* Close */}
+          <div className="flex justify-end px-5 pt-1 pb-2">
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#666666] dark:text-[#AEAEB2] active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C] transition-colors"
+            >
+              <X size={16} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* Hero */}
+          <div className="flex flex-col items-center text-center px-6 pb-5">
+            <SubscriptionAvatar
+              name={sub.name}
+              logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
+              size="xl"
+              corner="rounded-[8px]"
+            />
+            <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
+              {sub.name}
+            </h1>
+            <div className="flex items-center flex-wrap justify-center gap-2">
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+                style={{ color: status.color, backgroundColor: status.bg }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+                {t(`status.${sub.status}` as Parameters<typeof t>[0])}
+                {sub.is_shared && (
+                  <span className="ml-1 flex items-center gap-1 opacity-70">
+                    · <Users size={11} /> {sub.shared_with_count}
+                  </span>
+                )}
+              </span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2]">
+                {billingLabel}
+              </span>
             </div>
           </div>
 
-          {/* Billing section */}
-          <SectionCard title={t('detail.billingSection')}>
-            {sub.next_billing_date && (
-              <DetailRow
-                icon={<Calendar size={15} />}
-                label={t('detail.nextBilling')}
-                value={
-                  <span className="flex flex-col items-end gap-0.5">
-                    <span>{formatRelativeDate(sub.next_billing_date)}</span>
-                    <span className="text-xs text-[#A0A0A0] font-normal">{nextDateFormatted}</span>
-                  </span>
-                }
-              />
-            )}
-            <DetailRow
-              icon={<RefreshCw size={15} />}
-              label={t('detail.billingCycle')}
-              value={billingLabel}
-            />
-            <DetailRow
-              icon={<CreditCard size={15} />}
-              label={t('detail.amount')}
-              value={formatCurrency(sub.price_amount, sub.currency)}
-            />
-            {sub.is_shared && (
-              <DetailRow
-                icon={<Users size={15} />}
-                label={t('detail.sharedWith')}
-                value={`${sub.shared_with_count} ${t('detail.people')}`}
-              />
-            )}
-            {sub.is_shared && (
-              <DetailRow
-                icon={<PieChart size={15} />}
-                label={t('detail.nextBillingSection')}
-                value={`${formatCurrency(sub.my_monthly_cost, sub.currency)} / ${locale === 'es' ? 'mes' : 'mo'}`}
-                last={!sub.next_billing_date}
-              />
-            )}
-
-            {/* Billing progress */}
-            {sub.next_billing_date && (
-              <div className="px-4 pt-3 pb-4 border-t border-[#EBEBEB] dark:border-[#2C2C2E]">
-                <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }}
-                  />
+          {/* Content cards */}
+          <div className="px-4 space-y-3">
+            {/* Cost card */}
+            <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-none">
+                    {formatCurrency(sub.my_monthly_cost, sub.currency)}
+                  </p>
+                  <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs font-semibold text-[#121212] dark:text-[#F2F2F7]">{daysLabel}</span>
-                  <span className="text-xs text-[#A0A0A0] dark:text-[#636366]">{nextDateFormatted}</span>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
+                    {formatCurrency(sub.my_annual_cost, sub.currency)}
+                  </p>
+                  <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.annually')}</p>
                 </div>
-              </div>
-            )}
-          </SectionCard>
-
-          {/* Organization section */}
-          <SectionCard title={t('detail.organizationSection')}>
-            <DetailRow
-              icon={<Tag size={15} />}
-              label={t('detail.category')}
-              value={
-                <span className="flex items-center gap-1.5">
-                  <CategoryIcon size={13} />
-                  {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
-                </span>
-              }
-              last={!sub.trial_end_date}
-            />
-            {sub.trial_end_date && (
-              <DetailRow
-                icon={<Zap size={15} />}
-                label={t('detail.trialEnds')}
-                value={formatRelativeDate(sub.trial_end_date)}
-                last
-              />
-            )}
-          </SectionCard>
-
-          {/* Notes */}
-          {sub.notes && (
-            <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] overflow-hidden">
-              <div className="px-4 pt-3.5 pb-2.5">
-                <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#636366] uppercase tracking-wider">{t('detail.notes')}</p>
-              </div>
-              <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E] px-4 py-4">
-                <p className="text-sm text-[#424242] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* CTA — normal flex child, not absolute, so it never overlaps the scroll area */}
-        <div
-          className="flex-shrink-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3"
-          style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
-        >
-          <button
-            onClick={() => setEditOpen(true)}
-            className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
+            {/* Billing section */}
+            <SectionCard title={t('detail.billingSection')}>
+              {sub.next_billing_date && (
+                <DetailRow
+                  icon={<Calendar size={15} />}
+                  label={t('detail.nextBilling')}
+                  value={
+                    <span className="flex flex-col items-end gap-0.5">
+                      <span>{formatRelativeDate(sub.next_billing_date)}</span>
+                      <span className="text-xs text-[#A0A0A0] font-normal">{nextDateFormatted}</span>
+                    </span>
+                  }
+                />
+              )}
+              <DetailRow
+                icon={<RefreshCw size={15} />}
+                label={t('detail.billingCycle')}
+                value={billingLabel}
+              />
+              <DetailRow
+                icon={<CreditCard size={15} />}
+                label={t('detail.amount')}
+                value={formatCurrency(sub.price_amount, sub.currency)}
+              />
+              {sub.is_shared && (
+                <DetailRow
+                  icon={<Users size={15} />}
+                  label={t('detail.sharedWith')}
+                  value={`${sub.shared_with_count} ${t('detail.people')}`}
+                />
+              )}
+              {sub.is_shared && (
+                <DetailRow
+                  icon={<PieChart size={15} />}
+                  label={t('detail.nextBillingSection')}
+                  value={`${formatCurrency(sub.my_monthly_cost, sub.currency)} / ${locale === 'es' ? 'mes' : 'mo'}`}
+                  last={!sub.next_billing_date}
+                />
+              )}
+              {sub.next_billing_date && (
+                <div className="px-4 pt-3 pb-4 border-t border-[#EBEBEB] dark:border-[#2C2C2E]">
+                  <div className="w-full rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.07)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${Math.round(billingProg * 100)}%`, background: '#22C55E' }} />
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs font-semibold text-[#121212] dark:text-[#F2F2F7]">{daysLabel}</span>
+                    <span className="text-xs text-[#A0A0A0] dark:text-[#636366]">{nextDateFormatted}</span>
+                  </div>
+                </div>
+              )}
+            </SectionCard>
+
+            {/* Organization section */}
+            <SectionCard title={t('detail.organizationSection')}>
+              <DetailRow
+                icon={<Tag size={15} />}
+                label={t('detail.category')}
+                value={
+                  <span className="flex items-center gap-1.5">
+                    <CategoryIcon size={13} />
+                    {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
+                  </span>
+                }
+                last={!sub.trial_end_date}
+              />
+              {sub.trial_end_date && (
+                <DetailRow
+                  icon={<Zap size={15} />}
+                  label={t('detail.trialEnds')}
+                  value={formatRelativeDate(sub.trial_end_date)}
+                  last
+                />
+              )}
+            </SectionCard>
+
+            {/* Notes */}
+            {sub.notes && (
+              <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] overflow-hidden">
+                <div className="px-4 pt-3.5 pb-2.5">
+                  <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#636366] uppercase tracking-wider">{t('detail.notes')}</p>
+                </div>
+                <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E] px-4 py-4">
+                  <p className="text-sm text-[#424242] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CTA — at the bottom of the content, no fixed/sticky */}
+          <div
+            className="px-4 pt-3 mt-3"
+            style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
           >
-            {t('detail.edit')}
-          </button>
+            <button
+              onClick={() => setEditOpen(true)}
+              className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold hover:bg-[#3230D0] active:bg-[#2B29B8] transition-colors"
+            >
+              {t('detail.edit')}
+            </button>
+          </div>
         </div>
       </motion.div>
 
