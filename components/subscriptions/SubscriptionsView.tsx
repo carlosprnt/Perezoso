@@ -583,7 +583,7 @@ export default function SubscriptionsView({
       </motion.div>
 
       {/* ── Cards — higher z-index, scroll over the header ────── */}
-      <div className="relative z-[1] space-y-5 mt-5">
+      <div className="relative z-[1] space-y-5 mt-2">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
