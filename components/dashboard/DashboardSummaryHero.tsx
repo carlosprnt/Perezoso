@@ -37,7 +37,7 @@ export default function DashboardSummaryHero({
 
       {/* Main statement */}
       <p className="text-[33px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-[1.2] tracking-tight mb-4">
-        Tu pago mensual es de{' '}
+        Tu gasto mensual es de{' '}
         <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
         {' '}y al año gastas{' '}
         <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>.
