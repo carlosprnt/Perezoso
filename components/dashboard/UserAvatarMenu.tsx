@@ -24,8 +24,9 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Coin flip state: accumulate rotateY in multiples of 900° (2.5 turns → always opposite face)
-  const [coinDeg, setCoinDeg]     = useState(0)
-  const flipping                  = useRef(false)
+  const [coinDeg, setCoinDeg]         = useState(0)
+  const [flipDuration, setFlipDuration] = useState('0.5s')
+  const flipping                        = useRef(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -66,10 +67,25 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     setOpen(o => !o)
   }
 
+  // When dropdown closes, animate back to face A (nearest 360n multiple going forward)
+  useEffect(() => {
+    if (!open) {
+      setCoinDeg(d => {
+        const offset = d % 360
+        if (offset !== 0) {
+          setFlipDuration('0.4s')
+          return d + (360 - offset)
+        }
+        return d
+      })
+    }
+  }, [open])
+
   function handleAvatarClick() {
     // Coin flip: 900° = 2.5 full turns, always lands on the opposite face
     if (!flipping.current) {
       flipping.current = true
+      setFlipDuration('0.5s')
       setCoinDeg(d => d + 900)
       setTimeout(() => { flipping.current = false }, 500)
     }
@@ -168,7 +184,7 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
           style={{
             transformStyle:  'preserve-3d',
             transform:       `rotateY(${coinDeg}deg)`,
-            transition:      'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transition:      `transform ${flipDuration} cubic-bezier(0.22, 1, 0.36, 1)`,
             position:        'relative',
             width:           '100%',
             height:          '100%',
