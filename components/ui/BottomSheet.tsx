@@ -184,7 +184,7 @@ export default function BottomSheet({
           ${maxH}
           animate-slide-up
         `}
-        style={{ zIndex: zIndex ?? 60, paddingBottom: 'env(safe-area-inset-bottom)', borderRadius: '32px 32px 0 0' }}
+        style={{ zIndex: zIndex ?? 60, borderRadius: '32px 32px 0 0' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle — drag zone */}

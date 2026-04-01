@@ -57,7 +57,7 @@ export default function AddSubscriptionFlow() {
         footer={
           <div
             className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
-            style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+            style={{ paddingBottom: 0 }}
           >
             <button
               onClick={() => setStep('gmail')}
