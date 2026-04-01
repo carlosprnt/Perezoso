@@ -66,9 +66,10 @@ export default function PlatformPicker({ onSelect, onGmailSearch }: PlatformPick
               <SubscriptionAvatar
                 name={platform.name}
                 logoUrl={resolvePlatformLogoUrl(platform)}
-                size="sm"
+                size="md48"
+                corner="rounded-2xl"
               />
-              <span className="text-sm font-medium text-[#121212] dark:text-[#F2F2F7]">{platform.name}</span>
+              <span className="text-base font-medium text-[#121212] dark:text-[#F2F2F7]">{platform.name}</span>
             </button>
           ))}
         </div>
