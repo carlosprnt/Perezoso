@@ -44,13 +44,13 @@ export default function SlothReminderCard() {
         </h3>
       </div>
 
-      {/* Bottom: description + CTA side by side */}
-      <div className="flex items-center gap-3 px-5 pb-5 pt-3">
-        <p className="flex-1 text-[13px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
+      {/* Bottom: description + CTA stacked */}
+      <div className="px-5 pb-5 pt-3">
+        <p className="text-[13px] leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.72)' }}>
           Activa un recordatorio y te avisaremos antes del cobro para que no se te pase.
         </p>
         <button
-          className="flex-shrink-0 h-10 px-4 rounded-full text-[13px] font-semibold transition-opacity active:opacity-70"
+          className="h-10 px-5 rounded-full text-[13px] font-semibold transition-opacity active:opacity-70"
           style={{ background: 'white', color: '#2D2B8F' }}
         >
           Avisarme 7 días antes
