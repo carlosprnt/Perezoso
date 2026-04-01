@@ -23,6 +23,11 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
 
   useEffect(() => {
     function onTouchStart(e: TouchEvent) {
+      // Don't register swipe when a modal/sheet is open (body scroll is locked)
+      if (document.body.style.position === 'fixed') {
+        touchStart.current = null
+        return
+      }
       if (isInsideHorizontalScroller(e.target)) {
         touchStart.current = null
         return
