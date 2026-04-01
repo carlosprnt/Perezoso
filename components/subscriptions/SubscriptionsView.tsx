@@ -132,7 +132,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         className="w-full bg-white dark:bg-[#1C1C1E] px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
         style={{
           borderRadius: 28,
-          boxShadow: '0 -6px 16px rgba(0,0,0,0.13)',
+          boxShadow: '0 -8px 20px rgba(0,0,0,0.22)',
         }}
         whileTap={{ scale: 0.985 }}
         animate={shimmer ? {
