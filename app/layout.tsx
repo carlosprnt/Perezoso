@@ -25,7 +25,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,      // Prevent pinch-zoom in native app context
   themeColor: '#4318D1',
+  viewportFit: 'cover', // Draw under notch / Dynamic Island / home indicator
 }
 
 export default async function RootLayout({

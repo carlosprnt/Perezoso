@@ -39,12 +39,14 @@ export default function FloatingNav() {
   const [platform, setPlatform] = useState<PlatformPreset | null>(null)
 
   useEffect(() => {
-    const pending = localStorage.getItem('perezoso_gmail_pending')
-    if (pending === '1') {
-      localStorage.removeItem('perezoso_gmail_pending')
-      const timer = setTimeout(() => setStep('gmail'), 350)
-      return () => clearTimeout(timer)
-    }
+    try {
+      const pending = localStorage.getItem('perezoso_gmail_pending')
+      if (pending === '1') {
+        localStorage.removeItem('perezoso_gmail_pending')
+        const timer = setTimeout(() => setStep('gmail'), 350)
+        return () => clearTimeout(timer)
+      }
+    } catch { /* localStorage unavailable */ }
   }, [])
 
   function handleSelect(p: PlatformPreset | null) {
