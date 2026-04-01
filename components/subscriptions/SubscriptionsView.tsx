@@ -530,9 +530,29 @@ export default function SubscriptionsView({
           <div>
             <h1 className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
             {allCount > 0 && (
-              <p className="text-[14px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
-                Pagas {formatCurrency(stats.total_monthly_cost, 'EUR')} al mes en{' '}
-                {allCount === 1 ? '1 servicio' : `${allCount} servicios`}
+              <p className="text-[18px] font-bold text-black dark:text-[#F2F2F7] mt-1 leading-snug">
+                Pagas{' '}
+                <button
+                  onClick={toggleViewMode}
+                  className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform"
+                >
+                  {numSkeleton ? (
+                    <span
+                      className="inline-block align-middle rounded-md bg-[#3D3BF3]/20 dark:bg-[#8B89FF]/20 animate-pulse"
+                      style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
+                    />
+                  ) : (
+                    <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+                      {viewMode === 'monthly'
+                        ? formatCurrency(stats.total_monthly_cost, 'EUR')
+                        : formatCurrency(stats.total_annual_cost, 'EUR')}
+                    </span>
+                  )}
+                </button>
+                {' '}{viewMode === 'monthly' ? 'al mes' : 'al año'} en{' '}
+                <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+                  {allCount === 1 ? '1 servicio' : `${allCount} servicios`}
+                </span>
               </p>
             )}
           </div>
@@ -554,37 +574,6 @@ export default function SubscriptionsView({
             </button>
           </div>
         </div>
-
-        {/* Summary card */}
-        {allCount > 0 && (
-          <div className="mt-3 bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 flex items-center gap-5">
-            <div>
-              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] font-medium">{t('subscriptions.total')}</p>
-              <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mt-0.5 leading-tight tabular-nums">
-                {allCount}
-              </p>
-            </div>
-            <div className="w-px self-stretch bg-[#EFEFEF] dark:bg-[#2C2C2E] my-1" />
-            <button
-              onClick={toggleViewMode}
-              className="text-left active:opacity-60 transition-opacity duration-100"
-            >
-              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] font-medium flex items-center gap-1.5">
-                {viewMode === 'monthly' ? t('subscriptions.perMonth') : t('subscriptions.perYear')}
-                <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#8E8E93]" />
-              </p>
-              {numSkeleton ? (
-                <div className="h-[26px] w-24 rounded-lg bg-[#EFEFEF] dark:bg-[#2C2C2E] animate-pulse mt-0.5" />
-              ) : (
-                <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mt-0.5 leading-tight tabular-nums">
-                  {viewMode === 'monthly'
-                    ? formatCurrency(stats.total_monthly_cost, 'EUR')
-                    : formatCurrency(stats.total_annual_cost, 'EUR')}
-                </p>
-              )}
-            </button>
-          </div>
-        )}
       </motion.div>
 
       {/* Sort control — just above cards */}

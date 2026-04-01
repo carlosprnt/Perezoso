@@ -14,18 +14,8 @@ export default function SubscriptionsLoading() {
           </div>
         </div>
 
-        {/* Summary card */}
-        <div className="mt-3 bg-white dark:bg-[#1C1C1E] rounded-[20px] p-4 flex items-center gap-5">
-          <div>
-            <div className={`${S} h-3.5 w-16 rounded-md mb-2`} />
-            <div className={`${S} h-7 w-8 rounded-lg`} />
-          </div>
-          <div className="w-px self-stretch bg-[#EFEFEF] dark:bg-[#2C2C2E] my-1" />
-          <div>
-            <div className={`${S} h-3.5 w-20 rounded-md mb-2`} />
-            <div className={`${S} h-7 w-28 rounded-lg`} />
-          </div>
-        </div>
+        {/* Subtitle: Pagas X al mes en N servicios */}
+        <div className={`${S} h-5 w-64 rounded-lg mt-2`} />
       </div>
 
       {/* Sort control */}
