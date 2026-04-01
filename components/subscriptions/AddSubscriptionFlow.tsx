@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Mail, PenLine } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from './PlatformPicker'
 import SubscriptionForm from './SubscriptionForm'
@@ -59,16 +59,14 @@ export default function AddSubscriptionFlow() {
           >
             <button
               onClick={() => setStep('gmail')}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF] border border-[#3D3BF3] dark:border-[#8B89FF] bg-transparent flex items-center justify-center gap-2 active:bg-[#F0F0FF] dark:active:bg-[#1E1D3A] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF] border border-[#3D3BF3] dark:border-[#8B89FF] bg-transparent flex items-center justify-center active:bg-[#F0F0FF] dark:active:bg-[#1E1D3A] transition-colors"
             >
-              <Mail size={15} strokeWidth={2} />
               {t('picker.searchGmail')}
             </button>
             <button
               onClick={() => handleSelect(null)}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] flex items-center justify-center gap-2 active:bg-[#3230D0] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] flex items-center justify-center active:bg-[#3230D0] transition-colors"
             >
-              <PenLine size={15} strokeWidth={2} />
               {t('picker.enterManually')}
             </button>
           </div>
