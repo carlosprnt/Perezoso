@@ -133,7 +133,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
         className="w-full bg-white dark:bg-[#1C1C1E] px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
         style={{
           borderRadius: 28,
-          boxShadow: '0 -6px 16px rgba(0,0,0,0.10)',
+          boxShadow: '0 -2px 6px rgba(0,0,0,0.08)',
         }}
         whileTap={{ scale: 0.985 }}
         animate={shimmer ? {
@@ -144,7 +144,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
             '0 0 0px 3px rgba(61,59,243,0.5)',
             '0 0 0px 0px rgba(61,59,243,0)',
           ],
-        } : { boxShadow: '0 -6px 16px rgba(0,0,0,0.10)' }}
+        } : { boxShadow: '0 -2px 6px rgba(0,0,0,0.08)' }}
         transition={shimmer ? {
           layout: CARD_SPRING,
           duration: 2.8, ease: 'easeInOut', times: [0, 0.2, 0.5, 0.8, 1],
