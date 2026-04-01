@@ -15,6 +15,7 @@ import DashboardCardStack from '@/components/dashboard/DashboardCardStack'
 import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
 import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
+import SlothReminderCard from '@/components/dashboard/SlothReminderCard'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -77,6 +78,9 @@ export default async function DashboardPage() {
           <>
             {/* Insights grid */}
             <Insights subscriptions={subs} stats={stats} />
+
+            {/* Sloth reminder card */}
+            <SlothReminderCard />
 
             {/* Renewals + Categories */}
             <div className="grid lg:grid-cols-3 gap-[8px]">
