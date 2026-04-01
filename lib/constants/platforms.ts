@@ -45,7 +45,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'disney-plus',
     name: 'Disney+',
-    logoUrl: 'https://logo.clearbit.com/disneyplus.com',
+    logoUrl: 'https://svgl.app/library/disneyplus.svg',
     domain: 'disneyplus.com',
     category: 'streaming',
     defaultBillingPeriod: 'monthly',
@@ -64,7 +64,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'amazon-prime-video',
     name: 'Amazon Prime Video',
-    logoUrl: 'https://logo.clearbit.com/primevideo.com',
+    logoUrl: 'https://svgl.app/library/prime-video.svg',
     domain: 'primevideo.com',
     category: 'streaming',
     defaultBillingPeriod: 'monthly',
@@ -84,7 +84,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'hulu',
     name: 'Hulu',
-    logoUrl: 'https://logo.clearbit.com/hulu.com',
+    logoUrl: 'https://svgl.app/library/hulu.svg',
     domain: 'hulu.com',
     category: 'streaming',
     defaultBillingPeriod: 'monthly',
@@ -151,7 +151,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'slack',
     name: 'Slack',
-    logoUrl: 'https://logo.clearbit.com/slack.com',
+    logoUrl: 'https://svgl.app/library/slack.svg',
     domain: 'slack.com',
     category: 'productivity',
     defaultBillingPeriod: 'monthly',
@@ -160,7 +160,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'adobe-creative-cloud',
     name: 'Adobe Creative Cloud',
-    logoUrl: 'https://logo.clearbit.com/adobe.com',
+    logoUrl: 'https://svgl.app/library/adobe.svg',
     domain: 'adobe.com',
     category: 'productivity',
     defaultBillingPeriod: 'monthly',
@@ -198,7 +198,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'microsoft-onedrive',
     name: 'Microsoft OneDrive',
-    logoUrl: 'https://logo.clearbit.com/microsoft.com',
+    logoUrl: 'https://svgl.app/library/microsoft-onedrive.svg',
     domain: 'microsoft.com',
     category: 'cloud',
     defaultBillingPeriod: 'monthly',
@@ -208,7 +208,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'aws',
     name: 'Amazon Web Services',
-    logoUrl: 'https://logo.clearbit.com/aws.amazon.com',
+    logoUrl: 'https://svgl.app/library/aws_light.svg',
     domain: 'aws.amazon.com',
     category: 'cloud',
     defaultBillingPeriod: 'monthly',
@@ -247,7 +247,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'chatgpt-plus',
     name: 'ChatGPT Plus',
-    logoUrl: 'https://logo.clearbit.com/openai.com',
+    logoUrl: 'https://svgl.app/library/openai.svg',
     domain: 'openai.com',
     category: 'ai',
     defaultPrice: 20,
@@ -269,7 +269,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'xbox-game-pass',
     name: 'Xbox Game Pass',
-    logoUrl: 'https://logo.clearbit.com/xbox.com',
+    logoUrl: 'https://svgl.app/library/xbox.svg',
     domain: 'xbox.com',
     category: 'gaming',
     defaultBillingPeriod: 'monthly',
