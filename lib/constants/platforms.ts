@@ -93,7 +93,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'national-geographic',
     name: 'National Geographic',
-    logoUrl: 'https://logo.clearbit.com/nationalgeographic.com',
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Natgeologo.svg',
     domain: 'nationalgeographic.com',
     category: 'streaming',
     defaultBillingPeriod: 'monthly',
@@ -279,7 +279,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'nintendo-switch-online',
     name: 'Nintendo Switch Online',
-    logoUrl: 'https://logo.clearbit.com/nintendo.com',
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Nintendo.svg',
     domain: 'nintendo.com',
     category: 'gaming',
     defaultBillingPeriod: 'yearly',
@@ -328,7 +328,7 @@ export const PLATFORMS: PlatformPreset[] = [
   {
     id: 'amazon-prime',
     name: 'Amazon Prime',
-    logoUrl: 'https://logo.clearbit.com/amazon.com',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Amazon_Prime_Logo.svg',
     domain: 'amazon.com',
     category: 'other',
     defaultBillingPeriod: 'yearly',

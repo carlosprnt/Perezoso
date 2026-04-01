@@ -49,7 +49,8 @@ export default function SubscriptionAvatar({
     // Rasterized sources (Clearbit, custom URLs) fill edge-to-edge.
     const needsPadding =
       resolvedUrl.includes('cdn.simpleicons.org') ||
-      resolvedUrl.includes('svgl.app')
+      resolvedUrl.includes('svgl.app') ||
+      resolvedUrl.includes('wikimedia.org')
 
     return (
       <div
