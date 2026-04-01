@@ -551,8 +551,8 @@ export default function SubscriptionsView({
                 </button>
                 {' '}{viewMode === 'monthly' ? 'al mes' : 'al año'} en{' '}
                 <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
-                  {allCount === 1 ? '1 servicio' : `${allCount} servicios`}
-                </span>
+                  {allCount === 1 ? '1 suscripción activa' : `${allCount} suscripciones activas`}
+                </span>.
               </p>
             )}
           </div>
