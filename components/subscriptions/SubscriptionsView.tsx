@@ -118,13 +118,14 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
   const cardRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: cardRef, offset: ['start 0.35', 'end start'] })
   const exitScale = useTransform(scrollYProgress, [0, 1], [1, 0.85])
+  const exitRotation = useTransform(scrollYProgress, [0, 1], [0, 20])
 
   return (
     // Parallax wrapper — must NOT have layoutId, otherwise the transform
     // interferes with Framer Motion's position measurement during expansion.
     <motion.div
       ref={cardRef}
-      style={{ y: yOffset, scale: exitScale, transformOrigin: 'center bottom', visibility: isSelected ? 'hidden' : undefined }}
+      style={{ y: yOffset, scale: exitScale, rotate: exitRotation, transformOrigin: 'center bottom', visibility: isSelected ? 'hidden' : undefined }}
     >
       <motion.div
         layoutId={`card-${sub.id}`}
@@ -143,7 +144,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
             '0 0 0px 3px rgba(61,59,243,0.5)',
             '0 0 0px 0px rgba(61,59,243,0)',
           ],
-        } : { boxShadow: '0 0 0px 0px rgba(61,59,243,0)' }}
+        } : { boxShadow: '0 -12px 28px rgba(0,0,0,0.35)' }}
         transition={shimmer ? {
           layout: CARD_SPRING,
           duration: 2.8, ease: 'easeInOut', times: [0, 0.2, 0.5, 0.8, 1],
