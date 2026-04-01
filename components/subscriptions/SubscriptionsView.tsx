@@ -526,9 +526,17 @@ export default function SubscriptionsView({
         style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
       >
         {/* Title row */}
-        <div className="flex items-center justify-between pt-2">
-          <h1 className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between pt-2">
+          <div>
+            <h1 className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
+            {allCount > 0 && (
+              <p className="text-[14px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
+                Pagas {formatCurrency(stats.total_monthly_cost, 'EUR')} al mes en{' '}
+                {allCount === 1 ? '1 servicio' : `${allCount} servicios`}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 ml-4 flex-shrink-0">
             <button
               onClick={() => setCalendarOpen(true)}
               className="w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
