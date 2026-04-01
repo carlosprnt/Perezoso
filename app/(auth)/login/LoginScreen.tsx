@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Logo tile configuration ─────────────────────────────────────────────────
@@ -195,7 +196,7 @@ export default function LoginScreen() {
     setTimeout(async () => {
       setIsLoading(true)
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback`
+      const redirectTo = getOAuthRedirectUrl('/auth/callback')
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useMotionValue, useSpring, type MotionValue } from 'framer-motion'
+import { isNative } from '@/lib/platform'
 
 /**
  * Returns a spring-animated Y motion value that responds to pull-down gestures
@@ -25,6 +26,10 @@ export function useElasticPullDown(): MotionValue<number> {
   const pullingRef = useRef(false)
 
   useEffect(() => {
+    // On native (Capacitor) platforms, iOS handles overscroll natively.
+    // Registering a non-passive touchmove listener would fight the system gesture.
+    if (isNative()) return
+
     const onTouchStart = (e: TouchEvent) => {
       startYRef.current = e.touches[0].clientY
       pullingRef.current = false

@@ -83,14 +83,15 @@ function requestGmailToken(clientId: string): Promise<string> {
 
 async function initiateSupabaseGmailAuth() {
   if (typeof window === 'undefined') return
-  localStorage.setItem('perezoso_gmail_pending', '1')
+  try { localStorage.setItem('perezoso_gmail_pending', '1') } catch { /* ignore */ }
   const supabase = createClient()
+  const { getOAuthRedirectUrl } = await import('@/lib/platform')
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       scopes: 'https://www.googleapis.com/auth/gmail.readonly',
       queryParams: { access_type: 'offline', prompt: 'consent' },
-      redirectTo: `${window.location.origin}/auth/gmail-callback`,
+      redirectTo: getOAuthRedirectUrl('/auth/gmail-callback'),
     },
   })
 }

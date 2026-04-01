@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getOAuthRedirectUrl } from '@/lib/platform'
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -12,11 +13,7 @@ export default function LoginForm() {
     setError(null)
 
     const supabase = createClient()
-
-    const redirectTo =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/callback`
-        : `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    const redirectTo = getOAuthRedirectUrl('/auth/callback')
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
