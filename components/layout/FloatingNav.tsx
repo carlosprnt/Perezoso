@@ -69,13 +69,13 @@ export default function FloatingNav() {
   const inactiveIconColor = isDarkMode ? '#AEAEB2' : '#111111'
 
   // Bottom offset: 20px + safe-area
-  const bottomOffset = 'calc(20px + env(safe-area-inset-bottom))'
+  const bottomOffset = 'env(safe-area-inset-bottom)'
 
   return (
     <>
       {/* ── Floating nav — mobile only ──────────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: `calc(${BTN_H + PAD * 2}px + 20px + env(safe-area-inset-bottom))` }}
+        style={{ height: `calc(${BTN_H + PAD * 2}px + env(safe-area-inset-bottom))` }}
       >
         {/* Pill — left-aligned at 20px, 16px from bottom */}
         <div className="absolute left-5 pointer-events-auto"
