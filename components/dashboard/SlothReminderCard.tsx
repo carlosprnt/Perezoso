@@ -26,11 +26,11 @@ export default function SlothReminderCard() {
       <SlothEmoji />
 
       <div className="flex-1 min-w-0 pr-6">
-        <p className="text-[14px] text-[#121212] dark:text-[#F2F2F7] leading-snug">
-          Tienes 2 renovaciones anuales sin aviso. Podemos recordártelas antes del cobro para que no se te pasen.{' '}
-          <button className="text-[#3D3BF3] dark:text-[#8B89FF] font-semibold underline-offset-2 hover:underline active:opacity-70 transition-opacity">
-            Avisarme 7 días antes
-          </button>
+        <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">
+          Tienes 2 renovaciones anuales sin aviso.
+        </p>
+        <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug">
+          Podemos recordártelas antes del cobro para que no se te pasen.
         </p>
       </div>
 
