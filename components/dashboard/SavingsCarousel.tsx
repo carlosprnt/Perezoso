@@ -14,7 +14,7 @@ export type CarouselItem =
 
 const MAX_STACK   = 8
 const PEEK_COUNT  = 4
-const PEEK_OFFSET = 2    // px per depth level
+const PEEK_OFFSET = 1    // px per depth level
 const PEEK_SCALE  = 0.025
 const PEEK_DIM    = 0.10
 
