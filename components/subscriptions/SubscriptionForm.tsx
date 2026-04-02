@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createSubscription, updateSubscription, deleteSubscription } from '@/app/(dashboard)/subscriptions/actions'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { CURRENCIES, BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
-import { AlertCircle, ChevronsUpDown, X } from 'lucide-react'
+import { AlertCircle, Bell, ChevronsUpDown, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { Subscription, BillingPeriod, SubscriptionStatus, UserShareMode, Category } from '@/types'
 import type { PlatformPreset } from '@/lib/constants/platforms'
@@ -164,6 +165,8 @@ export default function SubscriptionForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [reminderOn, setReminderOn] = useState(false)
+  const [reminderDays, setReminderDays] = useState<1 | 3 | 10>(3)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const prefill = platformPreset ? getPrefilledPlatformValues(platformPreset) : null
@@ -577,6 +580,65 @@ export default function SubscriptionForm({
             </SelectRow>
           </div>
         )}
+
+        {/* ── Reminder ────────────────────────────────────────────────── */}
+        <div className="mx-5 mb-3 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#EFEFEF] dark:border-[#2C2C2E]">
+          <div className="flex items-center px-4 min-h-[52px] py-3">
+            <Bell size={16} className="text-[#C0C0C0] dark:text-[#8E8E93] flex-shrink-0 mr-3" />
+            <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7] flex-1">Aviso de renovación</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={reminderOn}
+              onClick={() => setReminderOn(v => !v)}
+              className="relative flex-shrink-0 transition-colors duration-200"
+              style={{ width: 44, height: 26, borderRadius: 13, background: reminderOn ? '#3D3BF3' : '#D1D1D6' }}
+            >
+              <motion.div
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                className="absolute top-[3px] w-5 h-5 rounded-full bg-white"
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                animate={{ left: reminderOn ? 21 : 3 }}
+              />
+            </button>
+          </div>
+
+          <AnimatePresence initial={false}>
+            {reminderOn && (
+              <motion.div
+                key="days"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="border-t border-[#EFEFEF] dark:border-[#2C2C2E] px-4 py-3.5">
+                  <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#8E8E93] uppercase tracking-wider mb-3">
+                    Avisarme con antelación
+                  </p>
+                  <div className="flex gap-2">
+                    {([1, 3, 10] as const).map(d => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setReminderDays(d)}
+                        className="flex-1 h-10 rounded-full text-[13px] font-semibold transition-colors"
+                        style={{
+                          background: reminderDays === d ? '#3D3BF3' : 'rgba(0,0,0,0.05)',
+                          color: reminderDays === d ? 'white' : '#424242',
+                        }}
+                      >
+                        {d} {d === 1 ? 'día' : 'días'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* ── Delete (edit mode) ──────────────────────────────────────── */}
         {mode === 'edit' && (

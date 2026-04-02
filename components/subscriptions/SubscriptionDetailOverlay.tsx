@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Calendar, Tag, Zap, Users,
-  RefreshCw, CreditCard, PieChart, Bell,
+  RefreshCw, CreditCard, PieChart, Bell, BellOff,
 } from 'lucide-react'
 import SubscriptionAvatar from './SubscriptionAvatar'
 import SubscriptionForm from './SubscriptionForm'
@@ -93,8 +93,6 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   const t = useT()
   const locale = useLocale()
   const [editOpen, setEditOpen] = useState(false)
-  const [reminderOn, setReminderOn] = useState(false)
-  const [reminderDays, setReminderDays] = useState<1 | 3 | 10>(3)
   const scrollRef = useRef<HTMLDivElement>(null)
   const logoUrl = resolveSubscriptionLogoUrl(sub.name, sub.logo_url)
   const brandTint = useBrandTint(logoUrl)
@@ -290,68 +288,15 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
               </div>
             )}
 
-            {/* Reminder toggle */}
-            <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] overflow-hidden">
-              {/* Toggle row */}
-              <div className="flex items-center gap-3 px-4 py-3.5">
-                <Bell size={15} className="text-[#C0C0C0] dark:text-[#8E8E93] flex-shrink-0" />
-                <span className="text-sm text-[#737373] dark:text-[#AEAEB2] flex-1">Aviso de renovación</span>
-                {/* Toggle switch */}
-                <button
-                  role="switch"
-                  aria-checked={reminderOn}
-                  onClick={() => setReminderOn(v => !v)}
-                  className="relative flex-shrink-0 transition-colors duration-200"
-                  style={{
-                    width: 44, height: 26, borderRadius: 13,
-                    background: reminderOn ? '#3D3BF3' : '#D1D1D6',
-                  }}
-                >
-                  <motion.div
-                    layout
-                    transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-                    className="absolute top-[3px] w-5 h-5 rounded-full bg-white"
-                    style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                    animate={{ left: reminderOn ? 21 : 3 }}
-                  />
-                </button>
-              </div>
-
-              {/* Day selector — animated expand */}
-              <AnimatePresence initial={false}>
-                {reminderOn && (
-                  <motion.div
-                    key="days"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E] px-4 py-3.5">
-                      <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#8E8E93] uppercase tracking-wider mb-3">
-                        Avisarme con antelación
-                      </p>
-                      <div className="flex gap-2">
-                        {([1, 3, 10] as const).map(d => (
-                          <button
-                            key={d}
-                            onClick={() => setReminderDays(d)}
-                            className="flex-1 h-10 rounded-full text-[13px] font-semibold transition-colors"
-                            style={{
-                              background: reminderDays === d ? '#3D3BF3' : 'rgba(0,0,0,0.05)',
-                              color: reminderDays === d ? 'white' : '#424242',
-                            }}
-                          >
-                            {d} {d === 1 ? 'día' : 'días'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Reminder — read only */}
+            <PlainCard>
+              <DetailRow
+                icon={<BellOff size={15} />}
+                label="Aviso de renovación"
+                value={<span className="text-[#A0A0A0] dark:text-[#636366]">Sin aviso</span>}
+                last
+              />
+            </PlainCard>
 
             {/* Organisation */}
             <PlainCard>
