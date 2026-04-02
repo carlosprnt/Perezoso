@@ -56,14 +56,17 @@ function SavingsIcon({ type }: { type: SavingsOpportunity['type'] }) {
 // ─── Bold numbers helper ──────────────────────────────────────────────────────
 
 function BoldNumbers({ text }: { text: string }) {
-  const parts = text.split(/(\d[\d.,]*\s*[€$£]|\d+\s*%)/)
+  // Split on **markdown bold** markers OR currency/percentage numbers
+  const parts = text.split(/(\*\*[^*]+\*\*|\d[\d.,]*\s*[€$£]|\d+\s*%)/)
   return (
     <>
-      {parts.map((part, i) =>
-        /^\d[\d.,]*\s*[€$£]$|^\d+\s*%$/.test(part.trim())
-          ? <strong key={i}>{part}</strong>
-          : part
-      )}
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**'))
+          return <strong key={i}>{part.slice(2, -2)}</strong>
+        if (/^\d[\d.,]*\s*[€$£]$|^\d+\s*%$/.test(part.trim()))
+          return <strong key={i}>{part}</strong>
+        return part
+      })}
     </>
   )
 }
@@ -75,7 +78,7 @@ function useReminderContent(annualCount: number) {
   const body = annualCount === 1
     ? t('reminder.cardBody')
     : t('reminder.cardBodyMany').replace('{count}', String(annualCount))
-  return { body, cta: t('savings.cta') }
+  return { body, cta: t('reminder.cardCta') }
 }
 
 function useSavingsContent(opp: SavingsOpportunity) {
@@ -156,11 +159,12 @@ function InsightCardShell({
         {/* Dismiss pill */}
         <button
           onClick={e => { e.stopPropagation(); onDismiss() }}
-          className="self-center flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
+          className="self-center flex-shrink-0 rounded-full flex items-center justify-center"
+          style={{ width: 24, height: 24 }}
           style={{ background: 'rgba(142,142,147,0.15)' }}
           aria-label="Descartar"
         >
-          <span className="text-[16px] font-bold text-[#8E8E93] leading-none">✕</span>
+          <span style={{ fontSize: 16, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8E8E93', fontWeight: 700 }}>✕</span>
         </button>
       </div>
 

@@ -557,9 +557,9 @@ const es: typeof en = {
     bundleNote: 'La disponibilidad de bundles varía según la región. Consulta las ofertas actuales en el sitio web del proveedor.',
   },
   reminder: {
-    cardBody: 'Podrías evitar una renovación anual por sorpresa si activas un aviso 7 días antes.',
-    cardBodyMany: 'Podrías evitar {count} renovaciones anuales por sorpresa si activas avisos 7 días antes.',
-    cardCta: 'Avisarme 7 días antes',
+    cardBody: 'Podrías evitar una **renovación anual** por sorpresa si activas un aviso 7 días antes.',
+    cardBodyMany: 'Podrías evitar {count} **renovaciones anuales** por sorpresa si activas avisos 7 días antes.',
+    cardCta: 'Activar notificaciones',
     toastText: 'Recordatorios activados para tus renovaciones anuales',
   },
 }
