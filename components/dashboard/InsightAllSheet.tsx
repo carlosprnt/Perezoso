@@ -37,13 +37,13 @@ export default function InsightAllSheet({
             if (dismissed.has(i)) return null
             if (item.kind === 'reminder') {
               return (
-                <InsightCard key={i} kind="reminder"
+                <InsightCard key={i} kind="reminder" inModal
                   onActivate={handleActivate}
                   onDismiss={() => onDismiss(i)} />
               )
             }
             return (
-              <InsightCard key={i} kind="savings"
+              <InsightCard key={i} kind="savings" inModal
                 opportunity={item.opportunity}
                 onTap={() => { onDetail(item.opportunity); onClose() }}
                 onDismiss={() => onDismiss(i)} />

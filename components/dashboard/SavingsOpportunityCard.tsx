@@ -89,6 +89,7 @@ function CardShell({
   onMainTap,
   onDismiss,
   closeLabel,
+  inModal = false,
 }: {
   icon: React.ReactNode
   title: string
@@ -96,11 +97,16 @@ function CardShell({
   onMainTap: () => void
   onDismiss: () => void
   closeLabel: string
+  inModal?: boolean
 }) {
   return (
     <div
-      className="relative w-full flex items-center gap-3.5 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 py-4 cursor-pointer active:scale-[0.98] transition-transform select-none"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
+      className={`relative w-full flex items-center gap-3.5 rounded-[20px] px-4 py-4 cursor-pointer active:scale-[0.98] transition-transform select-none ${
+        inModal
+          ? 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
+          : 'bg-white dark:bg-[#1C1C1E]'
+      }`}
+      style={inModal ? undefined : { boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
       onClick={onMainTap}
       role="button"
       tabIndex={0}
@@ -108,20 +114,22 @@ function CardShell({
     >
       {icon}
 
-      <div className="flex-1 min-w-0 pr-6">
+      <div className={`flex-1 min-w-0 ${inModal ? '' : 'pr-6'}`}>
         <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{title}</p>
         <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug line-clamp-2">{desc}</p>
       </div>
 
-      {/* Small X — w-7 h-7 (28 px) */}
-      <button
-        onClick={e => { e.stopPropagation(); onDismiss() }}
-        className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center"
-        style={{ background: 'rgba(0,0,0,0.06)' }}
-        aria-label={closeLabel}
-      >
-        <X size={11} strokeWidth={2.5} className="text-[#737373] dark:text-[#8E8E93]" />
-      </button>
+      {/* Small X — only outside the modal */}
+      {!inModal && (
+        <button
+          onClick={e => { e.stopPropagation(); onDismiss() }}
+          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.06)' }}
+          aria-label={closeLabel}
+        >
+          <X size={11} strokeWidth={2.5} className="text-[#737373] dark:text-[#8E8E93]" />
+        </button>
+      )}
     </div>
   )
 }
@@ -129,8 +137,8 @@ function CardShell({
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 export type InsightCardProps =
-  | { kind: 'reminder';  onActivate: () => void; onDismiss: () => void }
-  | { kind: 'savings';   opportunity: SavingsOpportunity; onTap: () => void; onDismiss: () => void }
+  | { kind: 'reminder';  onActivate: () => void; onDismiss: () => void; inModal?: boolean }
+  | { kind: 'savings';   opportunity: SavingsOpportunity; onTap: () => void; onDismiss: () => void; inModal?: boolean }
 
 export default function InsightCard(props: InsightCardProps) {
   const t = useT()
@@ -144,15 +152,15 @@ export default function InsightCard(props: InsightCardProps) {
         onMainTap={props.onActivate}
         onDismiss={props.onDismiss}
         closeLabel={t('common.close')}
+        inModal={props.inModal}
       />
     )
   }
 
-  // savings
   return <SavingsInsightCard {...props} />
 }
 
-function SavingsInsightCard({ opportunity, onTap, onDismiss }: Extract<InsightCardProps, { kind: 'savings' }>) {
+function SavingsInsightCard({ opportunity, onTap, onDismiss, inModal }: Extract<InsightCardProps, { kind: 'savings' }>) {
   const t                        = useT()
   const { title, desc, logoUrl } = useSavingsContent(opportunity)
   const showLogo = !!logoUrl && (opportunity.type === 'switch_to_yearly' || opportunity.type === 'shared_plan')
@@ -169,6 +177,7 @@ function SavingsInsightCard({ opportunity, onTap, onDismiss }: Extract<InsightCa
       onMainTap={onTap}
       onDismiss={onDismiss}
       closeLabel={t('common.close')}
+      inModal={inModal}
     />
   )
 }
