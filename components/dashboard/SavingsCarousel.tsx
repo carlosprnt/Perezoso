@@ -14,9 +14,9 @@ export type CarouselItem =
 
 const MAX_STACK   = 8
 const PEEK_COUNT  = 4
-const PEEK_OFFSET = 8    // px per depth level
+const PEEK_OFFSET = 5    // px per depth level
 const PEEK_SCALE  = 0.025 // scale reduction per level
-const PEEK_DIM    = 0.13 // opacity reduction per level
+const PEEK_DIM    = 0.12 // opacity reduction per level
 
 interface Props {
   items: CarouselItem[]
@@ -102,11 +102,10 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
       <AnimatePresence onExitComplete={onAllDismissed}>
         <motion.div
           key="stack-wrap"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-          style={{ overflow: 'hidden' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
         >
           {/* Stack container — paddingBottom reveals peek cards */}
           <div
@@ -121,7 +120,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
               return (
                 <motion.div
                   key={entry.i}
-                  className="absolute inset-0 rounded-[20px] bg-white dark:bg-[#1C1C1E]"
+                  className="absolute inset-0 rounded-[24px] bg-white dark:bg-[#1C1C1E]"
                   animate={{
                     y:       target * PEEK_OFFSET,
                     scale:   1 - target * PEEK_SCALE,
@@ -130,7 +129,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   style={{
                     zIndex: PEEK_COUNT - idx,
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
                   }}
                 />
               )

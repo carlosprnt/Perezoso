@@ -138,17 +138,21 @@ function InsightCardShell({
 
   return (
     <div
-      className={`relative w-full rounded-[20px] px-4 pt-4 pb-3 select-none ${
+      className={`relative w-full rounded-[24px] px-4 pt-4 pb-3 select-none ${
         inModal ? 'bg-[#F2F2F7] dark:bg-[#2C2C2E]' : 'bg-white dark:bg-[#1C1C1E]'
       }`}
-      style={inModal ? undefined : { boxShadow: '0 2px 12px rgba(0,0,0,0.09)' }}
+      style={inModal ? undefined : { boxShadow: '0 1px 5px rgba(0,0,0,0.06)' }}
     >
       {/* Header */}
       <div className="flex items-start gap-3 mb-3">
         {icon}
         <div className="flex-1 min-w-0 pt-0.5">
-          <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">{title}</p>
-          <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug line-clamp-2">{desc}</p>
+          <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{title}</p>
+          {/* min-height locks 2 lines so all cards share the same height */}
+          <p
+            className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 line-clamp-2"
+            style={{ lineHeight: '1.45', minHeight: 'calc(2 * 1.45 * 13px)' }}
+          >{desc}</p>
         </div>
         {/* Dismiss pill */}
         <button
@@ -170,15 +174,16 @@ function InsightCardShell({
         {ctaLabel}
       </button>
 
-      {/* Ver todo — only on the last card in the deck */}
-      {onVerTodo && (
-        <button
-          onClick={onVerTodo}
-          className="w-full mt-2 py-1.5 text-[12px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
-        >
-          {t('savings.viewAll')} →
-        </button>
-      )}
+      {/* Ver todo — always in DOM to keep uniform height; invisible when not the last card */}
+      <button
+        onClick={onVerTodo ?? undefined}
+        disabled={!onVerTodo}
+        className={`w-full mt-2 py-1.5 text-[12px] font-medium text-[#3D3BF3] dark:text-[#8B89FF] ${
+          onVerTodo ? '' : 'invisible pointer-events-none'
+        }`}
+      >
+        {t('savings.viewAll')} →
+      </button>
     </div>
   )
 }
