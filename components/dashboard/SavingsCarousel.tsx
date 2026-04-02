@@ -14,7 +14,7 @@ export type CarouselItem =
 
 const MAX_STACK   = 8
 const PEEK_COUNT  = 4
-const PEEK_OFFSET = 2    // px per depth level
+const PEEK_OFFSET = 1    // px per depth level
 const PEEK_SCALE  = 0.025
 const PEEK_DIM    = 0.10
 
@@ -170,7 +170,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
             <button
               onClick={() => setShowAll(true)}
               className="w-full text-center text-[14px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
-              style={{ marginTop: 8 }}
+              style={{ marginTop: 4 }}
             >
               Más oportunidades de ahorro
             </button>
