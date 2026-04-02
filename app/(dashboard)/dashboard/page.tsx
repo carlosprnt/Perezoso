@@ -16,6 +16,7 @@ import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
 import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
+import DashboardSavingsLink from '@/components/dashboard/DashboardSavingsLink'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -115,6 +116,9 @@ export default async function DashboardPage() {
                 <TopExpensiveSection subscriptions={top3} />
               </div>
             )}
+
+            {/* Savings opportunities link */}
+            <DashboardSavingsLink subscriptions={subs} />
           </>
         )}
       </DashboardCardStack>

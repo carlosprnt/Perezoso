@@ -14,9 +14,9 @@ export type CarouselItem =
 
 const MAX_STACK   = 8
 const PEEK_COUNT  = 4
-const PEEK_OFFSET = 3    // px per depth level → 4 × 3 = 12px total
+const PEEK_OFFSET = 6    // px per depth level — enough to clear 24px border-radius curve
 const PEEK_SCALE  = 0.025
-const PEEK_DIM    = 0.12
+const PEEK_DIM    = 0.10
 
 interface Props {
   items: CarouselItem[]
@@ -126,17 +126,19 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
             {peekEntries.map((entry, idx) => {
               const depth  = idx + 1
               const target = isExiting ? depth - 1 : depth
+              const tv     = target * PEEK_OFFSET
               return (
                 <motion.div
                   key={entry.i}
-                  className="absolute inset-0 rounded-[24px] bg-white dark:bg-[#1C1C1E]"
+                  className="absolute inset-0 rounded-[24px] bg-[#F0F0F0] dark:bg-[#252527]"
+                  initial={{ y: depth * PEEK_OFFSET, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
                   animate={{
-                    y:       target * PEEK_OFFSET,
+                    y:       tv,
                     scale:   1 - target * PEEK_SCALE,
                     opacity: 1 - target * PEEK_DIM,
                   }}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}
+                  style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 3px 14px rgba(0,0,0,0.11)' }}
                 />
               )
             })}
