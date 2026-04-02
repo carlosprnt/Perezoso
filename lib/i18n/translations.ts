@@ -245,6 +245,10 @@ const en = {
     bundleTitle: 'Bundle opportunity',
     cardSave: 'Save ~{amount}/mo',
     dismiss: 'Got it',
+    viewAll: 'See all opportunities',
+    viewAllDesc: '{count} more insights',
+    allTitle: 'Savings opportunities',
+    allEmpty: 'No more suggestions.',
     // Detail sheet
     detailSavePerMonth: 'Save ~{amount}/month',
     detailSavePerYear: '{annual}/year in your pocket',
@@ -510,6 +514,10 @@ const es: typeof en = {
     bundleTitle: 'Oportunidad de bundle',
     cardSave: 'Ahorra ~{amount}/mes',
     dismiss: 'Entendido',
+    viewAll: 'Ver todas las oportunidades',
+    viewAllDesc: '{count} ideas más',
+    allTitle: 'Oportunidades de ahorro',
+    allEmpty: 'No hay más sugerencias.',
     // Detail sheet
     detailSavePerMonth: 'Ahorra ~{amount}/mes',
     detailSavePerYear: '{annual}/año en tu bolsillo',
