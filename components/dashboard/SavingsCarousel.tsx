@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, useAnimation } from 'framer-motion'
 import type { PanInfo } from 'framer-motion'
 import InsightCard from './SavingsOpportunityCard'
@@ -55,6 +55,22 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
   useEffect(() => {
     dragX.set(0)
   }, [frontEntry?.i, dragX])
+
+  // Refs to avoid stale closures in the hint interval
+  const isExitingRef    = useRef(isExiting)
+  const visibleCountRef = useRef(visible.length)
+  useEffect(() => { isExitingRef.current    = isExiting },     [isExiting])
+  useEffect(() => { visibleCountRef.current = visible.length }, [visible.length])
+
+  // Swipe hint nudge every 6s — resets timer when front card changes
+  useEffect(() => {
+    const id = setInterval(async () => {
+      if (isExitingRef.current || visibleCountRef.current <= 1) return
+      await frontAnim.start({ x: 18, rotate: 3,  transition: { duration: 0.18, ease: 'easeOut' } })
+      await frontAnim.start({ x:  0, rotate: 0,  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } })
+    }, 6000)
+    return () => clearInterval(id)
+  }, [frontAnim, frontEntry?.i])
 
   // ── Dismiss ────────────────────────────────────────────────────────────────
   function dismiss(originalIdx: number) {
