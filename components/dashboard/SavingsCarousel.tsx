@@ -14,7 +14,7 @@ export type CarouselItem =
 
 const MAX_STACK   = 8
 const PEEK_COUNT  = 4
-const PEEK_OFFSET = 6    // px per depth level — enough to clear 24px border-radius curve
+const PEEK_OFFSET = 4    // px per depth level
 const PEEK_SCALE  = 0.025
 const PEEK_DIM    = 0.10
 
@@ -169,9 +169,9 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
           {visible.length > 0 && (
             <button
               onClick={() => setShowAll(true)}
-              className="w-full mt-3 text-center text-[13px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
+              className="w-full mt-2 text-center text-[14px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
             >
-              Descubre todas las oportunidades de ahorro →
+              Más oportunidades de ahorro
             </button>
           )}
         </motion.div>
