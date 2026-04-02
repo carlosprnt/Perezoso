@@ -130,7 +130,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
               return (
                 <motion.div
                   key={entry.i}
-                  className="absolute inset-0 rounded-[24px] bg-[#F0F0F0] dark:bg-[#252527]"
+                  className="absolute inset-0 rounded-[24px] bg-white dark:bg-[#1C1C1E]"
                   initial={{ y: depth * PEEK_OFFSET, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
                   animate={{
                     y:       tv,
@@ -138,7 +138,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
                     opacity: 1 - target * PEEK_DIM,
                   }}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 3px 14px rgba(0,0,0,0.11)' }}
+                  style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}
                 />
               )
             })}
@@ -164,6 +164,16 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
               {frontEntry && renderFront(frontEntry)}
             </motion.div>
           </div>
+
+          {/* Discover all link */}
+          {visible.length > 0 && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="w-full mt-3 text-center text-[13px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
+            >
+              Descubre todas las oportunidades de ahorro →
+            </button>
+          )}
         </motion.div>
       </AnimatePresence>
 
