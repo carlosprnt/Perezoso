@@ -42,18 +42,41 @@ function ReminderToast({ onDone }: { onDone: () => void }) {
   )
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// ─── Ringing bell icon ────────────────────────────────────────────────────────
 
-function SlothEmoji() {
+function RingingBell() {
+  const [ringing, setRinging] = useState(false)
+
+  useEffect(() => {
+    // Ring immediately on mount, then every 3s
+    const trigger = () => {
+      setRinging(true)
+      setTimeout(() => setRinging(false), 900)
+    }
+    trigger()
+    const interval = setInterval(trigger, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div
       className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
       style={{ background: 'linear-gradient(135deg, #E8E6FF 0%, #D4CFFF 100%)' }}
     >
-      <span className="text-[28px] leading-none">🦥</span>
+      <Bell
+        size={26}
+        strokeWidth={2}
+        className="text-[#3D3BF3]"
+        style={{
+          transformOrigin: 'top center',
+          animation: ringing ? 'bell-ring 0.9s ease-in-out forwards' : 'none',
+        }}
+      />
     </div>
   )
 }
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
 
 export default function SlothReminderCard() {
   const [dismissed, setDismissed] = useState(false)
@@ -75,7 +98,7 @@ export default function SlothReminderCard() {
           style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
           onClick={activate}
         >
-          <SlothEmoji />
+          <RingingBell />
 
           <div className="flex-1 min-w-0 pr-6">
             <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">
@@ -104,3 +127,4 @@ export default function SlothReminderCard() {
     </>
   )
 }
+
