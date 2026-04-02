@@ -71,8 +71,8 @@ const en = {
   subscriptions: {
     title: 'My subscriptions',
     total: 'Total',
-    perMonth: 'Per month',
-    perYear: 'Per year',
+    perMonthLabel: 'Per month',
+    perYearLabel: 'Per year',
     count: '{count} subscriptions',
     noResults: 'No results',
     noSubscriptions: 'No subscriptions yet',
@@ -238,6 +238,17 @@ const en = {
     cardDesc: 'We can remind you before the charge so you don\'t miss them.',
     toastText: 'Notifications activated for your annual renewals',
   },
+  savings: {
+    switchToYearlyTitle: 'Save on {name}',
+    switchToYearlyDesc: 'Switch {name} to annual billing and save ~{amount}/mo — that\'s {annual}/year.',
+    duplicateCategoryTitle: 'Duplicate {category}',
+    duplicateCategoryDesc: 'You have {count} {category} subscriptions. Cancelling the cheapest saves you ~{amount}/mo.',
+    sharedPlanTitle: 'Share {name}',
+    sharedPlanDesc: 'Split {name} with someone and cut your cost roughly in half — save ~{amount}/mo.',
+    bundleTitle: 'Bundle opportunity',
+    bundleDesc: '{names} could be bundled. Switching to a combined plan could save ~{amount}/mo.',
+    dismiss: 'Got it',
+  },
 }
 
 // ─── Spanish ──────────────────────────────────────────────────────────────────
@@ -313,8 +324,8 @@ const es: typeof en = {
   subscriptions: {
     title: 'Mis suscripciones',
     total: 'Total',
-    perMonth: 'Por mes',
-    perYear: 'Por año',
+    perMonthLabel: 'Por mes',
+    perYearLabel: 'Por año',
     count: '{count} suscripciones',
     noResults: 'Sin resultados',
     noSubscriptions: 'Sin suscripciones',
@@ -474,6 +485,17 @@ const es: typeof en = {
     editSubscription: 'Editar suscripción',
     searchInGmail: 'Buscar en Gmail',
     filter: 'Filtros',
+  },
+  savings: {
+    switchToYearlyTitle: 'Ahorra en {name}',
+    switchToYearlyDesc: 'Cambia {name} a facturación anual y ahorra ~{amount}/mes — {annual} al año.',
+    duplicateCategoryTitle: '{category} duplicado',
+    duplicateCategoryDesc: 'Tienes {count} suscripciones de {category}. Cancelar la más barata te ahorra ~{amount}/mes.',
+    sharedPlanTitle: 'Comparte {name}',
+    sharedPlanDesc: 'Divide {name} con alguien y reduce tu coste a la mitad — ahorra ~{amount}/mes.',
+    bundleTitle: 'Oportunidad de bundle',
+    bundleDesc: '{names} podría combinarse. Pasar a un plan conjunto podría ahorrarte ~{amount}/mes.',
+    dismiss: 'Entendido',
   },
   reminder: {
     cardTitle: 'Tienes renovaciones anuales sin aviso.',

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import { formatCurrency } from '@/lib/utils/currency'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import type { DashboardStats } from '@/types'
 
 // ── Money confetti (canvas) ───────────────────────────────────────────────────
@@ -150,6 +151,7 @@ export default function DashboardSummaryHero({
   currency = 'EUR',
   logoUrls = [],
 }: Props) {
+  const t       = useT()
   const ref     = useRef<HTMLDivElement>(null)
   const scrollY = useEffectiveScrollY()
 

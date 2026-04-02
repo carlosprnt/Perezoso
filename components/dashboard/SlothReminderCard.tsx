@@ -84,7 +84,7 @@ function RingingBell() {
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
-export default function SlothReminderCard() {
+export default function SlothReminderCard({ onDismiss }: { onDismiss?: () => void } = {}) {
   const t = useT()
   const [dismissed, setDismissed] = useState(false)
   const [showToast, setShowToast] = useState(false)
@@ -99,7 +99,7 @@ export default function SlothReminderCard() {
 
   return (
     <>
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} onExitComplete={() => { if (dismissed) onDismiss?.() }}>
         {!dismissed && (
           <motion.div
             key="reminder"
