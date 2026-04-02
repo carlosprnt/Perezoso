@@ -35,7 +35,7 @@ function ReminderToast({ onDone }: { onDone: () => void }) {
         color="#000"
         style={{ animation: 'bell-ring 0.9s ease-in-out 0.1s 1', transformOrigin: 'top center', flexShrink: 0 }}
       />
-      <p className="text-[14px] font-semibold text-black leading-snug flex-1">
+      <p className="text-[14px] font-medium text-black leading-snug flex-1">
         Notificaciones activadas para tus renovaciones anuales
       </p>
     </div>
