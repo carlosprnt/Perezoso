@@ -62,7 +62,7 @@ function useReminderContent(annualCount: number) {
     : t('reminder.cardTitle')
         .replace('{count}', String(annualCount))
         .replace('{plural}', 'es')
-  return { title, desc: t('reminder.cardDesc'), cta: t('reminder.cardCta') }
+  return { title, desc: t('reminder.cardDesc'), cta: t('savings.cta') }
 }
 
 function useSavingsContent(opp: SavingsOpportunity) {
@@ -77,10 +77,9 @@ function useSavingsContent(opp: SavingsOpportunity) {
       return {
         title:   t('savings.switchToYearlyTitle').replace('{name}', name),
         desc:    t('savings.switchToYearlyDesc').replace('{pct}', String(pct)).replace('{amount}', amount),
-        cta:     t('savings.switchToYearlyCta'),
+        cta:     t('savings.cta'),
         logoUrl: resolveSubscriptionLogoUrl(name, opp.subscriptionLogoUrl ?? null),
         showLogo: true,
-        accentColor: '#059669',
       }
     }
     case 'duplicate_category': {
@@ -93,10 +92,9 @@ function useSavingsContent(opp: SavingsOpportunity) {
                    .replace('{count}', String(count))
                    .replace(/{category}/g, catLabel.toLowerCase())
                    .replace('{amount}', amount),
-        cta:     t('savings.duplicateCategoryCta'),
+        cta:     t('savings.cta'),
         logoUrl: null,
         showLogo: false,
-        accentColor: '#D97706',
       }
     }
     case 'shared_plan': {
@@ -104,42 +102,39 @@ function useSavingsContent(opp: SavingsOpportunity) {
       return {
         title:   t('savings.sharedPlanTitle').replace('{name}', name),
         desc:    t('savings.sharedPlanDesc').replace('{amount}', amount).replace('{name}', name),
-        cta:     t('savings.sharedPlanCta'),
+        cta:     t('savings.cta'),
         logoUrl: resolveSubscriptionLogoUrl(name, opp.subscriptionLogoUrl ?? null),
         showLogo: true,
-        accentColor: '#2563EB',
       }
     }
     case 'bundle':
       return {
         title:   t('savings.bundleTitle'),
         desc:    t('savings.bundleDesc').replace('{amount}', amount),
-        cta:     t('savings.bundleCta'),
+        cta:     t('savings.cta'),
         logoUrl: null,
         showLogo: false,
-        accentColor: '#7C3AED',
       }
   }
 }
 
 // ─── Card shell ───────────────────────────────────────────────────────────────
 
+const CTA_COLOR = '#3D3BF3'
+
 function InsightCardShell({
-  icon, title, desc, ctaLabel, ctaColor, onCta, onDismiss, onVerTodo, inModal = false,
+  icon, title, desc, ctaLabel, onCta, onDismiss, onVerTodo, inModal = false,
 }: {
   icon: React.ReactNode
   title: string
   desc: string
   ctaLabel: string
-  ctaColor: string
   onCta: () => void
   onDismiss: () => void
   onVerTodo?: () => void
   inModal?: boolean
 }) {
   const t = useT()
-  // In modal, all CTAs use the same indigo brand colour
-  const resolvedColor = inModal ? '#3D3BF3' : ctaColor
 
   return (
     <div
@@ -170,7 +165,7 @@ function InsightCardShell({
       <button
         onClick={onCta}
         className="w-full h-9 rounded-full text-[13px] font-semibold text-white active:opacity-80 transition-opacity"
-        style={{ background: resolvedColor }}
+        style={{ background: CTA_COLOR }}
       >
         {ctaLabel}
       </button>
@@ -201,14 +196,14 @@ export default function InsightCard(props: InsightCardProps) {
     return (
       <InsightCardShell
         icon={<RingingBell />}
-        title={title} desc={desc} ctaLabel={cta} ctaColor="#3D3BF3"
+        title={title} desc={desc} ctaLabel={cta}
         onCta={onActivate} onDismiss={onDismiss} onVerTodo={onVerTodo} inModal={inModal}
       />
     )
   }
 
   const { opportunity, onTap, onDismiss, onVerTodo, inModal } = props
-  const { title, desc, cta, logoUrl, showLogo, accentColor } = useSavingsContent(opportunity)
+  const { title, desc, cta, logoUrl, showLogo } = useSavingsContent(opportunity)
   return (
     <InsightCardShell
       icon={
@@ -216,7 +211,7 @@ export default function InsightCard(props: InsightCardProps) {
           ? <SubscriptionAvatar name={opportunity.subscriptionName ?? ''} logoUrl={logoUrl} size="md" corner="rounded-[10px]" />
           : <SavingsIcon type={opportunity.type} />
       }
-      title={title} desc={desc} ctaLabel={cta} ctaColor={accentColor}
+      title={title} desc={desc} ctaLabel={cta}
       onCta={onTap} onDismiss={onDismiss} onVerTodo={onVerTodo} inModal={inModal}
     />
   )

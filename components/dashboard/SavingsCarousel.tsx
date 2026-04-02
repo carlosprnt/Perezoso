@@ -13,10 +13,10 @@ export type CarouselItem =
   | { kind: 'savings'; opportunity: SavingsOpportunity }
 
 const MAX_STACK   = 8
-const PEEK_COUNT  = 2
-const PEEK_OFFSET = 10   // px per depth level
-const PEEK_SCALE  = 0.03 // scale reduction per level
-const PEEK_DIM    = 0.18 // opacity reduction per level
+const PEEK_COUNT  = 4
+const PEEK_OFFSET = 8    // px per depth level
+const PEEK_SCALE  = 0.025 // scale reduction per level
+const PEEK_DIM    = 0.13 // opacity reduction per level
 
 interface Props {
   items: CarouselItem[]
@@ -83,7 +83,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
 
   function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
     if (isExiting || visible.length <= 1) return
-    const shouldSwipe = Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 400
+    const shouldSwipe = Math.abs(info.offset.x) > 30 || Math.abs(info.velocity.x) > 200
     if (!shouldSwipe) return
 
     const dir = info.offset.x > 0 || info.velocity.x > 0 ? 1 : -1
@@ -150,7 +150,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
               }
               initial={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
               drag={!isExiting && visible.length > 1 ? 'x' : false}
-              dragElastic={0.12}
+              dragElastic={0.35}
               dragConstraints={{ left: 0, right: 0 }}
               onDragEnd={handleDragEnd}
               whileDrag={{ scale: 0.97 }}

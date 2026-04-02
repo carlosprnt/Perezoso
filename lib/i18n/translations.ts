@@ -241,6 +241,7 @@ const en = {
     toastText: 'Reminders activated for your annual renewals',
   },
   savings: {
+    cta: 'See more',
     switchToYearlyTitle: 'The annual plan for {name} could save you money',
     switchToYearlyDesc: 'Estimated saving: ~{pct}% per year (~{amount}/mo)',
     switchToYearlyCta: 'View annual saving',
@@ -517,6 +518,7 @@ const es: typeof en = {
     filter: 'Filtros',
   },
   savings: {
+    cta: 'Saber más',
     switchToYearlyTitle: 'El plan anual de {name} podría salirte mejor',
     switchToYearlyDesc: 'Ahorro estimado: ~{pct}% al año (~{amount}/mes)',
     switchToYearlyCta: 'Ver ahorro anual',
