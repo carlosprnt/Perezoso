@@ -14,8 +14,8 @@ export type CarouselItem =
 
 const MAX_STACK        = 8
 const PEEK_COUNT       = 4
-const PEEK_OFFSET_MIN  = 1   // px when off-screen
-const PEEK_OFFSET_MAX  = 10  // px when fully scrolled into view
+const PEEK_OFFSET_MIN  = 1   // px at rest
+const PEEK_OFFSET_MAX  = 4   // px when scrolled to top
 const PEEK_SCALE       = 0.025
 const PEEK_DIM         = 0.10
 
@@ -65,28 +65,39 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
   useEffect(() => { isExitingRef.current    = isExiting },     [isExiting])
   useEffect(() => { visibleCountRef.current = visible.length }, [visible.length])
 
-  // Intersection-driven peek offset: expands from PEEK_OFFSET_MIN to PEEK_OFFSET_MAX as the stack enters view
+  // Scroll-driven peek offset: 1px at rest → 4px as card approaches top of viewport
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const thresholds = Array.from({ length: 21 }, (_, i) => i / 20)
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const ratio = entry.intersectionRatio
-        setPeekOffset(PEEK_OFFSET_MIN + ratio * (PEEK_OFFSET_MAX - PEEK_OFFSET_MIN))
-      },
-      { threshold: thresholds }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
+
+    function update() {
+      const rect     = el!.getBoundingClientRect()
+      const vh       = window.innerHeight
+      // progress 0→1 as rect.top goes from vh*0.5 down to 0
+      const progress = Math.max(0, Math.min(1, 1 - rect.top / (vh * 0.5)))
+      setPeekOffset(PEEK_OFFSET_MIN + progress * (PEEK_OFFSET_MAX - PEEK_OFFSET_MIN))
+    }
+
+    // Find nearest scrollable ancestor; fall back to window
+    let scrollTarget: Element | Window = window
+    let node = el.parentElement
+    while (node && node !== document.body) {
+      const oy = getComputedStyle(node).overflowY
+      if (oy === 'auto' || oy === 'scroll') { scrollTarget = node; break }
+      node = node.parentElement
+    }
+
+    update()
+    scrollTarget.addEventListener('scroll', update, { passive: true })
+    return () => scrollTarget.removeEventListener('scroll', update)
   }, [])
 
   // Swipe hint nudge every 6s — resets timer when front card changes
   useEffect(() => {
     const id = setInterval(async () => {
       if (isExitingRef.current || visibleCountRef.current <= 1) return
-      await frontAnim.start({ x: 22, rotate: 3, transition: { duration: 0.5, ease: 'easeOut' } })
-      await frontAnim.start({ x:  0, rotate: 0, transition: { duration: 2.0, ease: [0.22, 1, 0.36, 1] } })
+      await frontAnim.start({ x: 22, rotate: 3, transition: { duration: 0.5,  ease: 'easeOut' } })
+      await frontAnim.start({ x:  0, rotate: 0, transition: { duration: 2.0,  ease: [0.55, 0, 1, 0.45] } })
     }, 6000)
     return () => clearInterval(id)
   }, [frontAnim, frontEntry?.i])
