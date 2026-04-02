@@ -12,7 +12,6 @@ export type CarouselItem =
   | { kind: 'reminder' }
   | { kind: 'savings'; opportunity: SavingsOpportunity }
 
-const CARD_H    = 76   // px — fixed height for every card
 const MAX_ITEMS = 4    // max regular cards before "ver todo" appears
 
 // ─── "Ver todo" card ──────────────────────────────────────────────────────────
@@ -24,15 +23,15 @@ function ViewAllCard({ count, onTap }: { count: number; onTap: () => void }) {
       role="button" tabIndex={0}
       onClick={onTap}
       onKeyDown={e => e.key === 'Enter' && onTap()}
-      className="w-full flex items-center gap-3.5 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 cursor-pointer active:scale-[0.98] transition-transform select-none overflow-hidden"
-      style={{ height: CARD_H, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
+      className="w-full flex items-center gap-3.5 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 py-4 cursor-pointer active:scale-[0.98] transition-transform select-none"
+      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
     >
       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#F5F5F7] dark:bg-[#2C2C2E]">
         <span className="text-[15px] font-bold text-[#3D3BF3] dark:text-[#8B89FF]">+{count}</span>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{t('savings.viewAll')}</p>
-        <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 truncate">{t('savings.viewAllDesc').replace('{count}', String(count))}</p>
+        <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 line-clamp-2">{t('savings.viewAllDesc').replace('{count}', String(count))}</p>
       </div>
       <svg width="7" height="12" viewBox="0 0 7 12" fill="none" className="flex-shrink-0 text-[#C7C7CC] dark:text-[#636366]">
         <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -151,7 +150,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
           <motion.div
             key="carousel-wrap"
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: CARD_H }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
             style={{ overflow: 'hidden' }}
@@ -162,14 +161,14 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="flex gap-3 overflow-x-auto snap-x snap-mandatory"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', height: CARD_H }}
+                className="flex gap-3 overflow-x-auto snap-x snap-mandatory items-stretch"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {loopSlots.map((slot, idx) => (
                   <div
                     key={idx}
                     className="snap-start flex-shrink-0"
-                    style={{ width: 'calc(100% - 28px)', height: CARD_H }}
+                    style={{ width: 'calc(100% - 28px)' }}
                   >
                     {renderSlot(slot, idx)}
                   </div>

@@ -99,8 +99,8 @@ function CardShell({
 }) {
   return (
     <div
-      className="relative w-full flex items-center gap-3.5 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 cursor-pointer active:scale-[0.98] transition-transform select-none overflow-hidden"
-      style={{ height: 76, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
+      className="relative w-full flex items-center gap-3.5 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 py-4 cursor-pointer active:scale-[0.98] transition-transform select-none"
+      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}
       onClick={onMainTap}
       role="button"
       tabIndex={0}
@@ -110,7 +110,7 @@ function CardShell({
 
       <div className="flex-1 min-w-0 pr-6">
         <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{title}</p>
-        <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug truncate">{desc}</p>
+        <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug line-clamp-2">{desc}</p>
       </div>
 
       {/* Small X — w-7 h-7 (28 px) */}
