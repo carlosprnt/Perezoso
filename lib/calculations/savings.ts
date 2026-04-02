@@ -81,28 +81,7 @@ export function detectSavingsOpportunities(
     }
   }
 
-  // ── 2. Duplicate category — one card per category with 2+ subs ─────────────
-  const catMap = new Map<Category, SubscriptionWithCosts[]>()
-  for (const sub of active) {
-    const arr = catMap.get(sub.category) ?? []
-    arr.push(sub)
-    catMap.set(sub.category, arr)
-  }
-  for (const [cat, catSubs] of catMap) {
-    if (catSubs.length < 2) continue
-    const sorted = [...catSubs].sort((a, b) => a.my_monthly_cost - b.my_monthly_cost)
-    const saving = sorted[0].my_monthly_cost    // cancel cheapest
-    if (saving > 0.49) {
-      opportunities.push({
-        type: 'duplicate_category',
-        category: cat,
-        subscriptionNames: sorted.map(s => s.name),
-        subscriptionCount: catSubs.length,
-        estimatedMonthlySaving: saving,
-        currency,
-      })
-    }
-  }
+  // ── 2. Duplicate category — removed ────────────────────────────────────────
 
   // ── 3. Shared plan — one card per non-shared shareable subscription ─────────
   const shareableSubs = active.filter(
