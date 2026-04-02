@@ -2,20 +2,21 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { PanInfo } from 'framer-motion'
 import InsightCard from './SavingsOpportunityCard'
 import InsightAllSheet from './InsightAllSheet'
 import SavingsDetailSheet from './SavingsDetailSheet'
-import { useT } from '@/lib/i18n/LocaleProvider'
 import type { SavingsOpportunity } from '@/lib/calculations/savings'
 
 export type CarouselItem =
   | { kind: 'reminder'; annualCount: number }
   | { kind: 'savings'; opportunity: SavingsOpportunity }
 
-// How many ghost cards peek below the front
-const PEEK_COUNT = 2
-
-// ─── Stacked deck ─────────────────────────────────────────────────────────────
+const MAX_STACK   = 8
+const PEEK_COUNT  = 2
+const PEEK_OFFSET = 10   // px per depth level
+const PEEK_SCALE  = 0.03 // scale reduction per level
+const PEEK_DIM    = 0.18 // opacity reduction per level
 
 interface Props {
   items: CarouselItem[]
@@ -24,21 +25,49 @@ interface Props {
 }
 
 export default function SavingsCarousel({ items, onReminderActivate, onAllDismissed }: Props) {
-  const t = useT()
-  const [dismissed,  setDismissed]  = useState<Set<number>>(new Set())
-  const [detail,     setDetail]     = useState<SavingsOpportunity | null>(null)
-  const [showAll,    setShowAll]    = useState(false)
-  const [activeStart, setActiveStart] = useState(0)
+  const [dismissed,  setDismissed] = useState<Set<number>>(new Set())
+  const [detail,     setDetail]    = useState<SavingsOpportunity | null>(null)
+  const [showAll,    setShowAll]   = useState(false)
+  const [frontIdx,   setFrontIdx]  = useState(0)
+  const [isExiting,  setIsExiting] = useState(false)
+  const [exitDir,    setExitDir]   = useState(1)   // 1 = right, -1 = left
 
-  // Non-dismissed items (original index preserved)
   const visible = items
     .map((item, i) => ({ item, i }))
     .filter(({ i }) => !dismissed.has(i))
 
+  const deckSize     = Math.min(MAX_STACK, visible.length)
+  const safeFront    = visible.length > 0 ? frontIdx % visible.length : 0
+  const lastDeckIdx  = deckSize - 1
+  const isAtLastCard = safeFront === lastDeckIdx && visible.length > 1
+
+  // Rotate visible array so the front card is first
+  const rotated = visible.length === 0 ? [] : [
+    ...visible.slice(safeFront),
+    ...visible.slice(0, safeFront),
+  ].slice(0, deckSize)
+
+  const frontEntry  = rotated[0]
+  const peekEntries = rotated.slice(1, 1 + PEEK_COUNT)
+
+  // ── Dismiss a card permanently ─────────────────────────────────────────────
   function dismiss(originalIdx: number) {
     const next = new Set(dismissed).add(originalIdx)
+    const newVisible = items
+      .map((item, idx) => ({ item, i: idx }))
+      .filter(({ i }) => !next.has(i))
+
     setDismissed(next)
-    if (items.filter((_, i) => !next.has(i)).length === 0) onAllDismissed()
+
+    if (newVisible.length === 0) {
+      onAllDismissed()
+      return
+    }
+
+    // Keep same front card if possible, else clamp
+    const currentFront = visible[safeFront]
+    const newIdx = currentFront ? newVisible.findIndex(e => e.i === currentFront.i) : -1
+    setFrontIdx(newIdx === -1 ? Math.max(0, safeFront - 1) % newVisible.length : newIdx)
   }
 
   function handleActivate() {
@@ -47,42 +76,23 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
     if (idx !== -1) dismiss(idx)
   }
 
-  function cycleToFront(fromVisibleIdx: number) {
-    if (fromVisibleIdx === 0) return
-    setActiveStart(prev => (prev + fromVisibleIdx) % visible.length)
+  // ── Swipe front card to back ───────────────────────────────────────────────
+  function cycleToBack() {
+    setFrontIdx(prev => (prev + 1) % visible.length)
   }
 
-  // Rotate visible so front card = activeStart
-  const rotated = visible.length === 0 ? [] : [
-    ...visible.slice(activeStart % visible.length),
-    ...visible.slice(0, activeStart % visible.length),
-  ]
+  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    if (isExiting || visible.length <= 1) return
+    const shouldSwipe = Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 400
+    if (!shouldSwipe) return
 
-  const frontEntry  = rotated[0]
-  const peekEntries = rotated.slice(1, 1 + PEEK_COUNT)
-  const extraCount  = visible.length - 1 - PEEK_COUNT  // beyond peek cards
-
-  // ── Render front card ─────────────────────────────────────────────────────
-  function renderCard(entry: { item: CarouselItem; i: number }) {
-    const { item, i } = entry
-    if (item.kind === 'reminder') {
-      return (
-        <InsightCard
-          kind="reminder"
-          annualCount={item.annualCount}
-          onActivate={handleActivate}
-          onDismiss={() => dismiss(i)}
-        />
-      )
-    }
-    return (
-      <InsightCard
-        kind="savings"
-        opportunity={item.opportunity}
-        onTap={() => setDetail(item.opportunity)}
-        onDismiss={() => dismiss(i)}
-      />
-    )
+    const dir = info.offset.x > 0 || info.velocity.x > 0 ? 1 : -1
+    setExitDir(dir)
+    setIsExiting(true)
+    setTimeout(() => {
+      cycleToBack()
+      setIsExiting(false)
+    }, 230)
   }
 
   if (visible.length === 0) return null
@@ -91,119 +101,67 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
     <>
       <AnimatePresence onExitComplete={onAllDismissed}>
         <motion.div
-          key="insight-stack-wrap"
+          key="stack-wrap"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
           style={{ overflow: 'hidden' }}
         >
-          {/* Section header */}
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wide">
-              {t('savings.allTitle')}
-            </p>
-            {visible.length > 1 && (
-              <button
-                onClick={() => setShowAll(true)}
-                className="text-[13px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
-              >
-                {t('savings.viewAll')}
-              </button>
-            )}
-          </div>
-
-          {/* Stacked deck */}
+          {/* Stack container — paddingBottom reveals peek cards */}
           <div
             className="relative w-full"
-            style={{ paddingBottom: Math.min(peekEntries.length, PEEK_COUNT) * 10 }}
+            style={{ paddingBottom: peekEntries.length * PEEK_OFFSET }}
           >
-            {/* Peek ghost cards — rendered bottom-up */}
-            {peekEntries.map((entry, peekIdx) => {
-              const depth   = peekIdx + 1
-              const offsetY = depth * 10
-              const scale   = 1 - depth * 0.03
-              const opacity = 1 - depth * 0.15
+            {/* Peek cards — rendered as plain backgrounds, animate upward on swipe */}
+            {peekEntries.map((entry, idx) => {
+              const depth   = idx + 1
+              // While exiting, rise one level; otherwise stay at depth
+              const target  = isExiting ? depth - 1 : depth
               return (
-                <div
+                <motion.div
                   key={entry.i}
-                  className="absolute inset-x-0 top-0 rounded-[20px] bg-white dark:bg-[#1C1C1E] cursor-pointer"
-                  style={{
-                    transform: `translateY(${offsetY}px) scale(${scale})`,
-                    transformOrigin: 'bottom center',
-                    opacity,
-                    zIndex: PEEK_COUNT - peekIdx,
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.09)',
-                    height: '100%',
-                    minHeight: 110,
+                  className="absolute inset-0 rounded-[20px] bg-white dark:bg-[#1C1C1E]"
+                  animate={{
+                    y:       target * PEEK_OFFSET,
+                    scale:   1 - target * PEEK_SCALE,
+                    opacity: 1 - target * PEEK_DIM,
                   }}
-                  onClick={() => cycleToFront(peekIdx + 1)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={t('savings.viewAll')}
-                  onKeyDown={e => e.key === 'Enter' && cycleToFront(peekIdx + 1)}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  style={{
+                    zIndex: PEEK_COUNT - idx,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                  }}
                 />
               )
             })}
 
-            {/* Extra count badge on last peek card */}
-            {extraCount > 0 && peekEntries.length >= PEEK_COUNT && (
-              <div
-                className="absolute bottom-0 inset-x-0 flex items-end justify-center pb-1.5"
-                style={{ zIndex: 1 }}
-              >
-                <span
-                  className="text-[11px] font-bold text-[#3D3BF3] dark:text-[#8B89FF] px-2.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(61,59,243,0.10)' }}
-                >
-                  +{extraCount} más
-                </span>
-              </div>
-            )}
-
-            {/* Front card */}
-            <AnimatePresence mode="wait">
-              {frontEntry && (
-                <motion.div
-                  key={frontEntry.i}
-                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -16, scale: 0.95 }}
-                  transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-                  style={{ position: 'relative', zIndex: PEEK_COUNT + 1 }}
-                >
-                  {renderCard(frontEntry)}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Front card — draggable, exits on swipe */}
+            <motion.div
+              key={frontEntry?.i}
+              style={{ position: 'relative', zIndex: PEEK_COUNT + 1 }}
+              animate={isExiting
+                ? { x: exitDir * 420, opacity: 0, scale: 0.88, rotate: exitDir * 7 }
+                : { x: 0, opacity: 1, scale: 1, rotate: 0 }
+              }
+              transition={isExiting
+                ? { duration: 0.23, ease: [0.4, 0, 1, 1] }
+                : { type: 'spring', stiffness: 400, damping: 30 }
+              }
+              initial={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
+              drag={!isExiting && visible.length > 1 ? 'x' : false}
+              dragElastic={0.12}
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={handleDragEnd}
+              whileDrag={{ scale: 0.97 }}
+            >
+              {frontEntry && renderFront(frontEntry)}
+            </motion.div>
           </div>
-
-          {/* Dot indicators */}
-          {visible.length > 1 && (
-            <div className="flex items-center justify-center gap-1.5 mt-3">
-              {visible.slice(0, Math.min(visible.length, 6)).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-full transition-all duration-200"
-                  style={{
-                    width:  idx === (activeStart % visible.length) ? 16 : 6,
-                    height: 6,
-                    background: idx === (activeStart % visible.length)
-                      ? '#3D3BF3'
-                      : 'rgba(142,142,147,0.35)',
-                  }}
-                />
-              ))}
-              {visible.length > 6 && (
-                <span className="text-[10px] text-[#8E8E93]">+{visible.length - 6}</span>
-              )}
-            </div>
-          )}
         </motion.div>
       </AnimatePresence>
 
       <SavingsDetailSheet opportunity={detail} onClose={() => setDetail(null)} />
-
       <InsightAllSheet
         isOpen={showAll}
         onClose={() => setShowAll(false)}
@@ -215,4 +173,31 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
       />
     </>
   )
+
+  // ── Render helpers ─────────────────────────────────────────────────────────
+  function renderFront(entry: NonNullable<typeof frontEntry>) {
+    const { item, i } = entry
+    const verTodo = isAtLastCard ? () => setShowAll(true) : undefined
+
+    if (item.kind === 'reminder') {
+      return (
+        <InsightCard
+          kind="reminder"
+          annualCount={item.annualCount}
+          onActivate={handleActivate}
+          onDismiss={() => dismiss(i)}
+          onVerTodo={verTodo}
+        />
+      )
+    }
+    return (
+      <InsightCard
+        kind="savings"
+        opportunity={item.opportunity}
+        onTap={() => setDetail(item.opportunity)}
+        onDismiss={() => dismiss(i)}
+        onVerTodo={verTodo}
+      />
+    )
+  }
 }
