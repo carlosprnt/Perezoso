@@ -159,7 +159,7 @@ function InsightCardShell({
         {/* Dismiss pill */}
         <button
           onClick={e => { e.stopPropagation(); onDismiss() }}
-          className="self-center flex-shrink-0 rounded-full flex items-center justify-center"
+          className="self-start flex-shrink-0 rounded-full flex items-center justify-center"
           style={{ width: 24, height: 24 }}
           style={{ background: 'rgba(142,142,147,0.15)' }}
           aria-label="Descartar"
