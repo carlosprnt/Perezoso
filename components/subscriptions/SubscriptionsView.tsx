@@ -290,6 +290,69 @@ function CardStack({
   )
 }
 
+// ─── Horizontal card for inactive subscriptions ───────────────────────────────
+function InactiveCard({
+  sub,
+  onOpen,
+}: {
+  sub: SubscriptionWithCosts
+  onOpen: (sub: SubscriptionWithCosts) => void
+}) {
+  const STATUS_COLOR: Record<string, string> = {
+    paused: '#F59E0B', cancelled: '#EF4444', trial: '#3B82F6',
+  }
+  return (
+    <motion.div
+      layoutId={`card-${sub.id}`}
+      onClick={() => onOpen(sub)}
+      className="flex-shrink-0 bg-white dark:bg-[#1C1C1E] rounded-[20px] px-4 py-4 flex flex-col gap-3 cursor-pointer"
+      style={{ width: 160, boxShadow: '0 -1px 2px rgba(0,0,0,0.04)' }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <SubscriptionAvatar
+        name={sub.name}
+        logoUrl={resolveSubscriptionLogoUrl(sub.name, sub.logo_url)}
+        size="md48"
+        corner="rounded-2xl"
+      />
+      <div className="min-w-0">
+        <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">{sub.name}</p>
+        <p
+          className="text-[12px] font-medium mt-0.5"
+          style={{ color: STATUS_COLOR[sub.status] ?? '#9CA3AF' }}
+        >
+          {sub.status === 'paused' ? 'Pausada' : sub.status === 'cancelled' ? 'Cancelada' : sub.status}
+        </p>
+      </div>
+    </motion.div>
+  )
+}
+
+function InactiveCardsRow({
+  subscriptions,
+  onOpen,
+}: {
+  subscriptions: SubscriptionWithCosts[]
+  onOpen: (sub: SubscriptionWithCosts) => void
+}) {
+  if (subscriptions.length === 0) return null
+  return (
+    <div className="mt-8">
+      <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3 px-1">
+        Inactivas
+      </p>
+      <div
+        className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {subscriptions.map(sub => (
+          <InactiveCard key={sub.id} sub={sub} onOpen={onOpen} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Filter bottom sheet ───────────────────────────────────────────────────
 
 interface FilterSheetProps {
@@ -516,6 +579,8 @@ export default function SubscriptionsView({
   const hasActiveFilters = (currentStatus && currentStatus !== 'all') || (currentCategory && currentCategory !== 'all')
 
   const sortedSubscriptions = sortSubscriptions(subscriptions, sortMode)
+  const activeSubs   = sortedSubscriptions.filter(s => s.status === 'active' || s.status === 'trial')
+  const inactiveSubs = sortedSubscriptions.filter(s => s.status !== 'active' && s.status !== 'trial')
 
   return (
     <LayoutGroup>
@@ -599,7 +664,7 @@ export default function SubscriptionsView({
           </div>
         )}
 
-        {/* Wallet stacked card list */}
+        {/* Wallet stacked card list — active only */}
         {sortedSubscriptions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-sm font-medium text-[#121212] dark:text-[#F2F2F7] mb-1">
@@ -610,14 +675,19 @@ export default function SubscriptionsView({
             </p>
           </div>
         ) : (
-          <CardStack
-            subscriptions={sortedSubscriptions}
-            newSubscriptionId={newSubscriptionId}
-            selectedSubId={selectedSub?.id ?? null}
-            onOpen={openSub}
-            viewMode={viewMode}
-            numSkeleton={numSkeleton}
-          />
+          <>
+            {activeSubs.length > 0 && (
+              <CardStack
+                subscriptions={activeSubs}
+                newSubscriptionId={newSubscriptionId}
+                selectedSubId={selectedSub?.id ?? null}
+                onOpen={openSub}
+                viewMode={viewMode}
+                numSkeleton={numSkeleton}
+              />
+            )}
+            <InactiveCardsRow subscriptions={inactiveSubs} onOpen={openSub} />
+          </>
         )}
       </div>
 

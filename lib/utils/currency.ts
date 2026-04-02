@@ -13,6 +13,7 @@ export function formatCurrency(
       currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+      useGrouping: true,
     }).format(amount)
     // Remove non-breaking space (\u00A0) and narrow no-break space (\u202F)
     // so symbols attach directly: "9,99€" not "9,99 €"
