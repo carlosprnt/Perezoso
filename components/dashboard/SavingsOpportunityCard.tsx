@@ -146,8 +146,8 @@ function InsightCardShell({
           <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{title}</p>
           {/* min-height locks 2 lines so all cards share the same height */}
           <p
-            className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 line-clamp-2"
-            style={{ lineHeight: '1.45', minHeight: 'calc(2 * 1.45 * 13px)' }}
+            className={`text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 ${inModal ? '' : 'line-clamp-2'}`}
+            style={{ lineHeight: '1.45', ...(inModal ? {} : { minHeight: 'calc(2 * 1.45 * 13px)' }) }}
           >{desc}</p>
         </div>
         {/* Dismiss pill */}
@@ -164,7 +164,9 @@ function InsightCardShell({
       {/* Main CTA */}
       <button
         onClick={onCta}
-        className="w-full h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#3C3C43] dark:text-[#EBEBF5]"
+        className={`w-full h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#3C3C43] dark:text-[#EBEBF5] ${
+          inModal ? 'bg-[#E5E5EA] dark:bg-[#3A3A3C]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
+        }`}
       >
         {ctaLabel}
       </button>
