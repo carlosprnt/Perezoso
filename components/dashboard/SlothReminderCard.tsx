@@ -7,7 +7,7 @@ function SlothEmoji() {
   return (
     <div
       className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-      style={{ background: 'linear-gradient(135deg, #4A3FA8 0%, #6B5FD4 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #E8E6FF 0%, #D4CFFF 100%)' }}
     >
       <span className="text-[28px] leading-none">🦥</span>
     </div>
