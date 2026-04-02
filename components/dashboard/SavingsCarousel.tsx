@@ -65,28 +65,28 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
   useEffect(() => { isExitingRef.current    = isExiting },     [isExiting])
   useEffect(() => { visibleCountRef.current = visible.length }, [visible.length])
 
-  // Scroll-driven peek offset: expands from PEEK_OFFSET_MIN to PEEK_OFFSET_MAX
+  // Intersection-driven peek offset: expands from PEEK_OFFSET_MIN to PEEK_OFFSET_MAX as the stack enters view
   useEffect(() => {
-    function onScroll() {
-      const el = containerRef.current
-      if (!el) return
-      const rect     = el.getBoundingClientRect()
-      const vh       = window.innerHeight
-      // progress: 0 when bottom of el enters viewport, 1 when top reaches 40% of vh
-      const progress = Math.min(1, Math.max(0, (vh - rect.top) / (vh * 0.6)))
-      setPeekOffset(PEEK_OFFSET_MIN + progress * (PEEK_OFFSET_MAX - PEEK_OFFSET_MIN))
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const el = containerRef.current
+    if (!el) return
+    const thresholds = Array.from({ length: 21 }, (_, i) => i / 20)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const ratio = entry.intersectionRatio
+        setPeekOffset(PEEK_OFFSET_MIN + ratio * (PEEK_OFFSET_MAX - PEEK_OFFSET_MIN))
+      },
+      { threshold: thresholds }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   // Swipe hint nudge every 6s — resets timer when front card changes
   useEffect(() => {
     const id = setInterval(async () => {
       if (isExitingRef.current || visibleCountRef.current <= 1) return
-      await frontAnim.start({ x: 18, rotate: 3,  transition: { duration: 0.18, ease: 'easeOut' } })
-      await frontAnim.start({ x:  0, rotate: 0,  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } })
+      await frontAnim.start({ x: 22, rotate: 3, transition: { duration: 0.5, ease: 'easeOut' } })
+      await frontAnim.start({ x:  0, rotate: 0, transition: { duration: 2.0, ease: [0.22, 1, 0.36, 1] } })
     }, 6000)
     return () => clearInterval(id)
   }, [frontAnim, frontEntry?.i])
