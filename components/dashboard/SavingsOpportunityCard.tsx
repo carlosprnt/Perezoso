@@ -53,7 +53,22 @@ function SavingsIcon({ type }: { type: SavingsOpportunity['type'] }) {
   )
 }
 
-// ─── Copy helpers ─────────────────────────────────────────────────────────────
+// ─── Bold numbers helper ──────────────────────────────────────────────────────
+
+function BoldNumbers({ text }: { text: string }) {
+  const parts = text.split(/(\d[\d.,]*\s*[€$£]|\d+\s*%)/)
+  return (
+    <>
+      {parts.map((part, i) =>
+        /^\d[\d.,]*\s*[€$£]$|^\d+\s*%$/.test(part.trim())
+          ? <strong key={i}>{part}</strong>
+          : part
+      )}
+    </>
+  )
+}
+
+
 
 function useReminderContent(annualCount: number) {
   const t = useT()
@@ -136,7 +151,7 @@ function InsightCardShell({
           <p
             className={`text-[14px] text-[#121212] dark:text-[#F2F2F7] ${inModal ? '' : 'line-clamp-3'}`}
             style={{ lineHeight: '1.45', ...(inModal ? {} : { minHeight: 'calc(3 * 1.45 * 14px)' }) }}
-          >{body}</p>
+          ><BoldNumbers text={body} /></p>
         </div>
         {/* Dismiss pill */}
         <button
