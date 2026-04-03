@@ -237,8 +237,8 @@ export default function DashboardSummaryHero({
         {hasSave && (
           <>
             {' '}{t('dashboard.youShare')}{' '}
-            <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
-              {sharedCount} {sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}
+            <span className="text-[#3D3BF3] dark:text-[#8B89FF] whitespace-nowrap">
+              {sharedCount}&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}
             </span>
             {' '}{t('dashboard.andSave')}{' '}
             <button
