@@ -198,9 +198,7 @@ function InsightCardShell({
         {onDismiss && (
           <button
             onClick={e => { e.stopPropagation(); onDismiss() }}
-            className={`h-9 px-4 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#121212] dark:text-[#F2F2F7] ${
-              inModal ? 'bg-white dark:bg-[#2C2C2E]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
-            }`}
+            className="h-9 px-4 text-[13px] font-semibold active:opacity-70 transition-opacity text-[#8E8E93] dark:text-[#636366]"
           >
             Quitar
           </button>
@@ -208,9 +206,7 @@ function InsightCardShell({
         <button
           onClick={onCta}
           className={`flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#121212] dark:text-[#F2F2F7] ${
-            inModal
-              ? 'bg-white dark:bg-[#2C2C2E]'
-              : 'bg-transparent border border-[#C7C7CC] dark:border-[#48484A]'
+            inModal ? 'bg-white dark:bg-[#3A3A3C]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
           }`}
         >
           {ctaLabel}
