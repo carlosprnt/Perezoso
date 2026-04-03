@@ -56,13 +56,12 @@ function SavingsIcon() {
   return (
     <div
       className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-      style={{ background: 'linear-gradient(135deg,#FEF9C3,#FDE68A)' }}
+      style={{ background: 'linear-gradient(135deg,#FEF9C3,#FDE68A)', perspective: 200 }}
     >
       <Coins
         size={20} strokeWidth={2} style={{
           color: '#D97706',
           animation: spinning ? 'coin-flip 2.5s ease-in-out forwards' : 'none',
-          transformStyle: 'preserve-3d',
         }}
       />
     </div>
@@ -224,11 +223,7 @@ export default function InsightCard(props: InsightCardProps) {
   const { body, cta, logoUrl, showLogo } = useSavingsContent(opportunity)
   return (
     <InsightCardShell
-      icon={
-        showLogo && logoUrl
-          ? <SubscriptionAvatar name={opportunity.subscriptionName ?? ''} logoUrl={logoUrl} size="md" corner="rounded-[10px]" />
-          : <SavingsIcon />
-      }
+      icon={<SavingsIcon />}
       body={body} ctaLabel={cta}
       onCta={onTap} onDismiss={onDismiss} inModal={inModal}
     />
