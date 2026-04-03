@@ -231,18 +231,7 @@ export default function SavingsDetailSheet({ opportunity, onClose }: Props) {
   const t      = useT()
   const locale = useLocale()
 
-  const title = (() => {
-    if (!opportunity) return ''
-    switch (opportunity.type) {
-      case 'switch_to_yearly':   return t('savings.switchToYearlyTitle').replace('{name}', opportunity.subscriptionName ?? '')
-      case 'duplicate_category': {
-        const catKey = `categories.${opportunity.category}` as Parameters<typeof t>[0]
-        return t('savings.duplicateCategoryTitle').replace('{category}', opportunity.category ? t(catKey) : '')
-      }
-      case 'shared_plan':        return t('savings.sharedPlanTitle').replace('{name}', opportunity.subscriptionName ?? '')
-      case 'bundle':             return t('savings.bundleTitle')
-    }
-  })()
+  const title = 'Sugerencia de ahorro'
 
   return (
     <BottomSheet isOpen={!!opportunity} onClose={onClose} title={title} height="tall" zIndex={300}>
