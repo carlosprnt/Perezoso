@@ -130,6 +130,14 @@ input, select, textarea {
   80%, 100%   { transform: rotateY(360deg); }
 }
 
+@keyframes sparkle-twinkle {
+  0%,100% { opacity: 1;    transform: scale(1);    }
+  20%     { opacity: 0.35; transform: scale(0.82); }
+  40%     { opacity: 1;    transform: scale(1.12); }
+  60%     { opacity: 0.5;  transform: scale(0.88); }
+  80%     { opacity: 1;    transform: scale(1.05); }
+}
+
 @keyframes bell-ring {
   0%,100% { transform: rotate(0deg);   }
   8%       { transform: rotate(-28deg); }

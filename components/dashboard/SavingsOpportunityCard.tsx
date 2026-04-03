@@ -224,7 +224,10 @@ function ViewAllIcon() {
       className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
       style={{ background: 'linear-gradient(135deg,#E8E6FF,#D4CFFF)' }}
     >
-      <Sparkles size={20} strokeWidth={2} className="text-[#3D3BF3]" />
+      <Sparkles
+        size={20} strokeWidth={2} className="text-[#3D3BF3]"
+        style={{ animation: 'sparkle-twinkle 2.4s ease-in-out infinite' }}
+      />
     </div>
   )
 }
