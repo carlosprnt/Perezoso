@@ -5,7 +5,8 @@ import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
-import { TrendingDown, Copy, Users, Package } from 'lucide-react'
+import { Coins, Copy, Users, Package } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import type { SavingsOpportunity } from '@/lib/calculations/savings'
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -35,14 +36,34 @@ function Row({ label, value, accent, dim }: { label: string; value: string; acce
 }
 
 // ─── Saving callout ───────────────────────────────────────────────────────────
+function SpinningCoin() {
+  const [spinning, setSpinning] = useState(false)
+  useEffect(() => {
+    const trigger = () => {
+      setSpinning(true)
+      setTimeout(() => setSpinning(false), 2500)
+    }
+    trigger()
+    const id = setInterval(trigger, 5000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <Coins size={16} strokeWidth={2.5} style={{
+      color: '#16A34A',
+      animation: spinning ? 'coin-flip 2.5s ease-in-out forwards' : 'none',
+    }} />
+  )
+}
+
 function SavingCallout({ amount, currency, locale }: { amount: number; currency: string; locale: string }) {
   const t = useT()
   const monthly = formatCurrency(amount, currency, locale)
   const annual  = formatCurrency(amount * 12, currency, locale)
   return (
     <div className="rounded-2xl bg-[#F0FDF4] dark:bg-[#052E16] px-4 py-3 flex items-center gap-3 mb-5">
-      <div className="w-9 h-9 rounded-full bg-[#DCFCE7] dark:bg-[#14532D] flex items-center justify-center flex-shrink-0">
-        <TrendingDown size={16} strokeWidth={2.5} className="text-[#16A34A] dark:text-[#4ADE80]" />
+      <div className="w-9 h-9 rounded-full bg-[#DCFCE7] dark:bg-[#14532D] flex items-center justify-center flex-shrink-0"
+        style={{ perspective: 200 }}>
+        <SpinningCoin />
       </div>
       <div>
         <p className="text-[13px] font-bold text-[#15803D] dark:text-[#4ADE80]">
