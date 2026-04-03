@@ -220,7 +220,7 @@ export default function DashboardSummaryHero({
         {t('dashboard.spendStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
-        </button><br />
+        </button>,<br />
         {t('dashboard.annualStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>
