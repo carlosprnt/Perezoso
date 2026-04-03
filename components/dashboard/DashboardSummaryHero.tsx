@@ -217,11 +217,11 @@ export default function DashboardSummaryHero({
 
       {/* Main statement — tapping figures spawns money confetti */}
       <p className="text-[35px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.2] tracking-tight mb-4" style={{ maxWidth: '80%' }}>
-        {t('dashboard.spendStatement')}{' '}
+        {t('dashboard.spendStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
-        </button>
-        {' '}{t('dashboard.annualStatement')}{' '}
+        </button><br />
+        {t('dashboard.annualStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>
         </button>.
