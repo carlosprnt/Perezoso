@@ -12,10 +12,11 @@ export type CarouselItem =
   | { kind: 'reminder';     annualCount: number }
   | { kind: 'totalSavings'; totalAnnual: number; currency: string }
 
-const PEEK_COUNT   = 1
-const PEEK_OFFSET  = 4
-const PEEK_SCALE   = 0.025
-const PEEK_DIM     = 0.10
+const PEEK_COUNT      = 1
+const PEEK_OFFSET_MIN = 4
+const PEEK_OFFSET_MAX = 16
+const PEEK_SCALE      = 0.025
+const PEEK_DIM        = 0.10
 
 interface Props {
   items: CarouselItem[]
@@ -25,11 +26,12 @@ interface Props {
 }
 
 export default function SavingsCarousel({ items, opportunities, onReminderActivate, onAllDismissed }: Props) {
-  const [dismissed, setDismissed] = useState<Set<number>>(new Set())
-  const [detail,    setDetail]    = useState<SavingsOpportunity | null>(null)
-  const [showAll,   setShowAll]   = useState(false)
-  const [frontIdx,  setFrontIdx]  = useState(0)
-  const [isExiting, setIsExiting] = useState(false)
+  const [dismissed,  setDismissed]  = useState<Set<number>>(new Set())
+  const [detail,     setDetail]     = useState<SavingsOpportunity | null>(null)
+  const [showAll,    setShowAll]    = useState(false)
+  const [frontIdx,   setFrontIdx]   = useState(0)
+  const [isExiting,  setIsExiting]  = useState(false)
+  const [peekOffset, setPeekOffset] = useState(PEEK_OFFSET_MIN)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const dragX    = useMotionValue(0)
@@ -50,6 +52,28 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
   const peekEntries = rotated.slice(1, 1 + PEEK_COUNT)
 
   useEffect(() => { dragX.set(0) }, [frontEntry?.i, dragX])
+
+  // Scroll-driven peek offset: 4px at rest → 16px when card reaches top
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    function update() {
+      const rect     = el!.getBoundingClientRect()
+      const vh       = window.innerHeight
+      const progress = Math.max(0, Math.min(1, 1 - rect.top / (vh * 0.5)))
+      setPeekOffset(PEEK_OFFSET_MIN + progress * (PEEK_OFFSET_MAX - PEEK_OFFSET_MIN))
+    }
+    let scrollTarget: Element | Window = window
+    let node = el.parentElement
+    while (node && node !== document.body) {
+      const oy = getComputedStyle(node).overflowY
+      if (oy === 'auto' || oy === 'scroll') { scrollTarget = node; break }
+      node = node.parentElement
+    }
+    update()
+    scrollTarget.addEventListener('scroll', update, { passive: true })
+    return () => scrollTarget.removeEventListener('scroll', update)
+  }, [])
 
   // Swipe hint — plays twice when 2 cards are visible
   const isExitingRef    = useRef(isExiting)
@@ -119,7 +143,7 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
           <div
             ref={containerRef}
             className="relative w-full"
-            style={{ paddingBottom: peekEntries.length * PEEK_OFFSET }}
+            style={{ paddingBottom: peekEntries.length * PEEK_OFFSET_MAX }}
           >
             {/* Peek card */}
             {peekEntries.map((entry, idx) => {
@@ -129,8 +153,8 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
                 <motion.div
                   key={entry.i}
                   className="absolute inset-0 rounded-[24px] bg-white dark:bg-[#1C1C1E]"
-                  initial={{ y: depth * PEEK_OFFSET, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
-                  animate={{ y: target * PEEK_OFFSET, scale: 1 - target * PEEK_SCALE, opacity: 1 - target * PEEK_DIM }}
+                  initial={{ y: depth * peekOffset, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
+                  animate={{ y: target * peekOffset, scale: 1 - target * PEEK_SCALE, opacity: 1 - target * PEEK_DIM }}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}
                 />
