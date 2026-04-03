@@ -137,7 +137,7 @@ function InsightCardShell({
   body: string
   ctaLabel: string
   onCta: () => void
-  onDismiss: () => void
+  onDismiss?: () => void
   inModal?: boolean
 }) {
   return (
@@ -147,7 +147,7 @@ function InsightCardShell({
       }`}
       style={inModal ? undefined : { boxShadow: '0 1px 5px rgba(0,0,0,0.06)' }}
     >
-      {/* Header */}
+      {/* Body */}
       <div className="flex items-start gap-3 mb-3">
         {icon}
         <div className="flex-1 min-w-0 pt-0.5">
@@ -156,26 +156,28 @@ function InsightCardShell({
             style={{ lineHeight: '1.45', ...(inModal ? {} : { minHeight: 'calc(3 * 1.45 * 14px)' }) }}
           ><BoldNumbers text={body} /></p>
         </div>
-        {/* Dismiss pill */}
-        <button
-          onClick={e => { e.stopPropagation(); onDismiss() }}
-          className="self-start flex-shrink-0 rounded-full flex items-center justify-center"
-          style={{ width: 24, height: 24, background: 'rgba(142,142,147,0.15)' }}
-          aria-label="Descartar"
-        >
-          <span style={{ fontSize: 16, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8E8E93', fontWeight: 700 }}>✕</span>
-        </button>
       </div>
 
-      {/* Main CTA */}
-      <button
-        onClick={onCta}
-        className={`w-full h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#3C3C43] dark:text-[#EBEBF5] ${
-          inModal ? 'bg-[#E5E5EA] dark:bg-[#3A3A3C]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
-        }`}
-      >
-        {ctaLabel}
-      </button>
+      {/* CTAs */}
+      <div className={`flex gap-2 ${onDismiss ? '' : ''}`}>
+        <button
+          onClick={onCta}
+          className={`flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#3C3C43] dark:text-[#EBEBF5] ${
+            inModal ? 'bg-[#E5E5EA] dark:bg-[#3A3A3C]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
+          }`}
+        >
+          {ctaLabel}
+        </button>
+        {onDismiss && (
+          <button
+            onClick={e => { e.stopPropagation(); onDismiss() }}
+            className="h-9 px-4 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#8E8E93] dark:text-[#636366]"
+            style={{ background: 'rgba(142,142,147,0.12)' }}
+          >
+            Quitar
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -183,8 +185,8 @@ function InsightCardShell({
 // ─── Public types & components ────────────────────────────────────────────────
 
 export type InsightCardProps =
-  | { kind: 'reminder';  annualCount: number; onActivate: () => void; onDismiss: () => void; inModal?: boolean }
-  | { kind: 'savings';   opportunity: SavingsOpportunity; onTap: () => void; onDismiss: () => void; inModal?: boolean }
+  | { kind: 'reminder';  annualCount: number; onActivate: () => void; onDismiss?: () => void; inModal?: boolean }
+  | { kind: 'savings';   opportunity: SavingsOpportunity; onTap: () => void; onDismiss?: () => void; inModal?: boolean }
 
 export default function InsightCard(props: InsightCardProps) {
   if (props.kind === 'reminder') {

@@ -233,8 +233,6 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
         isOpen={showAll}
         onClose={() => setShowAll(false)}
         items={items}
-        dismissed={dismissed}
-        onDismiss={dismiss}
         onDetail={opp => { setDetail(opp); setShowAll(false) }}
         onActivate={handleActivate}
       />
