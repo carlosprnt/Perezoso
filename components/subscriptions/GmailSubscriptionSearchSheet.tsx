@@ -108,6 +108,7 @@ function candidateToFormData(c: DetectedSubscription): SubscriptionFormData {
     currency: c.currency ?? 'EUR',
     billing_period: c.billing_period ?? 'monthly',
     billing_interval_count: 1,
+    start_date: null,
     next_billing_date: null,
     trial_end_date: null,
     status: 'active',

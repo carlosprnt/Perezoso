@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SubscriptionFormData } from '@/types'
 
-const OPTIONAL_COLUMNS = ['card_color'] as const
+const OPTIONAL_COLUMNS = ['card_color', 'start_date'] as const
 
 function stripOptionalColumns(data: Record<string, unknown>): Record<string, unknown> {
   const out = { ...data }

@@ -32,6 +32,7 @@ export interface Subscription {
   currency: string
   billing_period: BillingPeriod
   billing_interval_count: number
+  start_date: string | null        // ISO date string YYYY-MM-DD
   next_billing_date: string | null // ISO date string YYYY-MM-DD
   trial_end_date: string | null
   status: SubscriptionStatus

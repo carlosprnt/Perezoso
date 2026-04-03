@@ -185,6 +185,9 @@ export default function SubscriptionForm({
   const [category, setCategory] = useState<Category>(
     subscription?.category ?? (prefill?.category as Category) ?? 'other',
   )
+  const [startDate, setStartDate] = useState(
+    subscription?.start_date ?? new Date().toISOString().split('T')[0],
+  )
   const [nextBillingDate, setNextBillingDate] = useState(
     subscription?.next_billing_date ?? '',
   )
@@ -283,6 +286,7 @@ export default function SubscriptionForm({
       currency,
       billing_period: billingPeriod,
       billing_interval_count: Math.max(1, parseInt(billingIntervalCount) || 1),
+      start_date: startDate || null,
       next_billing_date: nextBillingDate || null,
       trial_end_date: isTrial ? trialEndDate || null : null,
       status,
@@ -397,6 +401,13 @@ export default function SubscriptionForm({
 
         {/* ── Section 1: Billing ──────────────────────────────────────── */}
         <Section>
+          {/* Inicio de suscripción */}
+          <DateRow
+            label={t('form.startDate')}
+            value={startDate}
+            onChange={setStartDate}
+          />
+
           {/* Fecha de pago */}
           <DateRow
             label={t('form.nextBillingDate')}
