@@ -39,9 +39,14 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
   const rotation = useTransform(dragX, [-180, 0, 180], [-8, 0, 8])
   const frontAnim = useAnimation()
 
-  const visible = items
+  // Append a synthetic undismissable "view all" entry at the end
+  const viewAllIdx = items.length
+  type AnyItem = CarouselItem | { kind: 'viewAll' }
+  const allItems: AnyItem[] = [...items, { kind: 'viewAll' }]
+
+  const visible = allItems
     .map((item, i) => ({ item, i }))
-    .filter(({ i }) => !dismissed.has(i))
+    .filter(({ i }) => i === viewAllIdx || !dismissed.has(i))
 
   const deckSize  = Math.min(MAX_STACK, visible.length)
   const safeFront = visible.length > 0 ? frontIdx % visible.length : 0
@@ -108,13 +113,15 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
   // ── Dismiss ────────────────────────────────────────────────────────────────
   function dismiss(originalIdx: number) {
     const next = new Set(dismissed).add(originalIdx)
-    const newVisible = items
+    // newVisible includes viewAll; real items filtered by dismissed set
+    const newVisible = allItems
       .map((item, idx) => ({ item, i: idx }))
-      .filter(({ i }) => !next.has(i))
+      .filter(({ i }) => i === viewAllIdx || !next.has(i))
 
     setDismissed(next)
 
-    if (newVisible.length === 0) { onAllDismissed(); return }
+    // All real cards dismissed (only viewAll left) → remove carousel
+    if (newVisible.length <= 1) { onAllDismissed(); return }
 
     const currentFront = visible[safeFront]
     const newIdx = currentFront ? newVisible.findIndex(e => e.i === currentFront.i) : -1
@@ -154,7 +161,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
     setIsExiting(false)
   }
 
-  if (visible.length === 0) return null
+  if (items.length === 0) return null
 
   return (
     <>
@@ -215,16 +222,6 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
             </motion.div>
           </div>
 
-          {/* Discover all link */}
-          {visible.length > 0 && (
-            <button
-              onClick={() => setShowAll(true)}
-              className="w-full text-center text-[14px] font-medium text-[#3D3BF3] dark:text-[#8B89FF]"
-              style={{ marginTop: 16, marginBottom: 14 }}
-            >
-              Más sugerencias de ahorro
-            </button>
-          )}
         </motion.div>
       </AnimatePresence>
 
@@ -241,6 +238,15 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
 
   function renderFront(entry: NonNullable<typeof frontEntry>) {
     const { item, i } = entry
+    if (item.kind === 'viewAll') {
+      return (
+        <InsightCard
+          kind="viewAll"
+          count={items.length}
+          onTap={() => setShowAll(true)}
+        />
+      )
+    }
     if (item.kind === 'reminder') {
       return (
         <InsightCard
