@@ -170,7 +170,7 @@ export default function SavingsCarousel({ items, onReminderActivate, onAllDismis
           <div
             ref={containerRef}
             className="relative w-full"
-            style={{ paddingBottom: peekEntries.length * peekOffset }}
+            style={{ paddingBottom: peekEntries.length * PEEK_OFFSET_MAX }}
           >
             {/* Peek cards — rise up while front card exits */}
             {peekEntries.map((entry, idx) => {
