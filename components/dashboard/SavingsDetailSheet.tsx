@@ -114,7 +114,7 @@ function SwitchToYearlyDetail({ opp, locale }: { opp: SavingsOpportunity; locale
       </Section>
 
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">{t('savings.ifAnnual')}</p>
+        <p className="text-[13px] font-semibold text-[#121212] dark:text-[#F2F2F7]">{t('savings.ifAnnual')}</p>
         <p className="text-[11px] font-medium text-[#059669] dark:text-[#4ADE80]">{t('savings.estimatedAnnual')}</p>
       </div>
       <div className="mb-5">
