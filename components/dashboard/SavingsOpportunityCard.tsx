@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Coins } from 'lucide-react'
+import { Bell, Coins, HandCoins } from 'lucide-react'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -45,16 +45,14 @@ function OKHandIcon() {
       className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
       style={{ background: 'linear-gradient(135deg,#FEF9C3,#FDE68A)' }}
     >
-      <span
-        style={{
-          fontSize: 22,
+      <HandCoins
+        size={22} strokeWidth={1.8} style={{
+          color: '#D97706',
           display: 'inline-block',
           animation: 'hand-wave 1.6s ease-in-out infinite',
           transformOrigin: 'bottom center',
         }}
-      >
-        👌
-      </span>
+      />
     </div>
   )
 }
