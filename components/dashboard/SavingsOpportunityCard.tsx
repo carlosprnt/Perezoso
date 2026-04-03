@@ -172,7 +172,11 @@ function InsightCardShell({
         )}
         <button
           onClick={onCta}
-          className="flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#121212] dark:text-[#F2F2F7] bg-transparent border border-[#C7C7CC] dark:border-[#48484A]"
+          className={`flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#121212] dark:text-[#F2F2F7] ${
+            inModal
+              ? 'bg-white dark:bg-[#2C2C2E]'
+              : 'bg-transparent border border-[#C7C7CC] dark:border-[#48484A]'
+          }`}
         >
           {ctaLabel}
         </button>
