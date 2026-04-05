@@ -2,11 +2,19 @@ import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { getPlatformById } from '@/lib/constants/platforms'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Add subscription' }
 
-export default function NewSubscriptionPage() {
+export default async function NewSubscriptionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preset?: string }>
+}) {
+  const { preset } = await searchParams
+  const platform = preset ? getPlatformById(preset) : undefined
+
   return (
     <div className="max-w-xl mx-auto">
       {/* Header */}
@@ -23,7 +31,7 @@ export default function NewSubscriptionPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_12px_0_rgba(0,0,0,0.06)] p-6">
-        <SubscriptionForm mode="create" />
+        <SubscriptionForm mode="create" platformPreset={platform} />
       </div>
     </div>
   )

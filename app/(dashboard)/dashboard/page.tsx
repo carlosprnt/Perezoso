@@ -3,19 +3,17 @@ import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getUpcom
 import { formatCurrency } from '@/lib/utils/currency'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import type { Subscription } from '@/types'
-import Link from 'next/link'
-import { Plus } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
 import UpcomingRenewals from '@/components/dashboard/UpcomingRenewals'
 import TopExpensiveSection from '@/components/dashboard/TopExpensiveSection'
 import TopCategoriesSection from '@/components/dashboard/TopCategoriesSection'
-import { loadDemoData } from '@/app/(dashboard)/subscriptions/demo-action'
 import DashboardCardStack from '@/components/dashboard/DashboardCardStack'
 import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
+import EmptyDashboardHero from '@/components/dashboard/EmptyDashboardHero'
 import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
+import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -44,7 +42,6 @@ export default async function DashboardPage() {
 
   const isEmpty = subs.length === 0
 
-  // Dominant currency for aggregate displays
   const activeSubs = subs.filter(s => s.status === 'active' || s.status === 'trial')
   const currencyCounts: Record<string, number> = {}
   for (const s of activeSubs) currencyCounts[s.currency] = (currencyCounts[s.currency] ?? 0) + 1
@@ -65,8 +62,9 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      {/* Hero — sticky, fades+blurs as content scrolls over it */}
-      {!isEmpty && (
+      {isEmpty ? (
+        <EmptyDashboardHero firstName={firstName} shareText={shareText} />
+      ) : (
         <DashboardSummaryHero
           firstName={firstName}
           stats={stats}
@@ -76,18 +74,13 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* Cards — z-[1], scroll over the fading hero */}
       <DashboardCardStack>
         {isEmpty ? (
-          <EmptyState t={t} />
+          <QuickAddPlatforms />
         ) : (
           <>
             <DashboardReminderCards subscriptions={subs} />
-
-            {/* Insights grid */}
             <Insights subscriptions={subs} stats={stats} />
-
-            {/* Renewals + Categories */}
             <div className="grid lg:grid-cols-3 gap-[8px]">
               <div className="lg:col-span-2">
                 <Card>
@@ -105,8 +98,6 @@ export default async function DashboardPage() {
                 </Card>
               </div>
             </div>
-
-            {/* Top 3 most expensive */}
             {top3.length > 0 && (
               <div className="overflow-x-hidden mt-3">
                 <h3 className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
@@ -115,7 +106,6 @@ export default async function DashboardPage() {
                 <TopExpensiveSection subscriptions={top3} />
               </div>
             )}
-
           </>
         )}
       </DashboardCardStack>
@@ -123,32 +113,3 @@ export default async function DashboardPage() {
   )
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-function EmptyState({ t }: { t: ReturnType<typeof import('@/lib/i18n/translations').getT> }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
-      <div className="w-16 h-16 rounded-2xl bg-[#F5F5F5] border border-[#E8E8E8] flex items-center justify-center mb-4">
-        <span className="text-3xl">🦥</span>
-      </div>
-      <h2 className="text-lg font-semibold text-[#121212] mb-1">{t('dashboard.noSubscriptions')}</h2>
-      <p className="text-sm text-[#737373] max-w-xs mb-6">
-        {t('dashboard.noSubscriptionsDesc')}
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Link href="/subscriptions/new">
-          <Button icon={<Plus size={15} />}>{t('dashboard.addSubscription')}</Button>
-        </Link>
-        <LoadDemoButton t={t} />
-      </div>
-    </div>
-  )
-}
-
-function LoadDemoButton({ t }: { t: ReturnType<typeof import('@/lib/i18n/translations').getT> }) {
-  return (
-    <form action={loadDemoData}>
-      <Button type="submit" variant="secondary">{t('dashboard.tryDemo')}</Button>
-    </form>
-  )
-}
