@@ -273,7 +273,7 @@ export default function SubscriptionForm({
       trialEndDate, notes, currency])
 
   function requestClose() {
-    if (isDirty) {
+    if (mode === 'edit' && isDirty) {
       setShowCancelConfirm(true)
     } else {
       if (onCancel) onCancel(); else router.back()
