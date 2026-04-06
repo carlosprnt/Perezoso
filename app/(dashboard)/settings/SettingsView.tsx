@@ -2,7 +2,16 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Sparkles, ChevronsUpDown, Plus, X, Bell, Star, Share2, Twitter, Mail, Sun, Moon, Monitor } from 'lucide-react'
+import { ArrowLeft, Sparkles, ChevronsUpDown, Plus, X, Bell, Star, Share2, Mail, Sun, Moon, Monitor } from 'lucide-react'
+
+// lucide-react dropped the Twitter glyph, so we inline the X/Twitter mark.
+function TwitterIcon({ size = 17, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -246,7 +255,7 @@ export default function SettingsView({ preferences }: Props) {
           rel="noopener noreferrer"
           className="flex items-center gap-3 px-4 py-3 active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors border-b border-[#F0F0F0] dark:border-[#2C2C2E]"
         >
-          <Twitter size={17} className="text-[#737373] dark:text-[#8E8E93]" />
+          <TwitterIcon size={15} className="text-[#737373] dark:text-[#8E8E93]" />
           <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">@carlosprnt</span>
           <span className="text-[13px] text-[#8E8E93]">Twitter</span>
         </a>
