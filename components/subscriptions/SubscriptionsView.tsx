@@ -9,7 +9,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
-import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
+import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown, X } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
@@ -533,10 +533,19 @@ export default function SubscriptionsView({
   newSubscriptionId,
 }: SubscriptionsViewProps) {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [filterOpen, setFilterOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [sortMode, setSortMode] = useState<SortMode>('alphabetical')
   const filterShake = useAnimationControls()
+
+  function clearFilter(key: 'status' | 'category') {
+    const p = new URLSearchParams()
+    if (key !== 'status' && currentStatus && currentStatus !== 'all') p.set('status', currentStatus)
+    if (key !== 'category' && currentCategory && currentCategory !== 'all') p.set('category', currentCategory)
+    router.push(`${pathname}${p.size ? '?' + p.toString() : ''}`, { scroll: false })
+  }
 
   function handleFilterTap() {
     if (allCount === 0) {
@@ -675,14 +684,24 @@ export default function SubscriptionsView({
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
             {currentStatus && currentStatus !== 'all' && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#3D3BF3] text-white text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => clearFilter('status')}
+                className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#EFEFEF] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+              >
                 {t(`status.${currentStatus}` as Parameters<typeof t>[0])}
-              </span>
+                <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
+              </button>
             )}
             {currentCategory && currentCategory !== 'all' && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#3D3BF3] text-white text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => clearFilter('category')}
+                className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#EFEFEF] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+              >
                 {t(`categories.${currentCategory}` as Parameters<typeof t>[0])}
-              </span>
+                <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
+              </button>
             )}
           </div>
         )}
