@@ -179,7 +179,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
           <button
             onClick={onClose}
             style={{ position: 'absolute', top: 16, right: 16, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-            className="w-11 h-11 rounded-2xl bg-white/50 dark:bg-[#2C2C2E]/50 flex items-center justify-center text-black dark:text-white active:opacity-60 transition-opacity"
+            className="w-11 h-11 rounded-full bg-white/50 dark:bg-[#2C2C2E]/50 flex items-center justify-center text-black dark:text-white active:opacity-60 transition-opacity"
           >
             <X size={16} strokeWidth={2.5} />
           </button>

@@ -123,7 +123,7 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
               <h2 className="text-base font-semibold text-[#121212] dark:text-[#F2F2F7]">Filters</h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-[#616161] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#616161] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors"
               >
                 <X size={16} />
               </button>
