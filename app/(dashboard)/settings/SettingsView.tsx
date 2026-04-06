@@ -84,7 +84,7 @@ function Row({
 // Grouped card — wraps rows in a white/dark panel with rounded corners.
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-6 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#E8E8E8] dark:border-[#2C2C2E]">
+    <div className="mb-8 bg-white dark:bg-[#1C1C1E] overflow-hidden border-y border-[#E8E8E8] dark:border-[#2C2C2E]">
       {children}
     </div>
   )
@@ -143,10 +143,10 @@ export default function SettingsView({ preferences }: Props) {
   ] as const
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000]" style={{ paddingLeft: 20, paddingRight: 20 }}>
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] -mx-4 sm:-mx-6 -my-6 lg:-my-8">
       {/* Header */}
       <div
-        className="flex items-center gap-3 pb-6"
+        className="flex items-center gap-3 px-4 pb-4"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
       >
         <button
