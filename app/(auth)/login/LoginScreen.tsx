@@ -2,42 +2,38 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
-import { ChevronRight, X, Calendar, Mail, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Content ─────────────────────────────────────────────────────────────────
 interface Slide {
-  icon: React.ReactNode
   title: string
   body: string
+  /** Background image path. Drop your own screenshots under /public/onboarding/. */
+  bg: string
 }
 
 const SLIDES: Slide[] = [
   {
-    icon: <Sparkles size={32} className="text-white" />,
     title: 'Todas tus suscripciones en un solo sitio',
     body: 'Perezoso te muestra cuánto pagas al mes, qué se renueva esta semana y dónde puedes ahorrar.',
+    bg: '/onboarding/01.png',
   },
   {
-    icon: <Calendar size={32} className="text-white" />,
     title: 'Calendario con próximas renovaciones',
     body: 'Visualiza de un vistazo todo lo que se va a cobrar en los próximos días y meses.',
+    bg: '/onboarding/02.png',
   },
   {
-    icon: <Mail size={32} className="text-white" />,
     title: 'Detección automática desde tu Gmail',
     body: 'Conecta tu correo y Perezoso encontrará por ti las suscripciones que ya estás pagando.',
+    bg: '/onboarding/03.png',
   },
   {
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center">
-        <span className="text-[24px] leading-none">💸</span>
-      </div>
-    ),
     title: 'Insights de gasto y sugerencias de ahorro',
     body: 'Descubre patrones y recomendaciones para reducir lo que pagas cada mes sin renunciar a lo que importa.',
+    bg: '/onboarding/04.png',
   },
 ]
 
@@ -104,7 +100,7 @@ export default function LoginScreen() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const totalSlides = SLIDES.length + 1 // +1 for the final login slide
+  const last = SLIDES.length - 1
 
   async function handleGoogleLogin() {
     if (isLoading) return
@@ -131,10 +127,13 @@ export default function LoginScreen() {
   }
 
   function next() {
-    if (slide < totalSlides - 1) setSlide(slide + 1)
+    if (slide < last) setSlide(slide + 1)
+    else openSignIn()
   }
 
-  function goTo(i: number) { setSlide(i) }
+  function prev() {
+    if (slide > 0) setSlide(slide - 1)
+  }
 
   // Touch swipe handling
   const [touchStart, setTouchStart] = useState<number | null>(null)
@@ -142,102 +141,114 @@ export default function LoginScreen() {
   function onTouchEnd(e: React.TouchEvent) {
     if (touchStart === null) return
     const delta = e.changedTouches[0].clientX - touchStart
-    if (delta < -50 && slide < totalSlides - 1) setSlide(slide + 1)
-    else if (delta > 50 && slide > 0) setSlide(slide - 1)
+    if (delta < -50) next()
+    else if (delta > 50) prev()
     setTouchStart(null)
   }
 
+  const current = SLIDES[slide]
+
   return (
     <div
-      className="relative min-h-[100dvh] bg-white overflow-x-hidden flex flex-col"
+      className="relative h-[100dvh] bg-[#F2F2F7] overflow-hidden"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Slides */}
-      <div className="flex-1 flex items-center justify-center px-6">
-        <AnimatePresence mode="wait">
-          {slide < SLIDES.length ? (
-            <motion.div
-              key={`slide-${slide}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-w-sm flex flex-col items-center text-center"
-            >
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#3D3BF3] to-[#7C3AED] flex items-center justify-center mb-8 shadow-[0_8px_24px_rgba(61,59,243,0.25)]">
-                {SLIDES[slide].icon}
-              </div>
-              <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
-                {SLIDES[slide].title}
-              </h1>
-              <p className="text-[15px] text-[#424242] leading-relaxed">
-                {SLIDES[slide].body}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="slide-login"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-w-sm flex flex-col items-center text-center"
-            >
-              <div className="w-24 h-24 rounded-[26px] overflow-hidden mb-6 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-                <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
-              </div>
-              <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
-                Empieza ahora
-              </h1>
-              <p className="text-[15px] text-[#424242] leading-relaxed mb-6">
-                Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
-              </p>
-              <div className="w-full">
-                <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* ── Background image (changes per slide) ──────────────────────── */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={`bg-${slide}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${current.bg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      </AnimatePresence>
 
-      {/* Dots + CTA */}
+      {/* ── Frosted glass card pinned to the bottom ───────────────────── */}
       <div
-        className="px-6 pb-8 pt-4 flex flex-col items-center gap-5"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+        className="absolute bottom-0 left-0 right-0 px-5"
+        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-center gap-1.5">
-          {Array.from({ length: totalSlides }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`Ir a la pantalla ${i + 1}`}
-              className="h-2 rounded-full transition-all"
-              style={{
-                width: i === slide ? 24 : 8,
-                backgroundColor: i === slide ? '#3D3BF3' : '#E8E8E8',
-              }}
-            />
-          ))}
-        </div>
+        {/* Soft gradient fade from transparent into the blurred card,
+            so the background image bleeds naturally into the copy area. */}
+        <div className="absolute inset-x-0 -top-24 h-24 bg-gradient-to-b from-transparent to-white/80 pointer-events-none" />
 
-        {slide < SLIDES.length ? (
-          <div className="w-full max-w-sm flex items-center gap-3">
-            <button
-              onClick={openSignIn}
-              className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#121212] active:bg-[#F2F2F7] transition-colors"
+        <div
+          className="relative rounded-[28px] px-5 pt-6 pb-5 bg-white/70 dark:bg-white/70 border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.10)]"
+          style={{
+            backdropFilter: 'blur(22px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(22px) saturate(140%)',
+          }}
+        >
+          {/* Copy */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`copy-${slide}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="text-center"
             >
-              Iniciar sesión
+              <h1 className="text-[22px] font-extrabold text-[#121212] leading-tight mb-2">
+                {current.title}
+              </h1>
+              <p className="text-[14px] text-[#424242] leading-snug">
+                {current.body}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Dots */}
+          <div className="flex items-center justify-center gap-1.5 mt-5">
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlide(i)}
+                aria-label={`Ir a la pantalla ${i + 1}`}
+                className="h-1.5 rounded-full transition-all"
+                style={{
+                  width: i === slide ? 18 : 6,
+                  backgroundColor: i === slide ? '#121212' : 'rgba(18,18,18,0.25)',
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Back circle + Continue pill */}
+          <div className="flex items-center gap-3 mt-5">
+            <button
+              onClick={prev}
+              disabled={slide === 0}
+              aria-label="Anterior"
+              className="w-12 h-12 rounded-full bg-white border border-[#E8E8E8] flex items-center justify-center text-[#121212] disabled:opacity-30 active:bg-[#F2F2F7] transition-colors flex-shrink-0"
+            >
+              <ChevronLeft size={18} strokeWidth={2.5} />
             </button>
             <button
               onClick={next}
-              className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1"
+              className="flex-1 h-12 rounded-full bg-[#121212] text-white text-[15px] font-semibold active:bg-black transition-colors"
             >
-              Continuar
-              <ChevronRight size={16} />
+              {slide === last ? 'Empezar' : 'Continuar'}
             </button>
           </div>
-        ) : null}
+
+          {/* Subtle shortcut to sign-in */}
+          <button
+            onClick={openSignIn}
+            className="block w-full text-center mt-3 text-[13px] font-medium text-[#3D3BF3] active:opacity-70 transition-opacity"
+          >
+            Iniciar sesión
+          </button>
+        </div>
       </div>
 
       {/* ── Sign-in half modal ─────────────────────────────────────────── */}
