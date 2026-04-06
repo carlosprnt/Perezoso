@@ -3,39 +3,36 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { ChevronRight, X, Calendar, Mail, Sparkles } from 'lucide-react'
+import { ChevronRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Content ─────────────────────────────────────────────────────────────────
 interface Slide {
-  icon: React.ReactNode
+  /** Phone screenshot for this step. Drop the files in /public/onboarding/. */
+  image: string
   title: string
   body: string
 }
 
 const SLIDES: Slide[] = [
   {
-    icon: <Sparkles size={32} className="text-white" />,
+    image: '/onboarding/01.png',
     title: 'Todas tus suscripciones en un solo sitio',
     body: 'Perezoso te muestra cuánto pagas al mes, qué se renueva esta semana y dónde puedes ahorrar.',
   },
   {
-    icon: <Calendar size={32} className="text-white" />,
+    image: '/onboarding/02.png',
     title: 'Calendario con próximas renovaciones',
     body: 'Visualiza de un vistazo todo lo que se va a cobrar en los próximos días y meses.',
   },
   {
-    icon: <Mail size={32} className="text-white" />,
+    image: '/onboarding/03.png',
     title: 'Detección automática desde tu Gmail',
     body: 'Conecta tu correo y Perezoso encontrará por ti las suscripciones que ya estás pagando.',
   },
   {
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center">
-        <span className="text-[24px] leading-none">💸</span>
-      </div>
-    ),
+    image: '/onboarding/04.png',
     title: 'Insights de gasto y sugerencias de ahorro',
     body: 'Descubre patrones y recomendaciones para reducir lo que pagas cada mes sin renunciar a lo que importa.',
   },
@@ -165,9 +162,13 @@ export default function LoginScreen() {
               transition={{ duration: 0.25, ease: 'easeOut' }}
               className="w-full max-w-sm flex flex-col items-center text-center"
             >
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#3D3BF3] to-[#7C3AED] flex items-center justify-center mb-8 shadow-[0_8px_24px_rgba(61,59,243,0.25)]">
-                {SLIDES[slide].icon}
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={SLIDES[slide].image}
+                alt=""
+                className="w-[240px] max-w-[60vw] h-auto rounded-[28px] mb-8 shadow-[0_18px_48px_rgba(0,0,0,0.14)]"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+              />
               <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
                 {SLIDES[slide].title}
               </h1>
