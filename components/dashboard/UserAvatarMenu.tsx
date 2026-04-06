@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { LogOut, Share2, Moon, Sun, ShieldCheck, ChevronRight, ChevronLeft, Loader2, RotateCcw, Settings } from 'lucide-react'
+import { LogOut, Share2, ShieldCheck, ChevronRight, ChevronLeft, Loader2, RotateCcw, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
-import { useTheme } from '@/components/ui/ThemeProvider'
 import { useT } from '@/lib/i18n/LocaleProvider'
 import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
 
@@ -17,7 +16,6 @@ interface UserAvatarMenuProps {
 
 export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
   const router = useRouter()
-  const { theme, toggle } = useTheme()
   const t = useT()
   const [open, setOpen] = useState(false)
   const [demoOpen, setDemoOpen] = useState(false)
@@ -204,13 +202,6 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
             <p className="text-sm font-semibold text-[#121212] dark:text-[#F2F2F7] truncate">{name}</p>
           </div>
           <div className="py-1.5">
-            <button
-              onClick={() => { toggle(); setOpen(false) }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
-            >
-              {theme === 'dark' ? <Sun size={15} className="text-[#616161] dark:text-[#8E8E93]" /> : <Moon size={15} className="text-[#616161]" />}
-              {theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}
-            </button>
             <button
               onClick={() => { setOpen(false); router.push('/settings') }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
