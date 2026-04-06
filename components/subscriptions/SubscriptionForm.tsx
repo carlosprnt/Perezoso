@@ -757,7 +757,7 @@ export default function SubscriptionForm({
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:-0.15s]" />
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" />
               </span>
-            ) : t('form.saveChanges')}
+            ) : t(mode === 'create' ? 'form.createSubscription' : 'form.saveChanges')}
           </button>
         </div>
       </div>
