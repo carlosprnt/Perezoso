@@ -79,6 +79,19 @@ export async function setDemoMode(count: number) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.email !== 'carlosprnt@gmail.com') return
 
+  // Snapshot the user's real ("production") subscriptions the first time we
+  // enter demo mode, so we can later restore them.
+  const hasBackup = Boolean((user.user_metadata as any)?.prod_subs_backup)
+  if (!hasBackup) {
+    const { data: existing } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+    await supabase.auth.updateUser({
+      data: { prod_subs_backup: existing ?? [] },
+    })
+  }
+
   await supabase.from('subscriptions').delete().eq('user_id', user.id)
 
   if (count > 0) {
@@ -96,6 +109,37 @@ export async function setDemoMode(count: number) {
     }))
     await supabase.from('subscriptions').insert(rows)
   }
+
+  revalidatePath('/dashboard')
+  revalidatePath('/subscriptions')
+  redirect('/dashboard')
+}
+
+/**
+ * Admin-only: restore the user's real subscriptions from the backup
+ * snapshot saved the first time demo mode was activated.
+ */
+export async function restoreProductionState() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== 'carlosprnt@gmail.com') return
+
+  const backup = (user.user_metadata as any)?.prod_subs_backup as
+    | Array<Record<string, unknown>>
+    | undefined
+
+  await supabase.from('subscriptions').delete().eq('user_id', user.id)
+
+  if (backup && backup.length > 0) {
+    const rows = backup.map((row) => {
+      const { id: _id, created_at: _c, updated_at: _u, ...rest } = row as any
+      return { ...rest, user_id: user.id }
+    })
+    await supabase.from('subscriptions').insert(rows)
+  }
+
+  // Clear the backup so the next demo session captures a fresh snapshot.
+  await supabase.auth.updateUser({ data: { prod_subs_backup: null } })
 
   revalidatePath('/dashboard')
   revalidatePath('/subscriptions')

@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { LogOut, Share2, Moon, Sun, ShieldCheck, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+import { LogOut, Share2, Moon, Sun, ShieldCheck, ChevronRight, ChevronLeft, Loader2, RotateCcw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useT } from '@/lib/i18n/LocaleProvider'
-import { setDemoMode } from '@/app/(dashboard)/subscriptions/demo-action'
+import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
 
 interface UserAvatarMenuProps {
   shareText?: string
@@ -145,6 +145,14 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
     })
   }
 
+  function handleRestoreProduction() {
+    startTransition(async () => {
+      await restoreProductionState()
+      setOpen(false)
+      setDemoOpen(false)
+    })
+  }
+
   const dropdown = open ? (
     <div
       ref={dropdownRef}
@@ -175,6 +183,18 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
                 {isPending ? <Loader2 size={13} className="animate-spin text-[#8E8E93]" /> : null}
               </button>
             ))}
+            <div className="h-px bg-[#F0F0F0] dark:bg-[#2C2C2E] mx-2 my-1" />
+            <button
+              onClick={handleRestoreProduction}
+              disabled={isPending}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#3D3BF3] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left disabled:opacity-50"
+            >
+              <span className="flex items-center gap-3">
+                <RotateCcw size={15} />
+                Volver a producción
+              </span>
+              {isPending ? <Loader2 size={13} className="animate-spin text-[#8E8E93]" /> : null}
+            </button>
           </div>
         </>
       ) : (
