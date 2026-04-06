@@ -3,84 +3,86 @@
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TEXT_COLORS = [
-  { hex: '#121212', uses: 49, role: 'Primary text (light)', dark: false, issue: 'Duplicated with #111111' },
-  { hex: '#111111', uses: 47, role: 'Primary text alt (light)', dark: false, issue: 'Nearly identical to #121212 — merge' },
-  { hex: '#424242', uses: 20, role: 'Secondary text', dark: false, issue: null },
-  { hex: '#616161', uses: 12, role: 'Muted text', dark: false, issue: null },
-  { hex: '#888888', uses: 13, role: 'Grey text', dark: false, issue: 'Overlaps with #737373, #999999' },
-  { hex: '#737373', uses: 22, role: 'Grey text alt', dark: false, issue: 'Too close to #888888' },
-  { hex: '#999999', uses: 17, role: 'Grey text alt 2', dark: false, issue: 'Too close to #888888' },
-  { hex: '#666666', uses: 8, role: 'Grey text alt 3', dark: false, issue: 'Too close to #888888' },
-  { hex: '#F2F2F7', uses: 78, role: 'Primary text (dark)', dark: true, issue: null },
-  { hex: '#AEAEB2', uses: 44, role: 'Secondary text (dark)', dark: true, issue: null },
-  { hex: '#8E8E93', uses: 59, role: 'Muted text (dark)', dark: true, issue: null },
+  { hex: '#121212', uses: 111, role: 'Primary text (light)', dark: false, issue: 'Duplicated with #111111' },
+  { hex: '#111111', uses: 26, role: 'Primary text alt (light)', dark: false, issue: 'Nearly identical to #121212 — merge' },
+  { hex: '#424242', uses: 34, role: 'Secondary text', dark: false, issue: null },
+  { hex: '#616161', uses: 21, role: 'Muted text', dark: false, issue: null },
+  { hex: '#888888', uses: 6, role: 'Grey text', dark: false, issue: 'Overlaps with #737373, #999999' },
+  { hex: '#737373', uses: 65, role: 'Grey text alt', dark: false, issue: 'Too close to #888888' },
+  { hex: '#999999', uses: 5, role: 'Grey text alt 2', dark: false, issue: 'Too close to #888888' },
+  { hex: '#666666', uses: 4, role: 'Grey text alt 3', dark: false, issue: 'Too close to #888888' },
+  { hex: '#F2F2F7', uses: 115, role: 'Primary text (dark)', dark: true, issue: null },
+  { hex: '#AEAEB2', uses: 58, role: 'Secondary text (dark)', dark: true, issue: null },
+  { hex: '#8E8E93', uses: 104, role: 'Muted text (dark)', dark: true, issue: null },
 ]
 
 const BG_COLORS = [
-  { hex: '#FFFFFF', uses: 12, role: 'Card surface', dark: false, issue: null },
-  { hex: '#F7F8FA', uses: 11, role: 'Page background', dark: false, issue: 'Very close to #FAFAFA' },
-  { hex: '#FAFAFA', uses: 3, role: 'Page background alt', dark: false, issue: 'Nearly identical to #F7F8FA — merge' },
-  { hex: '#F5F5F5', uses: 27, role: 'Input / hover surface', dark: false, issue: 'Close to #F0F0F0' },
-  { hex: '#F0F0F0', uses: 67, role: 'Skeleton / divider', dark: false, issue: 'Close to #F5F5F5' },
-  { hex: '#111111', uses: 12, role: 'Page background (dark)', dark: true, issue: null },
-  { hex: '#1C1C1E', uses: 39, role: 'Card surface (dark)', dark: true, issue: null },
-  { hex: '#2C2C2E', uses: 132, role: 'Secondary surface (dark)', dark: true, issue: 'Most used bg — needs token' },
-  { hex: '#3A3A3C', uses: 38, role: 'Interactive / border (dark)', dark: true, issue: null },
+  { hex: '#FFFFFF', uses: 11, role: 'Card surface', dark: false, issue: null },
+  { hex: '#F7F8FA', uses: 24, role: 'Page background', dark: false, issue: 'Very close to #FAFAFA' },
+  { hex: '#FAFAFA', uses: 7, role: 'Page background alt', dark: false, issue: 'Nearly identical to #F7F8FA — merge' },
+  { hex: '#F5F5F5', uses: 36, role: 'Input / hover surface', dark: false, issue: 'Close to #F0F0F0' },
+  { hex: '#F0F0F0', uses: 51, role: 'Skeleton / divider', dark: false, issue: 'Close to #F5F5F5' },
+  { hex: '#111111', uses: 26, role: 'Page background (dark)', dark: true, issue: null },
+  { hex: '#1C1C1E', uses: 53, role: 'Card surface (dark)', dark: true, issue: null },
+  { hex: '#2C2C2E', uses: 134, role: 'Secondary surface (dark)', dark: true, issue: 'Most used bg — needs token' },
+  { hex: '#3A3A3C', uses: 42, role: 'Interactive / border (dark)', dark: true, issue: null },
 ]
 
 const BORDER_COLORS = [
-  { hex: '#D4D4D4', uses: 19, role: 'Primary border', dark: false, issue: null },
-  { hex: '#E8E8E8', uses: 20, role: 'Subtle border', dark: false, issue: 'Too close to #E5E5E5, #E0E0E0' },
-  { hex: '#E5E5E5', uses: 8, role: 'Subtle border alt', dark: false, issue: 'Too close to #E8E8E8' },
-  { hex: '#E0E0E0', uses: 7, role: 'Subtle border alt 2', dark: false, issue: 'Too close to #E8E8E8' },
+  { hex: '#D4D4D4', uses: 20, role: 'Primary border', dark: false, issue: null },
+  { hex: '#E8E8E8', uses: 25, role: 'Subtle border', dark: false, issue: 'Too close to #E5E5E5, #E0E0E0' },
+  { hex: '#E5E5E5', uses: 11, role: 'Subtle border alt', dark: false, issue: 'Too close to #E8E8E8' },
+  { hex: '#E0E0E0', uses: 12, role: 'Subtle border alt 2', dark: false, issue: 'Too close to #E8E8E8' },
   { hex: '#EDEDED', uses: 5, role: 'Divider', dark: false, issue: 'Too close to #EFEFEF' },
-  { hex: '#EFEFEF', uses: 17, role: 'Divider alt', dark: false, issue: 'Too close to #EDEDED' },
-  { hex: '#2C2C2E', uses: 132, role: 'Border (dark)', dark: true, issue: 'Shared with bg — ambiguous' },
-  { hex: '#3A3A3C', uses: 38, role: 'Accent border (dark)', dark: true, issue: null },
+  { hex: '#EFEFEF', uses: 21, role: 'Divider alt', dark: false, issue: 'Too close to #EDEDED' },
+  { hex: '#2C2C2E', uses: 134, role: 'Border (dark)', dark: true, issue: 'Shared with bg — ambiguous' },
+  { hex: '#3A3A3C', uses: 42, role: 'Accent border (dark)', dark: true, issue: null },
 ]
 
 const ACCENT_COLORS = [
-  { hex: '#3D3BF3', uses: 37, role: 'Primary action (ACTUAL)', issue: 'Not in tokens! Widely used' },
-  { hex: '#5B21B6', uses: 2, role: 'Accent (defined in tokens)', issue: 'Defined but barely used — token drift' },
-  { hex: '#991B1B', uses: 8, role: 'Danger / error', issue: null },
-  { hex: '#16A34A', uses: 5, role: 'Success', issue: null },
-  { hex: '#92400E', uses: 4, role: 'Warning', issue: null },
+  { hex: '#3D3BF3', uses: 61, role: 'Primary action (ACTUAL)', issue: 'Not in tokens! Widely used' },
+  { hex: '#5B21B6', uses: 7, role: 'Accent (defined in tokens)', issue: 'Defined but barely used — token drift' },
+  { hex: '#991B1B', uses: 10, role: 'Danger / error', issue: null },
+  { hex: '#16A34A', uses: 9, role: 'Success', issue: null },
+  { hex: '#92400E', uses: 3, role: 'Warning', issue: null },
 ]
 
 const FONT_SIZES = [
-  { size: '10px', cls: 'text-[10px]', uses: 7, role: 'Badge labels, tiny captions' },
-  { size: '11px', cls: 'text-[11px]', uses: 11, role: 'Section headers (uppercase)' },
-  { size: '12px', cls: 'text-xs / text-[12px]', uses: 12, role: 'Small secondary text' },
-  { size: '13px', cls: 'text-[13px]', uses: 11, role: 'Compact labels' },
-  { size: '14px', cls: 'text-sm / text-[14px]', uses: 24, role: 'Body text, menu items' },
-  { size: '15px', cls: 'text-[15px]', uses: 6, role: 'Emphasis text' },
-  { size: '16px', cls: 'text-base / text-[16px]', uses: 16, role: 'Default body' },
-  { size: '17px', cls: 'text-[17px]', uses: 7, role: 'Card titles, headings' },
-  { size: '22px', cls: 'text-[22px]', uses: 8, role: 'Modal title, large stat' },
-  { size: '28px', cls: 'text-[28px]', uses: 7, role: 'Page title, hero stat' },
+  { size: '10px', cls: 'text-[10px]', uses: 5, role: 'Badge labels, tiny captions' },
+  { size: '11px', cls: 'text-[11px]', uses: 39, role: 'Section headers (uppercase)' },
+  { size: '12px', cls: 'text-xs', uses: 41, role: 'Small secondary text' },
+  { size: '13px', cls: 'text-[13px]', uses: 53, role: 'Compact labels' },
+  { size: '14px', cls: 'text-sm', uses: 70, role: 'Body text, menu items' },
+  { size: '15px', cls: 'text-[15px]', uses: 17, role: 'Emphasis text' },
+  { size: '16px', cls: 'text-base / text-[16px]', uses: 24, role: 'Default body' },
+  { size: '17px', cls: 'text-[17px]', uses: 25, role: 'Card titles, headings' },
+  { size: '22px', cls: 'text-[22px]', uses: 5, role: 'Modal title, large stat' },
+  { size: '28px', cls: 'text-[28px]', uses: 4, role: 'Page title, hero stat' },
+  { size: '45px', cls: 'text-[45px]', uses: 3, role: 'Empty-state hero headline' },
 ]
 
 const RADIUS_VALUES = [
-  { cls: 'rounded-md', px: '10px', uses: 10, role: 'Badges, small chips' },
-  { cls: 'rounded-lg', px: '14px', uses: 3, role: 'Rarely used' },
-  { cls: 'rounded-xl', px: '18px', uses: 12, role: 'Inputs, buttons, cards' },
-  { cls: 'rounded-2xl', px: '28px', uses: 9, role: 'Cards, modals' },
-  { cls: 'rounded-[16px]', px: '16px', uses: 1, role: 'One-off override' },
-  { cls: 'rounded-2xl', px: '28px', uses: 2, role: 'Duplicate of rounded-2xl' },
-  { cls: 'rounded-t-2xl', px: '28px top', uses: 1, role: 'Bottom sheets' },
-  { cls: 'rounded-full', px: '9999px', uses: 5, role: 'Avatars, pills' },
+  { cls: 'rounded-md', px: '10px', uses: 23, role: 'Badges, small chips' },
+  { cls: 'rounded-lg', px: '14px', uses: 13, role: 'Small containers' },
+  { cls: 'rounded-xl', px: '18px', uses: 45, role: 'Inputs, buttons, cards' },
+  { cls: 'rounded-2xl', px: '28px', uses: 63, role: 'Cards, modals' },
+  { cls: 'rounded-3xl', px: '32px', uses: 2, role: 'Hero cards' },
+  { cls: 'rounded-[16px]', px: '16px', uses: 6, role: 'Platform logo tiles (one-off)' },
+  { cls: 'rounded-t-*', px: '32px top', uses: 5, role: 'Bottom sheets / half-modals' },
+  { cls: 'rounded-full', px: '9999px', uses: 88, role: 'Pills, avatars, FABs, close buttons' },
 ]
 
 const FINDINGS = [
-  { severity: 'high', title: '#121212 vs #111111 used interchangeably', detail: '96 combined uses. Delta E < 1 — visually identical. Consolidate to one.' },
-  { severity: 'high', title: 'Accent token drift: #5B21B6 defined, #3D3BF3 used', detail: 'tokens.css defines violet-800, but 37 components use indigo #3D3BF3. Token and code disagree.' },
-  { severity: 'high', title: '4 near-identical grey text values', detail: '#888888, #737373, #999999, #666666 all serve "muted grey" role. Should collapse to 1–2 values.' },
+  { severity: 'high', title: '#121212 vs #111111 used interchangeably', detail: '137 combined uses. Delta E < 1 — visually identical. #111111 usage halved recently, continue the merge.' },
+  { severity: 'high', title: 'Accent token drift widening: #3D3BF3 now at 61 uses', detail: 'tokens.css still defines violet #5B21B6; real indigo #3D3BF3 is the brand color across FABs, CTAs, chips and links. Promote to token and remove #5B21B6.' },
+  { severity: 'high', title: '4 near-identical grey text values', detail: '#737373 (65), #888888 (6), #999999 (5), #666666 (4) — #737373 dominates; the other three can be deleted outright.' },
   { severity: 'high', title: 'CSS tokens defined but ignored', detail: 'globals.css defines --color-text-primary, --color-surface etc. Almost no component uses them — all hardcode raw hex.' },
-  { severity: 'medium', title: '6 near-identical light border values', detail: '#E8E8E8, #E5E5E5, #E0E0E0, #EDEDED, #EFEFEF, #F0F0F0 — all used as "subtle border/divider". 3 values max needed.' },
-  { severity: 'medium', title: '3 near-identical light surface backgrounds', detail: '#FAFAFA, #F7F8FA, #F5F5F5 used as page/section backgrounds. Consolidate to 2.' },
-  { severity: 'medium', title: 'Custom pixel font sizes instead of scale', detail: 'text-[10px] through text-[17px] in 1px steps. Should map to a named scale (xs, sm, md, lg, xl, 2xl).' },
-  { severity: 'medium', title: 'rounded-2xl duplicates rounded-2xl', detail: '3 manual uses of rounded-2xl or rounded-t-2xl alongside rounded-2xl which already maps to 28px.' },
-  { severity: 'low', title: '#2C2C2E used for both bg AND border in dark mode', detail: '132 uses as background, also used as border. Makes intent unclear — different tokens needed.' },
+  { severity: 'medium', title: '6 near-identical light border values', detail: '#E8E8E8 (25), #EFEFEF (21), #E0E0E0 (12), #E5E5E5 (11), #EDEDED (5), plus #F0F0F0 (51) as divider. Collapse to 2 tokens (subtle, default).' },
+  { severity: 'medium', title: '3 near-identical light surface backgrounds', detail: '#F7F8FA (24), #FAFAFA (7), #F5F5F5 (36) used as page/section backgrounds. Consolidate to 2.' },
+  { severity: 'medium', title: 'Custom pixel font sizes instead of scale', detail: '11 distinct px sizes (10→45). Mostly 1–2px apart. Should map to a named scale (xs, sm, md, lg, xl, 2xl, hero).' },
+  { severity: 'medium', title: 'rounded-full has taken over (88 uses)', detail: 'After unifying close buttons, FABs, chips and avatars, rounded-full is the most-used radius by far. Should become the canonical pill/circle token.' },
+  { severity: 'low', title: '#2C2C2E used for both bg AND border in dark mode', detail: '134 uses as background, also used as border. Makes intent unclear — different tokens needed.' },
+  { severity: 'low', title: 'rounded-[16px] hard-coded in platform tiles', detail: '6 occurrences of rounded-[16px] on QuickAdd platform logos. Either promote to rounded-2xl (→18px) or introduce a dedicated tile radius.' },
   { severity: 'low', title: 'Shadows nearly absent', detail: 'Only shadow-sm and one custom box-shadow in use. Consider a consistent 2-level elevation system.' },
 ]
 
@@ -138,10 +140,10 @@ export default function StyleAuditClient() {
         </p>
         <div className="flex gap-4 mt-4 flex-wrap">
           {[
-            ['11', 'Colores duplicados'],
+            ['11', 'Findings detectados'],
             ['6', 'Borders redundantes'],
-            ['4', 'Tokens no usados'],
-            ['1', 'Token drift crítico'],
+            ['11', 'Font sizes distintos'],
+            ['61', '#3D3BF3 hardcoded'],
           ].map(([n, label]) => (
             <div key={label} className="bg-white dark:bg-[#1C1C1E] border border-[#E8E8E8] dark:border-[#2C2C2E] rounded-xl px-4 py-2">
               <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-none">{n}</p>
@@ -244,12 +246,13 @@ export default function StyleAuditClient() {
 
         <div className="bg-white dark:bg-[#1C1C1E] border border-[#E8E8E8] dark:border-[#2C2C2E] rounded-2xl overflow-hidden mb-4">
           {[
-            { w: 'font-normal', label: '400 Normal', uses: 12 },
-            { w: 'font-medium', label: '500 Medium', uses: 45 },
-            { w: 'font-semibold', label: '600 Semibold', uses: 42 },
-            { w: 'font-bold', label: '700 Bold', uses: 78 },
-          ].map((fw, i) => (
-            <div key={fw.w} className={`flex items-center gap-4 px-5 py-3 ${i < 3 ? 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]' : ''}`}>
+            { w: 'font-normal', label: '400 Normal', uses: 5 },
+            { w: 'font-medium', label: '500 Medium', uses: 51 },
+            { w: 'font-semibold', label: '600 Semibold', uses: 84 },
+            { w: 'font-bold', label: '700 Bold', uses: 50 },
+            { w: 'font-extrabold', label: '800 Extrabold', uses: 3 },
+          ].map((fw, i, arr) => (
+            <div key={fw.w} className={`flex items-center gap-4 px-5 py-3 ${i < arr.length - 1 ? 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]' : ''}`}>
               <span className={`${fw.w} text-[17px] text-[#121212] dark:text-[#F2F2F7] w-40 flex-shrink-0`}>Perezoso</span>
               <code className="text-[11px] text-[#999] dark:text-[#8E8E93] w-32 flex-shrink-0">{fw.w}</code>
               <span className="text-[11px] text-[#737373] dark:text-[#8E8E93] flex-1">{fw.label}</span>
@@ -259,7 +262,7 @@ export default function StyleAuditClient() {
         </div>
 
         <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/40 rounded-xl px-4 py-3 text-[13px] text-orange-800 dark:text-orange-300">
-          ⚠️ <strong>10 font sizes</strong> de 10px a 28px en pasos de 1–2px. Recomendado: consolidar a 6 tamaños con nombres semánticos.
+          ⚠️ <strong>11 font sizes</strong> de 10px a 45px. Recomendado: consolidar a ~6 tamaños con nombres semánticos (xs, sm, md, lg, xl, 2xl, hero).
         </div>
       </section>
 
@@ -286,7 +289,7 @@ export default function StyleAuditClient() {
               <span className="text-[12px] text-[#999] dark:text-[#8E8E93] w-14 flex-shrink-0">{r.px}</span>
               <span className="text-[13px] text-[#737373] dark:text-[#8E8E93] flex-1">{r.role}</span>
               <span className="text-[11px] text-[#bbb] dark:text-[#8E8E93]">{r.uses}×</span>
-              {(r.cls === 'rounded-2xl' || r.cls === 'rounded-[16px]') && (
+              {r.cls === 'rounded-[16px]' && (
                 <span className="text-[11px] text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400 px-2 py-0.5 rounded-full flex-shrink-0">override</span>
               )}
             </div>
