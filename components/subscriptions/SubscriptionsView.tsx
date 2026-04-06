@@ -13,6 +13,7 @@ import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown } from 'lucide-r
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
+import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { CATEGORIES } from '@/lib/constants/categories'
@@ -685,9 +686,10 @@ export default function SubscriptionsView({
               <p className="text-[45px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2">
                 Aún no tienes suscripciones añadidas
               </p>
-              <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">
+              <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug mb-6">
                 {t('subscriptions.getStarted')}
               </p>
+              <QuickAddPlatforms />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
