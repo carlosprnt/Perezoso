@@ -149,7 +149,7 @@ export default function LoginScreen() {
 
   return (
     <div
-      className="relative min-h-screen bg-white overflow-hidden flex flex-col"
+      className="relative h-[100dvh] bg-white overflow-hidden flex flex-col"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -222,19 +222,19 @@ export default function LoginScreen() {
         </div>
 
         {slide < SLIDES.length ? (
-          <div className="w-full max-w-sm flex flex-col gap-2">
-            <button
-              onClick={next}
-              className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1"
-            >
-              Siguiente
-              <ChevronRight size={16} />
-            </button>
+          <div className="w-full max-w-sm flex items-center gap-3">
             <button
               onClick={openSignIn}
-              className="w-full h-12 text-[15px] font-semibold text-[#3D3BF3] active:opacity-70 transition-opacity"
+              className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#121212] active:bg-[#F2F2F7] transition-colors"
             >
               Iniciar sesión
+            </button>
+            <button
+              onClick={next}
+              className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1"
+            >
+              Continuar
+              <ChevronRight size={16} />
             </button>
           </div>
         ) : null}
