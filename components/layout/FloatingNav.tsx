@@ -165,13 +165,13 @@ export default function FloatingNav() {
             bottom: `calc(${bottomOffset} + 4px)`,
             boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
           }}
-          animate={emphasizeAdd ? { scale: [1, 2, 1.9, 2] } : { scale: 1 }}
+          animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
           transition={
             emphasizeAdd
-              ? { duration: 1.2, times: [0, 0.5, 0.75, 1], ease: 'easeOut' }
+              ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
               : { type: 'spring', stiffness: 300, damping: 22 }
           }
-          whileTap={{ scale: emphasizeAdd ? 1.85 : 0.95 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Plus size={22} color="#ffffff" strokeWidth={2.5} />
         </motion.button>
