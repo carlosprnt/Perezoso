@@ -59,7 +59,7 @@ function Row({
   href?: string
 }) {
   const inner = (
-    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-4 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
+    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
       <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
@@ -86,7 +86,7 @@ function Row({
 // Grouped card — wraps rows in a white/dark panel with rounded corners.
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-6 bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
+    <div className="mb-3 bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
       {children}
     </div>
   )
@@ -167,11 +167,11 @@ export default function SettingsView({ preferences }: Props) {
   ] as const
 
   return (
-    <div className="min-h-screen -mx-4 sm:-mx-6 -my-6 lg:-my-8 px-5 pb-8">
-      {/* Header */}
+    <div className="min-h-screen -mx-4 sm:-mx-6 -my-6 lg:-my-8 pb-4">
+      {/* Sticky header */}
       <div
-        className="flex items-center gap-3 pb-4"
-        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
+        className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3 bg-[#F7F8FA] dark:bg-[#121212]"
+        style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
       >
         <button
           onClick={() => router.back()}
@@ -182,10 +182,11 @@ export default function SettingsView({ preferences }: Props) {
         </button>
         <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7]">Ajustes</h1>
       </div>
+      <div className="px-5">
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
       <Group>
-        <div className="flex items-center gap-3 px-4 py-4">
+        <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-11 h-11 rounded-[10px] overflow-hidden flex-shrink-0 bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Perezoso" className="w-full h-full object-cover" />
@@ -205,7 +206,7 @@ export default function SettingsView({ preferences }: Props) {
 
       {/* ── Currency + Notifications ───────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
+        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Moneda</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
@@ -224,7 +225,7 @@ export default function SettingsView({ preferences }: Props) {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-4">
+        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
           <IconTile bg="#EF4444"><Bell size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Notificaciones</span>
           <button
@@ -243,7 +244,7 @@ export default function SettingsView({ preferences }: Props) {
 
       {/* ── Appearance ─────────────────────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-4">
+        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5">
           <IconTile bg="#374151"><Moon size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Apariencia</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
@@ -269,7 +270,7 @@ export default function SettingsView({ preferences }: Props) {
         {categories.map((cat, i) => (
           <div
             key={cat}
-            className={`flex items-center gap-3 px-4 min-h-[44px] py-4 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
+            className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
             <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{cat}</span>
@@ -282,7 +283,7 @@ export default function SettingsView({ preferences }: Props) {
             </button>
           </div>
         ))}
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-4">
+        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
           <IconTile bg="#8B5CF6"><Plus size={15} /></IconTile>
           <input
             type="text"
@@ -342,14 +343,13 @@ export default function SettingsView({ preferences }: Props) {
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
-          className="w-full flex items-center gap-3 px-4 min-h-[44px] py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
+          className="w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
         >
           <IconTile bg="#DC2626"><Trash2 size={15} /></IconTile>
           <span className="flex-1 text-[15px] font-medium text-[#DC2626]">Eliminar cuenta</span>
         </button>
       </Group>
-
-      <div className="h-8" />
+      </div>
 
       {/* Delete confirmation half-modal */}
       {showDeleteConfirm && (
