@@ -748,6 +748,13 @@ export default function SubscriptionsView({
               <p className="text-xs text-[#737373] dark:text-[#8E8E93]">
                 {t('subscriptions.noResultsHint')}
               </p>
+              <button
+                type="button"
+                onClick={() => router.push(pathname, { scroll: false })}
+                className="mt-3 text-[13px] font-semibold text-[#3D3BF3] dark:text-[#8B89FF] active:opacity-60 transition-opacity"
+              >
+                {t('subscriptions.clearFilters')}
+              </button>
             </div>
           )
         ) : (
