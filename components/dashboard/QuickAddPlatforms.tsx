@@ -34,7 +34,7 @@ function PlatformRow({
     <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#F2F2F7] dark:bg-[#1C1C1E]">
       <div className="w-10 h-10 rounded-[16px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-white dark:bg-[#2C2C2E]">
         {logoUrl ? (
-          <Image src={logoUrl} alt={platform.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+          <Image src={logoUrl} alt={platform.name} width={40} height={40} className="w-full h-full object-contain" unoptimized />
         ) : (
           <span className="text-[15px] font-bold" style={{ color: fg }}>{initials}</span>
         )}
