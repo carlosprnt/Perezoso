@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Sun, Moon, Monitor, Coins, Tag, Check } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -137,9 +137,9 @@ export default function SettingsView({ preferences }: Props) {
   }
 
   const THEMES = [
-    { key: 'light', label: 'Claro', Icon: Sun, bg: '#F59E0B' },
-    { key: 'dark', label: 'Oscuro', Icon: Moon, bg: '#374151' },
-    { key: 'system', label: 'Sistema', Icon: Monitor, bg: '#6B7280' },
+    { key: 'light', label: 'Claro' },
+    { key: 'dark', label: 'Oscuro' },
+    { key: 'system', label: 'Sistema' },
   ] as const
 
   return (
@@ -219,17 +219,25 @@ export default function SettingsView({ preferences }: Props) {
 
       {/* ── Appearance ─────────────────────────────────────────────────── */}
       <Group>
-        {THEMES.map(({ key, label, Icon, bg }, i) => (
-          <button
-            key={key}
-            onClick={() => setPreference(key)}
-            className={`w-full flex items-center gap-3 px-4 min-h-[44px] py-2 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors ${i < THEMES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
+        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2">
+          <IconTile bg="#374151"><Moon size={15} /></IconTile>
+          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Apariencia</span>
+          <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
+            {THEMES.find(t => t.key === preference)?.label ?? 'Sistema'}
+          </span>
+          <ChevronRight size={15} className="text-[#C7C7CC]" />
+          <select
+            value={preference}
+            onChange={e => setPreference(e.target.value as typeof preference)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none"
+            style={{ fontSize: 16 }}
+            aria-label="Apariencia"
           >
-            <IconTile bg={bg}><Icon size={15} /></IconTile>
-            <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
-            {preference === key && <Check size={17} className="text-[#3D3BF3]" />}
-          </button>
-        ))}
+            {THEMES.map(t => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+          </select>
+        </div>
       </Group>
 
       {/* ── Custom categories ──────────────────────────────────────────── */}
