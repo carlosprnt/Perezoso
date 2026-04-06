@@ -217,11 +217,12 @@ export default function DashboardSummaryHero({
 
       {/* Main statement — tapping figures spawns money confetti */}
       <p className="text-[45px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.2] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
-        {t('dashboard.spendStatement')}<br />
+        {t('dashboard.spendStatement')}{' '}
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
-        </button>,<br />
-        {t('dashboard.annualStatement')}<br />
+        </button>{' '}
+        {t('dashboard.spendStatementSuffix')}<br />
+        {t('dashboard.annualStatement')}{' '}
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>
         </button>.
@@ -229,6 +230,7 @@ export default function DashboardSummaryHero({
 
       {/* Supporting statement */}
       <p className="text-[18px] font-bold text-black dark:text-[#F2F2F7] leading-relaxed" style={{ maxWidth: '100%' }}>
+        {t('dashboard.youHave')}{' '}
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
             {total} {total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}
