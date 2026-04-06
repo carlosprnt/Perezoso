@@ -343,10 +343,11 @@ export default function SubscriptionForm({
       name: name.trim(),
       logo_url: logoUrl.trim() || null,
       card_color: null,
-      // Custom user categories get persisted as 'other' to satisfy the
-      // DB CHECK constraint. The label remains visible in the picker
-      // while editing in-session.
-      category: (CATEGORIES.some(c => c.value === category) ? category : 'other') as Category,
+      // Send the real (possibly custom) category. The server action
+      // retries with 'other' automatically if the DB still has the
+      // valid_category CHECK constraint, so the flow works whether or
+      // not the 003 migration has been applied.
+      category: category as Category,
       price_amount: parseFloat(priceAmount) || 0,
       currency,
       billing_period: billingPeriod,
@@ -588,13 +589,19 @@ export default function SubscriptionForm({
                   {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
                 </option>
               ))}
-              {customCategories.length > 0 && (
-                <optgroup label="Personalizadas">
-                  {customCategories.map(name => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </optgroup>
-              )}
+              {(() => {
+                const extras = Array.from(new Set([
+                  ...customCategories,
+                  ...(!CATEGORIES.some(c => c.value === category) && category ? [category] : []),
+                ]))
+                return extras.length > 0 && (
+                  <optgroup label="Personalizadas">
+                    {extras.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </optgroup>
+                )
+              })()}
             </select>
           </SelectRow>
         </Section>

@@ -17,6 +17,10 @@ function isSchemaError(message: string): boolean {
   return message.includes('column') && message.includes('schema cache')
 }
 
+function isCategoryCheckError(message: string): boolean {
+  return message.toLowerCase().includes('valid_category')
+}
+
 // ============================================================
 // CREATE
 // ============================================================
@@ -39,6 +43,13 @@ export async function createSubscription(formData: SubscriptionFormData, success
     const fallback = { ...stripOptionalColumns(payload as Record<string, unknown>), user_id: user.id }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = await (supabase.from('subscriptions').insert(fallback).select('id').single() as any)
+  }
+
+  // Retry with category='other' if the DB still has the valid_category CHECK
+  // constraint and the user picked a custom category from Settings.
+  if (result.error && isCategoryCheckError(result.error.message)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result = await (supabase.from('subscriptions').insert({ ...payload, category: 'other' }).select('id').single() as any)
   }
 
   if (result.error) {
@@ -71,6 +82,15 @@ export async function updateSubscription(id: string, formData: SubscriptionFormD
     const retry = await supabase
       .from('subscriptions')
       .update(fallback)
+      .eq('id', id)
+      .eq('user_id', user.id)
+    error = retry.error
+  }
+
+  if (error && isCategoryCheckError(error.message)) {
+    const retry = await supabase
+      .from('subscriptions')
+      .update({ ...formData, category: 'other' })
       .eq('id', id)
       .eq('user_id', user.id)
     error = retry.error
