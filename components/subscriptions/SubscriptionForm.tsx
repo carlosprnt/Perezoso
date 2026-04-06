@@ -185,6 +185,12 @@ export default function SubscriptionForm({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const errorRef = useRef<HTMLDivElement>(null)
+
+  // Scroll into view so the user can read it when submission fails.
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [error])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [reminderOn, setReminderOn] = useState(false)
   const [reminderDays, setReminderDays] = useState<1 | 3 | 10>(3)
@@ -383,7 +389,10 @@ export default function SubscriptionForm({
 
         {/* Error */}
         {error && (
-          <div className="mx-5 mb-3 flex items-start gap-2 bg-red-900/20 border border-red-800/40 text-red-400 text-sm rounded-2xl px-4 py-3">
+          <div
+            ref={errorRef}
+            className="mx-5 mb-3 flex items-start gap-2 bg-red-900/20 border border-red-800/40 text-red-400 text-sm rounded-2xl px-4 py-3"
+          >
             <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
             {error}
           </div>
@@ -742,7 +751,13 @@ export default function SubscriptionForm({
             disabled={isPending}
             className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold disabled:opacity-40 active:bg-[#3230D0] transition-colors"
           >
-            {isPending ? '…' : t('form.saveChanges')}
+            {isPending ? (
+              <span className="inline-flex items-center justify-center gap-1" aria-label="Loading">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" />
+              </span>
+            ) : t('form.saveChanges')}
           </button>
         </div>
       </div>
