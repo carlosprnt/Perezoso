@@ -57,7 +57,7 @@ function Row({
   href?: string
 }) {
   const inner = (
-    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2 ${last ? '' : 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]'}`}>
+    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
       <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
@@ -84,7 +84,7 @@ function Row({
 // Grouped card — wraps rows in a white/dark panel with rounded corners.
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-8 bg-white dark:bg-[#1C1C1E] overflow-hidden border-y border-[#E8E8E8] dark:border-[#2C2C2E]">
+    <div className="mb-6 bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
       {children}
     </div>
   )
@@ -143,10 +143,10 @@ export default function SettingsView({ preferences }: Props) {
   ] as const
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] -mx-4 sm:-mx-6 -my-6 lg:-my-8">
+    <div className="min-h-screen bg-white dark:bg-[#111111] -mx-4 sm:-mx-6 -my-6 lg:-my-8 px-5 pb-8">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 pb-4"
+        className="flex items-center gap-3 pb-4"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
       >
         <button
@@ -180,7 +180,7 @@ export default function SettingsView({ preferences }: Props) {
 
       {/* ── Currency + Notifications ───────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2 border-b border-[#F0F0F0] dark:border-[#2C2C2E]">
+        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Moneda</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
@@ -222,7 +222,7 @@ export default function SettingsView({ preferences }: Props) {
           <button
             key={key}
             onClick={() => setPreference(key)}
-            className={`w-full flex items-center gap-3 px-4 min-h-[44px] py-2 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors ${i < THEMES.length - 1 ? 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]' : ''}`}
+            className={`w-full flex items-center gap-3 px-4 min-h-[44px] py-2 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors ${i < THEMES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg={bg}><Icon size={15} /></IconTile>
             <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
@@ -236,7 +236,7 @@ export default function SettingsView({ preferences }: Props) {
         {categories.map((cat, i) => (
           <div
             key={cat}
-            className={`flex items-center gap-3 px-4 min-h-[44px] py-2 ${i < categories.length ? 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]' : ''}`}
+            className={`flex items-center gap-3 px-4 min-h-[44px] py-2 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
             <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{cat}</span>
