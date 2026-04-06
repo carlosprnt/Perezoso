@@ -66,7 +66,7 @@ export default function QuickAddPlatforms() {
     <>
       <div>
         <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
-          Añade rápido
+          Añade tu primera suscripción
         </p>
         <div className="flex flex-col gap-2">
           {QUICK_ADD_PLATFORMS.map(platform => (
