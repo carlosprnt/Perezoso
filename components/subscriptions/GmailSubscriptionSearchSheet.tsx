@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useT } from '@/lib/i18n/LocaleProvider'
 import type { DetectedSubscription } from '@/types/detected-subscription'
 import type { SubscriptionFormData } from '@/types'
+import { AnalyticsEvents } from '@/lib/analytics'
 
 // ─── Google Identity Services types ───────────────────────────────────────────
 
@@ -157,6 +158,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
   // ── Search using a token ───────────────────────────────────────────────────
   const doSearch = useCallback(async (token?: string) => {
     setSheetState({ type: 'searching' })
+    AnalyticsEvents.gmailDetectionStarted()
     try {
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
       const res = await fetch('/api/gmail/search', { headers })
@@ -168,13 +170,16 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
 
       if (data.status === 'not_connected') {
         setSheetState({ type: 'not_connected' })
+        AnalyticsEvents.gmailPermissionDenied()
       } else if (data.status === 'error') {
         setSheetState({ type: 'error', message: data.error ?? 'Something went wrong' })
       } else if (!data.candidates?.length) {
         setSheetState({ type: 'empty' })
+        AnalyticsEvents.gmailDetectionCompleted(0)
       } else {
         setSheetState({ type: 'results', candidates: data.candidates })
         setSelected(new Set(data.candidates.filter(c => c.confidence === 'high').map(c => c.id)))
+        AnalyticsEvents.gmailDetectionCompleted(data.candidates.length)
       }
     } catch {
       setSheetState({ type: 'error', message: 'Network error. Please try again.' })
@@ -239,6 +244,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
     setSheetState({ type: 'adding', total: toAdd.length })
     const { imported } = await importSubscriptions(toAdd.map(candidateToFormData))
     setSheetState({ type: 'done', count: imported })
+    toAdd.forEach(c => AnalyticsEvents.gmailCandidateAdded(c.name))
   }
 
   const selectedCount = selected.size

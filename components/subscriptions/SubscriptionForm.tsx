@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSubscription, updateSubscription, deleteSubscription } from '@/app/(dashboard)/subscriptions/actions'
+import { AnalyticsEvents } from '@/lib/analytics'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { CURRENCIES, BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
 import { AlertCircle, Bell, ChevronsUpDown, X } from 'lucide-react'
@@ -345,19 +346,48 @@ export default function SubscriptionForm({
     if (!name.trim()) { setError(t('form.nameRequired')); return }
     if (!priceAmount || parseFloat(priceAmount) < 0) { setError(t('form.invalidPrice')); return }
     startTransition(async () => {
+      const payload = buildPayload()
       const result =
         mode === 'create'
-          ? await createSubscription(buildPayload(), successRedirect)
-          : await updateSubscription(subscription!.id, buildPayload())
-      if (result?.error) setError(result.error)
-      else onCancel?.()
+          ? await createSubscription(payload, successRedirect)
+          : await updateSubscription(subscription!.id, payload)
+      if (result?.error) {
+        setError(result.error)
+        AnalyticsEvents.errorShown('subscription_form', result.error)
+        return
+      }
+      const analyticsProps = {
+        subscription_name: payload.name,
+        billing_period: payload.billing_period,
+        is_shared: payload.is_shared,
+        category: payload.category,
+        amount: payload.price_amount,
+        currency: payload.currency,
+        source: platformPreset ? 'detected' as const : 'manual' as const,
+      }
+      if (mode === 'create') {
+        // isFirst is derived in PostHog via a first-time-event cohort.
+        AnalyticsEvents.subscriptionCreated(analyticsProps, false)
+      } else {
+        AnalyticsEvents.subscriptionUpdated({ subscription_id: subscription!.id, ...analyticsProps })
+      }
+      onCancel?.()
     })
   }
 
   async function handleDelete() {
     startTransition(async () => {
       const result = await deleteSubscription(subscription!.id)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+        AnalyticsEvents.errorShown('subscription_form', result.error)
+        return
+      }
+      AnalyticsEvents.subscriptionDeleted({
+        subscription_id: subscription!.id,
+        subscription_name: subscription!.name,
+        category: subscription!.category,
+      })
     })
   }
 

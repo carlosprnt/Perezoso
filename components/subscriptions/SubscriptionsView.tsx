@@ -14,6 +14,7 @@ import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
+import { AnalyticsEvents } from '@/lib/analytics'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { CATEGORIES } from '@/lib/constants/categories'
@@ -371,8 +372,14 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
 
   function apply() {
     const p = new URLSearchParams()
-    if (status !== 'all') p.set('status', status)
-    if (category !== 'all') p.set('category', category)
+    if (status !== 'all') {
+      p.set('status', status)
+      AnalyticsEvents.filterApplied('status', status)
+    }
+    if (category !== 'all') {
+      p.set('category', category)
+      AnalyticsEvents.filterApplied('category', category)
+    }
     router.push(`${pathname}${p.size ? '?' + p.toString() : ''}`, { scroll: false })
     onClose()
   }
@@ -682,7 +689,7 @@ export default function SubscriptionsView({
       {/* Sort control — just above cards. Hidden when there are no subs. */}
       {allCount > 0 && (
         <div className="relative z-[30] px-1 mt-2 mb-[9px]">
-          <SortDropdown current={sortMode} onSelect={setSortMode} />
+          <SortDropdown current={sortMode} onSelect={(mode) => { setSortMode(mode); AnalyticsEvents.sortChanged(mode) }} />
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getUpcomingRenewals, getTopExpensiveSubscriptions } from '@/lib/calculations/subscriptions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
@@ -62,6 +63,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
       {isEmpty ? (
         <EmptyDashboardHero firstName={firstName} shareText={shareText} />
       ) : (
