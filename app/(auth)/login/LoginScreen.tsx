@@ -149,7 +149,7 @@ export default function LoginScreen() {
 
   return (
     <div
-      className="relative h-[100dvh] bg-white overflow-hidden flex flex-col"
+      className="relative min-h-[100dvh] bg-white overflow-x-hidden flex flex-col"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
