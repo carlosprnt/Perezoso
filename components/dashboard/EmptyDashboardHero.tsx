@@ -44,7 +44,7 @@ export default function EmptyDashboardHero({ firstName, shareText }: Props) {
       </p>
 
       {/* Tagline */}
-      <p className="text-[17px] font-bold text-[#8E8E93] dark:text-[#636366] leading-snug">
+      <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">
         Empieza a añadir y descubre patrones de gasto y consejos de ahorro.
       </p>
     </div>
