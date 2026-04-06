@@ -67,7 +67,7 @@ const LOGOS: LogoConfig[] = [
   },
   {
     id: 'openai', label: 'AI',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai.svg',
     bg: '#FFFFFF', size: 74, radius: 18,
     left: '70%', top: '32%',
     xKeys: [0, -14, -5, 11, 0], yKeys: [0, 12, -14, 6, 0],
@@ -78,7 +78,7 @@ const LOGOS: LogoConfig[] = [
   // ── Row 3 (lower-middle) ─────────────────────────────────────────────────────
   {
     id: 'primevideo', label: 'PV',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/amazon-prime-video.svg',
     bg: '#FFFFFF', size: 74, radius: 18,
     left: '17%', top: '50%',
     xKeys: [0, 13, 4, -11, 0], yKeys: [0, 8, -14, 9, 0],
@@ -107,7 +107,7 @@ const LOGOS: LogoConfig[] = [
   },
   {
     id: 'disneyplus', label: 'D+',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/disney-plus.svg',
     bg: '#FFFFFF', size: 80, radius: 22,
     left: '55%', top: '65%',
     xKeys: [0, -13, -4, 11, 0], yKeys: [0, 11, -10, -8, 0],
@@ -118,7 +118,7 @@ const LOGOS: LogoConfig[] = [
   // ── Row 5 (scattered extras) ────────────────────────────────────────────────
   {
     id: 'icloud', label: '☁',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/1/17/ICloud_logo.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/icloud.svg',
     bg: '#FFFFFF', size: 72, radius: 18,
     left: '30%', top: '76%',
     xKeys: [0, 12, -6, 8, 0], yKeys: [0, -12, 8, -4, 0],
@@ -127,7 +127,7 @@ const LOGOS: LogoConfig[] = [
   },
   {
     id: 'apple-music', label: '♫',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/apple-music.svg',
     bg: '#FFFFFF', size: 74, radius: 18,
     left: '78%', top: '78%',
     xKeys: [0, -10, 8, -6, 0], yKeys: [0, 14, -8, 6, 0],
@@ -136,7 +136,7 @@ const LOGOS: LogoConfig[] = [
   },
   {
     id: 'claude', label: 'C',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/1/14/Claude_AI_symbol.svg',
+    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/claude.svg',
     bg: '#FFFFFF', size: 74, radius: 18,
     left: '42%', top: '22%',
     xKeys: [0, -12, 10, -4, 0], yKeys: [0, 8, -14, 10, 0],
