@@ -352,7 +352,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
   )
 
   const editPanel = (
-    <BottomSheet isOpen={editOpen} onClose={() => setEditOpen(false)} height="full">
+    <BottomSheet isOpen={editOpen} onClose={() => setEditOpen(false)} height="full" zIndex={420}>
       <SubscriptionForm mode="edit" subscription={sub} onCancel={() => setEditOpen(false)} />
     </BottomSheet>
   )
