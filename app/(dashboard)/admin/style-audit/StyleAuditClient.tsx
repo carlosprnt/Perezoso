@@ -3,23 +3,22 @@
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TEXT_COLORS = [
-  { hex: '#121212', uses: 132, role: 'Primary text (light)', dark: false, issue: null },
+  { hex: '#121212', uses: 131, role: 'Primary text (light)', dark: false, issue: null },
   { hex: '#424242', uses: 34, role: 'Secondary text', dark: false, issue: null },
-  { hex: '#616161', uses: 21, role: 'Muted text', dark: false, issue: null },
-  { hex: '#737373', uses: 69, role: 'Grey text', dark: false, issue: null },
+  { hex: '#616161', uses: 22, role: 'Muted text', dark: false, issue: null },
+  { hex: '#737373', uses: 67, role: 'Grey text', dark: false, issue: null },
   { hex: '#F2F2F7', uses: 115, role: 'Primary text (dark)', dark: true, issue: null },
   { hex: '#AEAEB2', uses: 58, role: 'Secondary text (dark)', dark: true, issue: null },
   { hex: '#8E8E93', uses: 104, role: 'Muted text (dark)', dark: true, issue: null },
 ]
 
 const BG_COLORS = [
-  { hex: '#FFFFFF', uses: 11, role: 'Card surface', dark: false, issue: null },
+  { hex: '#FFFFFF', uses: 20, role: 'Card surface', dark: false, issue: null },
   { hex: '#F7F8FA', uses: 24, role: 'Page background', dark: false, issue: 'Very close to #FAFAFA' },
   { hex: '#FAFAFA', uses: 7, role: 'Page background alt', dark: false, issue: 'Nearly identical to #F7F8FA — merge' },
   { hex: '#F5F5F5', uses: 36, role: 'Input / hover surface', dark: false, issue: 'Close to #F0F0F0' },
   { hex: '#F0F0F0', uses: 51, role: 'Skeleton / divider', dark: false, issue: 'Close to #F5F5F5' },
-  { hex: '#121212', uses: 26, role: 'Page background (dark)', dark: true, issue: null },
-  { hex: '#1C1C1E', uses: 53, role: 'Card surface (dark)', dark: true, issue: null },
+  { hex: '#1C1C1E', uses: 52, role: 'Card surface (dark)', dark: true, issue: null },
   { hex: '#2C2C2E', uses: 134, role: 'Secondary surface (dark)', dark: true, issue: 'Most used bg — needs token' },
   { hex: '#3A3A3C', uses: 42, role: 'Interactive / border (dark)', dark: true, issue: null },
 ]
@@ -36,35 +35,35 @@ const BORDER_COLORS = [
 ]
 
 const ACCENT_COLORS = [
-  { hex: '#3D3BF3', uses: 66, role: 'Primary action — brand indigo', issue: null },
+  { hex: '#3D3BF3', uses: 65, role: 'Primary action — brand indigo', issue: null },
   { hex: '#991B1B', uses: 10, role: 'Danger / error', issue: null },
   { hex: '#16A34A', uses: 9, role: 'Success', issue: null },
   { hex: '#92400E', uses: 3, role: 'Warning', issue: null },
 ]
 
 const FONT_SIZES = [
-  { size: '10px', cls: 'text-[10px]', uses: 5, role: 'Badge labels, tiny captions' },
+  { size: '10px', cls: 'text-[10px]', uses: 4, role: 'Badge labels, tiny captions' },
   { size: '11px', cls: 'text-[11px]', uses: 39, role: 'Section headers (uppercase)' },
   { size: '12px', cls: 'text-xs', uses: 41, role: 'Small secondary text' },
   { size: '13px', cls: 'text-[13px]', uses: 53, role: 'Compact labels' },
   { size: '14px', cls: 'text-sm', uses: 70, role: 'Body text, menu items' },
   { size: '15px', cls: 'text-[15px]', uses: 17, role: 'Emphasis text' },
   { size: '16px', cls: 'text-base / text-[16px]', uses: 24, role: 'Default body' },
-  { size: '17px', cls: 'text-[17px]', uses: 25, role: 'Card titles, headings' },
+  { size: '17px', cls: 'text-[17px]', uses: 24, role: 'Card titles, headings' },
   { size: '22px', cls: 'text-[22px]', uses: 5, role: 'Modal title, large stat' },
   { size: '28px', cls: 'text-[28px]', uses: 4, role: 'Page title, hero stat' },
-  { size: '45px', cls: 'text-[45px]', uses: 3, role: 'Empty-state hero headline' },
+  { size: '45px', cls: 'text-[45px]', uses: 4, role: 'Empty-state hero headline' },
 ]
 
 const RADIUS_VALUES = [
   { cls: 'rounded-md', px: '10px', uses: 23, role: 'Badges, small chips' },
   { cls: 'rounded-lg', px: '14px', uses: 13, role: 'Small containers' },
   { cls: 'rounded-xl', px: '18px', uses: 45, role: 'Inputs, buttons, cards' },
-  { cls: 'rounded-2xl', px: '28px', uses: 63, role: 'Cards, modals' },
-  { cls: 'rounded-3xl', px: '32px', uses: 2, role: 'Hero cards' },
-  { cls: 'rounded-[16px]', px: '16px', uses: 6, role: 'Platform logo tiles (one-off)' },
-  { cls: 'rounded-t-*', px: '32px top', uses: 5, role: 'Bottom sheets / half-modals' },
-  { cls: 'rounded-full', px: '9999px', uses: 88, role: 'Pills, avatars, FABs, close buttons' },
+  { cls: 'rounded-2xl', px: '28px', uses: 60, role: 'Cards, modals' },
+  { cls: 'rounded-3xl', px: '32px', uses: 3, role: 'Hero cards' },
+  { cls: 'rounded-[16px]', px: '16px', uses: 8, role: 'Platform logo tiles (one-off)' },
+  { cls: 'rounded-t-*', px: '32px top', uses: 4, role: 'Bottom sheets / half-modals' },
+  { cls: 'rounded-full', px: '9999px', uses: 89, role: 'Pills, avatars, FABs, close buttons' },
 ]
 
 const FINDINGS = [
@@ -138,7 +137,7 @@ export default function StyleAuditClient() {
             ['3', 'Fixes aplicados ✓'],
             ['6', 'Borders redundantes'],
             ['11', 'Font sizes distintos'],
-            ['66', '#3D3BF3 hardcoded'],
+            ['65', '#3D3BF3 hardcoded'],
           ].map(([n, label]) => (
             <div key={label} className="bg-white dark:bg-[#1C1C1E] border border-[#E8E8E8] dark:border-[#2C2C2E] rounded-xl px-4 py-2">
               <p className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-none">{n}</p>
@@ -245,7 +244,7 @@ export default function StyleAuditClient() {
             { w: 'font-medium', label: '500 Medium', uses: 51 },
             { w: 'font-semibold', label: '600 Semibold', uses: 84 },
             { w: 'font-bold', label: '700 Bold', uses: 50 },
-            { w: 'font-extrabold', label: '800 Extrabold', uses: 3 },
+            { w: 'font-extrabold', label: '800 Extrabold', uses: 4 },
           ].map((fw, i, arr) => (
             <div key={fw.w} className={`flex items-center gap-4 px-5 py-3 ${i < arr.length - 1 ? 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]' : ''}`}>
               <span className={`${fw.w} text-[17px] text-[#121212] dark:text-[#F2F2F7] w-40 flex-shrink-0`}>Perezoso</span>
