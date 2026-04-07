@@ -236,7 +236,7 @@ export default function LoginScreen() {
             {SLIDES.map((s, i) => (
               <div key={i} data-measure>
                 <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">{s.title}</h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed mb-5">{s.body}</p>
+                <p className="text-[15px] text-[#424242] leading-relaxed mb-10">{s.body}</p>
               </div>
             ))}
           </div>
