@@ -113,8 +113,8 @@ export default function LoginScreen() {
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
-    setTextHeight(max)
-  }, []) // 1 = forward, -1 = back
+    setTextHeight(max + 8) // +8px breathing room
+  }, [])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -227,8 +227,12 @@ export default function LoginScreen() {
         style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
       >
         <div className="w-full max-w-sm mx-auto">
-          {/* Hidden measurement: render all 4 slide texts to find tallest */}
-          <div ref={measureRef} className="absolute invisible pointer-events-none w-full max-w-sm" aria-hidden>
+          {/* Hidden measurement: render all 4 slide texts in-flow (correct width), h-0 so no space taken */}
+          <div
+            ref={measureRef}
+            style={{ height: 0, overflow: 'visible', visibility: 'hidden', pointerEvents: 'none' }}
+            aria-hidden
+          >
             {SLIDES.map((s, i) => (
               <div key={i} data-measure>
                 <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">{s.title}</h1>
