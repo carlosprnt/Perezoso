@@ -53,6 +53,33 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        {/* iOS PWA splash screens */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        {/* iPhone SE (2nd/3rd gen) */}
+        <link rel="apple-touch-startup-image" href="/splash?w=750&h=1334" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)" />
+        {/* iPhone 8 Plus / 7 Plus / 6s Plus */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1242&h=2208" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone X / XS / 11 Pro / 12 mini / 13 mini */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1125&h=2436" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone XR / 11 */}
+        <link rel="apple-touch-startup-image" href="/splash?w=828&h=1792" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2)" />
+        {/* iPhone XS Max / 11 Pro Max */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1242&h=2688" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 12 / 12 Pro / 13 / 13 Pro / 14 */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1170&h=2532" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 12 Pro Max / 13 Pro Max / 14 Plus */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1284&h=2778" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 14 Pro */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1179&h=2556" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 14 Pro Max / 15 Plus */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1290&h=2796" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 15 / 15 Pro */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1179&h=2556" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 15 Pro Max / 16 Plus */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1320&h=2868" media="(device-width:440px) and (device-height:956px) and (-webkit-device-pixel-ratio:3)" />
+        {/* iPhone 16 / 16 Pro */}
+        <link rel="apple-touch-startup-image" href="/splash?w=1206&h=2622" media="(device-width:402px) and (device-height:874px) and (-webkit-device-pixel-ratio:3)" />
       </head>
       <body><ThemeProvider><AnalyticsProvider>{children}</AnalyticsProvider></ThemeProvider></body>
     </html>
