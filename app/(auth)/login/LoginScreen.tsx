@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useLayoutEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ChevronRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
@@ -103,6 +103,10 @@ export default function LoginScreen() {
   const measureRef = useRef<HTMLDivElement>(null)
   const [textHeight, setTextHeight] = useState<number | undefined>(undefined)
 
+  // Scroll-up gesture on image: scales to 0.98 at max travel
+  const panY = useMotionValue(0)
+  const imgScale = useTransform(panY, [-50, 0], [0.98, 1])
+
   useLayoutEffect(() => {
     if (!measureRef.current) return
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
@@ -170,12 +174,12 @@ export default function LoginScreen() {
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
       <motion.div
         className="absolute top-[80px] left-5 right-5 h-[600px] z-0"
-        drag="y"
-        dragConstraints={{ top: -70, bottom: 0 }}
-        dragElastic={{ top: 0.25, bottom: 0 }}
-        dragMomentum={false}
-        whileDrag={{ cursor: 'grabbing' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        style={{ scale: imgScale }}
+        onPan={(_, info) => {
+          if (info.delta.y < 0 || panY.get() < 0)
+            panY.set(Math.max(-50, Math.min(0, panY.get() + info.delta.y)))
+        }}
+        onPanEnd={() => animate(panY, 0, { type: 'spring', stiffness: 320, damping: 30 })}
       >
         <AnimatePresence mode="wait" custom={direction}>
           {slide < SLIDES.length ? (
