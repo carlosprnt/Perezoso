@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
@@ -122,20 +122,6 @@ export default function LoginScreen() {
     setTextHeight(max + 8)
   }, [])
 
-  // Darken iOS status bar (theme-color) in sync with the sheet backdrop animation
-  useEffect(() => {
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (!meta) return
-    const original = meta.content
-    if (sheetOpen) {
-      meta.content = '#000000'
-    } else {
-      // Delay restore until after the exit animation (200ms) finishes
-      const t = setTimeout(() => { meta.content = original }, 250)
-      return () => clearTimeout(t)
-    }
-    return () => { meta.content = original }
-  }, [sheetOpen])
 
   function go(to: number) {
     if (to === slide || to < 0 || to >= totalSlides) return
@@ -355,12 +341,12 @@ export default function LoginScreen() {
         {sheetOpen && (
           <motion.div
             key="sheet-backdrop"
-            initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
-            animate={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
-            exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
             className="fixed left-0 right-0 bottom-0 z-[200]"
-            style={{ top: '-100px' }}
+            style={{ top: '-200px', background: 'rgba(0,0,0,0.5)' }}
             onClick={() => !isLoading && setSheetOpen(false)}
           />
         )}
