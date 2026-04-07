@@ -122,12 +122,18 @@ export default function LoginScreen() {
     setTextHeight(max + 8)
   }, [])
 
-  // Darken iOS status bar when the sheet is open
+  // Darken iOS status bar (theme-color) in sync with the sheet backdrop animation
   useEffect(() => {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
     if (!meta) return
     const original = meta.content
-    meta.content = sheetOpen ? '#1a1a1a' : original
+    if (sheetOpen) {
+      meta.content = '#000000'
+    } else {
+      // Delay restore until after the exit animation (200ms) finishes
+      const t = setTimeout(() => { meta.content = original }, 250)
+      return () => clearTimeout(t)
+    }
     return () => { meta.content = original }
   }, [sheetOpen])
 
@@ -353,7 +359,8 @@ export default function LoginScreen() {
             animate={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
             exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200]"
+            className="fixed left-0 right-0 bottom-0 z-[200]"
+            style={{ top: '-100px' }}
             onClick={() => !isLoading && setSheetOpen(false)}
           />
         )}
