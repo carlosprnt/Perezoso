@@ -173,6 +173,14 @@ export default function LoginScreen() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      {/* ── Preload all slide images so transitions are instant ── */}
+      <div className="hidden" aria-hidden>
+        {SLIDES.map(s => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={s.image} src={s.image} alt="" />
+        ))}
+      </div>
+
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
       <motion.div
         className="absolute top-[80px] left-5 right-5 h-[600px] z-0"
