@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
@@ -114,8 +114,17 @@ export default function LoginScreen() {
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
-    setTextHeight(max + 8) // +8px breathing room
+    setTextHeight(max + 8)
   }, [])
+
+  // Darken iOS status bar when the sheet is open
+  useEffect(() => {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (!meta) return
+    const original = meta.content
+    meta.content = sheetOpen ? '#1a1a1a' : original
+    return () => { meta.content = original }
+  }, [sheetOpen])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
