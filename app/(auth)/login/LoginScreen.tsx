@@ -103,11 +103,11 @@ export default function LoginScreen() {
   const measureRef = useRef<HTMLDivElement>(null)
   const [textHeight, setTextHeight] = useState<number | undefined>(undefined)
 
-  // Scroll-up gesture on image: scales + rotates at max travel (150px)
-  const panY    = useMotionValue(0)
-  const imgScale  = useTransform(panY, [-150, 0], [0.98, 1])
-  const imgY      = useTransform(panY, [-150, 0], [-150, 0])
-  const imgRotate = useTransform(panY, [-150, 0], [15, 0])
+  // Scroll-up gesture on image: scales + rotates at max travel (400px)
+  const panY      = useMotionValue(0)
+  const imgScale  = useTransform(panY, [-400, 0], [0.98, 1])
+  const imgY      = useTransform(panY, [-400, 0], [-400, 0])
+  const imgRotate = useTransform(panY, [-400, 0], [15, 0])
 
   useLayoutEffect(() => {
     if (!measureRef.current) return
@@ -176,12 +176,12 @@ export default function LoginScreen() {
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
       <motion.div
         className="absolute top-[80px] left-5 right-5 h-[600px] z-0"
-        style={{ scale: imgScale, y: imgY, rotate: imgRotate }}
+        style={{ scale: imgScale, y: imgY, rotate: imgRotate, touchAction: 'none' }}
         onPan={(_, info) => {
           if (info.delta.y < 0 || panY.get() < 0)
-            panY.set(Math.max(-150, Math.min(0, panY.get() + info.delta.y)))
+            panY.set(Math.max(-400, Math.min(0, panY.get() + info.delta.y)))
         }}
-        onPanEnd={() => animate(panY, 0, { type: 'spring', stiffness: 320, damping: 30 })}
+        onPanEnd={() => animate(panY, 0, { type: 'spring', stiffness: 220, damping: 28 })}
       >
         <AnimatePresence mode="wait" custom={direction}>
           {slide < SLIDES.length ? (
