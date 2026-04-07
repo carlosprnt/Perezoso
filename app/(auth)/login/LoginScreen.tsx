@@ -221,7 +221,7 @@ export default function LoginScreen() {
 
       {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-6 z-10 rounded-t-[28px]"
+        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-6 z-10 rounded-t-[40px]"
         style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
       >
         <div className="w-full max-w-sm mx-auto">
