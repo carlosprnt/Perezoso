@@ -169,12 +169,11 @@ export default function LoginScreen() {
       if (!heroRef.current) return
       const el = heroRef.current.querySelector<HTMLElement>(`[data-slug="${logo.slug}"]`)
       if (!el) return
-      const dy = -(18 + Math.random() * 44)
-      const dx = (Math.random() - 0.5) * 28
-      animate(el, { y: [0, dy, 0], x: [0, dx, 0] }, {
-        duration: 0.5 + Math.random() * 0.35,
+      const peak = 1.25 + Math.random() * 0.35   // scale up to 1.25–1.60
+      animate(el, { scale: [1, peak, 1] }, {
+        duration: 0.45 + Math.random() * 0.3,
         ease: [0.34, 1.56, 0.64, 1],
-        delay: Math.random() * 0.1,
+        delay: Math.random() * 0.12,
       })
     })
   }
