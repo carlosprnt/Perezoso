@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
@@ -25,10 +25,30 @@ const FLOATING_LOGOS: FloatingLogo[] = [
   { slug: 'disneyplus', name: 'Disney+',    left: '68%', top: '58%', size: 52, floatIdx: 2, floatDur: 2.5, floatDelay: 0.2, exitX: -85,  exitScale: 0.30 },
   { slug: 'icloud',     name: 'iCloud',     left: '8%',  top: '71%', size: 44, floatIdx: 4, floatDur: 3.0, floatDelay: 0.7, exitX: -110, exitScale: 0.55 },
   { slug: 'github',     name: 'GitHub',     left: '54%', top: '77%', size: 46, floatIdx: 6, floatDur: 2.9, floatDelay: 0.4, exitX: -80,  exitScale: 0.40 },
-  { slug: 'appletv',    name: 'Apple TV+',  left: '36%', top: '2%',  size: 42, floatIdx: 7, floatDur: 3.2, floatDelay: 0.6, exitX: -95,  exitScale: 0.35 },
+  { slug: 'figma',      name: 'Figma',      left: '36%', top: '2%',  size: 42, floatIdx: 7, floatDur: 3.2, floatDelay: 0.6, exitX: -95,  exitScale: 0.35 },
   { slug: 'duolingo',   name: 'Duolingo',   left: '14%', top: '27%', size: 44, floatIdx: 3, floatDur: 2.7, floatDelay: 0.9, exitX: -105, exitScale: 0.45 },
   { slug: 'revolut',    name: 'Revolut',    left: '52%', top: '11%', size: 40, floatIdx: 6, floatDur: 3.4, floatDelay: 0.1, exitX: -70,  exitScale: 0.50 },
 ]
+
+function FloatingLogoTile({ logo }: { logo: FloatingLogo }) {
+  const [failed, setFailed] = useState(false)
+  const onError = useCallback(() => setFailed(true), [])
+  if (failed) return null
+  return (
+    <div
+      className="bg-white rounded-[14px] flex items-center justify-center border border-[#E8E8E8] shadow-[0_4px_14px_rgba(0,0,0,0.09)]"
+      style={{ width: logo.size, height: logo.size }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`https://cdn.simpleicons.org/${logo.slug}`}
+        alt={logo.name}
+        style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+        onError={onError}
+      />
+    </div>
+  )
+}
 
 const floatingLogoVariants = {
   enter: { opacity: 0, scale: 0.4 },
@@ -274,17 +294,7 @@ export default function LoginScreen() {
                     animation: `logo-float-${logo.floatIdx} ${logo.floatDur}s ease-in-out ${logo.floatDelay}s infinite`,
                   }}
                 >
-                  <div
-                    className="bg-white rounded-[14px] flex items-center justify-center border border-[#E8E8E8] shadow-[0_4px_14px_rgba(0,0,0,0.09)]"
-                    style={{ width: logo.size, height: logo.size }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://cdn.simpleicons.org/${logo.slug}`}
-                      alt={logo.name}
-                      style={{ width: '60%', height: '60%', objectFit: 'contain' }}
-                    />
-                  </div>
+                  <FloatingLogoTile logo={logo} />
                 </motion.div>
               ))}
             </motion.div>
