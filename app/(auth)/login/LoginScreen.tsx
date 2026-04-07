@@ -154,106 +154,118 @@ export default function LoginScreen() {
 
   return (
     <div
-      className="relative min-h-[100dvh] bg-white overflow-x-hidden flex flex-col"
+      className="fixed inset-0 overflow-hidden"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Slides */}
-      <div className="flex-1 flex flex-col px-6 pt-10">
+      {/* ── Image / logo – upper area, never causes scroll ── */}
+      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-center justify-center pt-10 overflow-hidden">
         <AnimatePresence mode="wait">
           {slide < SLIDES.length ? (
-            <motion.div
-              key={`slide-${slide}`}
+            <motion.img
+              key={`img-${slide}`}
+              src={SLIDES[slide].image}
+              alt=""
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-w-sm mx-auto flex flex-col items-center text-center flex-1"
-            >
-              {/* Screenshot fills the upper space and pushes the text toward the CTAs */}
-              <div className="flex-1 w-full flex items-center justify-center min-h-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={SLIDES[slide].image}
-                  alt=""
-                  className="max-h-full w-[240px] max-w-[60vw] h-auto rounded-[28px] shadow-[0_18px_48px_rgba(0,0,0,0.14)]"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
-                />
-              </div>
-              <div className="w-full mt-6">
-                <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
-                  {SLIDES[slide].title}
-                </h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed">
-                  {SLIDES[slide].body}
-                </p>
-              </div>
-            </motion.div>
+              className="w-[240px] max-w-[60vw] h-auto max-h-full rounded-[28px]"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+            />
           ) : (
             <motion.div
-              key="slide-login"
+              key="img-login"
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-w-sm mx-auto flex flex-col items-center text-center flex-1"
+              className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             >
-              <div className="flex-1 w-full flex items-center justify-center min-h-0">
-                <div className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-                  <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
-                </div>
-              </div>
-              <div className="w-full mt-6">
-                <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
-                  Empieza ahora
-                </h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed mb-6">
-                  Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
-                </p>
-                <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
-              </div>
+              <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Dots + CTA */}
+      {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
       <div
-        className="px-6 pb-8 pt-4 flex flex-col items-center gap-5"
+        className="fixed bottom-0 left-0 right-0 px-6"
         style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-center gap-1.5">
-          {Array.from({ length: totalSlides }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`Ir a la pantalla ${i + 1}`}
-              className="h-2 rounded-full transition-all"
-              style={{
-                width: i === slide ? 24 : 8,
-                backgroundColor: i === slide ? '#3D3BF3' : '#E8E8E8',
-              }}
-            />
-          ))}
-        </div>
+        <div className="w-full max-w-sm mx-auto">
+          {/* Text block */}
+          <AnimatePresence mode="wait">
+            {slide < SLIDES.length ? (
+              <motion.div
+                key={`text-${slide}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
+                  {SLIDES[slide].title}
+                </h1>
+                <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
+                  {SLIDES[slide].body}
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="text-login"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
+                  Empieza ahora
+                </h1>
+                <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
+                  Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {slide < SLIDES.length ? (
-          <div className="w-full max-w-sm flex items-center gap-3">
-            <button
-              onClick={openSignIn}
-              className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#121212] active:bg-[#F2F2F7] transition-colors"
-            >
-              Iniciar sesión
-            </button>
-            <button
-              onClick={next}
-              className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1"
-            >
-              Continuar
-              <ChevronRight size={16} />
-            </button>
+          {/* Dots */}
+          <div className="flex items-center gap-1.5 mb-4">
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Ir a la pantalla ${i + 1}`}
+                className="h-2 rounded-full transition-all"
+                style={{
+                  width: i === slide ? 24 : 8,
+                  backgroundColor: i === slide ? '#3D3BF3' : '#E8E8E8',
+                }}
+              />
+            ))}
           </div>
-        ) : null}
+
+          {/* CTA buttons */}
+          {slide < SLIDES.length ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={openSignIn}
+                className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#121212] active:bg-[#F2F2F7] transition-colors"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={next}
+                className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1.5"
+              >
+                Continuar
+                <ChevronRight size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+          ) : (
+            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+          )}
+        </div>
       </div>
 
       {/* ── Sign-in half modal ─────────────────────────────────────────── */}
