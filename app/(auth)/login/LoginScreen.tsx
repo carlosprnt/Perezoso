@@ -158,8 +158,8 @@ export default function LoginScreen() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* ── Image / logo – upper area, never causes scroll ── */}
-      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-start justify-center px-5 pt-[120px] overflow-hidden">
+      {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
+      <div className="absolute top-[120px] left-5 right-5 h-[600px] z-0 overflow-hidden rounded-[28px] pointer-events-none">
         <AnimatePresence mode="wait">
           {slide < SLIDES.length ? (
             <motion.img
@@ -170,7 +170,7 @@ export default function LoginScreen() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-h-full h-auto object-contain rounded-[28px]"
+              className="absolute inset-0 w-full h-full object-cover"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
           ) : (
@@ -180,9 +180,11 @@ export default function LoginScreen() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+              className="absolute inset-0 flex items-center justify-center"
             >
-              <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
+              <div className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+                <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -190,7 +192,7 @@ export default function LoginScreen() {
 
       {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
       <div
-        className="fixed bottom-0 left-0 right-0 px-6"
+        className="fixed bottom-0 left-0 right-0 px-6 z-10"
         style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
       >
         <div className="w-full max-w-sm mx-auto">
