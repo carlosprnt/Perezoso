@@ -12,6 +12,7 @@ import { AlertCircle, Bell, ChevronsUpDown, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { subscriptionToastBus } from '@/lib/subscriptionToastBus'
 import type { Subscription, BillingPeriod, SubscriptionStatus, UserShareMode, Category } from '@/types'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 import { getPrefilledPlatformValues } from '@/lib/constants/platforms'
@@ -398,10 +399,16 @@ export default function SubscriptionForm({
       if (mode === 'create') {
         // isFirst is derived in PostHog via a first-time-event cohort.
         AnalyticsEvents.subscriptionCreated(analyticsProps, false)
+        subscriptionToastBus.emit('created')
+        onCancel?.()
+        const newId = (result as { id?: string })?.id
+        router.push(successRedirect ?? `/subscriptions?new=${newId ?? ''}`)
       } else {
         AnalyticsEvents.subscriptionUpdated({ subscription_id: subscription!.id, ...analyticsProps })
+        subscriptionToastBus.emit('updated')
+        onCancel?.()
+        router.push('/subscriptions')
       }
-      onCancel?.()
     })
   }
 
@@ -420,6 +427,10 @@ export default function SubscriptionForm({
         subscription_name: subscription!.name,
         category: subscription!.category,
       })
+      subscriptionToastBus.emit('deleted')
+      // Navigate after the toast has had a moment to show.
+      // The host component in the layout survives the navigation.
+      setTimeout(() => router.push('/subscriptions'), 1600)
     })
   }
 
@@ -891,6 +902,7 @@ export default function SubscriptionForm({
           </div>
         </div>
       )}
+
     </form>
   )
 }

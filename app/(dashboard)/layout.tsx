@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
+import SubscriptionToastHost from '@/components/dashboard/SubscriptionToastHost'
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider'
 import { detectLocale } from '@/lib/i18n/translations'
 import type { Profile } from '@/types'
@@ -34,7 +35,11 @@ export default async function DashboardLayout({
 
   return (
     <LocaleProvider locale={detectedLocale}>
-      <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#121212]">
+      {/* pt-[env(safe-area-inset-top)]: with black-translucent status bar the
+          system background is removed and web content fills the whole screen.
+          This padding reserves the notch/Dynamic Island height so app content
+          starts below the status bar icons. */}
+      <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#121212] pt-[env(safe-area-inset-top)]">
         <Sidebar profile={profile as Profile | null} />
 
         {/* Main content — offset by sidebar width on desktop */}
@@ -46,6 +51,8 @@ export default async function DashboardLayout({
 
         {/* Floating pill nav — mobile only */}
         <FloatingNav />
+        {/* Toast host — survives sheet/form unmount */}
+        <SubscriptionToastHost />
       </div>
     </LocaleProvider>
   )
