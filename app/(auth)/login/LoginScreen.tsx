@@ -339,28 +339,31 @@ export default function LoginScreen() {
     </div>
 
     {/*
-      ── Sign-in modal — two independent fixed layers ──────────────────────
-      Backdrop and panel are siblings, not parent/child.
-      • Backdrop: fixed inset-0, color set via CSS class (never via animated
-        property — Framer Motion backgroundColor doesn't paint reliably on
-        iOS composited layers). Only opacity is animated.
-      • Panel: separate fixed element at z-[201], animates y independently.
-      No parent wrapper → no stacking context, overflow, flex, or transform
-      that could clip or limit the backdrop's coverage.
+      ── Sign-in modal ──────────────────────────────────────────────────────
+      Two independent fixed siblings. Backdrop uses a plain CSS transition
+      (not Framer Motion) because Framer Motion's initial/animate opacity
+      cycle on a freshly-mounted element does not reliably fire on iOS
+      Safari PWA — the element stays at opacity:0 indefinitely, leaving
+      the backdrop invisible. CSS transitions are executed by the browser
+      compositor and never miss on iOS.
+
+      Backdrop is always in the DOM; opacity and pointer-events are driven
+      by the sheetOpen boolean. Panel uses Framer Motion spring (transform
+      animations are reliable on iOS; only opacity/filter ones are flaky).
     */}
-    <AnimatePresence>
-      {sheetOpen && (
-        <motion.div
-          key="backdrop"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[200] bg-black/50"
-          onClick={() => !isLoading && setSheetOpen(false)}
-        />
-      )}
-    </AnimatePresence>
+
+    {/* Backdrop: CSS transition, always mounted */}
+    <div
+      className="fixed inset-0 z-[200] bg-black/50"
+      style={{
+        opacity:       sheetOpen ? 1 : 0,
+        transition:    'opacity 0.25s linear',
+        pointerEvents: sheetOpen ? 'auto' : 'none',
+      }}
+      onClick={() => !isLoading && setSheetOpen(false)}
+    />
+
+    {/* Panel: Framer Motion spring on transform only */}
     <AnimatePresence>
       {sheetOpen && (
         <motion.div
