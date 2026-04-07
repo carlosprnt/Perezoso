@@ -170,6 +170,7 @@ export default function LoginScreen() {
   }
 
   return (
+    <>
     <div
       className="fixed inset-0 overflow-hidden"
       onTouchStart={onTouchStart}
@@ -335,48 +336,49 @@ export default function LoginScreen() {
         </div>
       </div>
 
-      {/* ── Sign-in half modal ─────────────────────────────────────────── */}
-      {/* Backdrop and sheet are siblings so their exit animations are fully independent */}
-      <AnimatePresence>
-        {sheetOpen && (
-          <motion.div
-            key="sheet-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed left-0 right-0 bottom-0 z-[200]"
-            style={{ top: '-200px', background: 'rgba(0,0,0,0.5)' }}
-            onClick={() => !isLoading && setSheetOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {sheetOpen && (
-          <motion.div
-            key="sheet-panel"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-            className="fixed bottom-0 left-0 right-0 z-[201] w-full max-w-xl mx-auto bg-white rounded-t-[32px] px-5 pt-4 pb-6"
-            style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[17px] font-semibold text-[#121212]">Iniciar sesión</h3>
-              <button
-                onClick={() => setSheetOpen(false)}
-                disabled={isLoading}
-                className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#616161] active:bg-[#E8E8E8] transition-colors"
-                aria-label="Cerrar"
-              >
-                <X size={16} strokeWidth={2.5} />
-              </button>
-            </div>
-            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
+
+    {/* ── Sign-in half modal — outside the overflow:hidden root to avoid iOS clipping ── */}
+    <AnimatePresence>
+      {sheetOpen && (
+        <motion.div
+          key="sheet-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[200]"
+          style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => !isLoading && setSheetOpen(false)}
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {sheetOpen && (
+        <motion.div
+          key="sheet-panel"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          className="fixed bottom-0 left-0 right-0 z-[201] w-full max-w-xl mx-auto bg-white rounded-t-[32px] px-5 pt-4 pb-6"
+          style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[17px] font-semibold text-[#121212]">Iniciar sesión</h3>
+            <button
+              onClick={() => setSheetOpen(false)}
+              disabled={isLoading}
+              className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#616161] active:bg-[#E8E8E8] transition-colors"
+              aria-label="Cerrar"
+            >
+              <X size={16} strokeWidth={2.5} />
+            </button>
+          </div>
+          <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   )
 }
