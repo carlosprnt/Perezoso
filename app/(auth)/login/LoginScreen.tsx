@@ -158,7 +158,15 @@ export default function LoginScreen() {
       onTouchEnd={onTouchEnd}
     >
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
-      <div className="absolute top-[80px] left-5 right-5 h-[600px] z-0 pointer-events-none">
+      <motion.div
+        className="absolute top-[80px] left-5 right-5 h-[600px] z-0"
+        drag="y"
+        dragConstraints={{ top: -70, bottom: 0 }}
+        dragElastic={{ top: 0.25, bottom: 0 }}
+        dragMomentum={false}
+        whileDrag={{ cursor: 'grabbing' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      >
         <AnimatePresence mode="wait" custom={direction}>
           {slide < SLIDES.length ? (
             <motion.img
@@ -175,7 +183,7 @@ export default function LoginScreen() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.28, ease: [0.42, 0, 0.58, 1] }}
-              className="absolute inset-0 w-full h-full object-cover object-top"
+              className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
           ) : (
@@ -185,7 +193,7 @@ export default function LoginScreen() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
               <div className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
                 <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
@@ -193,7 +201,7 @@ export default function LoginScreen() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
       <div
