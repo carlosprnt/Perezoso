@@ -99,10 +99,18 @@ function AuthButtons({
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function LoginScreen() {
   const [slide, setSlide] = useState(0)
+  const [direction, setDirection] = useState<1 | -1>(1) // 1 = forward, -1 = back
   const [sheetOpen, setSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const totalSlides = SLIDES.length + 1 // +1 for the final login slide
+
+  function go(to: number) {
+    if (to === slide || to < 0 || to >= totalSlides) return
+    setDirection(to > slide ? 1 : -1)
+    haptics.selection()
+    setSlide(to)
+  }
 
   async function handleGoogleLogin() {
     if (isLoading) return
@@ -129,17 +137,8 @@ export default function LoginScreen() {
     setSheetOpen(true)
   }
 
-  function next() {
-    if (slide < totalSlides - 1) {
-      haptics.selection()
-      setSlide(slide + 1)
-    }
-  }
-
-  function goTo(i: number) {
-    if (i !== slide) haptics.selection()
-    setSlide(i)
-  }
+  function next() { go(slide + 1) }
+  function goTo(i: number) { go(i) }
 
   // Touch swipe handling
   const [touchStart, setTouchStart] = useState<number | null>(null)
@@ -147,8 +146,8 @@ export default function LoginScreen() {
   function onTouchEnd(e: React.TouchEvent) {
     if (touchStart === null) return
     const delta = e.changedTouches[0].clientX - touchStart
-    if (delta < -50 && slide < totalSlides - 1) setSlide(slide + 1)
-    else if (delta > 50 && slide > 0) setSlide(slide - 1)
+    if (delta < -50) go(slide + 1)
+    else if (delta > 50) go(slide - 1)
     setTouchStart(null)
   }
 
@@ -166,10 +165,10 @@ export default function LoginScreen() {
               key={`img-${slide}`}
               src={SLIDES[slide].image}
               alt=""
-              initial={{ opacity: 0, x: '100%' }}
+              initial={{ opacity: 0, x: direction * 100 + '%' }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '-100%' }}
-              transition={{ duration: 0.5, ease: [0.42, 0, 0.58, 1] }}
+              exit={{ opacity: 0, x: direction * -100 + '%' }}
+              transition={{ duration: 0.28, ease: [0.42, 0, 0.58, 1] }}
               className="absolute inset-0 w-full h-full object-cover object-top"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
