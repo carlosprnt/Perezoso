@@ -344,10 +344,16 @@ export default function LoginScreen() {
             key="perezoso-logo"
             className="absolute pointer-events-none z-[5]"
             style={{
-              // Center between safe-area-top and the ~260 px panel at the bottom
-              top: 'calc(env(safe-area-inset-top) + (100vh - env(safe-area-inset-top) - 260px) / 2)',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
+              /*
+               * Do NOT use transform: translate(-50%,-50%) here — Framer Motion
+               * owns the `transform` property for scale animations and would
+               * override it, pushing the logo off-center.
+               * Instead compute the top-left corner directly:
+               *   horizontal: 50vw − 44px  (half of 88 px logo)
+               *   vertical:   safe-area-top + (visible height − 260px panel) / 2 − 44px
+               */
+              top:  'calc(env(safe-area-inset-top) + (100vh - env(safe-area-inset-top) - 260px) / 2 - 44px)',
+              left: 'calc(50% - 44px)',
             }}
             initial={{ opacity: 0, scale: 0.55 }}
             animate={{ opacity: 1, scale: 1, transition: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1] } }}
