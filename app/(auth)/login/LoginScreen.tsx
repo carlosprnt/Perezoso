@@ -159,7 +159,7 @@ export default function LoginScreen() {
       onTouchEnd={onTouchEnd}
     >
       {/* ── Image / logo – upper area, never causes scroll ── */}
-      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-center justify-center px-5 pt-10 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-start justify-center px-5 pt-[120px] overflow-hidden">
         <AnimatePresence mode="wait">
           {slide < SLIDES.length ? (
             <motion.img
