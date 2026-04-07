@@ -159,7 +159,7 @@ export default function LoginScreen() {
       onTouchEnd={onTouchEnd}
     >
       {/* ── Image / logo – upper area, never causes scroll ── */}
-      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-center justify-center pt-10 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 bottom-[310px] flex items-center justify-center px-5 pt-10 overflow-hidden">
         <AnimatePresence mode="wait">
           {slide < SLIDES.length ? (
             <motion.img
@@ -170,7 +170,7 @@ export default function LoginScreen() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-[240px] max-w-[60vw] h-auto max-h-full rounded-[28px]"
+              className="w-full max-h-full h-auto object-contain rounded-[28px]"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
           ) : (
@@ -236,9 +236,10 @@ export default function LoginScreen() {
                 key={i}
                 onClick={() => goTo(i)}
                 aria-label={`Ir a la pantalla ${i + 1}`}
-                className="h-2 rounded-full transition-all"
+                className="rounded-full transition-all"
                 style={{
-                  width: i === slide ? 24 : 8,
+                  width: i === slide ? 24 : 4,
+                  height: 4,
                   backgroundColor: i === slide ? '#3D3BF3' : '#E8E8E8',
                 }}
               />
