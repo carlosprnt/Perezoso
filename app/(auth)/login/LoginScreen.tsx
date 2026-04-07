@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useLayoutEffect, useCallback } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate, useAnimate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
@@ -161,6 +161,24 @@ export default function LoginScreen() {
   const measureRef = useRef<HTMLDivElement>(null)
   const [textHeight, setTextHeight] = useState<number | undefined>(undefined)
 
+  // Bubble-bounce: tap on slide 0 makes logos jump randomly
+  const [heroScope, animateHero] = useAnimate()
+  function handleHeroTap() {
+    haptics.tap('light')
+    FLOATING_LOGOS.forEach((logo) => {
+      if (!heroScope.current) return
+      const el = heroScope.current.querySelector<HTMLElement>(`[data-slug="${logo.slug}"]`)
+      if (!el) return
+      const dy = -(18 + Math.random() * 44)
+      const dx = (Math.random() - 0.5) * 28
+      animateHero(el, { y: [0, dy, 0], x: [0, dx, 0] }, {
+        duration: 0.5 + Math.random() * 0.35,
+        ease: [0.34, 1.56, 0.64, 1],
+        delay: Math.random() * 0.1,
+      })
+    })
+  }
+
   // Scroll-up gesture on image: scales + rotates at max travel (400px)
   const panY      = useMotionValue(0)
   const imgScale  = useTransform(panY, [-400, 0], [0.98, 1])
@@ -240,18 +258,20 @@ export default function LoginScreen() {
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
       <motion.div
         className="absolute top-[80px] left-5 right-5 h-[600px] z-0"
-        style={{ scale: imgScale, y: imgY, rotate: imgRotate, touchAction: 'none' }}
-        onPan={(_, info) => {
+        style={slide > 0 ? { scale: imgScale, y: imgY, rotate: imgRotate, touchAction: 'none' } : undefined}
+        onPan={slide > 0 ? ((_, info) => {
           if (info.delta.y < 0 || panY.get() < 0)
             panY.set(Math.max(-400, Math.min(0, panY.get() + info.delta.y)))
-        }}
-        onPanEnd={() => animate(panY, 0, { type: 'spring', stiffness: 220, damping: 28 })}
+        }) : undefined}
+        onPanEnd={slide > 0 ? (() => animate(panY, 0, { type: 'spring', stiffness: 220, damping: 28 })) : undefined}
+        onClick={slide === 0 ? handleHeroTap : undefined}
       >
         <AnimatePresence mode="wait" custom={direction}>
           {slide === 0 ? (
             /* ── Slide 0: Perezoso logo + floating service logos ── */
             <motion.div
               key="hero-0"
+              ref={heroScope}
               className="absolute inset-0"
               variants={{
                 enter: {},
@@ -284,10 +304,11 @@ export default function LoginScreen() {
               {FLOATING_LOGOS.map((logo) => (
                 <motion.div
                   key={logo.slug}
+                  data-slug={logo.slug}
                   custom={logo}
                   variants={floatingLogoVariants}
                   transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
-                  className="absolute pointer-events-none"
+                  className="absolute"
                   style={{
                     left: logo.left,
                     top: logo.top,
