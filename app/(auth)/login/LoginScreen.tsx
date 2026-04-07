@@ -172,7 +172,7 @@ export default function LoginScreen() {
   return (
     <>
     <div
-      className="fixed inset-0 overflow-hidden bg-white"
+      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
