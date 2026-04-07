@@ -127,7 +127,8 @@ export async function deleteSubscription(id: string) {
 
   revalidatePath('/dashboard')
   revalidatePath('/subscriptions')
-  redirect('/subscriptions')
+  // Return success so the client can show a toast before navigating.
+  return { success: true }
 }
 
 // ============================================================
