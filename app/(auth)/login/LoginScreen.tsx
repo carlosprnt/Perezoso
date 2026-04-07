@@ -339,12 +339,11 @@ export default function LoginScreen() {
         {sheetOpen && (
           <motion.div
             key="sheet-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
+            animate={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+            exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[200]"
-            style={{ background: 'rgba(0,0,0,0.45)' }}
             onClick={() => !isLoading && setSheetOpen(false)}
           />
         )}
