@@ -248,7 +248,7 @@ export default function LoginScreen() {
               */}
               <motion.div
                 className="absolute pointer-events-none"
-                style={{ top: '38%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
                 variants={{
                   enter:  { opacity: 0, scale: 0.55 },
                   center: { opacity: 1, scale: 1,   transition: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1] } },
