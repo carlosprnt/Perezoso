@@ -22,7 +22,7 @@ const FLOATING_LOGOS: FloatingLogo[] = [
   { slug: 'spotify',    name: 'Spotify',    left: '66%', top: '4%',  size: 46, floatIdx: 3, floatDur: 3.1, floatDelay: 0.5, exitX: -115, exitScale: 0.50 },
   { slug: 'youtube',    name: 'YouTube',    left: '74%', top: '27%', size: 50, floatIdx: 1, floatDur: 2.8, floatDelay: 0.3, exitX: -75,  exitScale: 0.40 },
   { slug: 'notion',     name: 'Notion',     left: '3%',  top: '47%', size: 44, floatIdx: 5, floatDur: 3.3, floatDelay: 0.8, exitX: -100, exitScale: 0.45 },
-  { slug: 'disneyplus', name: 'Disney+',    left: '68%', top: '58%', size: 52, floatIdx: 2, floatDur: 2.5, floatDelay: 0.2, exitX: -85,  exitScale: 0.30 },
+  { slug: 'twitch',     name: 'Twitch',     left: '68%', top: '58%', size: 52, floatIdx: 2, floatDur: 2.5, floatDelay: 0.2, exitX: -85,  exitScale: 0.30 },
   { slug: 'icloud',     name: 'iCloud',     left: '8%',  top: '71%', size: 44, floatIdx: 4, floatDur: 3.0, floatDelay: 0.7, exitX: -110, exitScale: 0.55 },
   { slug: 'github',     name: 'GitHub',     left: '54%', top: '77%', size: 46, floatIdx: 6, floatDur: 2.9, floatDelay: 0.4, exitX: -80,  exitScale: 0.40 },
   { slug: 'figma',      name: 'Figma',      left: '36%', top: '2%',  size: 42, floatIdx: 7, floatDur: 3.2, floatDelay: 0.6, exitX: -95,  exitScale: 0.35 },
@@ -268,7 +268,7 @@ export default function LoginScreen() {
               */}
               <motion.div
                 className="absolute pointer-events-none"
-                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                style={{ top: '36%', left: '50%', transform: 'translate(-50%, -50%)' }}
                 variants={{
                   enter:  { opacity: 0, scale: 0.55 },
                   center: { opacity: 1, scale: 1,   transition: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1] } },
