@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition, useRef, useMemo, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { createSubscription, updateSubscription, deleteSubscription } from '@/app/(dashboard)/subscriptions/actions'
 import { AnalyticsEvents } from '@/lib/analytics'
@@ -9,10 +8,11 @@ import { createClient } from '@/lib/supabase/client'
 import haptics from '@/lib/haptics'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { CURRENCIES, BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
-import { AlertCircle, Bell, Check, ChevronsUpDown, X } from 'lucide-react'
+import { AlertCircle, Bell, ChevronsUpDown, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { subscriptionToastBus } from '@/lib/subscriptionToastBus'
 import type { Subscription, BillingPeriod, SubscriptionStatus, UserShareMode, Category } from '@/types'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 import { getPrefilledPlatformValues } from '@/lib/constants/platforms'
@@ -173,47 +173,6 @@ function Toggle({
   )
 }
 
-// ─── Subscription action toast ───────────────────────────────────────────────
-
-type ToastKind = 'created' | 'updated' | 'deleted'
-
-const TOAST_LABELS: Record<ToastKind, { es: string; en: string }> = {
-  created: { es: 'Suscripción añadida correctamente',    en: 'Subscription added successfully'   },
-  updated: { es: 'Suscripción actualizada correctamente', en: 'Subscription updated successfully' },
-  deleted: { es: 'Suscripción eliminada correctamente',  en: 'Subscription deleted successfully'  },
-}
-
-function SubscriptionToast({ kind, locale, onDone }: { kind: ToastKind; locale: string; onDone: () => void }) {
-  const [exiting, setExiting] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    timerRef.current = setTimeout(() => {
-      setExiting(true)
-      setTimeout(onDone, 340)
-    }, 3200)
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [onDone])
-
-  const message = TOAST_LABELS[kind][locale === 'es' ? 'es' : 'en']
-
-  return (
-    <div
-      className="fixed top-0 left-0 right-0 z-[999] flex items-center gap-3 px-5 py-4"
-      style={{
-        background: '#00E676',
-        paddingTop: 'calc(16px + env(safe-area-inset-top))',
-        animation: exiting
-          ? 'toast-exit 0.34s cubic-bezier(0.4,0,1,1) forwards'
-          : 'toast-enter 0.38s cubic-bezier(0.22,1,0.36,1) forwards',
-      }}
-    >
-      <Check size={20} strokeWidth={2.5} color="#000" style={{ flexShrink: 0 }} />
-      <p className="text-[14px] font-medium text-black leading-snug flex-1">{message}</p>
-    </div>
-  )
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SubscriptionForm({
@@ -240,9 +199,6 @@ export default function SubscriptionForm({
   const [reminderOn, setReminderOn] = useState(false)
   const [reminderDays, setReminderDays] = useState<1 | 3 | 10>(3)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-  const [toastKind, setToastKind] = useState<ToastKind | null>(null)
-  const [portalMounted, setPortalMounted] = useState(false)
-  useEffect(() => { setPortalMounted(true) }, [])
 
   const prefill = platformPreset ? getPrefilledPlatformValues(platformPreset) : null
 
@@ -443,10 +399,10 @@ export default function SubscriptionForm({
       if (mode === 'create') {
         // isFirst is derived in PostHog via a first-time-event cohort.
         AnalyticsEvents.subscriptionCreated(analyticsProps, false)
-        setToastKind('created')
+        subscriptionToastBus.emit('created')
       } else {
         AnalyticsEvents.subscriptionUpdated({ subscription_id: subscription!.id, ...analyticsProps })
-        setToastKind('updated')
+        subscriptionToastBus.emit('updated')
       }
       onCancel?.()
     })
@@ -467,8 +423,9 @@ export default function SubscriptionForm({
         subscription_name: subscription!.name,
         category: subscription!.category,
       })
-      setToastKind('deleted')
+      subscriptionToastBus.emit('deleted')
       // Navigate after the toast has had a moment to show.
+      // The host component in the layout survives the navigation.
       setTimeout(() => router.push('/subscriptions'), 1600)
     })
   }
@@ -942,15 +899,6 @@ export default function SubscriptionForm({
         </div>
       )}
 
-      {/* ── Success toast — portaled to body so it renders above sheets ── */}
-      {portalMounted && toastKind && createPortal(
-        <SubscriptionToast
-          kind={toastKind}
-          locale={locale}
-          onDone={() => setToastKind(null)}
-        />,
-        document.body,
-      )}
     </form>
   )
 }

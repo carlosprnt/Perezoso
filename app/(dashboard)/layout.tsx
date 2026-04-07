@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
+import SubscriptionToastHost from '@/components/dashboard/SubscriptionToastHost'
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider'
 import { detectLocale } from '@/lib/i18n/translations'
 import type { Profile } from '@/types'
@@ -50,6 +51,8 @@ export default async function DashboardLayout({
 
         {/* Floating pill nav — mobile only */}
         <FloatingNav />
+        {/* Toast host — survives sheet/form unmount */}
+        <SubscriptionToastHost />
       </div>
     </LocaleProvider>
   )
