@@ -8,6 +8,39 @@ import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
 import haptics from '@/lib/haptics'
 
+// ─── Floating logos (slide 0 hero) ───────────────────────────────────────────
+interface FloatingLogo {
+  slug: string; name: string
+  left: string; top: string
+  size: number
+  floatIdx: number; floatDur: number; floatDelay: number
+  exitX: number; exitScale: number
+}
+
+const FLOATING_LOGOS: FloatingLogo[] = [
+  { slug: 'netflix',    name: 'Netflix',    left: '4%',  top: '8%',  size: 52, floatIdx: 0, floatDur: 2.6, floatDelay: 0.0, exitX: -90,  exitScale: 0.35 },
+  { slug: 'spotify',    name: 'Spotify',    left: '66%', top: '4%',  size: 46, floatIdx: 3, floatDur: 3.1, floatDelay: 0.5, exitX: -115, exitScale: 0.50 },
+  { slug: 'youtube',    name: 'YouTube',    left: '74%', top: '27%', size: 50, floatIdx: 1, floatDur: 2.8, floatDelay: 0.3, exitX: -75,  exitScale: 0.40 },
+  { slug: 'notion',     name: 'Notion',     left: '3%',  top: '47%', size: 44, floatIdx: 5, floatDur: 3.3, floatDelay: 0.8, exitX: -100, exitScale: 0.45 },
+  { slug: 'disneyplus', name: 'Disney+',    left: '68%', top: '58%', size: 52, floatIdx: 2, floatDur: 2.5, floatDelay: 0.2, exitX: -85,  exitScale: 0.30 },
+  { slug: 'icloud',     name: 'iCloud',     left: '8%',  top: '71%', size: 44, floatIdx: 4, floatDur: 3.0, floatDelay: 0.7, exitX: -110, exitScale: 0.55 },
+  { slug: 'github',     name: 'GitHub',     left: '54%', top: '77%', size: 46, floatIdx: 6, floatDur: 2.9, floatDelay: 0.4, exitX: -80,  exitScale: 0.40 },
+  { slug: 'appletv',    name: 'Apple TV+',  left: '36%', top: '2%',  size: 42, floatIdx: 7, floatDur: 3.2, floatDelay: 0.6, exitX: -95,  exitScale: 0.35 },
+  { slug: 'duolingo',   name: 'Duolingo',   left: '14%', top: '27%', size: 44, floatIdx: 3, floatDur: 2.7, floatDelay: 0.9, exitX: -105, exitScale: 0.45 },
+  { slug: 'revolut',    name: 'Revolut',    left: '52%', top: '11%', size: 40, floatIdx: 6, floatDur: 3.4, floatDelay: 0.1, exitX: -70,  exitScale: 0.50 },
+]
+
+const floatingLogoVariants = {
+  enter: { opacity: 0, scale: 0.4 },
+  center: { opacity: 1, scale: 1 },
+  exit: (logo: FloatingLogo) => ({
+    opacity: 0,
+    x: logo.exitX,
+    scale: logo.exitScale,
+    filter: 'blur(12px)',
+  }),
+}
+
 // ─── Content ─────────────────────────────────────────────────────────────────
 interface Slide {
   /** Phone screenshot for this step. Drop the files in /public/onboarding/. */
@@ -195,7 +228,59 @@ export default function LoginScreen() {
         onPanEnd={() => animate(panY, 0, { type: 'spring', stiffness: 220, damping: 28 })}
       >
         <AnimatePresence mode="wait" custom={direction}>
-          {slide < SLIDES.length ? (
+          {slide === 0 ? (
+            /* ── Slide 0: Perezoso logo + floating service logos ── */
+            <motion.div
+              key="hero-0"
+              className="absolute inset-0"
+              variants={{
+                enter: { opacity: 0 },
+                center: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+                exit:   { opacity: 0, transition: { duration: 0.25, delay: 0.18, staggerChildren: 0.035 } },
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              {/* Center: Perezoso logo */}
+              <div
+                className="absolute pointer-events-none"
+                style={{ top: '38%', left: '50%', transform: 'translate(-50%, -50%)' }}
+              >
+                <div className="w-[88px] h-[88px] rounded-[24px] overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.18)]">
+                  <Image src="/logo.png" alt="Perezoso" width={88} height={88} className="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              {/* Floating subscription logos */}
+              {FLOATING_LOGOS.map((logo) => (
+                <motion.div
+                  key={logo.slug}
+                  custom={logo}
+                  variants={floatingLogoVariants}
+                  transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: logo.left,
+                    top: logo.top,
+                    animation: `logo-float-${logo.floatIdx} ${logo.floatDur}s ease-in-out ${logo.floatDelay}s infinite`,
+                  }}
+                >
+                  <div
+                    className="bg-white rounded-[14px] flex items-center justify-center border border-[#E8E8E8] shadow-[0_4px_14px_rgba(0,0,0,0.09)]"
+                    style={{ width: logo.size, height: logo.size }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://cdn.simpleicons.org/${logo.slug}`}
+                      alt={logo.name}
+                      style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : slide < SLIDES.length ? (
             <motion.img
               key={`img-${slide}`}
               src={SLIDES[slide].image}
