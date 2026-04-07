@@ -172,7 +172,7 @@ export default function LoginScreen() {
   return (
     <>
     <div
-      className="fixed inset-0 overflow-hidden"
+      className="fixed inset-0 overflow-hidden bg-white"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -343,18 +343,17 @@ export default function LoginScreen() {
       {sheetOpen && (
         <motion.div
           key="sheet"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
+          animate={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-[200] flex items-end justify-center"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
           onClick={() => !isLoading && setSheetOpen(false)}
         >
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: 0 }}
+            exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
             className="w-full max-w-xl bg-white rounded-t-[40px] px-5 pt-4 pb-6"
             style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
