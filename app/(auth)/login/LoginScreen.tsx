@@ -166,10 +166,10 @@ export default function LoginScreen() {
               key={`img-${slide}`}
               src={SLIDES[slide].image}
               alt=""
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: '100%' }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              exit={{ opacity: 0, x: '-100%' }}
+              transition={{ duration: 0.5, ease: [0.42, 0, 0.58, 1] }}
               className="absolute inset-0 w-full h-full object-cover object-top"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
