@@ -48,6 +48,22 @@ export async function setNotificationsEnabled(enabled: boolean) {
 export async function addCustomCategory(name: string) {
   const trimmed = name.trim()
   if (!trimmed) return { error: 'Name required' }
+
+  // Pro gate — custom categories are Pro-only. Check the profile flag
+  // in Supabase (mirrored from RevenueCat via webhook) before mutating.
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', user.id)
+    .single()
+
+  const isPro = !!(profile as { is_pro?: boolean } | null)?.is_pro
+  if (!isPro) return { error: 'custom_categories_pro_required' }
+
   const prefs = await getPreferences()
   if (prefs.custom_categories.includes(trimmed)) return { ok: true as const }
   return mergePreferences({ custom_categories: [...prefs.custom_categories, trimmed] })

@@ -6,6 +6,7 @@ import type { PanInfo } from 'framer-motion'
 import InsightCard from './SavingsOpportunityCard'
 import InsightAllSheet from './InsightAllSheet'
 import SavingsDetailSheet from './SavingsDetailSheet'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import type { SavingsOpportunity } from '@/lib/calculations/savings'
 
 export type CarouselItem =
@@ -25,12 +26,18 @@ interface Props {
 }
 
 export default function SavingsCarousel({ items, opportunities, onReminderActivate, onAllDismissed }: Props) {
+  const gate = useFeatureGate()
   const [dismissed, setDismissed] = useState<Set<number>>(new Set())
   const [detail,    setDetail]    = useState<SavingsOpportunity | null>(null)
   const [showAll,   setShowAll]   = useState(false)
   const [frontIdx,  setFrontIdx]  = useState(0)
   const [isExiting, setIsExiting] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Free users only get to peek at the first 3 savings opportunities.
+  // Pro sees everything. The sheet is gated separately, but if it somehow
+  // opens (e.g. stale Pro state), we still limit what's rendered.
+  const visibleOpportunities = gate.isPro ? opportunities : opportunities.slice(0, 3)
 
   const dragX    = useMotionValue(0)
   const rotation = useTransform(dragX, [-180, 0, 180], [-8, 0, 8])
@@ -83,9 +90,18 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
   }
 
   function handleActivate() {
+    // Renewal reminders are a Pro feature — gate before activating.
+    if (!gate.requirePro('renewal_reminders')) return
     onReminderActivate()
     const idx = items.findIndex(it => it.kind === 'reminder')
     if (idx !== -1) dismiss(idx)
+  }
+
+  function handleShowAll() {
+    // Savings recommendations list is Pro — open the paywall for free
+    // users instead of the full InsightAllSheet.
+    if (!gate.requirePro('savings_recommendations')) return
+    setShowAll(true)
   }
 
   async function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
@@ -165,7 +181,7 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
       <InsightAllSheet
         isOpen={showAll}
         onClose={() => setShowAll(false)}
-        opportunities={opportunities}
+        opportunities={visibleOpportunities}
         onDetail={opp => { setDetail(opp); setShowAll(false) }}
       />
     </>
@@ -188,7 +204,7 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
         kind="totalSavings"
         totalAnnual={item.totalAnnual}
         currency={item.currency}
-        onTap={() => setShowAll(true)}
+        onTap={handleShowAll}
       />
     )
   }

@@ -11,6 +11,7 @@ import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import GmailSubscriptionSearchSheet from '@/components/subscriptions/GmailSubscriptionSearchSheet'
 import { useT } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import haptics from '@/lib/haptics'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
@@ -65,17 +66,29 @@ export default function FloatingNav() {
 
   // SubscriptionsView broadcasts its count via a custom event so we can
   // emphasize the "+" CTA without a second Supabase roundtrip from here.
-  const [hasNoSubs, setHasNoSubs] = useState(false)
+  // We also use the exact count to gate the "+" button against the free
+  // 15-subscription limit.
+  const [subsCount, setSubsCount] = useState<number>(0)
   useEffect(() => {
     function onCount(e: Event) {
       const count = (e as CustomEvent<number>).detail
-      setHasNoSubs(count === 0)
+      setSubsCount(count)
     }
     window.addEventListener('perezoso:subs-count', onCount)
     return () => window.removeEventListener('perezoso:subs-count', onCount)
   }, [])
 
+  const gate = useFeatureGate()
+  const hasNoSubs = subsCount === 0
   const emphasizeAdd = isSubs && hasNoSubs
+
+  function handlePlusTap() {
+    haptics.tap('medium')
+    // Pro gate: free users capped at 15. Opens paywall instead of the
+    // creation sheet when the limit is reached.
+    if (!gate.requireSubscriptionSlot(subsCount)) return
+    setStep('pick')
+  }
 
   // x offset of the sliding bg: Dashboard=0, Subscriptions=1
   const bgX = isSubs ? BTN_W + GAP : 0
@@ -153,7 +166,7 @@ export default function FloatingNav() {
             When the user has no subscriptions yet, it scales to 2x to
             emphasize it as the primary call to action. */}
         <motion.button
-          onClick={() => { haptics.tap('medium'); setStep('pick') }}
+          onClick={handlePlusTap}
           aria-label="Add subscription"
           className="absolute right-4 pointer-events-auto flex items-center justify-center rounded-full bg-[#3D3BF3]"
           style={{
