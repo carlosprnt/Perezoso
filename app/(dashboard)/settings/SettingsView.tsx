@@ -203,7 +203,7 @@ export default function SettingsView({ preferences }: Props) {
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-11 h-11 rounded-[10px] overflow-hidden flex-shrink-0 bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Perezoso" className="w-full h-full object-cover" />
+            <img src="/logo-premium.png" alt="Perezoso Pro" className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-semibold text-[#121212] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
