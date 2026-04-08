@@ -10,12 +10,15 @@ import { isCapacitor, isIOS } from '@/lib/platform'
 
 // Dynamic import keeps the Capacitor plugin out of the web bundle.
 // The package is only installed in the native (Capacitor) build, so we
-// suppress the TS module-not-found error here — the guard above ensures
-// this path is never reached on web.
+// use the webpackIgnore magic comment to prevent webpack from trying to
+// resolve it at build time. The isCapacitor() guard ensures this path is
+// never reached on web.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getPurchases(): Promise<any> {
-  // @ts-expect-error — @revenuecat/purchases-capacitor is a native-only dep
-  const { Purchases } = await import('@revenuecat/purchases-capacitor')
+  const { Purchases } = await import(
+    // @ts-expect-error — @revenuecat/purchases-capacitor is a native-only dep
+    /* webpackIgnore: true */ '@revenuecat/purchases-capacitor'
+  )
   return Purchases
 }
 
@@ -54,7 +57,8 @@ export async function purchasePackage(packageIdentifier: string) {
   const Purchases = await getPurchases()
   const offering = await getCurrentOffering()
   const pkg = offering?.availablePackages.find(
-    p => p.identifier === packageIdentifier
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (p: any) => p.identifier === packageIdentifier
   )
   if (!pkg) throw new Error(`Package ${packageIdentifier} not found`)
   return Purchases.purchasePackage({ aPackage: pkg })
