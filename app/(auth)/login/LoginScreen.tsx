@@ -191,7 +191,7 @@ export default function LoginScreen() {
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
-    setTextHeight(max + 8)
+    setTextHeight(max)
   }, [])
 
 
@@ -373,13 +373,24 @@ export default function LoginScreen() {
         )}
       </AnimatePresence>
 
-      {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
+      {/* ── Fixed bottom panel: title + body + dots + buttons ──
+          paddingBottom clamp: at least 16px on devices without a home
+          indicator, capped at 24px so buttons hug the bottom edge on
+          iPhones where env(safe-area-inset-bottom) would otherwise
+          leave ~34px of blank space below the CTAs. The home indicator
+          still visually overlaps a sliver of the button's bottom on
+          notch devices but it's a hint line — taps are unaffected. */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-6 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+        style={{ paddingBottom: 'max(16px, min(24px, env(safe-area-inset-bottom)))' }}
       >
         <div className="w-full max-w-sm mx-auto">
-          {/* Hidden measurement: render all 4 slide texts in-flow (correct width), h-0 so no space taken */}
+          {/* Hidden measurement: render all 4 slide texts in-flow (correct
+              width) so we can lock the visible text block to the tallest
+              slide height (avoids a height jump on swipe). The classes here
+              MUST match the rendered text classes exactly — any margin
+              difference leaks as invisible empty space inside the text
+              container, which visually pushes everything below further up. */}
           <div
             ref={measureRef}
             style={{ height: 0, overflow: 'visible', visibility: 'hidden', pointerEvents: 'none' }}
@@ -388,7 +399,7 @@ export default function LoginScreen() {
             {SLIDES.map((s, i) => (
               <div key={i} data-measure>
                 <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">{s.title}</h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed mb-10">{s.body}</p>
+                <p className="text-[15px] text-[#424242] leading-relaxed mb-5">{s.body}</p>
               </div>
             ))}
           </div>
