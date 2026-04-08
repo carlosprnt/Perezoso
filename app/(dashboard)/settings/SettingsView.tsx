@@ -14,6 +14,7 @@ import {
   type UserPreferences,
 } from './actions'
 import haptics from '@/lib/haptics'
+import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
 
 interface Props {
   preferences: UserPreferences
@@ -97,6 +98,7 @@ export default function SettingsView({ preferences }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const { preference, setPreference } = useTheme()
+  const { isPro, openPaywall } = useSubscription()
 
   const [currency, setCurrency] = useState(preferences.preferred_currency)
   const [notifications, setNotifications] = useState(preferences.notifications_enabled)
@@ -193,14 +195,25 @@ export default function SettingsView({ preferences }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-semibold text-[#121212] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
-            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5">Próximamente features únicas</p>
+            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
+              {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
+            </p>
           </div>
-          <button
-            disabled
-            className="h-8 px-4 rounded-full bg-[#3D3BF3] text-white text-[13px] font-semibold opacity-40 cursor-not-allowed flex-shrink-0"
-          >
-            Mejorar
-          </button>
+          {isPro ? (
+            <span className="h-8 px-4 rounded-full bg-[#E8E8FF] text-[#3D3BF3] text-[13px] font-semibold flex items-center flex-shrink-0">
+              Activo
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                haptics.tap()
+                openPaywall('general')
+              }}
+              className="h-8 px-4 rounded-full bg-[#3D3BF3] text-white text-[13px] font-semibold flex-shrink-0 active:bg-[#3230D0] transition-colors"
+            >
+              Mejorar
+            </button>
+          )}
         </div>
       </Group>
 
