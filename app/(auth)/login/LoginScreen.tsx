@@ -372,19 +372,22 @@ export default function LoginScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
 
-      {/* ── Bottom panel: title + body + dots + buttons ──
-          paddingBottom is a flat 4px — not using env(safe-area-inset-
-          bottom) because on this project's iOS PWA setup it was
-          consistently returning an oversized value, leaving a
-          ~40-60px gap under the CTAs that the user could not live
-          with. Home indicator visually overlaps the bottom ~30px of
-          the button area but taps work (iOS home indicator is a
-          hint line, not a blocking element). */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: '4px' }}
-      >
+    {/* ── Bottom panel: title + body + dots + buttons ──
+        CRITICAL: this panel lives OUTSIDE the outer `fixed inset-0
+        overflow-hidden` container above. iOS Safari has a known bug
+        where `position: fixed` inside an ancestor with `overflow:
+        hidden` gets clipped or anchored to the ancestor's bounds
+        instead of the viewport, leaving the fixed child sitting
+        above the true viewport bottom. Making the panel a sibling
+        of the outer div fixes that — the panel's `fixed bottom-0`
+        now correctly anchors to the real viewport bottom.
+        paddingBottom is a flat 4px so the CTAs hug the edge. */}
+    <div
+      className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+      style={{ paddingBottom: '4px' }}
+    >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
               width) so we can lock the visible text block to the tallest
@@ -491,8 +494,6 @@ export default function LoginScreen() {
         </div>
       </div>
 
-    </div>
-
     {/*
       ── Sign-in modal ──────────────────────────────────────────────────────
       Two independent fixed siblings. Backdrop uses a plain CSS transition
@@ -528,7 +529,7 @@ export default function LoginScreen() {
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
-          style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+          style={{ paddingBottom: '12px' }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">
