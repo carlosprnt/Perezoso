@@ -254,6 +254,8 @@ export default function LoginScreen() {
           // eslint-disable-next-line @next/next/no-img-element
           <img key={s.image} src={s.image} alt="" />
         ))}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/onboarding/05.png" alt="" />
       </div>
 
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
@@ -321,18 +323,23 @@ export default function LoginScreen() {
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
           ) : (
-            <motion.div
+            <motion.img
               key="img-login"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            >
-              <div className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-                <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
-              </div>
-            </motion.div>
+              src="/onboarding/05.png"
+              alt=""
+              custom={direction}
+              variants={{
+                enter: (dir: number) => ({ opacity: 0, x: `${dir * 100}%`, filter: 'blur(12px)' }),
+                center: { opacity: 1, x: 0, filter: 'blur(0px)' },
+                exit: (dir: number) => ({ opacity: 0, x: `${dir * -100}%`, filter: 'blur(12px)' }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.42, 0, 0.58, 1] }}
+              className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+            />
           )}
         </AnimatePresence>
       </motion.div>
