@@ -244,7 +244,8 @@ export default function LoginScreen() {
   return (
     <>
     <div
-      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
+      className="relative overflow-hidden bg-[#F7F8FA]"
+      style={{ height: '100dvh' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -373,16 +374,20 @@ export default function LoginScreen() {
         )}
       </AnimatePresence>
 
-      {/* ── Fixed bottom panel: title + body + dots + buttons ──
-          paddingBottom clamp: at least 16px on devices without a home
-          indicator, capped at 24px so buttons hug the bottom edge on
-          iPhones where env(safe-area-inset-bottom) would otherwise
-          leave ~34px of blank space below the CTAs. The home indicator
-          still visually overlaps a sliver of the button's bottom on
-          notch devices but it's a hint line — taps are unaffected. */}
+      {/* ── Bottom panel: title + body + dots + buttons ──
+          Uses absolute bottom-0 relative to the outer container
+          (which is `relative h-dvh`). `fixed` inside a fixed parent
+          had unreliable positioning on iOS Safari PWA — the panel
+          sometimes didn't reach the true viewport bottom, leaving
+          a large gap below. Absolute + dvh is the reliable pattern.
+          paddingBottom is a small flat 12px so the buttons hug the
+          edge of the panel. Any home indicator clearance comes from
+          the CSS below, not from padding-bottom here, to avoid
+          iOS returning an oversized env() value and leaving a big
+          gap under the CTAs. */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: 'max(16px, min(24px, env(safe-area-inset-bottom)))' }}
+        className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+        style={{ paddingBottom: '12px' }}
       >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
