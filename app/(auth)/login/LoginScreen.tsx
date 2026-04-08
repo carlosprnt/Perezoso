@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
@@ -192,6 +192,47 @@ export default function LoginScreen() {
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
     setTextHeight(max)
+  }, [])
+
+  /*
+   * Lock html/body scroll while the onboarding is mounted. Without this iOS
+   * PWA (black-translucent + viewport-fit: cover) allows rubber-band overscroll
+   * on the document — the user can drag the whole page down, which visually
+   * detaches the `fixed bottom-0` bottom panel and modal from the viewport
+   * edge. Locking position:fixed + overflow:hidden on html AND body is the
+   * iOS-proof recipe: overflow:hidden alone is not enough on Safari iOS.
+   */
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      htmlHeight: html.style.height,
+      htmlOverscroll: html.style.overscrollBehavior,
+      bodyOverflow: body.style.overflow,
+      bodyHeight: body.style.height,
+      bodyPosition: body.style.position,
+      bodyWidth: body.style.width,
+      bodyOverscroll: body.style.overscrollBehavior,
+    }
+    html.style.overflow = 'hidden'
+    html.style.height = '100%'
+    html.style.overscrollBehavior = 'none'
+    body.style.overflow = 'hidden'
+    body.style.height = '100%'
+    body.style.position = 'fixed'
+    body.style.width = '100%'
+    body.style.overscrollBehavior = 'none'
+    return () => {
+      html.style.overflow = prev.htmlOverflow
+      html.style.height = prev.htmlHeight
+      html.style.overscrollBehavior = prev.htmlOverscroll
+      body.style.overflow = prev.bodyOverflow
+      body.style.height = prev.bodyHeight
+      body.style.position = prev.bodyPosition
+      body.style.width = prev.bodyWidth
+      body.style.overscrollBehavior = prev.bodyOverscroll
+    }
   }, [])
 
 
