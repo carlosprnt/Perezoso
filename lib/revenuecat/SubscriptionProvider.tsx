@@ -23,7 +23,6 @@ import {
 import { isCapacitor } from '@/lib/platform'
 import {
   initRevenueCat,
-  getCustomerInfo,
   isEntitlementActive,
 } from './client'
 import type { PaywallTrigger } from './paywallTriggers'
@@ -96,6 +95,15 @@ export function SubscriptionProvider({ children, userId, initialIsPro = false }:
     init()
   }, [userId, initialIsPro])
 
+  const _setPaywallOpen = useCallback((open: boolean, trigger: PaywallTrigger) => {
+    setPaywallTrigger(trigger)
+    setPaywallOpenState(open)
+  }, [])
+
+  const openPaywall = useCallback((trigger: PaywallTrigger = 'general') => {
+    _setPaywallOpen(true, trigger)
+  }, [_setPaywallOpen])
+
   // Refresh on app foreground (native only)
   useEffect(() => {
     if (!isCapacitor()) return
@@ -113,15 +121,6 @@ export function SubscriptionProvider({ children, userId, initialIsPro = false }:
     window.addEventListener('perezoso:paywall', onPaywallEvent)
     return () => window.removeEventListener('perezoso:paywall', onPaywallEvent)
   }, [openPaywall])
-
-  const _setPaywallOpen = useCallback((open: boolean, trigger: PaywallTrigger) => {
-    setPaywallTrigger(trigger)
-    setPaywallOpenState(open)
-  }, [])
-
-  const openPaywall = useCallback((trigger: PaywallTrigger = 'general') => {
-    _setPaywallOpen(true, trigger)
-  }, [_setPaywallOpen])
 
   return (
     <Ctx.Provider value={{ isPro, isLoading, refresh, openPaywall, _setPaywallOpen }}>

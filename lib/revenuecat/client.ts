@@ -8,8 +8,13 @@
 import { RC_CONFIG } from './config'
 import { isCapacitor, isIOS } from '@/lib/platform'
 
-// Dynamic import keeps the Capacitor plugin out of the web bundle
-async function getPurchases() {
+// Dynamic import keeps the Capacitor plugin out of the web bundle.
+// The package is only installed in the native (Capacitor) build, so we
+// suppress the TS module-not-found error here — the guard above ensures
+// this path is never reached on web.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPurchases(): Promise<any> {
+  // @ts-expect-error — @revenuecat/purchases-capacitor is a native-only dep
   const { Purchases } = await import('@revenuecat/purchases-capacitor')
   return Purchases
 }
