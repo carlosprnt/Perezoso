@@ -22,3 +22,8 @@ La **Production Branch** del proyecto Vercel es `main`. Cada push a `main` dispa
 ### Historial: por qué NO se usa Vercel CLI con token
 
 Se intentó antes, pero Vercel tiene **secret scanning automático**: cuando detecta un token con prefijo `vcp_` en un lugar público/monitorizado (commits, comentarios de PR, chats sincronizados a GitHub), lo **revoca en segundos**. Las sesiones de Claude Code en web pueden sincronizar contenido a GitHub, así que los tokens pegados en el chat se invalidan antes de poder usarlos. Por eso la Production Branch = `main` con auto-deploy es la vía correcta.
+
+### Notas adicionales
+
+- El **GitHub Default Branch** también debería ser `main` (Repo Settings → Branches). Hasta hace poco era `claude/perezoso-mvp-build-5PDHS`.
+- Redeploy sobre un deployment antiguo en Vercel hereda su target (Preview/Production) — para disparar producción hay que hacer un push nuevo a main, no un Redeploy.
