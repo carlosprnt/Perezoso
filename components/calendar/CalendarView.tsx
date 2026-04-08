@@ -7,6 +7,7 @@ import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import type { SubscriptionWithCosts } from '@/types'
 import CalendarDaySheet from './CalendarDaySheet'
 
@@ -191,12 +192,19 @@ interface Props {
 export default function CalendarView({ subscriptions }: Props) {
   const t = useT()
   const locale = useLocale()
+  const gate = useFeatureGate()
   const today = new Date()
 
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const direction = useRef<1 | -1>(1) // 1 = forward, -1 = backward
+
+  // Offset of the currently-displayed month relative to today: 0 = this
+  // month, 1 = next month, -1 = previous month. Free users can go into
+  // the past freely but navigating into the future opens the paywall.
+  const currentMonthOffset =
+    (year - today.getFullYear()) * 12 + (month - today.getMonth())
 
   const dayMap = useMemo(
     () => buildDayMap(subscriptions, year, month),
@@ -218,6 +226,12 @@ export default function CalendarView({ subscriptions }: Props) {
     else setMonth(m => m - 1)
   }
   function nextMonth() {
+    // Pro gate: free users cannot navigate into months beyond the
+    // current one. Opens the paywall and stops before advancing state.
+    if (!gate.canViewFutureMonth(currentMonthOffset + 1)) {
+      gate.requirePro('future_calendar')
+      return
+    }
     direction.current = 1
     if (month === 11) { setYear(y => y + 1); setMonth(0) }
     else setMonth(m => m + 1)

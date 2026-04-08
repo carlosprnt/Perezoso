@@ -15,6 +15,7 @@ import {
 } from './actions'
 import haptics from '@/lib/haptics'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 
 interface Props {
   preferences: UserPreferences
@@ -99,6 +100,7 @@ export default function SettingsView({ preferences }: Props) {
   const [, startTransition] = useTransition()
   const { preference, setPreference } = useTheme()
   const { isPro, openPaywall } = useSubscription()
+  const gate = useFeatureGate()
 
   const [currency, setCurrency] = useState(preferences.preferred_currency)
   const [notifications, setNotifications] = useState(preferences.notifications_enabled)
@@ -140,10 +142,20 @@ export default function SettingsView({ preferences }: Props) {
   function handleAddCategory() {
     const trimmed = newCategory.trim()
     if (!trimmed || categories.includes(trimmed)) return
+    // Pro gate: custom categories are a Pro-only feature.
+    if (!gate.requirePro('custom_categories')) return
     setCategories([...categories, trimmed])
     setNewCategory('')
     haptics.success()
-    startTransition(() => { addCustomCategory(trimmed) })
+    startTransition(async () => {
+      const result = await addCustomCategory(trimmed)
+      // Defensive: if the server rejects (e.g. stale Pro state), roll
+      // back the optimistic update and open the paywall.
+      if (result?.error === 'custom_categories_pro_required') {
+        setCategories(prev => prev.filter(c => c !== trimmed))
+        openPaywall('custom_categories')
+      }
+    })
   }
 
   function handleRemoveCategory(name: string) {
