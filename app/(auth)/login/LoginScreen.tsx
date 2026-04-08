@@ -244,8 +244,7 @@ export default function LoginScreen() {
   return (
     <>
     <div
-      className="relative overflow-hidden bg-[#F7F8FA]"
-      style={{ height: '100dvh' }}
+      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -375,19 +374,16 @@ export default function LoginScreen() {
       </AnimatePresence>
 
       {/* ── Bottom panel: title + body + dots + buttons ──
-          Uses absolute bottom-0 relative to the outer container
-          (which is `relative h-dvh`). `fixed` inside a fixed parent
-          had unreliable positioning on iOS Safari PWA — the panel
-          sometimes didn't reach the true viewport bottom, leaving
-          a large gap below. Absolute + dvh is the reliable pattern.
-          paddingBottom is a small flat 12px so the buttons hug the
-          edge of the panel. Any home indicator clearance comes from
-          the CSS below, not from padding-bottom here, to avoid
-          iOS returning an oversized env() value and leaving a big
-          gap under the CTAs. */}
+          paddingBottom is a flat 4px — not using env(safe-area-inset-
+          bottom) because on this project's iOS PWA setup it was
+          consistently returning an oversized value, leaving a
+          ~40-60px gap under the CTAs that the user could not live
+          with. Home indicator visually overlaps the bottom ~30px of
+          the button area but taps work (iOS home indicator is a
+          hint line, not a blocking element). */}
       <div
-        className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: '12px' }}
+        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+        style={{ paddingBottom: '4px' }}
       >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
