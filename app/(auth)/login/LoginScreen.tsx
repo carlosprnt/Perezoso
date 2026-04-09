@@ -215,6 +215,18 @@ export default function LoginScreen() {
    */
   const [ready, setReady] = useState(false)
   const [safeTop, setSafeTop] = useState(0)
+  /*
+   * `screenH` is the physical screen height in CSS pixels as reported
+   * by `window.screen.height`. Unlike `window.innerHeight` / `100dvh`
+   * which in iOS PWA standalone with a cached / stale configuration
+   * can return the layout viewport (e.g. 793 px when it should be
+   * 852), `window.screen.height` returns the actual device screen
+   * height regardless of the current webview frame. Used as the
+   * explicit height of the outer fullscreen surface so its background
+   * always matches the physical screen bounds, not the (possibly
+   * smaller) CSS layout viewport.
+   */
+  const [screenH, setScreenH] = useState(0)
 
   /*
    * Measures the tallest slide text block and locks the visible text
@@ -256,6 +268,15 @@ export default function LoginScreen() {
 
     const commit = (t: number) => {
       setSafeTop(prev => (prev === t ? prev : t))
+      // window.screen.height is the full device screen height in CSS
+      // pixels. On iOS PWA standalone it stays the actual screen size
+      // even when the layout viewport (window.innerHeight / 100dvh)
+      // is reporting a smaller number due to a cached webview config.
+      // Use the larger of the two so screenH is always >= innerHeight.
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
       if (!ready) setReady(true)
     }
 
@@ -277,10 +298,15 @@ export default function LoginScreen() {
     }
     tick()
 
-    // Long-lived updaters: keep safeTop in sync if iOS changes it later.
+    // Long-lived updaters: keep safeTop + screenH in sync if iOS
+    // changes them later (orientation change, etc).
     const sync = () => {
       const t = probeTop()
       setSafeTop(prev => (prev === t ? prev : t))
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
     }
     window.addEventListener('load', sync)
     window.addEventListener('resize', sync)
@@ -295,6 +321,23 @@ export default function LoginScreen() {
     // `ready` intentionally omitted — we only want to flip it once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /*
+   * Bleed amount for fixed bottom-aligned elements. We need the panel
+   * / modal backgrounds to extend past the layout viewport bottom all
+   * the way to the physical screen edge, because in iOS PWA
+   * standalone with a cached webview config those two are not the
+   * same point. `screenH - innerHeight` is the exact vertical gap
+   * (0 when the webview is already the full screen). Floor at 34 to
+   * handle the typical home indicator inset on devices that don't
+   * expose a gap via window.screen.
+   */
+  const bleed = (() => {
+    if (!ready) return 34
+    const inner = typeof window !== 'undefined' ? window.innerHeight : 0
+    const gap = screenH > inner ? screenH - inner : 0
+    return Math.max(gap, 34)
+  })()
 
   /*
    * Lock document scroll while the onboarding is mounted to suppress
@@ -390,14 +433,23 @@ export default function LoginScreen() {
   return (
     <>
     {/*
-     * Outer fullscreen surface. Also bled 100px past `bottom: 0` so
-     * its #F7F8FA background reaches the physical screen edge even
-     * if iOS still has the layout viewport short at mount time.
-     * Belt and braces together with the splash gate above.
+     * Outer fullscreen surface. Sized with `height: ${screenH}px`
+     * where screenH comes from `window.screen.height` (JS-measured),
+     * NOT from `100dvh` / `inset-0`. In iOS PWA standalone with a
+     * cached / stale configuration the layout viewport can be 59 px
+     * shorter than the physical screen and every CSS viewport unit
+     * (`vh`, `dvh`, `svh`, `lvh`) agrees with that shorter value,
+     * so any CSS-based sizing leaves a gap. `window.screen.height`
+     * reports the actual device pixel height regardless of the
+     * webview frame and gives us an explicit height that reaches
+     * the physical screen bottom.
+     *
+     * Fallback to `100dvh` if screenH hasn't been measured yet
+     * (before the ready gate opens the splash covers anyway).
      */}
     <div
       className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: '-100px' }}
+      style={{ height: screenH ? `${screenH}px` : '100dvh' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -545,15 +597,12 @@ export default function LoginScreen() {
     <div
       className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
       style={{
-        /* Force the panel 100px past `bottom: 0` so the white bg
-         * reaches the physical screen edge even if iOS hasn't fully
-         * transitioned the webview to the stabilized viewport size
-         * at mount time. The bleed is literal — independent of env,
-         * no safe-area math. Compensated in paddingBottom so the
-         * visible content still ends 16px above the layout viewport
-         * bottom (where the buttons sit naturally). */
-        bottom: '-100px',
-        paddingBottom: '116px',
+        /* Dynamic bleed: the exact gap between layout viewport bottom
+         * and the physical screen bottom (or 34 as a floor). See the
+         * `bleed` derivation above. Compensated in paddingBottom so
+         * buttons sit 16px above the layout viewport bottom. */
+        bottom: `-${bleed}px`,
+        paddingBottom: `${16 + bleed}px`,
       }}
     >
         <div className="w-full max-w-sm mx-auto">
@@ -699,12 +748,9 @@ export default function LoginScreen() {
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
-            /* Same literal bleed as the onboarding panel — see the
-             * comment there for rationale. Forces the modal sheet
-             * past `bottom: 0` so the white bg reaches the physical
-             * screen edge in every iOS viewport state. */
-            bottom: '-100px',
-            paddingBottom: '116px',
+            /* Same dynamic bleed as the onboarding panel. */
+            bottom: `-${bleed}px`,
+            paddingBottom: `${16 + bleed}px`,
           }}
           onClick={e => e.stopPropagation()}
         >
