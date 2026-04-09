@@ -182,13 +182,29 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={`
-          fixed bottom-0 left-0 right-0
+          fixed left-0 right-0
           bg-white dark:bg-[#1C1C1E]
           flex flex-col
           ${maxH}
           animate-slide-up
         `}
-        style={{ zIndex: zIndex ?? 60, paddingBottom: 'env(safe-area-inset-bottom)', borderRadius: '32px 32px 0 0' }}
+        style={{
+          zIndex: zIndex ?? 60,
+          /*
+           * iOS PWA fix (black-translucent + viewport-fit:cover):
+           * in the home-screen webview `fixed bottom: 0` anchors above
+           * the home-indicator inset, not the physical screen edge, so
+           * the sheet's white background leaves a visible strip of page
+           * background below it. Push the sheet's bottom edge past zero
+           * by the inset amount and compensate in paddingBottom so the
+           * content visually stays where it was (env() = 0 on devices
+           * without a bottom safe area → collapses to `bottom: 0` and
+           * `paddingBottom: 0`, identical to the previous behavior).
+           */
+          bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
+          borderRadius: '32px 32px 0 0',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle — drag zone */}

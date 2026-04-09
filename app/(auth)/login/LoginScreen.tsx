@@ -414,27 +414,27 @@ export default function LoginScreen() {
         )}
       </AnimatePresence>
 
-      {/* ── Bottom panel: title + body + dots + buttons ──
-          IMPORTANT: this panel lives INSIDE the outer `fixed inset-0
-          overflow-hidden` container. On this project's iOS PWA setup
-          (black-translucent + viewport-fit:cover + html/body scroll
-          lock) that is actually the positioning that correctly
-          reaches the physical screen bottom — moving the panel out
-          to a sibling left a visible strip of page background below
-          the CTAs because its `bottom: 0` anchored above the home
-          indicator inset instead of the screen edge. As a child of
-          the fixed inset-0 parent, the panel's bottom-0 resolves to
-          the parent's bottom, which covers the full viewport.
+    </div>
 
-          paddingBottom keeps content clear of the home indicator
-          with `max(32px, env(safe-area-inset-bottom))` — 32px on
-          devices without a bottom safe area, ~34px on notch
-          iPhones. This was the layout in use on 2026-04-07 that
-          the user confirmed looked correct. */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
-      >
+    {/* ── Bottom panel: title + body + dots + buttons ──
+        Sibling of the outer fixed-inset container so the negative-
+        bottom safe-area trick below isn't clipped by the parent's
+        overflow-hidden. Same fix applied globally across all bottom
+        sheets (BottomSheet, PaywallSheet, CalendarDaySheet, ...):
+        push the bottom edge past `bottom: 0` by
+        env(safe-area-inset-bottom) so the white background paints
+        over the home-indicator zone in iOS PWA (black-translucent +
+        viewport-fit:cover), then compensate in paddingBottom so the
+        CTAs keep their previous visual position. env() = 0 on
+        non-notch devices → the formula collapses to `bottom: 0`
+        + the original padding. */}
+    <div
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+      style={{
+        bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+      }}
+    >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
               width) so we can lock the visible text block to the tallest
@@ -540,7 +540,6 @@ export default function LoginScreen() {
           )}
         </div>
       </div>
-    </div>
 
     {/*
       ── Sign-in modal ──────────────────────────────────────────────────────
@@ -576,8 +575,12 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
-          style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
+          style={{
+            /* iOS PWA fix: see BottomSheet.tsx for rationale. */
+            bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+            paddingBottom: 'calc(24px + env(safe-area-inset-bottom) * 2)',
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">
