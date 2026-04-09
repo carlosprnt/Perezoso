@@ -390,13 +390,14 @@ export default function LoginScreen() {
   return (
     <>
     {/*
-     * Outer fullscreen surface. Plain `fixed inset-0`, no safe-area
-     * bleed, no compensating padding. The splash gate above
-     * guarantees that iOS has stabilized env() before this renders,
-     * so `bottom: 0` already lands at the physical screen edge.
+     * Outer fullscreen surface. Also bled 100px past `bottom: 0` so
+     * its #F7F8FA background reaches the physical screen edge even
+     * if iOS still has the layout viewport short at mount time.
+     * Belt and braces together with the splash gate above.
      */}
     <div
-      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
+      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
+      style={{ bottom: '-100px' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -542,8 +543,18 @@ export default function LoginScreen() {
         clearance per user preference. The CTA buttons end 16px
         above the physical bottom regardless of home indicator. */}
     <div
-      className="fixed left-0 right-0 bottom-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
-      style={{ paddingBottom: '16px' }}
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
+      style={{
+        /* Force the panel 100px past `bottom: 0` so the white bg
+         * reaches the physical screen edge even if iOS hasn't fully
+         * transitioned the webview to the stabilized viewport size
+         * at mount time. The bleed is literal — independent of env,
+         * no safe-area math. Compensated in paddingBottom so the
+         * visible content still ends 16px above the layout viewport
+         * bottom (where the buttons sit naturally). */
+        bottom: '-100px',
+        paddingBottom: '116px',
+      }}
     >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
@@ -686,12 +697,14 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed left-0 right-0 bottom-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
-            /* Flat padding per user preference — splash gate guarantees
-             * iOS viewport is stable so `bottom: 0` lands at the
-             * physical screen edge directly. */
-            paddingBottom: '16px',
+            /* Same literal bleed as the onboarding panel — see the
+             * comment there for rationale. Forces the modal sheet
+             * past `bottom: 0` so the white bg reaches the physical
+             * screen edge in every iOS viewport state. */
+            bottom: '-100px',
+            paddingBottom: '116px',
           }}
           onClick={e => e.stopPropagation()}
         >
