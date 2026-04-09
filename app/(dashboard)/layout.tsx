@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
 import SubscriptionToastHost from '@/components/dashboard/SubscriptionToastHost'
+import DebugViewport from '@/components/debug/DebugViewport'
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider'
 import { detectLocale } from '@/lib/i18n/translations'
 import { SubscriptionProvider } from '@/lib/revenuecat/SubscriptionProvider'
@@ -58,6 +59,7 @@ export default async function DashboardLayout({
           {/* Toast host — survives sheet/form unmount */}
           <SubscriptionToastHost />
         </div>
+        <DebugViewport />
       </SubscriptionProvider>
     </LocaleProvider>
   )
