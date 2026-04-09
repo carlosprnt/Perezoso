@@ -87,16 +87,15 @@ html {
   height: -webkit-fill-available;  /* iOS Safari legacy helper    */
   height: 100dvh;                  /* modern dynamic viewport     */
   /*
-   * Canvas background: iOS PWA standalone paints anything in the
-   * bottom safe-area zone (below the layout viewport, above the
-   * physical screen edge) using the root element background. Setting
-   * html bg explicitly to the app background color means that when a
-   * fullscreen surface doesn't have a bleed-extended fixed background
-   * — and no sheet is open — the safe-area strip still matches the
-   * screen color instead of exposing body canvas. Dark-mode variant
-   * below in `.dark html`.
+   * Canvas background safety net — uses the literal hex rather than
+   * var(--color-background) because Tailwind v4 `@theme` variables
+   * are not guaranteed to be resolvable in raw CSS rules in every
+   * build configuration. Empirically the previous `var()` version did
+   * NOT reach the iOS PWA bottom safe-area strip on the standalone
+   * webview, so the explicit bleed on each fullscreen wrapper is
+   * still required. This is defence in depth only.
    */
-  background-color: var(--color-background);
+  background-color: #F7F8FA;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
