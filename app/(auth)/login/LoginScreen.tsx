@@ -424,10 +424,24 @@ export default function LoginScreen() {
         above the true viewport bottom. Making the panel a sibling
         of the outer div fixes that — the panel's `fixed bottom-0`
         now correctly anchors to the real viewport bottom.
-        paddingBottom is a flat 4px so the CTAs hug the edge. */}
+
+        Safe-area handling: on iOS PWA with viewport-fit:cover the
+        panel's `bottom: 0` still anchors above the home indicator,
+        leaving a visible strip of page background (#F7F8FA) below
+        the CTAs. To paint that strip white without moving the
+        buttons up, we push the panel's bottom edge into the safe
+        area with `bottom: calc(-1 * env(safe-area-inset-bottom))`
+        and add the same amount back into paddingBottom so the
+        content stays at the same visual position. Result: the
+        panel's white background now covers the home-indicator
+        zone; on devices without a safe area (env() = 0) the
+        formula degrades to `bottom: 0` + `paddingBottom: 4px`. */}
     <div
-      className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-      style={{ paddingBottom: '4px' }}
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+      style={{
+        bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(4px + env(safe-area-inset-bottom))',
+      }}
     >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
@@ -569,8 +583,17 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
-          style={{ paddingBottom: '12px' }}
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
+          style={{
+            /* Same safe-area trick as the bottom panel — see the long
+             * comment above the onboarding panel for the reasoning.
+             * Pushes the modal's bottom edge past `bottom: 0` into the
+             * home-indicator zone so its white background covers that
+             * strip; the offset is compensated in paddingBottom so
+             * the buttons stay where they were visually. */
+            bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+            paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">
