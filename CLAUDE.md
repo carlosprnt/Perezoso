@@ -6,7 +6,19 @@ Guía operativa para Claude Code en este repo.
 
 La **Production Branch** del proyecto Vercel es `main`. Cada push a `main` dispara automáticamente un deployment de producción — no hace falta promover nada manualmente.
 
-### Workflow estándar
+### ⚡ Default: siempre mergear a `main`
+
+**Preferencia explícita del usuario (2026-04-09):** por defecto, todo cambio hecho en una feature branch se mergea a `main` y se pushea a producción inmediatamente. NO esperes a que el usuario confirme el preview — salvo que el usuario diga lo contrario para una tarea concreta, el flujo completo es:
+
+1. Commit en la feature branch `claude/fix-*` asignada
+2. `npm run build` local para verificar que no rompe el build de producción
+3. `git checkout main && git merge <feature-branch> --no-ff`
+4. `git push origin main` — esto dispara el deploy de producción en Vercel
+5. Opcionalmente pushear también la feature branch para mantener su preview
+
+Esto aplica aunque el cambio sea grande. Si tienes dudas razonables sobre si algo debería esperar (p. ej. un refactor que toca muchas rutas), pregúntale al usuario antes; si no, mergea directamente.
+
+### Workflow técnico
 
 1. Desarrollar en la rama asignada (ej. `claude/fix-*`)
 2. Commit + push a esa rama → Vercel crea un **Preview** de esa rama
@@ -15,9 +27,8 @@ La **Production Branch** del proyecto Vercel es `main`. Cada push a `main` dispa
 
 ### Cosas a tener en cuenta
 
-- No pushear a `main` hasta que los cambios estén listos para producción
 - Si hay que rollback, revertir el commit en `main` y push — Vercel re-desplegará a producción el estado revertido
-- Los previews de las feature branches siguen creándose y son la vía para QA antes del merge
+- Los previews de las feature branches siguen creándose si se pushea la rama además del merge
 
 ### Historial: por qué NO se usa Vercel CLI con token
 
