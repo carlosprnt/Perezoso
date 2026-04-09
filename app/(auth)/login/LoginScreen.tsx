@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
@@ -194,6 +194,47 @@ export default function LoginScreen() {
     setTextHeight(max)
   }, [])
 
+  /*
+   * Lock html/body scroll while the onboarding is mounted. Without this iOS
+   * PWA (black-translucent + viewport-fit: cover) allows rubber-band overscroll
+   * on the document — the user can drag the whole page down, which visually
+   * detaches the `fixed bottom-0` bottom panel and modal from the viewport
+   * edge. Locking position:fixed + overflow:hidden on html AND body is the
+   * iOS-proof recipe: overflow:hidden alone is not enough on Safari iOS.
+   */
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      htmlHeight: html.style.height,
+      htmlOverscroll: html.style.overscrollBehavior,
+      bodyOverflow: body.style.overflow,
+      bodyHeight: body.style.height,
+      bodyPosition: body.style.position,
+      bodyWidth: body.style.width,
+      bodyOverscroll: body.style.overscrollBehavior,
+    }
+    html.style.overflow = 'hidden'
+    html.style.height = '100%'
+    html.style.overscrollBehavior = 'none'
+    body.style.overflow = 'hidden'
+    body.style.height = '100%'
+    body.style.position = 'fixed'
+    body.style.width = '100%'
+    body.style.overscrollBehavior = 'none'
+    return () => {
+      html.style.overflow = prev.htmlOverflow
+      html.style.height = prev.htmlHeight
+      html.style.overscrollBehavior = prev.htmlOverscroll
+      body.style.overflow = prev.bodyOverflow
+      body.style.height = prev.bodyHeight
+      body.style.position = prev.bodyPosition
+      body.style.width = prev.bodyWidth
+      body.style.overscrollBehavior = prev.bodyOverscroll
+    }
+  }, [])
+
 
   function go(to: number) {
     if (to === slide || to < 0 || to >= totalSlides) return
@@ -372,21 +413,27 @@ export default function LoginScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
 
     {/* ── Bottom panel: title + body + dots + buttons ──
-        CRITICAL: this panel lives OUTSIDE the outer `fixed inset-0
-        overflow-hidden` container above. iOS Safari has a known bug
-        where `position: fixed` inside an ancestor with `overflow:
-        hidden` gets clipped or anchored to the ancestor's bounds
-        instead of the viewport, leaving the fixed child sitting
-        above the true viewport bottom. Making the panel a sibling
-        of the outer div fixes that — the panel's `fixed bottom-0`
-        now correctly anchors to the real viewport bottom.
-        paddingBottom is a flat 4px so the CTAs hug the edge. */}
+        Sibling of the outer fixed-inset container so the negative-
+        bottom safe-area trick below isn't clipped by the parent's
+        overflow-hidden. Same fix applied globally across all bottom
+        sheets (BottomSheet, PaywallSheet, CalendarDaySheet, ...):
+        push the bottom edge past `bottom: 0` by
+        env(safe-area-inset-bottom) so the white background paints
+        over the home-indicator zone in iOS PWA (black-translucent +
+        viewport-fit:cover), then compensate in paddingBottom so the
+        CTAs keep their previous visual position. env() = 0 on
+        non-notch devices → the formula collapses to `bottom: 0`
+        + the original padding. */}
     <div
-      className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
-      style={{ paddingBottom: '4px' }}
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px]"
+      style={{
+        bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+      }}
     >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
@@ -528,8 +575,12 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
-          style={{ paddingBottom: '12px' }}
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
+          style={{
+            /* iOS PWA fix: see BottomSheet.tsx for rationale. */
+            bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+            paddingBottom: 'calc(24px + env(safe-area-inset-bottom) * 2)',
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">

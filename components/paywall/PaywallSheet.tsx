@@ -80,8 +80,16 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
 
       {/* Sheet */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+        className="fixed left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden"
+        style={{
+          /* iOS PWA fix: see BottomSheet.tsx for rationale — push the
+           * sheet's bottom edge past the home-indicator inset so the
+           * white background covers that zone, then compensate in
+           * paddingBottom so the content stays at the same visual
+           * position. env() = 0 on non-notch devices → no-op. */
+          bottom: 'calc(-1 * env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+        }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
