@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#000000] px-6">
+    <main className="min-h-dvh flex items-center justify-center bg-[#F7F8FA] dark:bg-[#000000] px-6">
       <div className="flex flex-col items-center text-center">
         <Image
           src="/image-error.png"

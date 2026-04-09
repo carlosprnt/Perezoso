@@ -44,10 +44,10 @@ export default async function DashboardLayout({
             system background is removed and web content fills the whole screen.
             This padding reserves the notch/Dynamic Island height so app content
             starts below the status bar icons. */}
-        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#121212] pt-[env(safe-area-inset-top)]">
+        <div className="min-h-dvh bg-[#F7F8FA] dark:bg-[#121212] pt-[env(safe-area-inset-top)]">
           <Sidebar profile={profile as Profile | null} />
 
-          <main className="lg:pl-56 pb-28 lg:pb-0 min-h-screen">
+          <main className="lg:pl-56 pb-28 lg:pb-0 min-h-dvh">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
               {children}
             </div>

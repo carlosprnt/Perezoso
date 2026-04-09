@@ -120,7 +120,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
 
   return (
     <>
-      <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#121212] -mx-4 sm:-mx-6 px-4 sm:px-6 pb-28">
+      <div className="min-h-dvh bg-[#F7F8FA] dark:bg-[#121212] -mx-4 sm:-mx-6 px-4 sm:px-6 pb-28">
 
         {/* Back button */}
         <div
@@ -282,12 +282,8 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
 
       {/* Fixed edit CTA */}
       <div
-        className="fixed left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3 pb-4 z-10"
-        style={{
-          /* iOS PWA fix: see BottomSheet.tsx for rationale. */
-          bottom: 'calc(-1 * env(safe-area-inset-bottom))',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom) * 2)',
-        }}
+        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3 pb-4 z-10"
+        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
       >
         <button
           onClick={() => setEditOpen(true)}

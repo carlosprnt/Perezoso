@@ -33,26 +33,23 @@ export default function BottomSheet({
   const onCloseRef   = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
-  // ── Body scroll lock (iOS-safe) ───────────────────────────────────────────
+  // ── Body scroll lock ──────────────────────────────────────────────────────
+  // Uses a plain `overflow: hidden` rather than the old position:fixed +
+  // negative-top scroll-restoration trick. The old approach created subtle
+  // containing-block quirks on iOS PWA and was only needed because html/body
+  // had no height chain. With globals.css now anchoring html/body to 100dvh
+  // and overscroll-behavior: none, a simple overflow lock is enough and the
+  // page never creates scrollable overflow to begin with.
   useEffect(() => {
-    if (isOpen) {
-      savedScrollY.current = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top      = `-${savedScrollY.current}px`
-      document.body.style.left     = '0'
-      document.body.style.right    = '0'
-    } else {
-      document.body.style.position = ''
-      document.body.style.top      = ''
-      document.body.style.left     = ''
-      document.body.style.right    = ''
-      window.scrollTo(0, savedScrollY.current)
-    }
+    if (!isOpen) return
+    savedScrollY.current = window.scrollY
+    const prevHtmlOverflow = document.documentElement.style.overflow
+    const prevBodyOverflow = document.body.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.position = ''
-      document.body.style.top      = ''
-      document.body.style.left     = ''
-      document.body.style.right    = ''
+      document.documentElement.style.overflow = prevHtmlOverflow
+      document.body.style.overflow = prevBodyOverflow
     }
   }, [isOpen])
 
@@ -182,7 +179,7 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={`
-          fixed left-0 right-0
+          fixed bottom-0 left-0 right-0
           bg-white dark:bg-[#1C1C1E]
           flex flex-col
           ${maxH}
@@ -190,19 +187,7 @@ export default function BottomSheet({
         `}
         style={{
           zIndex: zIndex ?? 60,
-          /*
-           * iOS PWA fix (black-translucent + viewport-fit:cover):
-           * in the home-screen webview `fixed bottom: 0` anchors above
-           * the home-indicator inset, not the physical screen edge, so
-           * the sheet's white background leaves a visible strip of page
-           * background below it. Push the sheet's bottom edge past zero
-           * by the inset amount and compensate in paddingBottom so the
-           * content visually stays where it was (env() = 0 on devices
-           * without a bottom safe area → collapses to `bottom: 0` and
-           * `paddingBottom: 0`, identical to the previous behavior).
-           */
-          bottom: 'calc(-1 * env(safe-area-inset-bottom))',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
           borderRadius: '32px 32px 0 0',
         }}
         onClick={e => e.stopPropagation()}
