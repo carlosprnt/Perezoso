@@ -215,7 +215,6 @@ export default function LoginScreen() {
    */
   const [ready, setReady] = useState(false)
   const [safeTop, setSafeTop] = useState(0)
-  const [safeBottom, setSafeBottom] = useState(0)
 
   /*
    * Measures the tallest slide text block and locks the visible text
@@ -241,39 +240,36 @@ export default function LoginScreen() {
     let rafId = 0
     const startedAt = Date.now()
 
-    const probe = (): { t: number; b: number } => {
+    const probeTop = (): number => {
       try {
         const el = document.createElement('div')
         el.style.cssText =
-          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none'
+          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none'
         document.body.appendChild(el)
-        const cs = getComputedStyle(el)
-        const t = parseFloat(cs.paddingTop) || 0
-        const b = parseFloat(cs.paddingBottom) || 0
+        const t = parseFloat(getComputedStyle(el).paddingTop) || 0
         el.remove()
-        return { t, b }
+        return t
       } catch {
-        return { t: 0, b: 0 }
+        return 0
       }
     }
 
-    const commit = (t: number, b: number) => {
+    const commit = (t: number) => {
       setSafeTop(prev => (prev === t ? prev : t))
-      setSafeBottom(prev => (prev === b ? prev : b))
       if (!ready) setReady(true)
     }
 
     const tick = () => {
       if (stopped) return
-      const { t, b } = probe()
+      const t = probeTop()
       // Success: iOS has initialized env. Commit immediately.
-      if (t > 0 || b > 0) {
-        commit(t, b)
+      if (t > 0) {
+        commit(t)
         return
       }
       // Timeout: 350ms elapsed, assume env is legitimately 0 (non-notch).
       if (Date.now() - startedAt >= 350) {
-        commit(t, b)
+        commit(t)
         return
       }
       // Otherwise keep polling on the next frame.
@@ -281,12 +277,10 @@ export default function LoginScreen() {
     }
     tick()
 
-    // Long-lived updaters: keep env in sync if iOS changes it later
-    // (orientation change, window resize, etc).
+    // Long-lived updaters: keep safeTop in sync if iOS changes it later.
     const sync = () => {
-      const { t, b } = probe()
+      const t = probeTop()
       setSafeTop(prev => (prev === t ? prev : t))
-      setSafeBottom(prev => (prev === b ? prev : b))
     }
     window.addEventListener('load', sync)
     window.addEventListener('resize', sync)
@@ -301,9 +295,6 @@ export default function LoginScreen() {
     // `ready` intentionally omitted — we only want to flip it once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  /* Bleed amount: at least 34px even if env is 0 (non-notched / cached PWA). */
-  const bleed = Math.max(safeBottom, 34)
 
   /*
    * Lock document scroll while the onboarding is mounted to suppress
@@ -399,20 +390,13 @@ export default function LoginScreen() {
   return (
     <>
     {/*
-     * Outer fullscreen surface — safe-area bleed so the #F7F8FA
-     * background extends into the iOS PWA bottom safe area strip
-     * (793→827). An earlier cleanup pass assumed the
-     * `html { background-color }` rule in globals.css covered this
-     * zone via canvas propagation, but empirically that assumption
-     * DID NOT HOLD on the standalone webview — the gap came back.
-     * Keep the explicit bleed here regardless of whether it looks
-     * like double compensation; we have empirical proof (via the
-     * DebugViewport test) that the explicit bleed works and the
-     * html canvas bg alone does not.
+     * Outer fullscreen surface. Plain `fixed inset-0`, no safe-area
+     * bleed, no compensating padding. The splash gate above
+     * guarantees that iOS has stabilized env() before this renders,
+     * so `bottom: 0` already lands at the physical screen edge.
      */}
     <div
-      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: `-${bleed}px` }}
+      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -550,17 +534,16 @@ export default function LoginScreen() {
 
     </div>
 
-    {/* ── Bottom panel — safe-area bleed pattern (see BottomSheet.tsx) ──
-        Sibling of the outer fixed-inset container. `bottom: 0` is NOT
-        enough on iOS PWA: the layout viewport stops above the home
-        indicator, so we push the panel down by env() and compensate
-        in paddingBottom. */}
+    {/* ── Bottom panel ─────────────────────────────────────────
+        `bottom: 0` anchored directly at the physical screen edge
+        (the splash gate above guarantees iOS has stabilized env()
+        by the time this renders). No safe-area bleed, no extra
+        safe-area padding — `paddingBottom: 16px` is a flat content
+        clearance per user preference. The CTA buttons end 16px
+        above the physical bottom regardless of home indicator. */}
     <div
-      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
-      style={{
-        bottom: `-${bleed}px`,
-        paddingBottom: `${32 + bleed}px`,
-      }}
+      className="fixed left-0 right-0 bottom-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
+      style={{ paddingBottom: '16px' }}
     >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
@@ -682,12 +665,11 @@ export default function LoginScreen() {
       animations are reliable on iOS; only opacity/filter ones are flaky).
     */}
 
-    {/* Backdrop: CSS transition, always mounted. `bottom` is
-        overridden to bleed into the iOS PWA bottom safe area. */}
+    {/* Backdrop: CSS transition, always mounted. Plain fixed inset-0
+        — splash gate ensures iOS viewport is stable. */}
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
-        bottom:        `-${bleed}px`,
         opacity:       sheetOpen ? 1 : 0,
         transition:    'opacity 0.25s linear',
         pointerEvents: sheetOpen ? 'auto' : 'none',
@@ -704,11 +686,12 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
+          className="fixed left-0 right-0 bottom-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
-            /* Driven by component state — see safeBottom useLayoutEffect. */
-            bottom: `-${bleed}px`,
-            paddingBottom: `${16 + bleed}px`,
+            /* Flat padding per user preference — splash gate guarantees
+             * iOS viewport is stable so `bottom: 0` lands at the
+             * physical screen edge directly. */
+            paddingBottom: '16px',
           }}
           onClick={e => e.stopPropagation()}
         >
