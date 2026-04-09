@@ -186,14 +186,6 @@ export default function LoginScreen() {
   const imgY      = useTransform(panY, [-400, 0], [-400, 0])
   const imgRotate = useTransform(panY, [-400, 0], [15, 0])
 
-  useLayoutEffect(() => {
-    if (!measureRef.current) return
-    const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
-    let max = 0
-    els.forEach(el => { max = Math.max(max, el.offsetHeight) })
-    setTextHeight(max)
-  }, [])
-
   /*
    * iOS PWA standalone cold-launch gate.
    *
@@ -220,17 +212,30 @@ export default function LoginScreen() {
    * still zero (covers non-notched devices — iPhone SE, Android,
    * desktop browser mode, etc — where env is legitimately 0 and
    * waiting forever would deadlock the UI).
-   *
-   * This replaces the earlier useLayoutEffect-that-updates-state
-   * approach, which still committed a first visible paint with the
-   * stale values before the update landed. With the ready gate,
-   * the very first pixels the user sees on /login are either the
-   * solid background (during the brief gate) or the fully-correct
-   * layout — never an intermediate wrong state.
    */
   const [ready, setReady] = useState(false)
   const [safeTop, setSafeTop] = useState(0)
   const [safeBottom, setSafeBottom] = useState(0)
+
+  /*
+   * Measures the tallest slide text block and locks the visible text
+   * container to that height, so the panel doesn't jump on swipe.
+   *
+   * `ready` is in the deps on purpose: when the splash gate is still
+   * closed (ready=false) we return a plain <div> and measureRef never
+   * attaches, so this effect has to re-run once ready flips to true
+   * and the real DOM is committed. Without `ready` here, textHeight
+   * stays `undefined`, the `relative` wrapper collapses to 0 (its
+   * only child is a `position:absolute` motion.div), and the dots
+   * and buttons visually overlap the title/body text.
+   */
+  useLayoutEffect(() => {
+    if (!measureRef.current) return
+    const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
+    let max = 0
+    els.forEach(el => { max = Math.max(max, el.offsetHeight) })
+    setTextHeight(max)
+  }, [ready])
   useLayoutEffect(() => {
     let stopped = false
     let rafId = 0
