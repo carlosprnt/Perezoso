@@ -86,6 +86,17 @@ html {
   height: 100%;                    /* legacy fallback (iOS < 15.4) */
   height: -webkit-fill-available;  /* iOS Safari legacy helper    */
   height: 100dvh;                  /* modern dynamic viewport     */
+  /*
+   * Canvas background: iOS PWA standalone paints anything in the
+   * bottom safe-area zone (below the layout viewport, above the
+   * physical screen edge) using the root element background. Setting
+   * html bg explicitly to the app background color means that when a
+   * fullscreen surface doesn't have a bleed-extended fixed background
+   * — and no sheet is open — the safe-area strip still matches the
+   * screen color instead of exposing body canvas. Dark-mode variant
+   * below in `.dark html`.
+   */
+  background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
@@ -225,6 +236,12 @@ input, select, textarea {
 .pressable:active { transform: scale(0.98); }
 
 /* ── Dark mode base ─────────────────────────────────────────────────────── */
+.dark html {
+  /* Dark-mode canvas — matches body background so the bottom safe-area
+   * strip in iOS PWA standalone doesn't flash light content beneath a
+   * dark layout. */
+  background-color: #121212;
+}
 .dark body {
   background-color: #121212;
   color: #F2F2F7;
@@ -272,6 +289,26 @@ button, a, [role="button"] {
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 .safe-left   { padding-left:   env(safe-area-inset-left); }
 .safe-right  { padding-right:  env(safe-area-inset-right); }
+
+/*
+ * Safe-area bleed utility for fullscreen fixed surfaces whose
+ * background must reach the physical screen edge in iOS PWA
+ * standalone, where `fixed bottom: 0` stops at the layout viewport
+ * bottom above the home-indicator inset.
+ *
+ * Usage on a `position: fixed` element:
+ *   <div class="safe-bottom-bleed" style="...">
+ *
+ * Applies the same two-step pattern we hand-roll on every bottom
+ * sheet: push the box bottom edge past zero by env(), then add back
+ * the same amount to padding-bottom so inner content stays at the
+ * same visual Y as before. Pair with left/right/top positioning of
+ * your choice.
+ */
+.safe-bottom-bleed {
+  bottom: calc(env(safe-area-inset-bottom) * -1);
+  padding-bottom: calc(env(safe-area-inset-bottom) * 2);
+}
 
 /* Capacitor status bar offset — use on sticky headers that sit below status bar */
 .status-bar-offset { padding-top: env(safe-area-inset-top); }
