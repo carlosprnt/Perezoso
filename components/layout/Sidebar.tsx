@@ -32,7 +32,7 @@ export default function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className="
       hidden lg:flex flex-col
-      w-56 min-h-screen
+      w-56 min-h-dvh
       bg-white dark:bg-[#1C1C1E] border-r border-[#E8E8E8] dark:border-[#2C2C2E]
       px-3 py-6
       fixed left-0 top-0 bottom-0

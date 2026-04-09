@@ -181,7 +181,7 @@ export default function SettingsView({ preferences }: Props) {
   ] as const
 
   return (
-    <div className="min-h-screen -mx-4 sm:-mx-6 -my-6 lg:-my-8 pb-4">
+    <div className="min-h-dvh -mx-4 sm:-mx-6 -my-6 lg:-my-8 pb-4">
       {/* Sticky header */}
       <div
         className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3 bg-[#F7F8FA] dark:bg-[#121212]"

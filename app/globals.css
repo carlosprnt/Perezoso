@@ -47,16 +47,59 @@
 *::before,
 *::after { box-sizing: border-box; }
 
+/*
+ * Height chain for iOS PWA standalone mode.
+ *
+ * Problem: in the home-screen standalone webview the layout viewport
+ * (the reference for `100vh` and for `fixed bottom: 0`) does NOT
+ * include the area under the home indicator, so any layout that sizes
+ * itself with `min-height: 100vh` or uses `fixed bottom: 0` with no
+ * dvh awareness stops short of the physical screen bottom and exposes
+ * a strip of page background. Safari (with browser chrome) does the
+ * right thing because its viewport is already smaller than the screen.
+ *
+ * Fix:
+ *  - Reset html/body margin/padding so nothing shifts the containing
+ *    block.
+ *  - html/body anchor the full height chain at 100% (fallback) →
+ *    100dvh (modern). 100dvh is the *dynamic* visual viewport,
+ *    which on iOS PWA resolves to the full physical screen height
+ *    including the home-indicator zone.
+ *  - body min-height: 100dvh ensures full-screen layouts (dashboard,
+ *    login, error/not-found) always cover the whole screen even if
+ *    their own `min-h-dvh` class somehow got lost.
+ *  - overscroll-behavior: none removes the iOS rubber-band that used
+ *    to detach fixed sheets from the bottom edge on drag.
+ *  - -webkit-fill-available is a legacy iOS-only helper that works
+ *    on older iOS versions where dvh isn't supported yet; we ship it
+ *    as an extra fallback layer.
+ *
+ * Next.js App Router renders children directly under <body> (no
+ * #__next / #root wrapper), so the chain only needs html → body.
+ */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 html {
+  height: 100%;                    /* legacy fallback (iOS < 15.4) */
+  height: -webkit-fill-available;  /* iOS Safari legacy helper    */
+  height: 100dvh;                  /* modern dynamic viewport     */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  overscroll-behavior: none;
 }
 
 body {
+  min-height: 100%;                    /* legacy fallback         */
+  min-height: -webkit-fill-available;  /* iOS Safari legacy       */
+  min-height: 100dvh;                  /* modern dynamic viewport */
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
+  overscroll-behavior: none;
 }
 
 .tabular-nums {

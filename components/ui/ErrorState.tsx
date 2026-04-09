@@ -50,7 +50,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#000000] flex items-center justify-center px-4">
+    <div className="min-h-dvh bg-[#F7F8FA] dark:bg-[#000000] flex items-center justify-center px-4">
       <ErrorState
         title="Error de página"
         message={error.message || 'No se ha podido cargar esta página.'}
