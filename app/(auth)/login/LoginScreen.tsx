@@ -195,6 +195,52 @@ export default function LoginScreen() {
   }, [])
 
   /*
+   * Measure env(safe-area-inset-top) in JS so the Perezoso logo's
+   * vertical centering calc doesn't depend on iOS's CSS env() being
+   * resolved by the time of the first paint. The symptom we're
+   * fixing: on a cold PWA launch the logo landed ~59px too high
+   * (env resolved to 0), then after a navigation (login → dashboard
+   * → logout → /login) iOS had initialized env and the logo was
+   * correct. useLayoutEffect runs synchronously after mount and
+   * before browser paint, so any state update here is flushed
+   * before the user sees anything. We additionally poll via rAF
+   * and two short timeouts in case iOS is *still* reporting 0 at
+   * useLayoutEffect time (happens on the very first paint of a
+   * freshly reinstalled PWA).
+   */
+  const [safeTop, setSafeTop] = useState(0)
+  useLayoutEffect(() => {
+    const probe = () => {
+      try {
+        const el = document.createElement('div')
+        el.style.cssText =
+          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none'
+        document.body.appendChild(el)
+        const v = parseFloat(getComputedStyle(el).paddingTop) || 0
+        el.remove()
+        setSafeTop(prev => (prev === v ? prev : v))
+      } catch { /* no-op */ }
+    }
+    probe()
+    const rafId = requestAnimationFrame(probe)
+    const t1 = setTimeout(probe, 50)
+    const t2 = setTimeout(probe, 250)
+    const onLoad = () => probe()
+    const onResize = () => probe()
+    window.addEventListener('load', onLoad)
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(t1)
+      clearTimeout(t2)
+      window.removeEventListener('load', onLoad)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [])
+
+  /*
    * Lock document scroll while the onboarding is mounted to suppress
    * iOS PWA rubber-band. Because globals.css now pins html/body to
    * 100dvh with `overscroll-behavior: none`, we only need a temporary
@@ -391,9 +437,16 @@ export default function LoginScreen() {
                * override it, pushing the logo off-center.
                * Instead compute the top-left corner directly:
                *   horizontal: 50vw − 44px  (half of 88 px logo)
-               *   vertical:   safe-area-top + (visible height − 260px panel) / 2 − 44px
+               *   vertical:   safeTop + (visible height − 260px panel) / 2 − 44px
+               *
+               * `safeTop` is the JS-measured env(safe-area-inset-top) kept
+               * in component state and refreshed via useLayoutEffect. See
+               * the effect above for why — relying on CSS `env()` directly
+               * produced the "wrong Y on cold PWA launch, correct after
+               * navigation" symptom because iOS had not yet initialized
+               * the env() constants by the time of the first paint.
                */
-              top:  'calc(env(safe-area-inset-top) + (100dvh - env(safe-area-inset-top) - 260px) / 2 - 44px)',
+              top:  `calc(${safeTop}px + (100dvh - ${safeTop}px - 260px) / 2 - 44px)`,
               left: 'calc(50% - 44px)',
             }}
             initial={{ opacity: 0, scale: 0.55 }}
