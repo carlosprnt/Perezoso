@@ -69,9 +69,10 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — bleeds into the iOS PWA bottom safe area. */}
       <motion.div
         className="fixed inset-0 z-[500] bg-black/50"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

@@ -93,17 +93,22 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
 
       {!isOpen ? null : (
         <>
-          {/* Backdrop */}
+          {/* Backdrop — bleeds into the iOS PWA bottom safe area. */}
           <div
             className="fixed inset-0 bg-black/40 z-40 animate-backdrop-in"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Sheet — slides up on mobile, centered on desktop */}
+          {/* Sheet — slides up on mobile, centered on desktop.
+              On mobile uses the safe-area bleed pattern (see
+              components/ui/BottomSheet.tsx). Arbitrary Tailwind value
+              instead of inline style so `sm:bottom-auto` can still
+              win the cascade on sm+ breakpoints. */}
           <div
             className="
               fixed z-50 bg-white dark:bg-[#1C1C1E]
-              bottom-0 left-0 right-0
+              bottom-[calc(env(safe-area-inset-bottom)*-1)] left-0 right-0
               rounded-t-2xl
               animate-slide-up
               sm:bottom-auto sm:top-1/2 sm:left-1/2
@@ -198,8 +203,10 @@ export default function FilterModal({ currentStatus, currentCategory }: FilterMo
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="flex gap-3 px-5 py-4 border-t border-[#E8E8E8] dark:border-[#2C2C2E]">
+            {/* Footer — pb compensates the mobile safe-area bleed on
+                the sheet above. `sm:pb-4` restores the flat padding on
+                desktop where the sheet is a centered modal without bleed. */}
+            <div className="flex gap-3 px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4 border-t border-[#E8E8E8] dark:border-[#2C2C2E]">
               <Button variant="secondary" onClick={reset} className="flex-1">
                 Reset
               </Button>
