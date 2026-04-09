@@ -195,43 +195,48 @@ export default function LoginScreen() {
   }, [])
 
   /*
-   * Measure env(safe-area-inset-{top,bottom}) in JS so the
-   * LoginScreen's vertical math does not depend on CSS env() being
-   * resolved by the time of the first paint.
+   * iOS PWA standalone cold-launch gate.
    *
-   * Symptom we're fixing: on a cold PWA launch the first visible
-   * /login frame had the Perezoso hero logo at the wrong Y and the
+   * Symptom we're fixing: the very first visible frame of /login on a
+   * cold PWA launch (opened from the Home Screen after the app was
+   * fully killed) has the Perezoso hero logo at the wrong Y and the
    * bottom panel short of the physical screen edge. After navigating
-   * (login → dashboard → logout → /login) iOS had fully initialized
-   * env() and both were correct. We can't depend on iOS having env()
-   * ready on first paint, and we can't depend on the inline bootstrap
-   * script in app/layout.tsx head to reliably update
-   * --safe-bleed-bottom fast enough for the first paint either — so
-   * this component takes matters into its own hands:
+   * (login → dashboard → logout → /login) the same screen renders
+   * correctly. Evidence from DebugViewport showed that between the
+   * two states, `env(safe-area-inset-*)` flipped from 0 to the real
+   * value AND the layout viewport grew. iOS does not fully initialize
+   * its safe-area constants by the time of the first paint on a cold
+   * PWA launch — it stabilizes a short time later, and any navigation
+   * that causes a re-render picks up the stabilized values.
    *
-   *   1. useState defaults: safeTop=0, safeBottom=0. On SSR and very
-   *      first client render they are 0, which produces the naive
-   *      (non-bled) layout.
-   *   2. useLayoutEffect fires synchronously after mount and before
-   *      the browser paints. It probes env() via a fixed element's
-   *      computed padding, updates state if the values differ, and
-   *      React flushes the resulting re-render inside the same
-   *      pre-paint commit. The very first visible paint therefore
-   *      shows the probed values.
-   *   3. A short polling schedule (rAF + 50/100/250/500/1000/2000ms
-   *      timeouts + load/resize/orientationchange listeners) catches
-   *      the case where iOS still reports 0 at useLayoutEffect time
-   *      (happens on truly cold PWA launches after a reinstall) and
-   *      updates state as soon as iOS produces a real number.
+   * Fix strategy: don't render the real layout until env() has
+   * stabilized. A `ready` gate holds the component on a blank
+   * #F7F8FA screen (matching the app background) while a rAF
+   * poll probes env() every frame. As soon as env() reports a
+   * non-zero value the measured insets are committed to state and
+   * `ready` flips to true, causing React to render the full
+   * LoginScreen with the correct positioning on its first visible
+   * paint. A hard 350ms timeout releases the gate even if env() is
+   * still zero (covers non-notched devices — iPhone SE, Android,
+   * desktop browser mode, etc — where env is legitimately 0 and
+   * waiting forever would deadlock the UI).
    *
-   * The bottom bleed is derived as max(safeBottom, 34) so that even
-   * on cached PWA installs where env reports 0 we still bleed by
-   * 34px as a floor — the standard iPhone home-indicator height.
+   * This replaces the earlier useLayoutEffect-that-updates-state
+   * approach, which still committed a first visible paint with the
+   * stale values before the update landed. With the ready gate,
+   * the very first pixels the user sees on /login are either the
+   * solid background (during the brief gate) or the fully-correct
+   * layout — never an intermediate wrong state.
    */
+  const [ready, setReady] = useState(false)
   const [safeTop, setSafeTop] = useState(0)
   const [safeBottom, setSafeBottom] = useState(0)
   useLayoutEffect(() => {
-    const probe = () => {
+    let stopped = false
+    let rafId = 0
+    const startedAt = Date.now()
+
+    const probe = (): { t: number; b: number } => {
       try {
         const el = document.createElement('div')
         el.style.cssText =
@@ -241,28 +246,58 @@ export default function LoginScreen() {
         const t = parseFloat(cs.paddingTop) || 0
         const b = parseFloat(cs.paddingBottom) || 0
         el.remove()
-        setSafeTop(prev => (prev === t ? prev : t))
-        setSafeBottom(prev => (prev === b ? prev : b))
-      } catch { /* no-op */ }
+        return { t, b }
+      } catch {
+        return { t: 0, b: 0 }
+      }
     }
-    probe()
-    const rafId = requestAnimationFrame(probe)
-    const timerIds = [50, 100, 250, 500, 1000, 2000].map(ms => setTimeout(probe, ms))
-    const onLoad = () => probe()
-    const onResize = () => probe()
-    window.addEventListener('load', onLoad)
-    window.addEventListener('resize', onResize)
-    window.addEventListener('orientationchange', onResize)
+
+    const commit = (t: number, b: number) => {
+      setSafeTop(prev => (prev === t ? prev : t))
+      setSafeBottom(prev => (prev === b ? prev : b))
+      if (!ready) setReady(true)
+    }
+
+    const tick = () => {
+      if (stopped) return
+      const { t, b } = probe()
+      // Success: iOS has initialized env. Commit immediately.
+      if (t > 0 || b > 0) {
+        commit(t, b)
+        return
+      }
+      // Timeout: 350ms elapsed, assume env is legitimately 0 (non-notch).
+      if (Date.now() - startedAt >= 350) {
+        commit(t, b)
+        return
+      }
+      // Otherwise keep polling on the next frame.
+      rafId = requestAnimationFrame(tick)
+    }
+    tick()
+
+    // Long-lived updaters: keep env in sync if iOS changes it later
+    // (orientation change, window resize, etc).
+    const sync = () => {
+      const { t, b } = probe()
+      setSafeTop(prev => (prev === t ? prev : t))
+      setSafeBottom(prev => (prev === b ? prev : b))
+    }
+    window.addEventListener('load', sync)
+    window.addEventListener('resize', sync)
+    window.addEventListener('orientationchange', sync)
     return () => {
-      cancelAnimationFrame(rafId)
-      timerIds.forEach(clearTimeout)
-      window.removeEventListener('load', onLoad)
-      window.removeEventListener('resize', onResize)
-      window.removeEventListener('orientationchange', onResize)
+      stopped = true
+      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('load', sync)
+      window.removeEventListener('resize', sync)
+      window.removeEventListener('orientationchange', sync)
     }
+    // `ready` intentionally omitted — we only want to flip it once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  /* Bleed amount: at least 34px even if env is 0 (cached PWA installs). */
+  /* Bleed amount: at least 34px even if env is 0 (non-notched / cached PWA). */
   const bleed = Math.max(safeBottom, 34)
 
   /*
@@ -331,6 +366,29 @@ export default function LoginScreen() {
     if (delta < -50) go(slide + 1)
     else if (delta > 50) go(slide - 1)
     setTouchStart(null)
+  }
+
+  /*
+   * Splash gate. Held until env() has stabilized (or 350ms timeout).
+   * Matches the app background so the user sees "the app is loading"
+   * rather than a visibly wrong intermediate layout. See the useLayoutEffect
+   * above for the rationale.
+   */
+  if (!ready) {
+    return (
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#F7F8FA',
+          zIndex: 9999,
+        }}
+      />
+    )
   }
 
   return (
