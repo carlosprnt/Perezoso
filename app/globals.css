@@ -290,25 +290,5 @@ button, a, [role="button"] {
 .safe-left   { padding-left:   env(safe-area-inset-left); }
 .safe-right  { padding-right:  env(safe-area-inset-right); }
 
-/*
- * Safe-area bleed utility for fullscreen fixed surfaces whose
- * background must reach the physical screen edge in iOS PWA
- * standalone, where `fixed bottom: 0` stops at the layout viewport
- * bottom above the home-indicator inset.
- *
- * Usage on a `position: fixed` element:
- *   <div class="safe-bottom-bleed" style="...">
- *
- * Applies the same two-step pattern we hand-roll on every bottom
- * sheet: push the box bottom edge past zero by env(), then add back
- * the same amount to padding-bottom so inner content stays at the
- * same visual Y as before. Pair with left/right/top positioning of
- * your choice.
- */
-.safe-bottom-bleed {
-  bottom: calc(env(safe-area-inset-bottom) * -1);
-  padding-bottom: calc(env(safe-area-inset-bottom) * 2);
-}
-
 /* Capacitor status bar offset — use on sticky headers that sit below status bar */
 .status-bar-offset { padding-top: env(safe-area-inset-top); }

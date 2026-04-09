@@ -83,9 +83,10 @@ export default function CalendarDaySheet({
 
   const content = (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — bleeds into the iOS PWA bottom safe area. */}
       <div
         className="fixed inset-0 bg-black/60 animate-backdrop-in z-[200]"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
         onClick={onClose}
       />
 

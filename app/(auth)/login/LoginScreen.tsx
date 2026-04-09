@@ -265,15 +265,15 @@ export default function LoginScreen() {
   return (
     <>
     {/*
-     * Outer fullscreen surface — extended by env(safe-area-inset-bottom)
-     * so its #F7F8FA background bleeds into the bottom safe area of the
-     * iOS PWA standalone viewport (the 34px strip below layout viewport
-     * bottom where `fixed bottom: 0` does NOT reach). Same safe-area
-     * bleed pattern documented in BottomSheet.tsx.
+     * Outer fullscreen surface. No safe-area bleed on this element:
+     * the canvas below the layout viewport (793→827 on iPhone) is
+     * already painted by `html { background-color: var(--color-background) }`
+     * in globals.css, which resolves to the same #F7F8FA. Bleeding
+     * this element too would be double compensation for the exact
+     * same color.
      */}
     <div
-      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
+      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -536,10 +536,12 @@ export default function LoginScreen() {
       animations are reliable on iOS; only opacity/filter ones are flaky).
     */}
 
-    {/* Backdrop: CSS transition, always mounted */}
+    {/* Backdrop: CSS transition, always mounted. `bottom` is
+        overridden to bleed into the iOS PWA bottom safe area. */}
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
+        bottom:        'calc(env(safe-area-inset-bottom) * -1)',
         opacity:       sheetOpen ? 1 : 0,
         transition:    'opacity 0.25s linear',
         pointerEvents: sheetOpen ? 'auto' : 'none',

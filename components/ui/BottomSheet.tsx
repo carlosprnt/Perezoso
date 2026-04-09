@@ -26,23 +26,19 @@ export default function BottomSheet({
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  const scrollRef    = useRef<HTMLDivElement>(null)
-  const sheetRef     = useRef<HTMLDivElement>(null)
-  const savedScrollY = useRef(0)
-  const touchStartY  = useRef(0)
-  const onCloseRef   = useRef(onClose)
+  const scrollRef   = useRef<HTMLDivElement>(null)
+  const sheetRef    = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
+  const onCloseRef  = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
-  // ── Body scroll lock ──────────────────────────────────────────────────────
-  // Uses a plain `overflow: hidden` rather than the old position:fixed +
-  // negative-top scroll-restoration trick. The old approach created subtle
-  // containing-block quirks on iOS PWA and was only needed because html/body
-  // had no height chain. With globals.css now anchoring html/body to 100dvh
-  // and overscroll-behavior: none, a simple overflow lock is enough and the
-  // page never creates scrollable overflow to begin with.
+  // Body scroll lock — plain overflow:hidden on html+body while open.
+  // (Earlier versions used `body { position: fixed; top: -scrollY }` to
+  // preserve scroll position; that interacted badly with the fixed sheet
+  // positioning on iOS PWA and is no longer needed now that globals.css
+  // sets `overscroll-behavior: none` on html/body.)
   useEffect(() => {
     if (!isOpen) return
-    savedScrollY.current = window.scrollY
     const prevHtmlOverflow = document.documentElement.style.overflow
     const prevBodyOverflow = document.body.style.overflow
     document.documentElement.style.overflow = 'hidden'
@@ -168,10 +164,14 @@ export default function BottomSheet({
 
   return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop — `bottom` is overridden to bleed into the iOS PWA
+          bottom safe area (see sheet comment below for the pattern). */}
       <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 animate-backdrop-in"
-        style={{ zIndex: zIndex ? zIndex - 2 : 58 }}
+        style={{
+          zIndex: zIndex ? zIndex - 2 : 58,
+          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+        }}
         onClick={onClose}
       />
 

@@ -376,16 +376,22 @@ export default function SettingsView({ preferences }: Props) {
       </Group>
       </div>
 
-      {/* Delete confirmation half-modal */}
+      {/* Delete confirmation half-modal — safe-area bleed pattern
+          (see components/ui/BottomSheet.tsx for the canonical
+          explanation). Overlay bleeds, inner sheet compensates with
+          extra padding-bottom. */}
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center"
-          style={{ background: 'rgba(0,0,0,0.45)' }}
+          style={{
+            background: 'rgba(0,0,0,0.45)',
+            bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          }}
           onClick={() => !isDeleting && setShowDeleteConfirm(false)}
         >
           <div
             className="w-full max-w-xl bg-white dark:bg-[#1C1C1E] rounded-t-[32px] px-5 pt-5 pb-6"
-            style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+            style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom) * 2)' }}
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">

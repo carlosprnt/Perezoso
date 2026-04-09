@@ -138,10 +138,15 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
    */
   const content = (
     <motion.div
-      // Overlay — full screen fixed container, sheet sits at the bottom
+      // Overlay — full screen fixed container, sheet sits at the bottom.
+      // `bottom` is overridden to bleed into the iOS PWA bottom safe
+      // area (see the canonical comment in components/ui/BottomSheet.tsx).
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 'calc(env(safe-area-inset-bottom) * -1)',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',
@@ -191,6 +196,10 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
          * Uses explicit max-height (reference pattern) instead of flex-1/min-h-0
          * so iOS Safari always has an unambiguous, fixed scroll boundary.
          * -webkit-overflow-scrolling:touch re-enables momentum scroll on iOS.
+         *
+         * paddingBottom: env(safe-area-inset-bottom) compensates the bleed
+         * applied to the outer overlay above, so the bottom of the scroll
+         * content (the edit CTA) still lands above the home indicator.
          */}
         <div
           ref={scrollRef}
@@ -199,6 +208,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             overflowY: 'auto',
             overscrollBehavior: 'contain',
             WebkitOverflowScrolling: 'touch',
+            paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
 
