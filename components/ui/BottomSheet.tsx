@@ -165,44 +165,48 @@ export default function BottomSheet({
   return createPortal(
     <>
       {/* Backdrop — `bottom` is overridden to bleed into the iOS PWA
-          bottom safe area (see sheet comment below for the pattern). */}
+          bottom safe area (see sheet comment below for the pattern).
+          Uses max(env, 34px) to be robust to PWA installs cached with
+          an old config where env() returns 0. */}
       <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 animate-backdrop-in"
         style={{
           zIndex: zIndex ? zIndex - 2 : 58,
-          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
         }}
         onClick={onClose}
       />
 
       {/*
-       * Sheet — safe-area bleed pattern.
+       * Sheet — safe-area bleed pattern, robust to cached PWA configs.
        *
-       * Empirically verified on iOS PWA standalone (2026-04-09, iPhone,
-       * see DebugViewport logs): in this webview `fixed bottom: 0`
-       * anchors to the LAYOUT VIEWPORT bottom (`visualViewport.height`
-       * = `100dvh` = 793px on this device), NOT to the physical screen
-       * edge at 827px. The 34px gap between 793 and 827 is the bottom
-       * safe-area inset and shows the canvas / body background, which
-       * causes the visible strip below any white sheet.
+       * Empirically verified on iOS PWA standalone: in this webview
+       * `fixed bottom: 0` anchors to the LAYOUT VIEWPORT bottom, NOT
+       * the physical screen edge. The ~34px gap between them shows
+       * the canvas / body background, which is the visible strip
+       * below white sheets. Raw portal tests (no Framer Motion, no
+       * Tailwind) reproduce the same gap — it is an iOS WebKit
+       * standalone behavior, not our component chain.
        *
-       * Do NOT revert this to plain `bottom: 0`. The raw test sheet
-       * (no Framer Motion, no Tailwind, direct portal) also stopped
-       * at 793 — it's an iOS WebKit standalone behavior, not a bug in
-       * our component abstractions.
+       * Additionally, iOS caches `apple-mobile-web-app-*` meta tags
+       * at PWA install time. A PWA installed before we added
+       * `black-translucent` + `viewport-fit=cover` keeps using the
+       * older config, in which `env(safe-area-inset-bottom)` returns
+       * 0 regardless of what the current HTML says. For those
+       * installs, `calc(-1 * env)` collapses to 0 and the bleed does
+       * nothing. `max(env, 34px)` forces at least 34px of bleed so
+       * the sheet background still covers the typical home-indicator
+       * zone even on stale installs. Content positioning does not
+       * change: the padding-bottom compensation is computed with the
+       * same max() expression, so the content stays at exactly the
+       * same visual Y as before.
        *
-       * Fix: push the element's bottom edge DOWN by the inset so its
-       * own background paints over the 793→827 strip. Compensate in
-       * paddingBottom so the visible content keeps the same clearance
-       * from the home indicator as before.
+       * Do NOT revert this to plain `bottom: 0` without empirically
+       * re-running a raw portal test in the PWA standalone view.
        *
-       *   bottom:        calc(-1 * env(safe-area-inset-bottom))
-       *   padding-bottom: calc(2 * env(safe-area-inset-bottom))
-       *     = original inset (safe clearance) + extra inset (to undo
-       *       the negative `bottom` and land content at its old Y)
-       *
-       * On devices with no bottom inset (Android, desktop) env() = 0
-       * and the formula collapses to `bottom: 0; padding-bottom: 0`.
+       * On devices with no bottom inset (Android, desktop) the
+       * compensation cancels out identically and the bleed extends
+       * invisibly 34px below the viewport (clipped, not rendered).
        */}
       <div
         ref={sheetRef}
@@ -215,8 +219,8 @@ export default function BottomSheet({
         `}
         style={{
           zIndex: zIndex ?? 60,
-          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
+          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+          paddingBottom: 'calc(max(env(safe-area-inset-bottom), 34px) * 2)',
           borderRadius: '32px 32px 0 0',
         }}
         onClick={e => e.stopPropagation()}

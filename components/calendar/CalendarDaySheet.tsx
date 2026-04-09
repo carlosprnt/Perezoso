@@ -86,7 +86,7 @@ export default function CalendarDaySheet({
       {/* Backdrop — bleeds into the iOS PWA bottom safe area. */}
       <div
         className="fixed inset-0 bg-black/60 animate-backdrop-in z-[200]"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
+        style={{ bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)' }}
         onClick={onClose}
       />
 
@@ -95,8 +95,8 @@ export default function CalendarDaySheet({
         className="fixed left-0 right-0 bg-white dark:bg-[#1C1C1E] flex flex-col max-h-[80dvh] animate-slide-up z-[210]"
         style={{
           borderRadius: '32px 32px 0 0',
-          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
+          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+          paddingBottom: 'calc(max(env(safe-area-inset-bottom), 34px) * 2)',
         }}
         onClick={e => e.stopPropagation()}
       >

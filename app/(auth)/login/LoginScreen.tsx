@@ -278,7 +278,7 @@ export default function LoginScreen() {
      */}
     <div
       className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
+      style={{ bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -417,8 +417,8 @@ export default function LoginScreen() {
     <div
       className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
       style={{
-        bottom: 'calc(env(safe-area-inset-bottom) * -1)',
-        paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+        bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+        paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + max(env(safe-area-inset-bottom), 34px))',
       }}
     >
         <div className="w-full max-w-sm mx-auto">
@@ -546,7 +546,7 @@ export default function LoginScreen() {
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
-        bottom:        'calc(env(safe-area-inset-bottom) * -1)',
+        bottom:        'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
         opacity:       sheetOpen ? 1 : 0,
         transition:    'opacity 0.25s linear',
         pointerEvents: sheetOpen ? 'auto' : 'none',
@@ -566,8 +566,8 @@ export default function LoginScreen() {
           className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
             /* Safe-area bleed pattern — see BottomSheet.tsx */
-            bottom: 'calc(env(safe-area-inset-bottom) * -1)',
-            paddingBottom: 'calc(24px + env(safe-area-inset-bottom) * 2)',
+            bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+            paddingBottom: 'calc(24px + max(env(safe-area-inset-bottom), 34px) * 2)',
           }}
           onClick={e => e.stopPropagation()}
         >
