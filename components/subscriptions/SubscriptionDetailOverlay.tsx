@@ -146,7 +146,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
         top: 0,
         left: 0,
         right: 0,
-        bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+        bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',
@@ -208,7 +208,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             overflowY: 'auto',
             overscrollBehavior: 'contain',
             WebkitOverflowScrolling: 'touch',
-            paddingBottom: 'max(env(safe-area-inset-bottom), 34px)',
+            paddingBottom: 'var(--safe-bleed-bottom, 34px)',
           }}
         >
 

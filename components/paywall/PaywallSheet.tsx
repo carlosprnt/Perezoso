@@ -69,10 +69,11 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
 
   return (
     <>
-      {/* Backdrop — bleeds into the iOS PWA bottom safe area. */}
+      {/* Backdrop — bleeds into the iOS PWA bottom safe area
+          (--safe-bleed-bottom is set in layout.tsx). */}
       <motion.div
         className="fixed inset-0 z-[500] bg-black/50"
-        style={{ bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)' }}
+        style={{ bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -83,8 +84,8 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
       <motion.div
         className="fixed left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden max-h-[100dvh]"
         style={{
-          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
-          paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + max(env(safe-area-inset-bottom), 34px))',
+          bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
+          paddingBottom: 'calc(32px + var(--safe-bleed-bottom, 34px))',
         }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}

@@ -289,5 +289,41 @@ button, a, [role="button"] {
 .safe-left   { padding-left:   env(safe-area-inset-left); }
 .safe-right  { padding-right:  env(safe-area-inset-right); }
 
+/*
+ * iOS PWA safe-area bleed utility for fixed bottom-aligned surfaces.
+ *
+ * The --safe-bleed-bottom variable is computed and set at runtime by
+ * the script in app/layout.tsx head. It resolves to max(env(safe-
+ * area-inset-bottom), 34px), so it works even on PWA installs with
+ * a stale iOS config where env() returns 0.
+ *
+ * Use `.pwa-bottom-bleed` on `position: fixed` surfaces that should
+ * extend their background into the bottom safe area. For responsive
+ * layouts that switch to a non-bottom positioning on larger
+ * breakpoints (e.g. centered modals on sm+), use
+ * `.pwa-bottom-bleed-mobile` which disables itself at 640px+.
+ */
+.pwa-bottom-bleed {
+  bottom: calc(var(--safe-bleed-bottom, 34px) * -1);
+}
+.pwa-bottom-bleed-mobile {
+  bottom: calc(var(--safe-bleed-bottom, 34px) * -1);
+}
+@media (min-width: 640px) {
+  .pwa-bottom-bleed-mobile {
+    bottom: auto;
+  }
+}
+
+/* FilterModal footer: safe-area padding on mobile, flat 1rem on desktop. */
+.pwa-sheet-footer-pb-mobile {
+  padding-bottom: calc(1rem + var(--safe-bleed-bottom, 34px));
+}
+@media (min-width: 640px) {
+  .pwa-sheet-footer-pb-mobile {
+    padding-bottom: 1rem;
+  }
+}
+
 /* Capacitor status bar offset — use on sticky headers that sit below status bar */
 .status-bar-offset { padding-top: env(safe-area-inset-top); }

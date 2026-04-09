@@ -165,14 +165,16 @@ export default function BottomSheet({
   return createPortal(
     <>
       {/* Backdrop — `bottom` is overridden to bleed into the iOS PWA
-          bottom safe area (see sheet comment below for the pattern).
-          Uses max(env, 34px) to be robust to PWA installs cached with
-          an old config where env() returns 0. */}
+          bottom safe area. The bleed value is computed in JS at
+          runtime (see layout.tsx head script) and exposed as
+          --safe-bleed-bottom on :root, so the CSS never depends on
+          nested calc/max expressions that can be brittle in iOS
+          Safari. */}
       <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 animate-backdrop-in"
         style={{
           zIndex: zIndex ? zIndex - 2 : 58,
-          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
+          bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
         }}
         onClick={onClose}
       />
@@ -219,8 +221,8 @@ export default function BottomSheet({
         `}
         style={{
           zIndex: zIndex ?? 60,
-          bottom: 'calc(max(env(safe-area-inset-bottom), 34px) * -1)',
-          paddingBottom: 'calc(max(env(safe-area-inset-bottom), 34px) * 2)',
+          bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
+          paddingBottom: 'calc(var(--safe-bleed-bottom, 34px) * 2)',
           borderRadius: '32px 32px 0 0',
         }}
         onClick={e => e.stopPropagation()}
