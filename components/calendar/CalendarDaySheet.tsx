@@ -89,10 +89,14 @@ export default function CalendarDaySheet({
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/* Sheet — safe-area bleed pattern (see BottomSheet.tsx) */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] flex flex-col max-h-[80dvh] animate-slide-up z-[210]"
-        style={{ borderRadius: '32px 32px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="fixed left-0 right-0 bg-white dark:bg-[#1C1C1E] flex flex-col max-h-[80dvh] animate-slide-up z-[210]"
+        style={{
+          borderRadius: '32px 32px 0 0',
+          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}

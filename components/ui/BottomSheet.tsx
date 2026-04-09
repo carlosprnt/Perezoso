@@ -175,11 +175,39 @@ export default function BottomSheet({
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/*
+       * Sheet — safe-area bleed pattern.
+       *
+       * Empirically verified on iOS PWA standalone (2026-04-09, iPhone,
+       * see DebugViewport logs): in this webview `fixed bottom: 0`
+       * anchors to the LAYOUT VIEWPORT bottom (`visualViewport.height`
+       * = `100dvh` = 793px on this device), NOT to the physical screen
+       * edge at 827px. The 34px gap between 793 and 827 is the bottom
+       * safe-area inset and shows the canvas / body background, which
+       * causes the visible strip below any white sheet.
+       *
+       * Do NOT revert this to plain `bottom: 0`. The raw test sheet
+       * (no Framer Motion, no Tailwind, direct portal) also stopped
+       * at 793 — it's an iOS WebKit standalone behavior, not a bug in
+       * our component abstractions.
+       *
+       * Fix: push the element's bottom edge DOWN by the inset so its
+       * own background paints over the 793→827 strip. Compensate in
+       * paddingBottom so the visible content keeps the same clearance
+       * from the home indicator as before.
+       *
+       *   bottom:        calc(-1 * env(safe-area-inset-bottom))
+       *   padding-bottom: calc(2 * env(safe-area-inset-bottom))
+       *     = original inset (safe clearance) + extra inset (to undo
+       *       the negative `bottom` and land content at its old Y)
+       *
+       * On devices with no bottom inset (Android, desktop) env() = 0
+       * and the formula collapses to `bottom: 0; padding-bottom: 0`.
+       */}
       <div
         ref={sheetRef}
         className={`
-          fixed bottom-0 left-0 right-0
+          fixed left-0 right-0
           bg-white dark:bg-[#1C1C1E]
           flex flex-col
           ${maxH}
@@ -187,7 +215,8 @@ export default function BottomSheet({
         `}
         style={{
           zIndex: zIndex ?? 60,
-          paddingBottom: 'env(safe-area-inset-bottom)',
+          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) * 2)',
           borderRadius: '32px 32px 0 0',
         }}
         onClick={e => e.stopPropagation()}

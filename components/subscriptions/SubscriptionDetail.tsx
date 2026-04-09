@@ -280,10 +280,13 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
         </div>
       </div>
 
-      {/* Fixed edit CTA */}
+      {/* Fixed edit CTA — safe-area bleed pattern (see BottomSheet.tsx) */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3 pb-4 z-10"
-        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+        className="fixed left-0 right-0 bg-white dark:bg-[#1C1C1E] border-t border-[#F0F0F0] dark:border-[#2C2C2E] px-4 pt-3 pb-4 z-10"
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          paddingBottom: 'calc(16px + env(safe-area-inset-bottom) * 2)',
+        }}
       >
         <button
           onClick={() => setEditOpen(true)}

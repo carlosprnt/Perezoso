@@ -264,8 +264,16 @@ export default function LoginScreen() {
 
   return (
     <>
+    {/*
+     * Outer fullscreen surface — extended by env(safe-area-inset-bottom)
+     * so its #F7F8FA background bleeds into the bottom safe area of the
+     * iOS PWA standalone viewport (the 34px strip below layout viewport
+     * bottom where `fixed bottom: 0` does NOT reach). Same safe-area
+     * bleed pattern documented in BottomSheet.tsx.
+     */}
     <div
-      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
+      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -396,17 +404,17 @@ export default function LoginScreen() {
 
     </div>
 
-    {/* ── Bottom panel: title + body + dots + buttons ──
-        Sibling of the outer fixed-inset container. Uses the standard
-        pattern: position:fixed, inset-x:0, bottom:0, max-height:100dvh,
-        padding-bottom: env(safe-area-inset-bottom) compounded with the
-        CTA clearance. With html/body anchored to 100dvh globally (see
-        app/globals.css) and the dashboard/login wrappers using
-        min-h-dvh, the layout viewport reaches the physical screen
-        bottom and `bottom: 0` lands where we expect in iOS PWA. */}
+    {/* ── Bottom panel — safe-area bleed pattern (see BottomSheet.tsx) ──
+        Sibling of the outer fixed-inset container. `bottom: 0` is NOT
+        enough on iOS PWA: the layout viewport stops above the home
+        indicator, so we push the panel down by env() and compensate
+        in paddingBottom. */}
     <div
-      className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
-      style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
+      style={{
+        bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+        paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+      }}
     >
         <div className="w-full max-w-sm mx-auto">
           {/* Hidden measurement: render all 4 slide texts in-flow (correct
@@ -548,8 +556,12 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
-          style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
+          style={{
+            /* Safe-area bleed pattern — see BottomSheet.tsx */
+            bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+            paddingBottom: 'calc(24px + env(safe-area-inset-bottom) * 2)',
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">

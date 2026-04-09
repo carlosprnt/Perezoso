@@ -78,10 +78,13 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/* Sheet — safe-area bleed pattern (see BottomSheet.tsx for rationale) */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden max-h-[100dvh]"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
+        className="fixed left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden max-h-[100dvh]"
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom) * -1)',
+          paddingBottom: 'calc(max(32px, env(safe-area-inset-bottom)) + env(safe-area-inset-bottom))',
+        }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
