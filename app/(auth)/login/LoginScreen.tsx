@@ -195,36 +195,59 @@ export default function LoginScreen() {
   }, [])
 
   /*
-   * Measure env(safe-area-inset-top) in JS so the Perezoso logo's
-   * vertical centering calc doesn't depend on iOS's CSS env() being
-   * resolved by the time of the first paint. The symptom we're
-   * fixing: on a cold PWA launch the logo landed ~59px too high
-   * (env resolved to 0), then after a navigation (login → dashboard
-   * → logout → /login) iOS had initialized env and the logo was
-   * correct. useLayoutEffect runs synchronously after mount and
-   * before browser paint, so any state update here is flushed
-   * before the user sees anything. We additionally poll via rAF
-   * and two short timeouts in case iOS is *still* reporting 0 at
-   * useLayoutEffect time (happens on the very first paint of a
-   * freshly reinstalled PWA).
+   * Measure env(safe-area-inset-{top,bottom}) in JS so the
+   * LoginScreen's vertical math does not depend on CSS env() being
+   * resolved by the time of the first paint.
+   *
+   * Symptom we're fixing: on a cold PWA launch the first visible
+   * /login frame had the Perezoso hero logo at the wrong Y and the
+   * bottom panel short of the physical screen edge. After navigating
+   * (login → dashboard → logout → /login) iOS had fully initialized
+   * env() and both were correct. We can't depend on iOS having env()
+   * ready on first paint, and we can't depend on the inline bootstrap
+   * script in app/layout.tsx head to reliably update
+   * --safe-bleed-bottom fast enough for the first paint either — so
+   * this component takes matters into its own hands:
+   *
+   *   1. useState defaults: safeTop=0, safeBottom=0. On SSR and very
+   *      first client render they are 0, which produces the naive
+   *      (non-bled) layout.
+   *   2. useLayoutEffect fires synchronously after mount and before
+   *      the browser paints. It probes env() via a fixed element's
+   *      computed padding, updates state if the values differ, and
+   *      React flushes the resulting re-render inside the same
+   *      pre-paint commit. The very first visible paint therefore
+   *      shows the probed values.
+   *   3. A short polling schedule (rAF + 50/100/250/500/1000/2000ms
+   *      timeouts + load/resize/orientationchange listeners) catches
+   *      the case where iOS still reports 0 at useLayoutEffect time
+   *      (happens on truly cold PWA launches after a reinstall) and
+   *      updates state as soon as iOS produces a real number.
+   *
+   * The bottom bleed is derived as max(safeBottom, 34) so that even
+   * on cached PWA installs where env reports 0 we still bleed by
+   * 34px as a floor — the standard iPhone home-indicator height.
    */
   const [safeTop, setSafeTop] = useState(0)
+  const [safeBottom, setSafeBottom] = useState(0)
   useLayoutEffect(() => {
     const probe = () => {
       try {
         const el = document.createElement('div')
         el.style.cssText =
-          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none'
+          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none'
         document.body.appendChild(el)
-        const v = parseFloat(getComputedStyle(el).paddingTop) || 0
+        const cs = getComputedStyle(el)
+        const t = parseFloat(cs.paddingTop) || 0
+        const b = parseFloat(cs.paddingBottom) || 0
         el.remove()
-        setSafeTop(prev => (prev === v ? prev : v))
+        setSafeTop(prev => (prev === t ? prev : t))
+        setSafeBottom(prev => (prev === b ? prev : b))
       } catch { /* no-op */ }
     }
     probe()
     const rafId = requestAnimationFrame(probe)
-    const t1 = setTimeout(probe, 50)
-    const t2 = setTimeout(probe, 250)
+    const timerIds = [50, 100, 250, 500, 1000, 2000].map(ms => setTimeout(probe, ms))
     const onLoad = () => probe()
     const onResize = () => probe()
     window.addEventListener('load', onLoad)
@@ -232,13 +255,15 @@ export default function LoginScreen() {
     window.addEventListener('orientationchange', onResize)
     return () => {
       cancelAnimationFrame(rafId)
-      clearTimeout(t1)
-      clearTimeout(t2)
+      timerIds.forEach(clearTimeout)
       window.removeEventListener('load', onLoad)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('orientationchange', onResize)
     }
   }, [])
+
+  /* Bleed amount: at least 34px even if env is 0 (cached PWA installs). */
+  const bleed = Math.max(safeBottom, 34)
 
   /*
    * Lock document scroll while the onboarding is mounted to suppress
@@ -324,7 +349,7 @@ export default function LoginScreen() {
      */}
     <div
       className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)' }}
+      style={{ bottom: `-${bleed}px` }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -470,8 +495,8 @@ export default function LoginScreen() {
     <div
       className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
       style={{
-        bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-        paddingBottom: 'calc(32px + var(--safe-bleed-bottom, 34px))',
+        bottom: `-${bleed}px`,
+        paddingBottom: `${32 + bleed}px`,
       }}
     >
         <div className="w-full max-w-sm mx-auto">
@@ -599,7 +624,7 @@ export default function LoginScreen() {
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
-        bottom:        'calc(var(--safe-bleed-bottom, 34px) * -1)',
+        bottom:        `-${bleed}px`,
         opacity:       sheetOpen ? 1 : 0,
         transition:    'opacity 0.25s linear',
         pointerEvents: sheetOpen ? 'auto' : 'none',
@@ -618,9 +643,9 @@ export default function LoginScreen() {
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
-            /* Safe-area bleed pattern — see BottomSheet.tsx */
-            bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-            paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
+            /* Driven by component state — see safeBottom useLayoutEffect. */
+            bottom: `-${bleed}px`,
+            paddingBottom: `${16 + bleed}px`,
           }}
           onClick={e => e.stopPropagation()}
         >
