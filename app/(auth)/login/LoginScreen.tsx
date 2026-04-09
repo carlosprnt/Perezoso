@@ -567,7 +567,7 @@ export default function LoginScreen() {
           style={{
             /* Safe-area bleed pattern — see BottomSheet.tsx */
             bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-            paddingBottom: 'calc(24px + var(--safe-bleed-bottom, 34px) * 2)',
+            paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
           }}
           onClick={e => e.stopPropagation()}
         >

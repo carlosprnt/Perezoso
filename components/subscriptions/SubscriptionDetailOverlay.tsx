@@ -208,7 +208,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             overflowY: 'auto',
             overscrollBehavior: 'contain',
             WebkitOverflowScrolling: 'touch',
-            paddingBottom: 'var(--safe-bleed-bottom, 34px)',
+            paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
           }}
         >
 
