@@ -222,7 +222,7 @@ export default function BottomSheet({
         style={{
           zIndex: zIndex ?? 60,
           bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-          paddingBottom: 'calc(var(--safe-bleed-bottom, 34px) * 2)',
+          paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
           borderRadius: '32px 32px 0 0',
         }}
         onClick={e => e.stopPropagation()}

@@ -85,7 +85,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
         className="fixed left-0 right-0 z-[501] bg-white rounded-t-[32px] overflow-hidden max-h-[100dvh]"
         style={{
           bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-          paddingBottom: 'calc(32px + var(--safe-bleed-bottom, 34px))',
+          paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
         }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
