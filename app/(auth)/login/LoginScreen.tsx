@@ -265,15 +265,20 @@ export default function LoginScreen() {
   return (
     <>
     {/*
-     * Outer fullscreen surface. No safe-area bleed on this element:
-     * the canvas below the layout viewport (793→827 on iPhone) is
-     * already painted by `html { background-color: var(--color-background) }`
-     * in globals.css, which resolves to the same #F7F8FA. Bleeding
-     * this element too would be double compensation for the exact
-     * same color.
+     * Outer fullscreen surface — safe-area bleed so the #F7F8FA
+     * background extends into the iOS PWA bottom safe area strip
+     * (793→827). An earlier cleanup pass assumed the
+     * `html { background-color }` rule in globals.css covered this
+     * zone via canvas propagation, but empirically that assumption
+     * DID NOT HOLD on the standalone webview — the gap came back.
+     * Keep the explicit bleed here regardless of whether it looks
+     * like double compensation; we have empirical proof (via the
+     * DebugViewport test) that the explicit bleed works and the
+     * html canvas bg alone does not.
      */}
     <div
-      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
+      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
