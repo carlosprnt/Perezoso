@@ -47,6 +47,34 @@ export default async function RootLayout({
             __html: `try{var p=localStorage.getItem('perezoso_theme');var d=p==='dark'||(p==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}`
           }}
         />
+        {/*
+          iOS PWA standalone safe-area bleed bootstrap.
+
+          Problem: fixed bottom-aligned UI (sheets, CTA bars, overlays)
+          stops above the physical bottom edge in the iOS Home Screen
+          standalone webview, leaving a strip of page background exposed
+          above the home indicator. This happens because the CSS layout
+          viewport does not reach the physical screen bottom in that
+          webview, and `position: fixed; bottom: 0` anchors to the
+          layout viewport, not the physical edge.
+
+          Fix: measure env(safe-area-inset-bottom) at runtime, take
+          max(env, 34px) as a robust floor (handles PWA installs cached
+          with an old apple-mobile-web-app-* config where env() returns
+          0), and expose it as --safe-bleed-bottom on :root. Every
+          bottom-aligned surface then uses:
+
+            bottom: calc(var(--safe-bleed-bottom) * -1)
+            padding-bottom: calc(<design clearance> + var(--safe-bleed-bottom))
+
+          Runs inline before hydration so the first paint has the right
+          positioning, and re-runs on resize / orientationchange.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){function setBleed(){try{var probe=document.createElement('div');probe.style.cssText='position:fixed;left:0;top:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';(document.body||document.documentElement).appendChild(probe);var env=parseFloat(getComputedStyle(probe).paddingBottom)||0;probe.remove();var bleed=Math.max(env,34);document.documentElement.style.setProperty('--safe-bleed-bottom',bleed+'px');document.documentElement.style.setProperty('--safe-area-bottom',env+'px');}catch(e){document.documentElement.style.setProperty('--safe-bleed-bottom','34px');document.documentElement.style.setProperty('--safe-area-bottom','0px');}}if(document.body){setBleed();}else{document.addEventListener('DOMContentLoaded',setBleed);}window.addEventListener('resize',setBleed);window.addEventListener('orientationchange',setBleed);})();`
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
