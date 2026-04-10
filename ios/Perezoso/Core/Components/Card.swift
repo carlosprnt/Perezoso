@@ -45,7 +45,7 @@ struct Card<Content: View>: View {
                 Spacer()
                 Text("12,99 €")
                     .font(.bodyMedium)
-                    .foregroundStyle(.textSecondary)
+                    .foregroundStyle(Color.textSecondary)
             }
             .padding()
         }

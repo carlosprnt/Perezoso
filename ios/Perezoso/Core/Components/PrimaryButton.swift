@@ -48,7 +48,7 @@ struct SecondaryButton: View {
                 .font(.inter(.semibold, size: 15))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
                 .background(.clear)
                 .clipShape(.capsule)
                 .overlay(Capsule().stroke(Color.borderLight, lineWidth: 1))
@@ -60,9 +60,9 @@ struct SecondaryButton: View {
 
 #Preview {
     VStack(spacing: Spacing.md) {
-        PrimaryButton("Continuar") {}
-        PrimaryButton("Guardando…", isLoading: true) {}
-        SecondaryButton("Iniciar sesión") {}
+        PrimaryButton(title: "Continuar") {}
+        PrimaryButton(title: "Guardando…", isLoading: true) {}
+        SecondaryButton(title: "Iniciar sesión") {}
     }
     .padding()
 }

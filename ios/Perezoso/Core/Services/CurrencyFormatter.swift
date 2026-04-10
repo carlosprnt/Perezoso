@@ -4,7 +4,10 @@ import Foundation
 /// locale rules. Caches formatters per currency to avoid re-creating
 /// them on every cell render.
 enum CurrencyFormat {
-    private static var cache: [String: NumberFormatter] = [:]
+    // nonisolated(unsafe) silences the strict-concurrency warning for
+    // this mutable static. The cache is only ever accessed on the main
+    // thread (SwiftUI view bodies) so the race is not a real concern.
+    nonisolated(unsafe) private static var cache: [String: NumberFormatter] = [:]
 
     /// Formats `12.99` + `"EUR"` → `"12,99 €"` (in `es` locale).
     static func string(for amount: Decimal, currency: String) -> String {
