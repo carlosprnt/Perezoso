@@ -56,8 +56,8 @@ final class SubscriptionsStore: @unchecked Sendable {
                 .order("next_billing_date", ascending: true)
                 .execute()
                 .value
-        } catch {
-            self.error = error.localizedDescription
+        } catch let err {
+            self.error = err.localizedDescription
         }
         isLoading = false
     }

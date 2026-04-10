@@ -96,7 +96,7 @@ struct SubscriptionFormView: View {
                                 .textContentType(.URL)
                                 .keyboardType(.URL)
                                 .autocorrectionDisabled()
-                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
                         }
                     }
 
@@ -198,7 +198,7 @@ struct SubscriptionFormView: View {
                     // ── Actions ───────────────────────────────
                     VStack(spacing: Spacing.sm) {
                         PrimaryButton(
-                            mode.subscription == nil ? "Crear suscripción" : "Guardar cambios",
+                            title: mode.subscription == nil ? "Crear suscripción" : "Guardar cambios",
                             isLoading: isSaving
                         ) {
                             Task { await save() }
