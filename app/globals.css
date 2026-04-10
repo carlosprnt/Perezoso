@@ -33,7 +33,7 @@
   --color-danger:   #991B1B;
 
   /* ── Typography ──────────────────────────── */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
 
   /* ── Shape ───────────────────────────────── */
   --radius-sm:  6px;
