@@ -8,7 +8,6 @@ import { Card, CardHeader } from '@/components/ui/Card'
 import UpcomingRenewals from '@/components/dashboard/UpcomingRenewals'
 import TopExpensiveSection from '@/components/dashboard/TopExpensiveSection'
 import TopCategoriesSection from '@/components/dashboard/TopCategoriesSection'
-import CategoryTreemap from '@/components/dashboard/CategoryTreemap'
 import DashboardCardStack from '@/components/dashboard/DashboardCardStack'
 import DashboardSummaryHero from '@/components/dashboard/DashboardSummaryHero'
 import EmptyDashboardHero from '@/components/dashboard/EmptyDashboardHero'
@@ -101,9 +100,6 @@ export default async function DashboardPage() {
                 </Card>
               </div>
             </div>
-            <Card padding="sm">
-              <CategoryTreemap categories={categoryRows} currency={dominantCurrency} />
-            </Card>
             {top3.length > 0 && (
               <div className="overflow-x-hidden mt-3">
                 <h3 className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
