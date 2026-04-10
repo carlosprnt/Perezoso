@@ -108,7 +108,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ③ Shared plans */}
       <InsightCell
         icon={<Users size={20} />}
-        iconCls="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+        iconCls="bg-[#F5F5F5] text-[#424242] dark:bg-[#2C2C2E] dark:text-[#E5E5EA]"
         label={t('dashboard.sharedPlans')}
         value={
           sharedSubs.length > 0
