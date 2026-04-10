@@ -187,14 +187,14 @@ struct LoginView: View {
         case .success(let authorization):
             do {
                 isLoading = true
-                error = nil
+                self.error = nil
                 try await auth.signInWithApple(authorization)
-            } catch {
-                self.error = error.localizedDescription
+            } catch let err {
+                self.error = err.localizedDescription
             }
             isLoading = false
         case .failure(let err):
-            error = err.localizedDescription
+            self.error = err.localizedDescription
         }
     }
 
