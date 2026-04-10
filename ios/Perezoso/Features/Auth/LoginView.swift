@@ -215,6 +215,9 @@ struct LoginView: View {
             isLoading = true
             self.error = nil
             try await auth.signInWithGoogle()
+        } catch let err as ASWebAuthenticationSessionError
+                    where err.code == .canceledLogin {
+            // User tapped Cancel in the browser — not a real error
         } catch let err {
             self.error = err.localizedDescription
         }

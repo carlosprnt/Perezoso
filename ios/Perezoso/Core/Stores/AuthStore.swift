@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import Supabase
 import AuthenticationServices
+import UIKit
 
 /// Observable auth state for the whole app.
 ///
@@ -25,6 +26,11 @@ final class AuthStore: @unchecked Sendable {
 
     /// Convenience — true when a valid session exists.
     var isAuthenticated: Bool { state == .signedIn }
+
+    // MARK: - Private OAuth helpers
+
+    private var webAuthSession: ASWebAuthenticationSession?
+    private let webAuthContextProvider = WebAuthContextProvider()
 
     // MARK: - Bootstrap
 
@@ -92,12 +98,43 @@ final class AuthStore: @unchecked Sendable {
 
     // MARK: - Sign in with Google (OAuth via ASWebAuthenticationSession)
 
+    /// Opens an in-app browser (ASWebAuthenticationSession) pointing
+    /// at Supabase's Google OAuth endpoint, waits for the redirect
+    /// callback, then exchanges the code for a session.
+    @MainActor
     func signInWithGoogle() async throws {
-        // supabase-swift v2 opens ASWebAuthenticationSession
-        // internally — just call signInWithOAuth with the provider.
-        try await SupabaseManager.client.auth.signInWithOAuth(
-            provider: .google
+        // 1. Build the OAuth authorization URL
+        let oauthURL = try SupabaseManager.client.auth.getOAuthSignInURL(
+            provider: .google,
+            redirectTo: URL(string: "perezoso://auth/callback")
         )
+
+        // 2. Present ASWebAuthenticationSession and wait for callback
+        let callbackURL: URL = try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(
+                url: oauthURL,
+                callbackURLScheme: "perezoso"
+            ) { [weak self] url, error in
+                self?.webAuthSession = nil
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let url {
+                    continuation.resume(returning: url)
+                } else {
+                    continuation.resume(throwing: AuthError.oauthFailed)
+                }
+            }
+            session.presentationContextProvider = webAuthContextProvider
+            session.prefersEphemeralWebBrowserSession = false
+            self.webAuthSession = session
+            session.start()
+        }
+
+        // 3. Exchange the callback URL for a Supabase session
+        let newSession = try await SupabaseManager.client.auth.session(from: callbackURL)
+        self.session = newSession
+        await fetchProfile()
+        state = .signedIn
     }
 
     // MARK: - Sign out
@@ -130,12 +167,32 @@ final class AuthStore: @unchecked Sendable {
 
     enum AuthError: LocalizedError {
         case missingAppleCredential
+        case oauthFailed
 
         var errorDescription: String? {
             switch self {
             case .missingAppleCredential:
                 "Could not retrieve Apple ID credential."
+            case .oauthFailed:
+                "OAuth authentication failed. Please try again."
             }
+        }
+    }
+}
+
+// MARK: - Web Auth Presentation Context
+
+/// Provides the key window as the presentation anchor for
+/// ASWebAuthenticationSession. Kept as a separate NSObject subclass
+/// because the protocol requires NSObjectProtocol conformance.
+private class WebAuthContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        // This delegate method is always called on the main thread.
+        MainActor.assumeIsolated {
+            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = scene.windows.first
+            else { return UIWindow() }
+            return window
         }
     }
 }
