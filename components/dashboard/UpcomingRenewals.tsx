@@ -66,7 +66,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-[14px] font-medium tabular-nums text-[#737373] dark:text-[#AEAEB2]">
+              <p className="text-[14px] font-normal tabular-nums text-[#737373] dark:text-[#AEAEB2]">
                 {daysLabel(r.days_until)}
               </p>
             </div>
