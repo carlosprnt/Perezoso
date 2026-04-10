@@ -31,6 +31,7 @@ struct PerezosoApp: App {
     }
 
     private func configureRevenueCat() {
+        guard !AppEnvironment.shared.isPreview else { return }
         // RevenueCat logs are very noisy at .debug — keep them at .error
         // except when you're actively debugging a purchase flow.
         Purchases.logLevel = .error

@@ -32,6 +32,12 @@ final class AuthStore: @unchecked Sendable {
     /// Checks whether a saved session exists in Keychain and
     /// refreshes it with Supabase. Sets `state` accordingly.
     func bootstrap() async {
+        // In preview mode (no real keys) skip network and show UI
+        guard !AppEnvironment.shared.isPreview else {
+            state = .signedOut
+            return
+        }
+
         do {
             session = try await SupabaseManager.client.auth.session
             await fetchProfile()

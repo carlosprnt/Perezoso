@@ -50,6 +50,8 @@ targets:
           - "**/*.md"
     resources:
       - path: Perezoso/Resources/Assets.xcassets
+      - path: Perezoso/Resources/Fonts
+        buildPhase: resources
     configFiles:
       Debug: Config.xcconfig
       Release: Config.xcconfig

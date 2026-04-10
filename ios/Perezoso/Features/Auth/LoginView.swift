@@ -33,11 +33,23 @@ struct LoginView: View {
             // ── Perezoso logo (centered above the panel) ────
             VStack {
                 Spacer()
-                Image("Logo") // from Assets.xcassets
-                    .resizable()
-                    .frame(width: 88, height: 88)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.18), radius: 20, y: 10)
+                Group {
+                    if UIImage(named: "Logo") != nil {
+                        Image("Logo")
+                            .resizable()
+                    } else {
+                        // Placeholder until the real logo is added to Assets
+                        ZStack {
+                            Color.accentLight
+                            Image(systemName: "tortoise.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Color.accent)
+                        }
+                    }
+                }
+                .frame(width: 88, height: 88)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .shadow(color: .black.opacity(0.18), radius: 20, y: 10)
                 Spacer()
                 Spacer()
                     .frame(height: 260)
