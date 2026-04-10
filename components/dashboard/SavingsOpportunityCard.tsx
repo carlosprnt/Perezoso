@@ -176,7 +176,7 @@ function InsightCardShell({
 }) {
   return (
     <div
-      className={`relative w-full rounded-[24px] px-4 pt-4 pb-3 select-none ${
+      className={`relative w-full rounded-[32px] px-4 pt-4 pb-3 select-none ${
         inModal ? 'bg-[#F2F2F7] dark:bg-[#2C2C2E]' : 'bg-white dark:bg-[#1C1C1E]'
       }`}
       style={inModal ? undefined : { boxShadow: '0 1px 5px rgba(0,0,0,0.06)' }}
