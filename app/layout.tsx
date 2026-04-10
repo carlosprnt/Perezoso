@@ -75,12 +75,6 @@ export default async function RootLayout({
             __html: `(function(){function setBleed(){try{var probe=document.createElement('div');probe.style.cssText='position:fixed;left:0;top:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none';(document.body||document.documentElement).appendChild(probe);var cs=getComputedStyle(probe);var envB=parseFloat(cs.paddingBottom)||0;var envT=parseFloat(cs.paddingTop)||0;probe.remove();var bleed=Math.max(envB,34);var rs=document.documentElement.style;rs.setProperty('--safe-bleed-bottom',bleed+'px');rs.setProperty('--safe-area-bottom',envB+'px');rs.setProperty('--safe-area-top',envT+'px');}catch(e){var rs=document.documentElement.style;rs.setProperty('--safe-bleed-bottom','34px');rs.setProperty('--safe-area-bottom','0px');rs.setProperty('--safe-area-top','0px');}}function schedule(){setBleed();requestAnimationFrame(setBleed);setTimeout(setBleed,50);setTimeout(setBleed,250);}if(document.body){schedule();}else{document.addEventListener('DOMContentLoaded',schedule);}window.addEventListener('load',schedule);window.addEventListener('resize',setBleed);window.addEventListener('orientationchange',schedule);})();`
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
         {/* iOS PWA splash screens */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         {/*

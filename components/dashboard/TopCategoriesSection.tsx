@@ -111,11 +111,11 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
               <span className="flex-1 text-[13px] text-[#121212] dark:text-[#F2F2F7] truncate">
                 {label(seg.category)}
               </span>
+              <span className="text-[11px] text-[#8E8E93] flex-shrink-0">
+                {Math.round(seg.pct)}%
+              </span>
               <span className="text-[13px] font-semibold tabular-nums text-[#121212] dark:text-[#F2F2F7]">
                 {formatCurrency(seg.monthly_cost, currency, locale)}
-              </span>
-              <span className="text-[11px] text-[#8E8E93] w-8 text-right flex-shrink-0">
-                {Math.round(seg.pct)}%
               </span>
             </button>
           )
