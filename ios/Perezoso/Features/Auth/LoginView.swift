@@ -52,12 +52,12 @@ struct LoginView: View {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(slides[currentSlide].title)
                                 .font(.title)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                                 .animation(.easeInOut(duration: 0.2), value: currentSlide)
 
                             Text(slides[currentSlide].body)
                                 .font(.bodyRegular)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
                                 .animation(.easeInOut(duration: 0.2), value: currentSlide)
                         }
                         .id(currentSlide) // force re-render for transition
@@ -69,10 +69,10 @@ struct LoginView: View {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Empieza ahora")
                                 .font(.title)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                             Text("Inicia sesión y vuelca todas tus suscripciones en un solo sitio.")
                                 .font(.bodyRegular)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
                         }
                     }
 
@@ -90,11 +90,11 @@ struct LoginView: View {
                     // CTAs
                     if currentSlide < slides.count {
                         HStack(spacing: Spacing.md) {
-                            SecondaryButton("Iniciar sesión") {
+                            SecondaryButton(title: "Iniciar sesión") {
                                 Haptics.tap()
                                 showSignInSheet = true
                             }
-                            PrimaryButton("Continuar") {
+                            PrimaryButton(title: "Continuar") {
                                 Haptics.selection()
                                 withAnimation { currentSlide += 1 }
                             }
@@ -148,22 +148,22 @@ struct LoginView: View {
             .clipShape(.capsule)
 
             // Google OAuth
-            PrimaryButton("Continuar con Google", isLoading: isLoading) {
+            PrimaryButton(title: "Continuar con Google", isLoading: isLoading) {
                 Task { await handleGoogleSignIn() }
             }
 
             if let error {
                 Text(error)
                     .font(.caption)
-                    .foregroundStyle(.danger)
+                    .foregroundStyle(Color.danger)
                     .padding(.horizontal)
             }
 
             Text("Al continuar aceptas nuestros [Términos](https://perezoso.vercel.app/terms) y la [Política de privacidad](https://perezoso.vercel.app/privacy).")
                 .font(.micro)
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
                 .multilineTextAlignment(.center)
-                .tint(.textMuted)
+                .tint(Color.textMuted)
         }
     }
 

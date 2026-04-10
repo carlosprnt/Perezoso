@@ -52,7 +52,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .frame(width: 40, height: 40)
                     .background(Color.surface)
                     .clipShape(Circle())
@@ -63,7 +63,7 @@ struct CalendarView: View {
 
             Text(monthYearLabel)
                 .font(.headline)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
 
             Spacer()
 
@@ -74,7 +74,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .frame(width: 40, height: 40)
                     .background(Color.surface)
                     .clipShape(Circle())
@@ -88,7 +88,7 @@ struct CalendarView: View {
             ForEach(["L", "M", "X", "J", "V", "S", "D"], id: \.self) { label in
                 Text(label)
                     .font(.micro)
-                    .foregroundStyle(.textMuted)
+                    .foregroundStyle(Color.textMuted)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.xs)
             }
@@ -129,7 +129,7 @@ struct CalendarView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(dayLabel(for: date))
                 .font(.headline)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
 
             ForEach(renewals(on: date)) { sub in
                 Card {
@@ -142,15 +142,15 @@ struct CalendarView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(sub.name)
                                 .font(.bodyMedium)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                             Text(sub.category.localizedName)
                                 .font(.caption)
-                                .foregroundStyle(.textMuted)
+                                .foregroundStyle(Color.textMuted)
                         }
                         Spacer()
                         Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
                             .font(.bodyMedium)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
                     }
                     .padding(Spacing.md)
                 }
@@ -178,7 +178,7 @@ struct CalendarView: View {
         else { return [] }
 
         // Weekday of first day (Mon=1 … Sun=7 in ISO calendar)
-        var firstWeekday = (calendar.component(.weekday, from: firstDay) + 5) % 7 // convert Sun=1 to Mon=0
+        let firstWeekday = (calendar.component(.weekday, from: firstDay) + 5) % 7 // convert Sun=1 to Mon=0
         var cells: [Date?] = Array(repeating: nil, count: firstWeekday)
         for day in range {
             let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay)!
@@ -231,9 +231,9 @@ private struct DayCell: View {
                 Text("\(day)")
                     .font(.inter(.medium, size: 14))
                     .foregroundStyle(
-                        isSelected ? .white :
-                        isToday ? .accent :
-                        .textPrimary
+                        isSelected ? Color.white :
+                        isToday ? Color.accent :
+                        Color.textPrimary
                     )
             }
 

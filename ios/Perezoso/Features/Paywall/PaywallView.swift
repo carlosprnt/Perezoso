@@ -39,7 +39,7 @@ struct PaywallView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 22))
-                            .foregroundStyle(.textMuted)
+                            .foregroundStyle(Color.textMuted)
                     }
                 }
             }
@@ -56,17 +56,17 @@ struct PaywallView: View {
                     .frame(width: 80, height: 80)
                 Image(systemName: "star.fill")
                     .font(.system(size: 36))
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accent)
             }
 
             VStack(spacing: Spacing.sm) {
                 Text("Perezoso Pro")
                     .font(.title)
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
 
                 Text("Lleva el control total de tus suscripciones sin límites.")
                     .font(.bodyRegular)
-                    .foregroundStyle(.textSecondary)
+                    .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -86,20 +86,20 @@ struct PaywallView: View {
                                 .frame(width: 36, height: 36)
                             Image(systemName: feature.icon)
                                 .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(.accent)
+                                .foregroundStyle(Color.accent)
                         }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(feature.title)
                                 .font(.bodyMedium)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                             Text(feature.description)
                                 .font(.caption)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
                         }
                         Spacer()
                         Image(systemName: "checkmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.success)
+                            .foregroundStyle(Color.success)
                     }
                     .padding(Spacing.lg)
                     if feature != ProFeature.allCases.last {
@@ -130,7 +130,7 @@ struct PaywallView: View {
             if let errorMessage {
                 Text(errorMessage)
                     .font(.caption)
-                    .foregroundStyle(.danger)
+                    .foregroundStyle(Color.danger)
                     .multilineTextAlignment(.center)
             }
 
@@ -149,11 +149,11 @@ struct PaywallView: View {
                 if isRestoring {
                     ProgressView()
                         .controlSize(.small)
-                        .tint(.textMuted)
+                        .tint(Color.textMuted)
                 } else {
                     Text("Restaurar compra")
                         .font(.bodyMedium)
-                        .foregroundStyle(.textMuted)
+                        .foregroundStyle(Color.textMuted)
                 }
             }
             .disabled(isRestoring || isPurchasing)
@@ -166,16 +166,16 @@ struct PaywallView: View {
         VStack(spacing: Spacing.xxs) {
             Text("El pago se cargará a tu cuenta de Apple ID. La suscripción se renueva automáticamente salvo que la canceles al menos 24 h antes del fin del periodo.")
                 .font(.micro)
-                .foregroundStyle(.textDisabled)
+                .foregroundStyle(Color.textDisabled)
                 .multilineTextAlignment(.center)
 
             HStack(spacing: Spacing.md) {
                 Link("Términos de uso", destination: URL(string: "https://perezoso.vercel.app/terms")!)
                     .font(.micro)
-                    .foregroundStyle(.textMuted)
+                    .foregroundStyle(Color.textMuted)
                 Link("Política de privacidad", destination: URL(string: "https://perezoso.vercel.app/privacy")!)
                     .font(.micro)
-                    .foregroundStyle(.textMuted)
+                    .foregroundStyle(Color.textMuted)
             }
         }
         .padding(.top, Spacing.sm)
@@ -255,7 +255,7 @@ private struct PlanCard: View {
                     HStack(spacing: Spacing.sm) {
                         Text(plan.title)
                             .font(.bodyMedium)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
                         if let badge = plan.badge {
                             Text(badge)
                                 .font(.micro)
@@ -267,7 +267,7 @@ private struct PlanCard: View {
                     }
                     Text(plan == .yearly ? "\(plan.price)/año" : "\(plan.price)/mes")
                         .font(.caption)
-                        .foregroundStyle(.textSecondary)
+                        .foregroundStyle(Color.textSecondary)
                 }
                 Spacer()
                 ZStack {

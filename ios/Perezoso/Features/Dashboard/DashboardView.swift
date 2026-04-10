@@ -16,7 +16,7 @@ struct DashboardView: View {
                     HStack {
                         Text("Hola, \(auth.profile?.firstName ?? "").")
                             .font(.title)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
                         Spacer()
                         // avatar placeholder
                         Circle()
@@ -25,7 +25,7 @@ struct DashboardView: View {
                             .overlay(
                                 Text(auth.profile?.firstName.prefix(1).uppercased() ?? "P")
                                     .font(.inter(.bold, size: 16))
-                                    .foregroundStyle(.textMuted)
+                                    .foregroundStyle(Color.textMuted)
                             )
                     }
 
@@ -34,13 +34,13 @@ struct DashboardView: View {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Este mes gastas")
                                 .font(.bodyRegular)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
                             Text(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))
                                 .font(.heroNumber)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                             Text("Eso al año es \(CurrencyFormat.string(for: store.yearlyTotal, currency: "EUR")).")
                                 .font(.bodyRegular)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
 
                             Divider().padding(.vertical, Spacing.xs)
 
@@ -48,7 +48,7 @@ struct DashboardView: View {
                                 Label("**\(store.activeSubscriptions.count)** suscripciones activas",
                                       systemImage: "rectangle.stack.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle(Color.accent)
                             }
                         }
                         .padding(Spacing.xl)
@@ -59,7 +59,7 @@ struct DashboardView: View {
                         VStack(alignment: .leading, spacing: Spacing.md) {
                             Text("Próximas renovaciones")
                                 .font(.headline)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
 
                             ForEach(store.renewingSoon) { sub in
                                 HStack(spacing: Spacing.md) {
@@ -68,17 +68,17 @@ struct DashboardView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(sub.name)
                                             .font(.bodyMedium)
-                                            .foregroundStyle(.textPrimary)
+                                            .foregroundStyle(Color.textPrimary)
                                         Text(renewalLabel(for: sub))
                                             .font(.caption)
-                                            .foregroundStyle(.textMuted)
+                                            .foregroundStyle(Color.textMuted)
                                     }
 
                                     Spacer()
 
                                     Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
                                         .font(.bodyMedium)
-                                        .foregroundStyle(.textPrimary)
+                                        .foregroundStyle(Color.textPrimary)
                                 }
                                 .padding(Spacing.md)
                                 .background(Color.surface)

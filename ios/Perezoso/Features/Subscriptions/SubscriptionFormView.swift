@@ -180,7 +180,7 @@ struct SubscriptionFormView: View {
                     FormSection(title: "Notas") {
                         TextEditor(text: $notes)
                             .font(.bodyRegular)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
                             .frame(minHeight: 80)
                             .scrollContentBackground(.hidden)
                             .padding(Spacing.md)
@@ -190,7 +190,7 @@ struct SubscriptionFormView: View {
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
-                            .foregroundStyle(.danger)
+                            .foregroundStyle(Color.danger)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, Spacing.xs)
                     }
@@ -204,7 +204,7 @@ struct SubscriptionFormView: View {
                             Task { await save() }
                         }
 
-                        SecondaryButton("Cancelar") {
+                        SecondaryButton(title: "Cancelar") {
                             Haptics.tap(.light)
                             dismiss()
                         }
@@ -222,7 +222,7 @@ struct SubscriptionFormView: View {
                     Button("Cancelar") {
                         dismiss()
                     }
-                    .tint(.textSecondary)
+                    .tint(Color.textSecondary)
                 }
             }
         }
@@ -307,7 +307,7 @@ private struct FormSection<Content: View>: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
                 .padding(.horizontal, Spacing.xs)
 
             Card {
@@ -325,11 +325,11 @@ private struct LabeledFormField<Control: View>: View {
         HStack {
             Text(label)
                 .font(.bodyMedium)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
             Spacer()
             control()
                 .multilineTextAlignment(.trailing)
-                .tint(.accent)
+                .tint(Color.accent)
         }
         .padding(Spacing.lg)
     }

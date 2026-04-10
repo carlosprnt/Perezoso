@@ -70,15 +70,15 @@ struct SubscriptionsListView: View {
         VStack(spacing: Spacing.lg) {
             Image(systemName: "rectangle.stack.badge.plus")
                 .font(.system(size: 48))
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
             Text("Sin suscripciones")
                 .font(.headline)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
             Text("Añade tu primera suscripción para empezar a trackear tus gastos.")
                 .font(.bodyRegular)
-                .foregroundStyle(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
-            PrimaryButton("Añadir suscripción") {
+            PrimaryButton(title: "Añadir suscripción") {
                 showAddSheet = true
             }
             .frame(maxWidth: 240)
@@ -104,10 +104,10 @@ private struct SubscriptionRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(subscription.name)
                         .font(.bodyMedium)
-                        .foregroundStyle(.textPrimary)
+                        .foregroundStyle(Color.textPrimary)
                     Text(subscription.category.localizedName)
                         .font(.caption)
-                        .foregroundStyle(.textMuted)
+                        .foregroundStyle(Color.textMuted)
                 }
 
                 Spacer()
@@ -115,10 +115,10 @@ private struct SubscriptionRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(CurrencyFormat.string(for: subscription.amount, currency: subscription.currency))
                         .font(.bodyMedium)
-                        .foregroundStyle(.textPrimary)
+                        .foregroundStyle(Color.textPrimary)
                     Text(subscription.billingPeriod.rawValue.capitalized)
                         .font(.caption)
-                        .foregroundStyle(.textMuted)
+                        .foregroundStyle(Color.textMuted)
                 }
             }
             .padding(Spacing.md)

@@ -29,7 +29,7 @@ struct SubscriptionDetailView: View {
 
                         Text(subscription.name)
                             .font(.title)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
 
                         StatusBadge(status: subscription.status)
                     }
@@ -42,11 +42,11 @@ struct SubscriptionDetailView: View {
                             Text(CurrencyFormat.string(for: subscription.amount,
                                                        currency: subscription.currency))
                                 .font(.heroNumber)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
 
                             Text(billingPeriodLabel)
                                 .font(.bodyRegular)
-                                .foregroundStyle(.textSecondary)
+                                .foregroundStyle(Color.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(Spacing.xl)
@@ -92,12 +92,12 @@ struct SubscriptionDetailView: View {
                             HStack {
                                 Text("Equivalente mensual")
                                     .font(.bodyMedium)
-                                    .foregroundStyle(.textSecondary)
+                                    .foregroundStyle(Color.textSecondary)
                                 Spacer()
                                 Text(CurrencyFormat.string(for: subscription.monthlyEquivalent,
                                                            currency: subscription.currency))
                                     .font(.bodyMedium)
-                                    .foregroundStyle(.textPrimary)
+                                    .foregroundStyle(Color.textPrimary)
                             }
                             .padding(Spacing.lg)
                         }
@@ -113,7 +113,7 @@ struct SubscriptionDetailView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
                     }
-                    .tint(.danger)
+                    .tint(Color.danger)
                     .buttonStyle(.bordered)
                     .clipShape(.capsule)
                 }
@@ -130,14 +130,14 @@ struct SubscriptionDetailView: View {
                         showEditSheet = true
                     }
                     .font(.bodyMedium)
-                    .tint(.accent)
+                    .tint(Color.accent)
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cerrar") {
                         dismiss()
                     }
                     .font(.bodyMedium)
-                    .tint(.textSecondary)
+                    .tint(Color.textSecondary)
                 }
             }
         }
@@ -217,10 +217,10 @@ private struct StatusBadge: View {
 
     private var foreground: Color {
         switch status {
-        case .active:    .success
-        case .paused:    .warning
-        case .cancelled: .danger
-        case .trial:     .accent
+        case .active:    Color.success
+        case .paused:    Color.warning
+        case .cancelled: Color.danger
+        case .trial:     Color.accent
         }
     }
 
@@ -229,7 +229,7 @@ private struct StatusBadge: View {
         case .active:    Color(light: "#D1FAE5", dark: "#022C22")
         case .paused:    Color(light: "#FEF3C7", dark: "#2D1F00")
         case .cancelled: Color(light: "#FEE2E2", dark: "#2D0000")
-        case .trial:     .accentLight
+        case .trial:     Color.accentLight
         }
     }
 }
@@ -245,18 +245,18 @@ private struct DetailRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
                 .frame(width: Spacing.xl)
 
             Text(label)
                 .font(.bodyRegular)
-                .foregroundStyle(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
 
             Spacer()
 
             Text(value)
                 .font(.bodyMedium)
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.trailing)
         }
         .padding(Spacing.lg)

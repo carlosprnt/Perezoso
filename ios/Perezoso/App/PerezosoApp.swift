@@ -23,7 +23,7 @@ struct PerezosoApp: App {
                 .environment(auth)
                 .environment(subscriptions)
                 .environment(preferences)
-                .tint(.accent)
+                .tint(Color.accent)
                 .task {
                     await auth.bootstrap()
                 }

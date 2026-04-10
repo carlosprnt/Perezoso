@@ -80,17 +80,17 @@ struct SettingsView: View {
                     .overlay(
                         Text(avatarInitial)
                             .font(.inter(.bold, size: 20))
-                            .foregroundStyle(.accent)
+                            .foregroundStyle(Color.accent)
                     )
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(auth.profile?.displayName ?? "Usuario")
                         .font(.bodyMedium)
-                        .foregroundStyle(.textPrimary)
+                        .foregroundStyle(Color.textPrimary)
                     if let email = auth.profile?.email {
                         Text(email)
                             .font(.caption)
-                            .foregroundStyle(.textMuted)
+                            .foregroundStyle(Color.textMuted)
                     }
                 }
 
@@ -111,20 +111,20 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: Spacing.xxs) {
                         Text("Perezoso Pro")
                             .font(.headline)
-                            .foregroundStyle(.textPrimary)
+                            .foregroundStyle(Color.textPrimary)
                         Text("Desbloquea todas las funciones")
                             .font(.caption)
-                            .foregroundStyle(.textSecondary)
+                            .foregroundStyle(Color.textSecondary)
                     }
                     Spacer()
                     Image(systemName: "star.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(Color.accent)
                 }
 
                 Divider()
 
-                PrimaryButton("Ver planes Pro") {
+                PrimaryButton(title: "Ver planes Pro") {
                     Haptics.tap()
                     showPaywall = true
                 }
@@ -145,11 +145,11 @@ struct SettingsView: View {
                         HStack {
                             Label(mode.label, systemImage: mode.icon)
                                 .font(.bodyMedium)
-                                .foregroundStyle(.textPrimary)
+                                .foregroundStyle(Color.textPrimary)
                             Spacer()
                             if selectedAppearance == mode {
                                 Image(systemName: "checkmark")
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle(Color.accent)
                                     .fontWeight(.semibold)
                             }
                         }
@@ -168,10 +168,10 @@ struct SettingsView: View {
             HStack {
                 Label("Avisos de renovación", systemImage: "bell.fill")
                     .font(.bodyMedium)
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                 Spacer()
                 Toggle("", isOn: $notificationsEnabled)
-                    .tint(.accent)
+                    .tint(Color.accent)
                     .labelsHidden()
             }
             .padding(Spacing.lg)
@@ -183,7 +183,7 @@ struct SettingsView: View {
             HStack {
                 Label("Moneda", systemImage: "banknote")
                     .font(.bodyMedium)
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                 Spacer()
                 @Bindable var prefsBindable = prefs
                 Picker("Moneda", selection: $prefsBindable.preferredCurrency) {
@@ -191,7 +191,7 @@ struct SettingsView: View {
                         Text(code).tag(code)
                     }
                 }
-                .tint(.textSecondary)
+                .tint(Color.textSecondary)
             }
             .padding(Spacing.lg)
         }
@@ -210,9 +210,9 @@ struct SettingsView: View {
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.textDisabled)
+                            .foregroundStyle(Color.textDisabled)
                     }
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .padding(Spacing.lg)
                 }
 
@@ -228,9 +228,9 @@ struct SettingsView: View {
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.textDisabled)
+                            .foregroundStyle(Color.textDisabled)
                     }
-                    .foregroundStyle(.danger)
+                    .foregroundStyle(Color.danger)
                     .padding(Spacing.lg)
                 }
             }
@@ -241,10 +241,10 @@ struct SettingsView: View {
         VStack(spacing: Spacing.xxs) {
             Text("Perezoso")
                 .font(.caption)
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
             Text("Version \(appVersion) (\(buildNumber))")
                 .font(.micro)
-                .foregroundStyle(.textDisabled)
+                .foregroundStyle(Color.textDisabled)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, Spacing.sm)
@@ -327,7 +327,7 @@ private struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(title.uppercased())
                 .font(.micro)
-                .foregroundStyle(.textMuted)
+                .foregroundStyle(Color.textMuted)
                 .padding(.horizontal, Spacing.xs)
 
             Card {
