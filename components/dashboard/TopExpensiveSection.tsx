@@ -39,7 +39,7 @@ export default function TopExpensiveSection({ subscriptions }: Props) {
           <button
             key={sub.id}
             onClick={() => openSub(sub)}
-            className="flex-shrink-0 w-[185px] snap-start rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 text-left active:opacity-70 transition-opacity"
+            className="flex-shrink-0 w-[185px] snap-start rounded-[32px] bg-white dark:bg-[#1C1C1E] p-4 text-left active:opacity-70 transition-opacity"
           >
             <span className="text-[11px] font-bold text-[#B0B0B0] dark:text-[#8E8E93] uppercase tracking-wider">
               #{i + 1}
