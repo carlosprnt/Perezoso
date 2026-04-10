@@ -5,18 +5,18 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 
 const TREEMAP_COLORS: Record<string, string> = {
-  streaming:    '#F87171',
-  music:        '#4ADE80',
-  productivity: '#60A5FA',
-  cloud:        '#38BDF8',
-  ai:           '#A78BFA',
-  health:       '#2DD4BF',
-  gaming:       '#FB923C',
-  education:    '#FBBF24',
-  mobility:     '#F472B6',
-  home:         '#FCD34D',
-  other:        '#9CA3AF',
-  _resto:       '#6B7280',
+  streaming:    '#FECACA',
+  music:        '#BBF7D0',
+  productivity: '#BFDBFE',
+  cloud:        '#BAE6FD',
+  ai:           '#DDD6FE',
+  health:       '#A7F3D0',
+  gaming:       '#FED7AA',
+  education:    '#FEF08A',
+  mobility:     '#FBCFE8',
+  home:         '#FDE68A',
+  other:        '#E5E7EB',
+  _resto:       '#D1D5DB',
 }
 
 interface CategoryRow {
@@ -45,7 +45,7 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
           pct:          rest.reduce((s, c) => s + c.pct, 0),
         }]
       : []),
-  ].map(cat => ({ ...cat, color: TREEMAP_COLORS[cat.category] ?? '#9CA3AF' }))
+  ].map(cat => ({ ...cat, color: TREEMAP_COLORS[cat.category] ?? '#E5E7EB' }))
 
   function label(cat: string) {
     if (cat === '_resto') return 'Resto'
@@ -58,14 +58,23 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
   const rightCol = rest_items.slice(0, 2)
   const bottomRow = rest_items.slice(2)
 
+  // Proportional sizes based on percentage
+  const rightTotal = rightCol.reduce((s, i) => s + i.pct, 0)
+  const bottomTotal = bottomRow.reduce((s, i) => s + i.pct, 0)
+  const topTotal = first.pct + rightTotal
+
+  // Height ratio: top section vs bottom section
+  const topFlex = topTotal || 1
+  const bottomFlex = bottomTotal || 0
+
   return (
     <div
       className="flex flex-col gap-[3px] cursor-pointer select-none"
-      style={{ height: 240 }}
+      style={{ height: 260 }}
       onClick={() => setShowPrice(prev => !prev)}
     >
       {/* Top section: big left + right column */}
-      <div className="flex gap-[3px] flex-1 min-h-0">
+      <div className="flex gap-[3px] min-h-0" style={{ flex: topFlex }}>
         <TreemapCell
           item={first}
           label={label(first.category)}
@@ -73,10 +82,10 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
           locale={locale}
           size="large"
           showPrice={showPrice}
-          className="flex-[3]"
+          style={{ flex: first.pct }}
         />
         {rightCol.length > 0 && (
-          <div className="flex flex-col gap-[3px] flex-[1.6]">
+          <div className="flex flex-col gap-[3px]" style={{ flex: rightTotal }}>
             {rightCol.map(item => (
               <TreemapCell
                 key={item.category}
@@ -86,7 +95,7 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
                 locale={locale}
                 size="small"
                 showPrice={showPrice}
-                className="flex-1"
+                style={{ flex: item.pct }}
               />
             ))}
           </div>
@@ -95,7 +104,7 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
 
       {/* Bottom row */}
       {bottomRow.length > 0 && (
-        <div className="flex gap-[3px]" style={{ height: 80 }}>
+        <div className="flex gap-[3px]" style={{ flex: bottomFlex }}>
           {bottomRow.map(item => (
             <TreemapCell
               key={item.category}
@@ -105,7 +114,7 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
               locale={locale}
               size="small"
               showPrice={showPrice}
-              className="flex-1"
+              style={{ flex: item.pct }}
             />
           ))}
         </div>
@@ -121,7 +130,7 @@ function TreemapCell({
   locale,
   size,
   showPrice,
-  className = '',
+  style,
 }: {
   item: CategoryRow & { color: string }
   label: string
@@ -129,22 +138,22 @@ function TreemapCell({
   locale: string
   size: 'large' | 'small'
   showPrice: boolean
-  className?: string
+  style?: React.CSSProperties
 }) {
   const isLarge = size === 'large'
 
   return (
     <div
-      className={`rounded-[20px] p-3 flex flex-col justify-between overflow-hidden ${className}`}
-      style={{ backgroundColor: item.color }}
+      className="rounded-[20px] p-3 flex flex-col justify-between overflow-hidden"
+      style={{ backgroundColor: item.color, ...style }}
     >
       {/* Top: name */}
-      <p className={`font-semibold text-black truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
+      <p className={`font-semibold text-black/80 truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
         {label}
       </p>
 
       {/* Bottom: percentage or price */}
-      <p className={`font-bold text-black ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
+      <p className={`font-bold text-black/80 ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
         {showPrice
           ? formatCurrency(item.monthly_cost, currency, locale)
           : `${Math.round(item.pct)}%`
