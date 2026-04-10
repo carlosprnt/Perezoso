@@ -96,7 +96,7 @@ final class AuthStore: @unchecked Sendable {
         ) { url in
             // On iOS the Supabase SDK opens the URL in
             // ASWebAuthenticationSession automatically.
-            await UIApplication.shared.open(url)
+            let _ = await UIApplication.shared.open(url)
         }
     }
 

@@ -135,7 +135,7 @@ struct PaywallView: View {
             }
 
             PrimaryButton(
-                selectedPlan == .yearly
+                title: selectedPlan == .yearly
                     ? "Empezar por \(PlanOption.yearly.price)/año"
                     : "Empezar por \(PlanOption.monthly.price)/mes",
                 isLoading: isPurchasing
