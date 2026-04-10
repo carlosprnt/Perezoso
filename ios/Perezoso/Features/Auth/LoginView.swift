@@ -201,10 +201,10 @@ struct LoginView: View {
     private func handleGoogleSignIn() async {
         do {
             isLoading = true
-            error = nil
+            self.error = nil
             try await auth.signInWithGoogle()
-        } catch {
-            error = error.localizedDescription
+        } catch let err {
+            self.error = err.localizedDescription
         }
         isLoading = false
     }

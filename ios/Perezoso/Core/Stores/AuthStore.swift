@@ -87,18 +87,11 @@ final class AuthStore: @unchecked Sendable {
     // MARK: - Sign in with Google (OAuth via ASWebAuthenticationSession)
 
     func signInWithGoogle() async throws {
+        // supabase-swift v2 opens ASWebAuthenticationSession
+        // internally — just call signInWithOAuth with the provider.
         try await SupabaseManager.client.auth.signInWithOAuth(
-            provider: .google,
-            queryParams: [
-                ("access_type", "offline"),
-                ("prompt", "select_account"),
-            ]
-        ) { url in
-            // The Supabase SDK expects this closure to return the URL
-            // it should open in ASWebAuthenticationSession. Just pass
-            // it through — the SDK handles the rest.
-            return url
-        }
+            provider: .google
+        )
     }
 
     // MARK: - Sign out
