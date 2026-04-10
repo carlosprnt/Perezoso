@@ -96,7 +96,7 @@ export default function CalendarDaySheet({
         style={{
           borderRadius: '32px 32px 0 0',
           bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-          paddingBottom: 'calc(var(--safe-bleed-bottom, 34px) * 2)',
+          paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
         }}
         onClick={e => e.stopPropagation()}
       >

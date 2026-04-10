@@ -1,0 +1,35 @@
+# Secrets — filled by developer, never committed.
+Config.xcconfig
+
+# Xcode project is generated from project.yml via XcodeGen. Do not
+# commit it — it changes shape every time someone runs the generator
+# and produces noisy merge conflicts.
+*.xcodeproj
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+
+# Xcode user data
+xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# SPM
+.build/
+.swiftpm/
+Package.resolved
+.netrc
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# macOS noise
+.DS_Store

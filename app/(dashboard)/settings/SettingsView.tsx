@@ -391,7 +391,7 @@ export default function SettingsView({ preferences }: Props) {
         >
           <div
             className="w-full max-w-xl bg-white dark:bg-[#1C1C1E] rounded-t-[32px] px-5 pt-5 pb-6"
-            style={{ paddingBottom: 'calc(24px + var(--safe-bleed-bottom, 34px) * 2)' }}
+            style={{ paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))' }}
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">

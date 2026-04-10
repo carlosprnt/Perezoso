@@ -186,13 +186,158 @@ export default function LoginScreen() {
   const imgY      = useTransform(panY, [-400, 0], [-400, 0])
   const imgRotate = useTransform(panY, [-400, 0], [15, 0])
 
+  /*
+   * iOS PWA standalone cold-launch gate.
+   *
+   * Symptom we're fixing: the very first visible frame of /login on a
+   * cold PWA launch (opened from the Home Screen after the app was
+   * fully killed) has the Perezoso hero logo at the wrong Y and the
+   * bottom panel short of the physical screen edge. After navigating
+   * (login → dashboard → logout → /login) the same screen renders
+   * correctly. Evidence from DebugViewport showed that between the
+   * two states, `env(safe-area-inset-*)` flipped from 0 to the real
+   * value AND the layout viewport grew. iOS does not fully initialize
+   * its safe-area constants by the time of the first paint on a cold
+   * PWA launch — it stabilizes a short time later, and any navigation
+   * that causes a re-render picks up the stabilized values.
+   *
+   * Fix strategy: don't render the real layout until env() has
+   * stabilized. A `ready` gate holds the component on a blank
+   * #F7F8FA screen (matching the app background) while a rAF
+   * poll probes env() every frame. As soon as env() reports a
+   * non-zero value the measured insets are committed to state and
+   * `ready` flips to true, causing React to render the full
+   * LoginScreen with the correct positioning on its first visible
+   * paint. A hard 350ms timeout releases the gate even if env() is
+   * still zero (covers non-notched devices — iPhone SE, Android,
+   * desktop browser mode, etc — where env is legitimately 0 and
+   * waiting forever would deadlock the UI).
+   */
+  const [ready, setReady] = useState(false)
+  const [safeTop, setSafeTop] = useState(0)
+  /*
+   * `screenH` is the physical screen height in CSS pixels as reported
+   * by `window.screen.height`. Unlike `window.innerHeight` / `100dvh`
+   * which in iOS PWA standalone with a cached / stale configuration
+   * can return the layout viewport (e.g. 793 px when it should be
+   * 852), `window.screen.height` returns the actual device screen
+   * height regardless of the current webview frame. Used as the
+   * explicit height of the outer fullscreen surface so its background
+   * always matches the physical screen bounds, not the (possibly
+   * smaller) CSS layout viewport.
+   */
+  const [screenH, setScreenH] = useState(0)
+
+  /*
+   * Measures the tallest slide text block and locks the visible text
+   * container to that height, so the panel doesn't jump on swipe.
+   *
+   * `ready` is in the deps on purpose: when the splash gate is still
+   * closed (ready=false) we return a plain <div> and measureRef never
+   * attaches, so this effect has to re-run once ready flips to true
+   * and the real DOM is committed. Without `ready` here, textHeight
+   * stays `undefined`, the `relative` wrapper collapses to 0 (its
+   * only child is a `position:absolute` motion.div), and the dots
+   * and buttons visually overlap the title/body text.
+   */
   useLayoutEffect(() => {
     if (!measureRef.current) return
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
     setTextHeight(max)
+  }, [ready])
+  useLayoutEffect(() => {
+    let stopped = false
+    let rafId = 0
+    const startedAt = Date.now()
+
+    const probeTop = (): number => {
+      try {
+        const el = document.createElement('div')
+        el.style.cssText =
+          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none'
+        document.body.appendChild(el)
+        const t = parseFloat(getComputedStyle(el).paddingTop) || 0
+        el.remove()
+        return t
+      } catch {
+        return 0
+      }
+    }
+
+    const commit = (t: number) => {
+      setSafeTop(prev => (prev === t ? prev : t))
+      // window.screen.height is the full device screen height in CSS
+      // pixels. On iOS PWA standalone it stays the actual screen size
+      // even when the layout viewport (window.innerHeight / 100dvh)
+      // is reporting a smaller number due to a cached webview config.
+      // Use the larger of the two so screenH is always >= innerHeight.
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
+      if (!ready) setReady(true)
+    }
+
+    const tick = () => {
+      if (stopped) return
+      const t = probeTop()
+      // Success: iOS has initialized env. Commit immediately.
+      if (t > 0) {
+        commit(t)
+        return
+      }
+      // Timeout: 350ms elapsed, assume env is legitimately 0 (non-notch).
+      if (Date.now() - startedAt >= 350) {
+        commit(t)
+        return
+      }
+      // Otherwise keep polling on the next frame.
+      rafId = requestAnimationFrame(tick)
+    }
+    tick()
+
+    // Long-lived updaters: keep safeTop + screenH in sync if iOS
+    // changes them later (orientation change, etc).
+    const sync = () => {
+      const t = probeTop()
+      setSafeTop(prev => (prev === t ? prev : t))
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
+    }
+    window.addEventListener('load', sync)
+    window.addEventListener('resize', sync)
+    window.addEventListener('orientationchange', sync)
+    return () => {
+      stopped = true
+      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('load', sync)
+      window.removeEventListener('resize', sync)
+      window.removeEventListener('orientationchange', sync)
+    }
+    // `ready` intentionally omitted — we only want to flip it once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /*
+   * Bleed amount for fixed bottom-aligned elements. We need the panel
+   * / modal backgrounds to extend past the layout viewport bottom all
+   * the way to the physical screen edge, because in iOS PWA
+   * standalone with a cached webview config those two are not the
+   * same point. `screenH - innerHeight` is the exact vertical gap
+   * (0 when the webview is already the full screen). Floor at 34 to
+   * handle the typical home indicator inset on devices that don't
+   * expose a gap via window.screen.
+   */
+  const bleed = (() => {
+    if (!ready) return 34
+    const inner = typeof window !== 'undefined' ? window.innerHeight : 0
+    const gap = screenH > inner ? screenH - inner : 0
+    return Math.max(gap, 34)
+  })()
 
   /*
    * Lock document scroll while the onboarding is mounted to suppress
@@ -262,23 +407,49 @@ export default function LoginScreen() {
     setTouchStart(null)
   }
 
+  /*
+   * Splash gate. Held until env() has stabilized (or 350ms timeout).
+   * Matches the app background so the user sees "the app is loading"
+   * rather than a visibly wrong intermediate layout. See the useLayoutEffect
+   * above for the rationale.
+   */
+  if (!ready) {
+    return (
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#F7F8FA',
+          zIndex: 9999,
+        }}
+      />
+    )
+  }
+
   return (
     <>
     {/*
-     * Outer fullscreen surface — safe-area bleed so the #F7F8FA
-     * background extends into the iOS PWA bottom safe area strip
-     * (793→827). An earlier cleanup pass assumed the
-     * `html { background-color }` rule in globals.css covered this
-     * zone via canvas propagation, but empirically that assumption
-     * DID NOT HOLD on the standalone webview — the gap came back.
-     * Keep the explicit bleed here regardless of whether it looks
-     * like double compensation; we have empirical proof (via the
-     * DebugViewport test) that the explicit bleed works and the
-     * html canvas bg alone does not.
+     * Outer fullscreen surface. Sized with `height: ${screenH}px`
+     * where screenH comes from `window.screen.height` (JS-measured),
+     * NOT from `100dvh` / `inset-0`. In iOS PWA standalone with a
+     * cached / stale configuration the layout viewport can be 59 px
+     * shorter than the physical screen and every CSS viewport unit
+     * (`vh`, `dvh`, `svh`, `lvh`) agrees with that shorter value,
+     * so any CSS-based sizing leaves a gap. `window.screen.height`
+     * reports the actual device pixel height regardless of the
+     * webview frame and gives us an explicit height that reaches
+     * the physical screen bottom.
+     *
+     * Fallback to `100dvh` if screenH hasn't been measured yet
+     * (before the ready gate opens the splash covers anyway).
      */}
     <div
       className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
-      style={{ bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)' }}
+      style={{ height: screenH ? `${screenH}px` : '100dvh' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -391,9 +562,16 @@ export default function LoginScreen() {
                * override it, pushing the logo off-center.
                * Instead compute the top-left corner directly:
                *   horizontal: 50vw − 44px  (half of 88 px logo)
-               *   vertical:   safe-area-top + (visible height − 260px panel) / 2 − 44px
+               *   vertical:   safeTop + (visible height − 260px panel) / 2 − 44px
+               *
+               * `safeTop` is the JS-measured env(safe-area-inset-top) kept
+               * in component state and refreshed via useLayoutEffect. See
+               * the effect above for why — relying on CSS `env()` directly
+               * produced the "wrong Y on cold PWA launch, correct after
+               * navigation" symptom because iOS had not yet initialized
+               * the env() constants by the time of the first paint.
                */
-              top:  'calc(env(safe-area-inset-top) + (100dvh - env(safe-area-inset-top) - 260px) / 2 - 44px)',
+              top:  `calc(${safeTop}px + (100dvh - ${safeTop}px - 260px) / 2 - 44px)`,
               left: 'calc(50% - 44px)',
             }}
             initial={{ opacity: 0, scale: 0.55 }}
@@ -409,16 +587,22 @@ export default function LoginScreen() {
 
     </div>
 
-    {/* ── Bottom panel — safe-area bleed pattern (see BottomSheet.tsx) ──
-        Sibling of the outer fixed-inset container. `bottom: 0` is NOT
-        enough on iOS PWA: the layout viewport stops above the home
-        indicator, so we push the panel down by env() and compensate
-        in paddingBottom. */}
+    {/* ── Bottom panel ─────────────────────────────────────────
+        `bottom: 0` anchored directly at the physical screen edge
+        (the splash gate above guarantees iOS has stabilized env()
+        by the time this renders). No safe-area bleed, no extra
+        safe-area padding — `paddingBottom: 16px` is a flat content
+        clearance per user preference. The CTA buttons end 16px
+        above the physical bottom regardless of home indicator. */}
     <div
       className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
       style={{
-        bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-        paddingBottom: 'calc(32px + var(--safe-bleed-bottom, 34px))',
+        /* Dynamic bleed: the exact gap between layout viewport bottom
+         * and the physical screen bottom (or 34 as a floor). See the
+         * `bleed` derivation above. Compensated in paddingBottom so
+         * buttons sit 16px above the layout viewport bottom. */
+        bottom: `-${bleed}px`,
+        paddingBottom: `${16 + bleed}px`,
       }}
     >
         <div className="w-full max-w-sm mx-auto">
@@ -541,12 +725,11 @@ export default function LoginScreen() {
       animations are reliable on iOS; only opacity/filter ones are flaky).
     */}
 
-    {/* Backdrop: CSS transition, always mounted. `bottom` is
-        overridden to bleed into the iOS PWA bottom safe area. */}
+    {/* Backdrop: CSS transition, always mounted. Plain fixed inset-0
+        — splash gate ensures iOS viewport is stable. */}
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
-        bottom:        'calc(var(--safe-bleed-bottom, 34px) * -1)',
         opacity:       sheetOpen ? 1 : 0,
         transition:    'opacity 0.25s linear',
         pointerEvents: sheetOpen ? 'auto' : 'none',
@@ -565,9 +748,9 @@ export default function LoginScreen() {
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
           style={{
-            /* Safe-area bleed pattern — see BottomSheet.tsx */
-            bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
-            paddingBottom: 'calc(24px + var(--safe-bleed-bottom, 34px) * 2)',
+            /* Same dynamic bleed as the onboarding panel. */
+            bottom: `-${bleed}px`,
+            paddingBottom: `${16 + bleed}px`,
           }}
           onClick={e => e.stopPropagation()}
         >
