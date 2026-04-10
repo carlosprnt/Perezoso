@@ -127,7 +127,12 @@ final class AuthStore: @unchecked Sendable {
             session.presentationContextProvider = webAuthContextProvider
             session.prefersEphemeralWebBrowserSession = false
             self.webAuthSession = session
-            session.start()
+
+            guard session.start() else {
+                self.webAuthSession = nil
+                continuation.resume(throwing: AuthError.oauthFailed)
+                return
+            }
         }
 
         // 3. Exchange the callback URL for a Supabase session
