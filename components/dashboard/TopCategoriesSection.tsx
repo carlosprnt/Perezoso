@@ -59,7 +59,7 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
     <div>
       {/* Segmented bar — each segment individually rounded */}
       <div
-        className="flex h-14 mb-4"
+        className="flex h-12 mb-4"
         style={{
           transform:       mounted ? 'scaleX(1)' : 'scaleX(0)',
           transformOrigin: 'left',
@@ -91,36 +91,32 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
         ))}
       </div>
 
-      {/* Legend — 2-column grid, title on top, total + % below */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Legend — single column rows */}
+      <div className="space-y-0.5">
         {segments.map((seg, i) => {
           const isActive = active === i
           return (
             <button
               key={seg.category}
-              className="flex flex-col rounded-xl px-2.5 py-2 transition-colors text-left"
+              className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors text-left"
               style={{ backgroundColor: isActive ? `${seg.color}80` : 'transparent' }}
               onMouseEnter={() => setActive(i)}
               onMouseLeave={() => setActive(null)}
               onClick={() => setActive(active === i ? null : i)}
             >
-              <div className="flex items-center gap-2 mb-0.5">
-                <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: seg.color }}
-                />
-                <span className="text-[13px] font-medium text-[#121212] dark:text-[#F2F2F7] truncate">
-                  {label(seg.category)}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1.5 pl-[18px]">
-                <span className="text-[13px] font-semibold tabular-nums text-[#121212] dark:text-[#F2F2F7]">
-                  {formatCurrency(seg.monthly_cost, currency, locale)}
-                </span>
-                <span className="text-[11px] text-[#8E8E93]">
-                  {Math.round(seg.pct)}%
-                </span>
-              </div>
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: seg.color }}
+              />
+              <span className="flex-1 text-[13px] text-[#121212] dark:text-[#F2F2F7] truncate">
+                {label(seg.category)}
+              </span>
+              <span className="text-[13px] font-semibold tabular-nums text-[#121212] dark:text-[#F2F2F7]">
+                {formatCurrency(seg.monthly_cost, currency, locale)}
+              </span>
+              <span className="text-[11px] text-[#8E8E93] w-8 text-right flex-shrink-0">
+                {Math.round(seg.pct)}%
+              </span>
             </button>
           )
         })}
