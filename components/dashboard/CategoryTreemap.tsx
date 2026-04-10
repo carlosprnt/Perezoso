@@ -1,9 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
-import { getCategoryMeta } from '@/lib/constants/categories'
-import type { Category } from '@/types'
 
 const TREEMAP_COLORS: Record<string, string> = {
   streaming:    '#F87171',
@@ -29,6 +28,7 @@ interface CategoryRow {
 export default function CategoryTreemap({ categories, currency = 'EUR' }: { categories: CategoryRow[]; currency?: string }) {
   const t = useT()
   const locale = useLocale()
+  const [showPrice, setShowPrice] = useState(false)
 
   if (categories.length === 0) return null
 
@@ -52,39 +52,29 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
     return t(`categories.${cat}` as Parameters<typeof t>[0])
   }
 
-  function iconForCategory(cat: string) {
-    if (cat === '_resto') return null
-    const meta = getCategoryMeta(cat as Category)
-    const Icon = meta.icon
-    return <Icon size={16} strokeWidth={2} />
-  }
-
-  // Layout: first item takes left 60%, remaining stack on the right
-  // If only 1-2 items, simpler layout
   if (items.length === 0) return null
 
   const [first, ...rest_items] = items
-
-  // Split remaining into top-right and bottom row
   const rightCol = rest_items.slice(0, 2)
   const bottomRow = rest_items.slice(2)
 
   return (
-    <div className="flex flex-col gap-[3px]" style={{ height: 240 }}>
+    <div
+      className="flex flex-col gap-[3px] cursor-pointer select-none"
+      style={{ height: 240 }}
+      onClick={() => setShowPrice(prev => !prev)}
+    >
       {/* Top section: big left + right column */}
       <div className="flex gap-[3px] flex-1 min-h-0">
-        {/* Big primary cell */}
         <TreemapCell
           item={first}
           label={label(first.category)}
-          icon={iconForCategory(first.category)}
           currency={currency}
           locale={locale}
           size="large"
+          showPrice={showPrice}
           className="flex-[3]"
         />
-
-        {/* Right column */}
         {rightCol.length > 0 && (
           <div className="flex flex-col gap-[3px] flex-[1.6]">
             {rightCol.map(item => (
@@ -92,10 +82,10 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
                 key={item.category}
                 item={item}
                 label={label(item.category)}
-                icon={iconForCategory(item.category)}
                 currency={currency}
                 locale={locale}
                 size="small"
+                showPrice={showPrice}
                 className="flex-1"
               />
             ))}
@@ -111,10 +101,10 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
               key={item.category}
               item={item}
               label={label(item.category)}
-              icon={iconForCategory(item.category)}
               currency={currency}
               locale={locale}
               size="small"
+              showPrice={showPrice}
               className="flex-1"
             />
           ))}
@@ -127,18 +117,18 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
 function TreemapCell({
   item,
   label,
-  icon,
   currency,
   locale,
   size,
+  showPrice,
   className = '',
 }: {
   item: CategoryRow & { color: string }
   label: string
-  icon: React.ReactNode
   currency: string
   locale: string
   size: 'large' | 'small'
+  showPrice: boolean
   className?: string
 }) {
   const isLarge = size === 'large'
@@ -148,25 +138,18 @@ function TreemapCell({
       className={`rounded-[20px] p-3 flex flex-col justify-between overflow-hidden ${className}`}
       style={{ backgroundColor: item.color }}
     >
-      {/* Top: icon + name */}
-      <div className="flex items-center gap-1.5">
-        {icon && (
-          <span className="opacity-80 text-black">{icon}</span>
-        )}
-        <span className={`font-semibold text-black truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
-          {label}
-        </span>
-      </div>
+      {/* Top: name */}
+      <p className={`font-semibold text-black truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
+        {label}
+      </p>
 
-      {/* Bottom: percentage + amount */}
-      <div>
-        <p className={`font-bold text-black ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
-          {Math.round(item.pct)}%
-        </p>
-        <p className={`text-black/60 font-medium mt-0.5 ${isLarge ? 'text-[13px]' : 'text-[11px]'}`}>
-          {formatCurrency(item.monthly_cost, currency, locale)}/mo
-        </p>
-      </div>
+      {/* Bottom: percentage or price */}
+      <p className={`font-bold text-black ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
+        {showPrice
+          ? formatCurrency(item.monthly_cost, currency, locale)
+          : `${Math.round(item.pct)}%`
+        }
+      </p>
     </div>
   )
 }
