@@ -144,7 +144,7 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
               return (
                 <motion.div
                   key={entry.i}
-                  className="absolute inset-0 rounded-[24px] bg-white dark:bg-[#1C1C1E]"
+                  className="absolute inset-0 rounded-[32px] bg-white dark:bg-[#1C1C1E]"
                   initial={{ y: depth * PEEK_OFFSET, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
                   animate={{ y: target * PEEK_OFFSET, scale: 1 - target * PEEK_SCALE, opacity: 1 - target * PEEK_DIM }}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}

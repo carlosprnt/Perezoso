@@ -2,9 +2,9 @@
 
 import type { SubscriptionWithCosts, DashboardStats } from '@/types'
 import { formatCurrency } from '@/lib/utils/currency'
-import { getHighestCostSubscription, getTopSpendCategories, getUpcomingRenewals } from '@/lib/calculations/subscriptions'
+import { getHighestCostSubscription, getTopSpendCategories } from '@/lib/calculations/subscriptions'
 import { getCategoryMeta } from '@/lib/constants/categories'
-import { AlertCircle, TrendingUp, Users } from 'lucide-react'
+import { TrendingUp, Users } from 'lucide-react'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { Category } from '@/types'
 
@@ -28,7 +28,7 @@ function InsightCell({
   sub: string
 }) {
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] rounded-[16px] px-4 py-3 flex items-center gap-3">
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-[32px] px-4 py-3 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${iconCls}`}>
         {icon}
       </div>
@@ -56,15 +56,13 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
 
   const highest = getHighestCostSubscription(subscriptions)
   const topCategories = getTopSpendCategories(subscriptions, 3)
-  const urgentRenewals = getUpcomingRenewals(subscriptions, 7)
   const sharedSubs = subscriptions.filter(
     (s) => s.is_shared && (s.status === 'active' || s.status === 'trial')
   )
 
   const topCat = topCategories[0] ?? null
-  const nextRenewal = urgentRenewals[0] ?? null
 
-  if (!highest && !topCat && sharedSubs.length === 0 && !nextRenewal) return null
+  if (!highest && !topCat && sharedSubs.length === 0) return null
 
   // Top category meta
   const catMeta = topCat ? getCategoryMeta(topCat.category as Category) : null
@@ -77,19 +75,6 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
   )
 
   const perMonth = t('dashboard.perMonth')
-
-  // "Renews soon" sub-label
-  const renewsSub = nextRenewal
-    ? (() => {
-        const d = nextRenewal.days_until
-        const when = d === 0
-          ? t('dashboard.dueToday')
-          : d === 1
-          ? t('dashboard.tomorrow')
-          : t('dashboard.inDays').replace('{days}', String(d))
-        return `${when} · ${formatCurrency(nextRenewal.subscription.my_monthly_cost, nextRenewal.subscription.currency)}`
-      })()
-    : ''
 
   return (
     <div className="flex flex-col gap-2">
@@ -135,15 +120,6 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
             ? t('dashboard.saving').replace('{amount}', `${formatCurrency(sharedSavings, dominantCurrency, locale)} ${perMonth}`)
             : ''
         }
-      />
-
-      {/* ④ Renews soon */}
-      <InsightCell
-        icon={<AlertCircle size={20} />}
-        iconCls="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-        label={t('dashboard.renewsSoon')}
-        value={nextRenewal?.subscription.name ?? t('dashboard.noPlans')}
-        sub={renewsSub}
       />
 
     </div>
