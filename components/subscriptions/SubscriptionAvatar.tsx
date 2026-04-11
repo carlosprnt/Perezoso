@@ -7,7 +7,7 @@ interface SubscriptionAvatarProps {
   name: string
   /** Explicit logo URL (takes priority over simpleIconSlug) */
   logoUrl?: string | null
-  /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug} */
+  /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug}/000000 */
   simpleIconSlug?: string | null
   size?: 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl'
   /** Override corner radius class. Defaults to 'rounded-xl' (12px). Use e.g. 'rounded-[8px]' for 8px. */
@@ -25,6 +25,28 @@ const SIZE = {
 
 const SIMPLE_ICONS_CDN = 'https://cdn.simpleicons.org'
 
+/**
+ * Normalise a URL so Simple Icons requests always include an explicit
+ * colour. Historical subscriptions may have been saved with the old
+ * format `cdn.simpleicons.org/{slug}` (no colour suffix), which the
+ * CDN serves as SVGs that render near-invisible on white backgrounds.
+ * This patches both old stored URLs AND new slug-derived URLs to
+ * always append `/000000` when missing.
+ */
+function normaliseLogoUrl(url: string): string {
+  if (!url.includes('cdn.simpleicons.org')) return url
+  // Strip any query string while inspecting path structure.
+  const [base, query] = url.split('?')
+  const withoutHost = base.replace(/^https?:\/\/cdn\.simpleicons\.org\//, '')
+  const parts = withoutHost.split('/').filter(Boolean)
+  // /slug (1 part) → no colour → append 000000
+  // /slug/color (2 parts) → already has colour
+  // /slug/_/bg (3 parts) → already has colour
+  if (parts.length >= 2) return url
+  const patched = `${SIMPLE_ICONS_CDN}/${parts[0]}/000000`
+  return query ? `${patched}?${query}` : patched
+}
+
 export default function SubscriptionAvatar({
   name,
   logoUrl,
@@ -38,35 +60,24 @@ export default function SubscriptionAvatar({
   const initials = getInitials(name)
 
   // Resolve which URL to attempt (explicit URL wins over slug-derived URL).
-  // Simple Icons URLs always append a colour — brand colour if the caller
-  // provided one via an explicit logoUrl, black otherwise. Without the
-  // colour suffix simpleicons.org returns SVGs that render near-invisible
-  // on the white avatar background.
-  const resolvedUrl = logoUrl
+  // Both paths are normalised so Simple Icons URLs always carry a colour.
+  const rawUrl = logoUrl
     ? logoUrl
     : simpleIconSlug
       ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}/000000`
       : null
+  const resolvedUrl = rawUrl ? normaliseLogoUrl(rawUrl) : null
 
   if (resolvedUrl && !imgError) {
-    // SVG-based sources (Simple Icons + SVGL) need a bg + inset padding.
-    // Rasterized sources (Clearbit, custom URLs) fill edge-to-edge.
-    const needsPadding =
-      resolvedUrl.includes('cdn.simpleicons.org') ||
-      resolvedUrl.includes('svgl.app') ||
-      resolvedUrl.includes('wikimedia.org')
-
     return (
       <div
-        className={`${cls} ${corner} overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white dark:bg-white`}
+        className={`${cls} ${corner} overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white p-1.5`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={resolvedUrl}
           alt={name}
-          width={SIZE[size].px}
-          height={SIZE[size].px}
-          className="w-[82%] h-[82%] object-contain"
+          className="block w-full h-full object-contain"
           onError={() => setImgError(true)}
           loading="lazy"
         />
