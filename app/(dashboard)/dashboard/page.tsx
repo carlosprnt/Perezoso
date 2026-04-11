@@ -15,6 +15,8 @@ import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
+import DashboardFixedGreeting from '@/components/dashboard/DashboardFixedGreeting'
+import DraggableSurface from '@/components/ui/DraggableSurface'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -61,9 +63,8 @@ export default async function DashboardPage() {
     pct: stats.total_monthly_cost > 0 ? (monthly_cost / stats.total_monthly_cost) * 100 : 0,
   }))
 
-  return (
-    <div>
-      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
+  const dashboardContent = (
+    <>
       {isEmpty ? (
         <EmptyDashboardHero firstName={firstName} shareText={shareText} />
       ) : (
@@ -111,6 +112,26 @@ export default async function DashboardPage() {
           </>
         )}
       </DashboardCardStack>
+    </>
+  )
+
+  return (
+    <div>
+      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
+      {/* Mobile: two-layer draggable surface. Fixed greeting stays at the
+          top of the viewport, interpolating its text color from dark to
+          white as the foreground slides down over the black backdrop.
+          Desktop (lg+): passthrough — dashboardContent renders in-place. */}
+      <DraggableSurface
+        backdrop={<div className="h-full" aria-hidden />}
+        fixedHeader={
+          isEmpty ? null : (
+            <DashboardFixedGreeting firstName={firstName} shareText={shareText} />
+          )
+        }
+      >
+        {dashboardContent}
+      </DraggableSurface>
     </div>
   )
 }

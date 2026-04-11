@@ -208,8 +208,10 @@ export default function DashboardSummaryHero({
       className="sticky pb-5 bg-[#F7F8FA] dark:bg-[#121212]"
       style={{ top: 'env(safe-area-inset-top)' }}
     >
-      {/* Greeting + avatar */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Greeting + avatar — invisible on mobile (space preserved) so the
+          DashboardFixedGreeting overlay can replace it without visual
+          duplication. Visible on desktop where no fixed header exists. */}
+      <div className="flex items-center justify-between mb-3 invisible lg:visible">
         <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
