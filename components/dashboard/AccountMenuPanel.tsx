@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Share2, Settings, Sun, Moon } from 'lucide-react'
+import { LogOut, Share2, Settings, Sun, Moon, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
 import { useT } from '@/lib/i18n/LocaleProvider'
 
 /**
@@ -18,9 +19,15 @@ import { useT } from '@/lib/i18n/LocaleProvider'
 export default function AccountMenuPanel({ shareText }: { shareText?: string }) {
   const router = useRouter()
   const t = useT()
+  const { isPro, openPaywall } = useSubscription()
 
   function hideSurface() {
     window.dispatchEvent(new Event('oso:hide-analytics'))
+  }
+
+  function handleUpgrade() {
+    hideSurface()
+    openPaywall('general')
   }
 
   async function handleShare() {
@@ -67,6 +74,28 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
             label={t('nav.shareData')}
             onClick={handleShare}
           />
+
+          {/* Upgrade-to-Pro banner — full-width CTA below "Compartir datos".
+              Same animated blue shimmer border as the Settings card so the
+              Pro branding stays consistent across surfaces. Hidden when the
+              user is already Pro. */}
+          {!isPro && (
+            <div
+              className="relative mt-4 rounded-[20px] p-[2px]"
+              style={{
+                background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
+                animation: 'shimmer-rotate 3s linear infinite',
+              }}
+            >
+              <button
+                onClick={handleUpgrade}
+                className="w-full h-14 rounded-[18px] bg-white text-black flex items-center justify-center gap-2 text-[15px] font-semibold active:opacity-90 transition-opacity"
+              >
+                <Sparkles size={18} strokeWidth={2.2} />
+                Mejorar a Pro
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -75,7 +104,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
       <div className="flex items-center justify-between mt-4">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
+          className="flex items-center gap-2.5 text-[14px] font-medium text-[#FCA5A5] active:opacity-70 transition-opacity"
           aria-label={t('nav.logout')}
         >
           <LogOut size={18} strokeWidth={2} />

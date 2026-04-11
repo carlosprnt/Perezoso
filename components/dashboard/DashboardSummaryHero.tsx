@@ -274,7 +274,7 @@ export default function DashboardSummaryHero({
 
       {/* Main statement — tapping figures spawns money confetti.
           Narrative text in dark gray (#616161), amounts in pure black. */}
-      <p className="text-[43px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
+      <p className="text-[33px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.spendStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#000000] dark:text-[#F2F2F7]">{monthly}</span>
