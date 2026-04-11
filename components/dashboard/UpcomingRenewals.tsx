@@ -61,7 +61,7 @@ export default function UpcomingRenewals({ renewals }: Props) {
                 {r.subscription.name}
               </p>
               <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
-                total {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)} /mes
+                {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)} /mes
               </p>
             </div>
             <div className="text-right flex-shrink-0">
