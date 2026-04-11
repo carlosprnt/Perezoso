@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { enrichSubscriptions, getDashboardStats } from '@/lib/calculations/subscriptions'
 import type { Subscription, SubscriptionStatus, Category } from '@/types'
 import SubscriptionsView from '@/components/subscriptions/SubscriptionsView'
+import DraggableAnalyticsSurface from '@/components/subscriptions/DraggableAnalyticsSurface'
 import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import AddSubscriptionFlow from '@/components/subscriptions/AddSubscriptionFlow'
 import type { Metadata } from 'next'
@@ -36,14 +37,18 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
   return (
     <>
       <ScreenTracker kind="subscriptions" subscriptionCount={allSubs.length} />
-      <SubscriptionsView
-        subscriptions={filtered}
-        allCount={allSubs.length}
-        stats={stats}
-        currentStatus={params.status ?? 'all'}
-        currentCategory={params.category ?? 'all'}
-        newSubscriptionId={params.new}
-      />
+      {/* Mobile: two-layer draggable surface reveals analytics behind the list.
+          Desktop (lg+): transparent passthrough — renders SubscriptionsView in-place. */}
+      <DraggableAnalyticsSurface stats={stats} allCount={allSubs.length}>
+        <SubscriptionsView
+          subscriptions={filtered}
+          allCount={allSubs.length}
+          stats={stats}
+          currentStatus={params.status ?? 'all'}
+          currentCategory={params.category ?? 'all'}
+          newSubscriptionId={params.new}
+        />
+      </DraggableAnalyticsSurface>
       {/* Add button — desktop only; mobile uses floating nav "+" */}
       <div className="hidden sm:block fixed top-6 right-6 z-30">
         <AddSubscriptionFlow />
