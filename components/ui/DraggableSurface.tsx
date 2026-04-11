@@ -32,11 +32,15 @@ interface Props {
   /** Content for the dark back layer, revealed by dragging the foreground down
       or by dispatching the `oso:reveal-analytics` window event. */
   backdrop: ReactNode
+  /** Optional overlay rendered fixed at the top of the viewport above both
+      layers. Only visible during the drag (progress > 0) via consumer-side
+      opacity transforms using `useSurfaceProgress()`. */
+  fixedHeader?: ReactNode
   /** Main content — lives inside the foreground scroll container. */
   children: ReactNode
 }
 
-export default function DraggableSurface({ backdrop, children }: Props) {
+export default function DraggableSurface({ backdrop, fixedHeader, children }: Props) {
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -55,7 +59,7 @@ export default function DraggableSurface({ backdrop, children }: Props) {
   }
 
   return (
-    <MobileDraggableSurface backdrop={backdrop}>
+    <MobileDraggableSurface backdrop={backdrop} fixedHeader={fixedHeader}>
       {children}
     </MobileDraggableSurface>
   )
@@ -64,9 +68,11 @@ export default function DraggableSurface({ backdrop, children }: Props) {
 // ─── Mobile two-layer surface ─────────────────────────────────────────────
 function MobileDraggableSurface({
   backdrop,
+  fixedHeader,
   children,
 }: {
   backdrop: ReactNode
+  fixedHeader?: ReactNode
   children: ReactNode
 }) {
   const y = useMotionValue(0)
@@ -290,8 +296,7 @@ function MobileDraggableSurface({
           onClick={handleSurfaceTap}
           className="h-full w-full overflow-y-auto"
           style={{
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'none',
+            overscrollBehavior: 'contain',
             paddingTop: 'env(safe-area-inset-top)',
           }}
         >
@@ -302,6 +307,18 @@ function MobileDraggableSurface({
           </div>
         </div>
       </motion.div>
+
+      {/* ── Layer 3 — Fixed overlay above both layers ─────────────────── */}
+      {fixedHeader && (
+        <div
+          className="fixed left-0 right-0 z-20"
+          style={{ top: 'env(safe-area-inset-top)' }}
+        >
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
+            {fixedHeader}
+          </div>
+        </div>
+      )}
     </SurfaceProgressContext.Provider>
   )
 }

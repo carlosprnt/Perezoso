@@ -1,6 +1,9 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
+import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
+import { useSurfaceProgress } from '@/components/ui/DraggableSurface'
 import { formatCurrency } from '@/lib/utils/currency'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
 import { useT } from '@/lib/i18n/LocaleProvider'
@@ -151,10 +154,28 @@ export default function DashboardSummaryHero({
   logoUrls = [],
 }: Props) {
   const t = useT()
+  const heroRef = useRef<HTMLDivElement>(null)
+  const scrollY = useEffectiveScrollY()
 
   const [savingsPeriod, setSavingsPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [showSkeleton, setShowSkeleton]   = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Restore the original scroll-fade effect on the whole hero: as the user
+  // scrolls the foreground content, the paragraphs fade out and blur.
+  // Reads scroll from the ScrollContainerProvider when inside the
+  // DraggableSurface, or from window.scrollY otherwise.
+  useEffect(() => {
+    return scrollY.on('change', (v: number) => {
+      if (!heroRef.current) return
+      const progress = Math.max(0, Math.min(1, v / 220))
+      const opacity  = 1 - progress
+      const blur     = progress * 12
+      heroRef.current.style.opacity       = String(opacity)
+      heroRef.current.style.filter        = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : ''
+      heroRef.current.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto'
+    })
+  }, [scrollY])
 
   // On mobile, the avatar tap reveals the DraggableSurface's dark backdrop
   // (where the account menu items live). On desktop, the default dropdown
@@ -171,6 +192,13 @@ export default function DashboardSummaryHero({
   const avatarTapOverride = isMobile
     ? () => window.dispatchEvent(new Event('oso:reveal-analytics'))
     : undefined
+
+  // When inside a DraggableSurface, fade the internal greeting row out
+  // as the drag progresses so it crossfades with the DashboardFixedGreeting
+  // overlay that's pinned at the top of the viewport.
+  const surfaceProgress = useSurfaceProgress()
+  const fallback = useMotionValue(0)
+  const greetingOpacity = useTransform(surfaceProgress ?? fallback, [0, 0.08], [1, 0])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
@@ -204,14 +232,18 @@ export default function DashboardSummaryHero({
     : `${savingsYr} ${t('dashboard.perYear')}`
 
   return (
-    <div className="pb-5">
-      {/* Greeting + avatar */}
-      <div className="flex items-center justify-between mb-3">
+    <div ref={heroRef} className="pb-5">
+      {/* Greeting + avatar — crossfades out during drag so the fixed
+          overlay (DashboardFixedGreeting) takes over at the viewport top. */}
+      <motion.div
+        className="flex items-center justify-between mb-3"
+        style={{ opacity: greetingOpacity }}
+      >
         <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
         <UserAvatarMenu shareText={shareText} onTap={avatarTapOverride} />
-      </div>
+      </motion.div>
 
       {/* Main statement — tapping figures spawns money confetti */}
       <p className="text-[40px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>

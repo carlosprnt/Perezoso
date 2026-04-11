@@ -16,6 +16,7 @@ import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
 import AccountMenuPanel from '@/components/dashboard/AccountMenuPanel'
+import DashboardFixedGreeting from '@/components/dashboard/DashboardFixedGreeting'
 import DraggableSurface from '@/components/ui/DraggableSurface'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
@@ -124,7 +125,14 @@ export default async function DashboardPage() {
           admin, etc.) — replacing the popover dropdown on mobile.
           Desktop (lg+): passthrough — dashboardContent renders in-place
           and the avatar uses its default dropdown popover. */}
-      <DraggableSurface backdrop={<AccountMenuPanel shareText={shareText} />}>
+      <DraggableSurface
+        backdrop={<AccountMenuPanel shareText={shareText} />}
+        fixedHeader={
+          isEmpty ? null : (
+            <DashboardFixedGreeting firstName={firstName} shareText={shareText} />
+          )
+        }
+      >
         {dashboardContent}
       </DraggableSurface>
     </div>
