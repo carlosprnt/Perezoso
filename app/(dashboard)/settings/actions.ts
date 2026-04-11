@@ -22,6 +22,21 @@ export async function getPreferences(): Promise<UserPreferences> {
   return { ...DEFAULTS, ...(stored ?? {}) }
 }
 
+/** One-shot fetch: preferences + user email in a single `auth.getUser()`
+    call (the previous settings page was doing two sequential round-trips). */
+export async function getPreferencesAndEmail(): Promise<{
+  preferences: UserPreferences
+  email: string | null
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const stored = (user?.user_metadata as { preferences?: Partial<UserPreferences> } | undefined)?.preferences
+  return {
+    preferences: { ...DEFAULTS, ...(stored ?? {}) },
+    email: user?.email ?? null,
+  }
+}
+
 async function mergePreferences(patch: Partial<UserPreferences>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -209,12 +209,11 @@ export default function SettingsView({ preferences, userEmail }: Props) {
   ] as const
 
   return (
-    <div className="min-h-dvh -mx-4 sm:-mx-6 -my-6 lg:-my-8 pb-4">
-      {/* Sticky header */}
-      <div
-        className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3 bg-[#F7F8FA] dark:bg-[#121212]"
-        style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
-      >
+    <div className="pb-8">
+      {/* Header — normal document flow, no sticky/negative-margin tricks.
+          The parent (dashboard)/layout.tsx already handles safe-area-top
+          and page padding, so this header just lives in the normal flow. */}
+      <div className="flex items-center gap-3 mb-5">
         <button
           onClick={() => router.back()}
           className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center active:bg-[#E5E5EA] dark:active:bg-[#2C2C2E] transition-colors"
@@ -224,7 +223,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
         </button>
         <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7]">Ajustes</h1>
       </div>
-      <div className="px-5">
+      <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
       <Group>
