@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Calendar, Tag, Zap, Users,
   RefreshCw, CreditCard, PieChart,
-} from 'lucide-react'
+} from '@/lib/icons'
 import SubscriptionAvatar from './SubscriptionAvatar'
 import BottomSheet from '@/components/ui/BottomSheet'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'

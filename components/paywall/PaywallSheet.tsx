@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2 } from '@/lib/icons'
 import { PAYWALL_COPY, PAYWALL_BENEFITS, type PaywallTrigger } from '@/lib/revenuecat/paywallTriggers'
 import { RC_CONFIG } from '@/lib/revenuecat/config'
 import { purchasePackage, restorePurchases, getCurrentOffering } from '@/lib/revenuecat/client'

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { X } from '@/lib/icons'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'

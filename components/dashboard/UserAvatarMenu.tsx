@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { LogOut, Share2, ShieldCheck, ChevronRight, ChevronLeft, Loader2, RotateCcw, Settings } from 'lucide-react'
+import { LogOut, Share2, ShieldCheck, ChevronRight, ChevronLeft, Loader2, RotateCcw, Settings } from '@/lib/icons'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { getInitials, getAvatarPastel } from '@/lib/utils/logos'

@@ -3,7 +3,7 @@
 import { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowRight, X } from 'lucide-react'
+import { ArrowRight, X } from '@/lib/icons'
 import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
 import haptics from '@/lib/haptics'

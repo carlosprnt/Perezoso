@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react'
+import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw } from '@/lib/icons'
 import BottomSheet from '@/components/ui/BottomSheet'
 import GmailSubscriptionResultItem from './GmailSubscriptionResultItem'
 import { importSubscriptions } from '@/app/(dashboard)/subscriptions/actions'

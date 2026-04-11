@@ -2,7 +2,7 @@
 // ─── LockedBadge ──────────────────────────────────────────────────────────────
 // Inline "Pro" badge or locked-state banner for gated features.
 
-import { Lock } from 'lucide-react'
+import { Lock } from '@/lib/icons'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
 import type { PaywallTrigger } from '@/lib/revenuecat/paywallTriggers'
 

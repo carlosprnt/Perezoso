@@ -1,5 +1,5 @@
 import type { SubscriptionStatus } from '@/types'
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from '@/lib/icons'
 
 interface StatusBadgeProps {
   status: SubscriptionStatus

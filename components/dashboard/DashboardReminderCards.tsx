@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell } from 'lucide-react'
+import { Bell } from '@/lib/icons'
 import SavingsCarousel from './SavingsCarousel'
 import { detectSavingsOpportunities, countAnnualRenewalsWithoutReminder, sumAnnualSavings } from '@/lib/calculations/savings'
 import { useT } from '@/lib/i18n/LocaleProvider'

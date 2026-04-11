@@ -3,7 +3,7 @@ import {
   Tv, Music, Zap, Cloud, Bot, Heart,
   Gamepad2, BookOpen, Car, Home, Package,
   type LucideIcon,
-} from 'lucide-react'
+} from '@/lib/icons'
 
 export interface CategoryMeta {
   value: Category

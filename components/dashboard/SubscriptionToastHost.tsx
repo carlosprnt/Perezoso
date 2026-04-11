@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Check } from 'lucide-react'
+import { Check } from '@/lib/icons'
 import { subscriptionToastBus } from '@/lib/subscriptionToastBus'
 import type { SubscriptionToastKind } from '@/lib/subscriptionToastBus'
 import { useLocale } from '@/lib/i18n/LocaleProvider'

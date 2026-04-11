@@ -4,7 +4,7 @@ import type { SubscriptionWithCosts, DashboardStats } from '@/types'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getHighestCostSubscription, getTopSpendCategories } from '@/lib/calculations/subscriptions'
 import { getCategoryMeta } from '@/lib/constants/categories'
-import { TrendingUp, Users } from 'lucide-react'
+import { TrendingUp, Users } from '@/lib/icons'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { Category } from '@/types'
 

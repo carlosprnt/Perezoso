@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Calendar, Tag, Zap, Users,
   RefreshCw, CreditCard, PieChart, BellOff,
-} from 'lucide-react'
+} from '@/lib/icons'
 import SubscriptionAvatar from './SubscriptionAvatar'
 import SubscriptionForm from './SubscriptionForm'
 import BottomSheet from '@/components/ui/BottomSheet'

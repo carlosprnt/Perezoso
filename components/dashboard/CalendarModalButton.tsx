@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays } from '@/lib/icons'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import type { SubscriptionWithCosts } from '@/types'
