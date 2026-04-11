@@ -48,7 +48,13 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
           pct:          rest.reduce((s, c) => s + c.pct, 0),
         }]
       : []),
-  ].map(cat => ({ ...cat, color: COLORS[cat.category] ?? '#E5E7EB' }))
+  ].map((cat, i) => ({
+    ...cat,
+    // Primary (biggest) segment is always painted yellow regardless of
+    // its category's canonical colour — visually highlights the top
+    // spender in the chart legend.
+    color: i === 0 ? '#FEF08A' : (COLORS[cat.category] ?? '#E5E7EB'),
+  }))
 
   function label(cat: string) {
     if (cat === '_resto') return 'Resto'
