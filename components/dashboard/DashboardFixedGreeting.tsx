@@ -27,12 +27,14 @@ export default function DashboardFixedGreeting({
   const p = progress ?? fallback
 
   // Visible only when the surface is being dragged / is lowered.
-  // Fades in fast (full visibility by ~8% progress) so the crossfade
-  // with the internal greeting feels instant.
-  const opacity = useTransform(p, [0, 0.08], [0, 1])
+  // Fade-in is delayed (starts at 4% progress) so on CLOSING the
+  // overlay snaps to 0 well before the internal greeting fades back in,
+  // avoiding the visual "merge" of both headers near the top of the
+  // viewport as the foreground animates back up.
+  const opacity = useTransform(p, [0.04, 0.08], [0, 1])
   // No pointer events when invisible, so the internal avatar below
   // still receives taps in the raised state.
-  const pointerEvents = useTransform(p, (v) => (v > 0.02 ? 'auto' : 'none'))
+  const pointerEvents = useTransform(p, (v) => (v > 0.05 ? 'auto' : 'none'))
   // Text color interpolates dark → white as the backdrop is revealed.
   const textColor = useTransform(p, [0, 0.3], ['#000000', '#F2F2F7'])
   // Font size grows from 17px → 25px (+8px) as the surface is lowered.

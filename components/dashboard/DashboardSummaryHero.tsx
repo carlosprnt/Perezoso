@@ -195,10 +195,13 @@ export default function DashboardSummaryHero({
 
   // When inside a DraggableSurface, fade the internal greeting row out
   // as the drag progresses so it crossfades with the DashboardFixedGreeting
-  // overlay that's pinned at the top of the viewport.
+  // overlay that's pinned at the top of the viewport. The internal fade
+  // completes by 4% progress — the overlay then picks up from 4% → 8%,
+  // leaving a no-overlap gap so neither header visibly "merges" with the
+  // other while the foreground is near the raised position.
   const surfaceProgress = useSurfaceProgress()
   const fallback = useMotionValue(0)
-  const greetingOpacity = useTransform(surfaceProgress ?? fallback, [0, 0.08], [1, 0])
+  const greetingOpacity = useTransform(surfaceProgress ?? fallback, [0, 0.04], [1, 0])
 
   // Track whether the surface is "lowered" (past the halfway point) so
   // the avatar can flip to the Perezoso logo face in sync with the reveal
@@ -269,33 +272,37 @@ export default function DashboardSummaryHero({
         />
       </motion.div>
 
-      {/* Main statement — tapping figures spawns money confetti */}
-      <p className="text-[40px] font-extrabold text-[#000000] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
-        {t('dashboard.spendStatement')}<br />
+      {/* Main statement — tapping figures spawns money confetti.
+          Narrative text in dark gray (#616161), amounts in pure black. */}
+      <p className="text-[40px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.spendStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#FFFFFF]">{monthly}</span>
-        </button>.<br />
-        {t('dashboard.annualStatement')}<br />
+          <span className="text-[#000000] dark:text-[#F2F2F7]">{monthly}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span><br />
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.annualStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#FFFFFF]">{annual}</span>
-        </button>.
+          <span className="text-[#000000] dark:text-[#F2F2F7]">{annual}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
       </p>
 
-      {/* Supporting statement */}
-      <p className="text-[18px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-relaxed" style={{ maxWidth: '100%' }}>
-        {t('dashboard.youHave')}{' '}
+      {/* Supporting statement — same palette split */}
+      <p className="text-[18px] font-bold leading-relaxed" style={{ maxWidth: '100%' }}>
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#FFFFFF]">
-            {total} {total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}
-          </span>
-        </button>.
+          <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
+          <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
         {hasSave && (
           <>
-            {' '}{t('dashboard.youShare')}{' '}
-            <span className="text-[#000000] dark:text-[#FFFFFF] whitespace-nowrap">
-              {sharedCount}&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{t('dashboard.youShare')}{' '}</span>
+            <span className="whitespace-nowrap">
+              <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
+              <span className="text-[#616161] dark:text-[#8E8E93]">&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
             </span>
-            {' '}{t('dashboard.andSave')}{' '}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{t('dashboard.andSave')}{' '}</span>
             <button
               onClick={handleSavingsTap}
               className="inline align-baseline cursor-pointer select-none"
@@ -307,11 +314,12 @@ export default function DashboardSummaryHero({
                   style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
                 />
               ) : (
-                <span className="text-[#000000] dark:text-[#FFFFFF]">
+                <span className="text-[#000000] dark:text-[#F2F2F7]">
                   {savingsLabel}
                 </span>
               )}
-            </button>.
+            </button>
+            <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
           </>
         )}
       </p>
