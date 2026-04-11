@@ -149,9 +149,16 @@ interface Props {
 /** Inline row of up to 4 overlapping circular subscription logos used
     inside the hero narrative text. Each logo has `position: relative` so
     z-index works — leftmost sits on top visually (descending z-index
-    from left to right). Uses `background-image + cover` instead of an
-    inner <img> so the logo always fills the container edge-to-edge
-    regardless of the source image's intrinsic dimensions. */
+    from left to right).
+
+    Uses an explicit `<img>` (not `background-image`) because external
+    SVG sources — simpleicons.org, svgl.app, Supabase storage URLs —
+    render reliably inside an <img> tag while background-image silently
+    fails for some of them, producing blank circles. `object-cover` +
+    `display: block` guarantees the image fills the 32x32 circle
+    edge-to-edge regardless of the source dimensions. A neutral gray
+    fallback behind the image keeps broken/loading logos visible so the
+    user can see the position still exists. */
 function LogoStack({ urls }: { urls: string[] }) {
   const visible = urls.slice(0, 4)
   if (visible.length === 0) return null
@@ -160,15 +167,22 @@ function LogoStack({ urls }: { urls: string[] }) {
       {visible.map((url, i) => (
         <span
           key={url + i}
-          className="inline-block w-8 h-8 rounded-full border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E] bg-cover bg-center"
+          className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#F0F0F0] dark:bg-[#2C2C2E]"
           style={{
-            backgroundImage: `url("${url}")`,
             marginLeft: i === 0 ? 0 : -10,
             position: 'relative',
             zIndex: 4 - i,
           }}
-          aria-hidden
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={url}
+            alt=""
+            loading="lazy"
+            className="block w-full h-full object-cover"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+          />
+        </span>
       ))}
     </span>
   )
