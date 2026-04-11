@@ -3,6 +3,7 @@ import { enrichSubscriptions, getDashboardStats } from '@/lib/calculations/subsc
 import type { Subscription, SubscriptionStatus, Category } from '@/types'
 import SubscriptionsView from '@/components/subscriptions/SubscriptionsView'
 import DraggableAnalyticsSurface from '@/components/subscriptions/DraggableAnalyticsSurface'
+import SubscriptionsAnalyticsBackdrop from '@/components/subscriptions/SubscriptionsAnalyticsBackdrop'
 import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import AddSubscriptionFlow from '@/components/subscriptions/AddSubscriptionFlow'
 import type { Metadata } from 'next'
@@ -39,7 +40,9 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
       <ScreenTracker kind="subscriptions" subscriptionCount={allSubs.length} />
       {/* Mobile: two-layer draggable surface reveals analytics behind the list.
           Desktop (lg+): transparent passthrough — renders SubscriptionsView in-place. */}
-      <DraggableAnalyticsSurface stats={stats} allCount={allSubs.length}>
+      <DraggableAnalyticsSurface
+        backdrop={<SubscriptionsAnalyticsBackdrop stats={stats} allCount={allSubs.length} />}
+      >
         <SubscriptionsView
           subscriptions={filtered}
           allCount={allSubs.length}

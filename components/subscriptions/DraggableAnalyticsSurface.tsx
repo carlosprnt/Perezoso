@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { formatCurrency } from '@/lib/utils/currency'
 import { ScrollContainerProvider } from '@/lib/hooks/ScrollContainerContext'
 import haptics from '@/lib/haptics'
-import type { DashboardStats } from '@/types'
 
 // ─── Tunables ─────────────────────────────────────────────────────────────
 const PEEK_HEIGHT = 120           // px of foreground visible when lowered
@@ -22,12 +20,13 @@ const SNAP_SPRING = {
 }
 
 interface Props {
-  stats: DashboardStats
-  allCount: number
+  /** Content for the dark back layer, revealed by dragging the foreground down. */
+  backdrop: ReactNode
+  /** Main content — lives inside the foreground scroll container. */
   children: ReactNode
 }
 
-export default function DraggableAnalyticsSurface({ stats, allCount, children }: Props) {
+export default function DraggableAnalyticsSurface({ backdrop, children }: Props) {
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -46,7 +45,7 @@ export default function DraggableAnalyticsSurface({ stats, allCount, children }:
   }
 
   return (
-    <MobileDraggableSurface stats={stats} allCount={allCount}>
+    <MobileDraggableSurface backdrop={backdrop}>
       {children}
     </MobileDraggableSurface>
   )
@@ -54,12 +53,10 @@ export default function DraggableAnalyticsSurface({ stats, allCount, children }:
 
 // ─── Mobile two-layer surface ─────────────────────────────────────────────
 function MobileDraggableSurface({
-  stats,
-  allCount,
+  backdrop,
   children,
 }: {
-  stats: DashboardStats
-  allCount: number
+  backdrop: ReactNode
   children: ReactNode
 }) {
   const y = useMotionValue(0)
@@ -242,7 +239,7 @@ function MobileDraggableSurface({
 
   return (
     <>
-      {/* ── Layer 1 — Dark analytics layer (fixed behind) ───────────────── */}
+      {/* ── Layer 1 — Dark back layer (fixed behind) ────────────────────── */}
       <motion.div
         className="fixed inset-0 z-0 bg-[#0a0a0a] text-white"
         style={{
@@ -250,9 +247,8 @@ function MobileDraggableSurface({
           y: bgTranslate,
           paddingTop: 'env(safe-area-inset-top)',
         }}
-        aria-hidden
       >
-        <AnalyticsPanel stats={stats} allCount={allCount} />
+        {backdrop}
       </motion.div>
 
       {/* ── Layer 2 — Foreground draggable surface ──────────────────────── */}
@@ -284,7 +280,7 @@ function MobileDraggableSurface({
           }}
         >
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-28">
-            <ScrollContainerProvider value={scrollY}>
+            <ScrollContainerProvider value={{ scrollY, ref: scrollRef }}>
               {children}
             </ScrollContainerProvider>
           </div>
@@ -294,74 +290,3 @@ function MobileDraggableSurface({
   )
 }
 
-// ─── Dark analytics panel content ─────────────────────────────────────────
-function AnalyticsPanel({ stats, allCount }: { stats: DashboardStats; allCount: number }) {
-  return (
-    <div className="h-full overflow-y-auto px-6 pt-8 pb-40">
-      <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white/50">
-        Resumen
-      </p>
-      <h2 className="mt-2 text-[40px] font-bold tracking-tight leading-[1.05]">
-        {formatCurrency(stats.total_monthly_cost, 'EUR')}
-        <span className="text-[18px] font-medium text-white/60 ml-2">/mes</span>
-      </h2>
-      <p className="mt-3 text-[15px] text-white/70 leading-relaxed max-w-[36ch]">
-        Estás pagando{' '}
-        <span className="text-white font-semibold">
-          {formatCurrency(stats.total_annual_cost, 'EUR')}
-        </span>{' '}
-        al año en{' '}
-        <span className="text-white font-semibold">
-          {allCount === 1 ? '1 suscripción' : `${allCount} suscripciones`}
-        </span>
-        .
-      </p>
-
-      <div className="mt-10 grid grid-cols-2 gap-3">
-        <KpiCard
-          label="Activas"
-          value={String(stats.active_count)}
-        />
-        <KpiCard
-          label="Prueba"
-          value={String(stats.trial_count)}
-        />
-        <KpiCard
-          label="Pausadas"
-          value={String(stats.paused_count)}
-        />
-        <KpiCard
-          label="Compartido"
-          value={formatCurrency(stats.shared_monthly_cost, 'EUR')}
-          sub="/mes"
-        />
-      </div>
-
-      <p className="mt-10 text-[12px] text-white/40">
-        Desliza la tarjeta hacia arriba para volver
-      </p>
-    </div>
-  )
-}
-
-function KpiCard({
-  label,
-  value,
-  sub,
-}: {
-  label: string
-  value: string
-  sub?: string
-}) {
-  return (
-    <div className="rounded-[24px] bg-white/[0.06] border border-white/[0.08] p-4">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-white/50">
-        {label}
-      </p>
-      <p className="mt-1 text-[22px] font-bold text-white leading-tight">
-        {value}
-        {sub && <span className="text-[13px] font-medium text-white/50 ml-1">{sub}</span>}
-      </p>
-    </div>
-  )
-}
