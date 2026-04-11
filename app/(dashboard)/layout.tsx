@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/supabase/auth'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
 import SubscriptionToastHost from '@/components/dashboard/SubscriptionToastHost'
@@ -14,11 +15,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
+  // Cached across the whole request so nested pages that also need
+  // the auth user (e.g. /settings) share a single round-trip.
+  const user = await getAuthUser()
   if (!user) redirect('/login')
 
+  const supabase = await createClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')

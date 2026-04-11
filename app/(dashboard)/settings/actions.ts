@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/supabase/auth'
 import { revalidatePath } from 'next/cache'
 
 export interface UserPreferences {
@@ -16,15 +17,15 @@ const DEFAULTS: UserPreferences = {
 }
 
 export async function getPreferences(): Promise<UserPreferences> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   const stored = (user?.user_metadata as { preferences?: Partial<UserPreferences> } | undefined)?.preferences
   return { ...DEFAULTS, ...(stored ?? {}) }
 }
 
-/** One-shot fetch: preferences + user profile (name, email, avatar) in
-    a single `auth.getUser()` call. The previous settings page was doing
-    two sequential round-trips. */
+/** Preferences + user profile derived from the same cached auth user.
+    `getAuthUser()` is memoised by React.cache, so the settings page
+    reuses the user already fetched by the dashboard layout — no second
+    round-trip on navigation. */
 export async function getPreferencesAndProfile(): Promise<{
   preferences: UserPreferences
   profile: {
@@ -33,8 +34,7 @@ export async function getPreferencesAndProfile(): Promise<{
     avatarUrl: string | null
   }
 }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   const stored = (user?.user_metadata as { preferences?: Partial<UserPreferences> } | undefined)?.preferences
   return {
     preferences: { ...DEFAULTS, ...(stored ?? {}) },

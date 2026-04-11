@@ -39,14 +39,15 @@ function TwitterIcon({ size = 17, className }: { size?: number; className?: stri
 }
 
 // Monochrome icon tile — 40x40 white background with a black icon.
-// Shared by every settings row so sections look cohesive (no rainbow
-// of coloured tiles). The optional `bg` prop overrides the default
-// white — used only by the danger zone (light-red "Eliminar cuenta").
+// The optional `bg` prop only applies the danger-zone light red
+// (#FEE2E2). Any other colour passed in from old call sites is
+// discarded so every section stays on the same monochrome palette.
 function IconTile({ bg, children }: { bg?: string; children: React.ReactNode }) {
+  const resolvedBg = bg === '#FEE2E2' ? '#FEE2E2' : '#FFFFFF'
   return (
     <div
-      className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[#000000] dark:text-[#F2F2F7]"
-      style={{ backgroundColor: bg ?? '#FFFFFF' }}
+      className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[#000000]"
+      style={{ backgroundColor: resolvedBg }}
     >
       {children}
     </div>
@@ -76,7 +77,7 @@ function Row({
   const inner = (
     <div className={`flex items-center gap-3 px-4 py-4 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
-      <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">{label}</span>
+      <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
       {right}
     </div>
@@ -243,8 +244,8 @@ export default function SettingsView({ preferences, profile }: Props) {
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
       {/* Horizontal banner: title + description (left) · upgrade button (right).
-          Solid black background with a white CTA. Outer wrapper carries
-          the animated conic-gradient shimmer border. */}
+          Gray card matching the rest of the settings groups. Outer wrapper
+          carries the animated conic-gradient shimmer border. */}
       <div
         className="relative mb-3 rounded-[18px] p-[2px]"
         style={{
@@ -252,20 +253,20 @@ export default function SettingsView({ preferences, profile }: Props) {
           animation: 'shimmer-rotate 3s linear infinite',
         }}
       >
-        <div className="bg-[#000000] rounded-2xl px-5 py-5 flex items-center gap-4">
+        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
           {/* Title + description */}
           <div className="flex-1 min-w-0">
-            <p className="text-[20px] font-bold text-white leading-tight">
+            <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
               Perezoso Plus
             </p>
-            <p className="text-[13px] text-white/60 mt-1 leading-snug">
+            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
               {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
             </p>
           </div>
 
           {/* CTA / status — far right */}
           {isPro ? (
-            <span className="h-10 px-5 rounded-full bg-white/10 text-white text-[14px] font-semibold flex items-center flex-shrink-0">
+            <span className="h-10 px-5 rounded-full bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[14px] font-semibold flex items-center flex-shrink-0">
               Activo
             </span>
           ) : (
@@ -274,7 +275,7 @@ export default function SettingsView({ preferences, profile }: Props) {
                 haptics.tap()
                 openPaywall('general')
               }}
-              className="h-10 px-5 rounded-full bg-white text-[#000000] text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
             >
               Mejorar
             </button>
@@ -322,7 +323,7 @@ export default function SettingsView({ preferences, profile }: Props) {
       <Group>
         <div className="relative flex items-center gap-3 px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Moneda</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">Moneda</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
             {CURRENCIES.find(c => c.code === currency)?.symbol} {currency}
           </span>
@@ -341,7 +342,7 @@ export default function SettingsView({ preferences, profile }: Props) {
         </div>
         <div className="flex items-center gap-3 px-4 py-4">
           <IconTile bg="#EF4444"><Bell size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Notificaciones</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">Notificaciones</span>
           <button
             role="switch"
             aria-checked={notifications}
@@ -360,7 +361,7 @@ export default function SettingsView({ preferences, profile }: Props) {
       <Group>
         <div className="relative flex items-center gap-3 px-4 py-4">
           <IconTile bg="#374151"><Moon size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Apariencia</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">Apariencia</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
             {THEMES.find(t => t.key === preference)?.label ?? 'Sistema'}
           </span>
@@ -401,7 +402,7 @@ export default function SettingsView({ preferences, profile }: Props) {
                   }`}
                 >
                   <IconTile bg="#6366F1"><Sparkles size={15} /></IconTile>
-                  <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">{label}</span>
+                  <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{label}</span>
                 </button>
               ))}
               <button
@@ -411,7 +412,7 @@ export default function SettingsView({ preferences, profile }: Props) {
                 className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
               >
                 <IconTile bg="#737373"><Sparkles size={15} /></IconTile>
-                <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Volver a producción</span>
+                <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">Volver a producción</span>
               </button>
             </>
           ) : (
@@ -434,7 +435,7 @@ export default function SettingsView({ preferences, profile }: Props) {
             className={`flex items-center gap-3 px-4 py-4 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
-            <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">{cat}</span>
+            <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{cat}</span>
             <button
               onClick={() => handleRemoveCategory(cat)}
               className="w-7 h-7 rounded-full flex items-center justify-center text-[#8E8E93] active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
