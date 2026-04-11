@@ -8,6 +8,7 @@ import {
 } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
+import { useScrollContainerRef } from '@/lib/hooks/ScrollContainerContext'
 import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
 import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown, X } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
@@ -100,9 +101,21 @@ interface WalletCardProps {
   onOpen: (sub: SubscriptionWithCosts) => void
   viewMode: 'monthly' | 'yearly'
   numSkeleton: boolean
+  /** Optional scroll container ref for when the card lives inside a
+      custom scroll container instead of the window (e.g. dashboard
+      backdrop layer). */
+  scrollContainerRef?: React.RefObject<HTMLElement | null>
+  /** Prefix used for the shared-element layoutId. Defaults to `'card'`;
+      override to `'dashboard-card'` when rendering inside the dashboard
+      backdrop to avoid collisions with the /subscriptions route. */
+  layoutIdPrefix?: string
+  /** Dark variant used inside the dashboard backdrop. Keeps the card
+      layout identical but swaps surface/text colours to blend with the
+      dark layer. */
+  variant?: 'light' | 'dark'
 }
 
-function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMode, numSkeleton }: WalletCardProps) {
+export function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMode, numSkeleton, scrollContainerRef, layoutIdPrefix = 'card', variant = 'light' }: WalletCardProps) {
   const t = useT()
   const locale = useLocale()
   const [shimmer, setShimmer] = useState(isNew ?? false)
@@ -125,7 +138,11 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
 
   // Scale down as card exits viewport from the top
   const cardRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: cardRef, offset: ['start 0.35', 'end start'] })
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    container: scrollContainerRef,
+    offset: ['start 0.35', 'end start'],
+  })
   const exitScale = useTransform(scrollYProgress, [0, 1], [1, 0.85])
   const exitRotation = useTransform(scrollYProgress, [0.5, 1], [0, 20])
 
@@ -137,12 +154,18 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
       style={{ y: yOffset, scale: exitScale, rotate: exitRotation, transformOrigin: 'center bottom', visibility: isSelected ? 'hidden' : undefined }}
     >
       <motion.div
-        layoutId={`card-${sub.id}`}
+        layoutId={`${layoutIdPrefix}-${sub.id}`}
         onClick={() => onOpen(sub)}
-        className="w-full bg-white dark:bg-[#1C1C1E] px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer"
+        className={`w-full px-5 pt-5 pb-5 flex flex-col relative overflow-hidden cursor-pointer ${
+          variant === 'dark'
+            ? 'bg-[#1C1C1E] text-[#F2F2F7]'
+            : 'bg-white dark:bg-[#1C1C1E]'
+        }`}
         style={{
           borderRadius: 28,
-          boxShadow: '0 -1px 2px rgba(0,0,0,0.04)',
+          boxShadow: variant === 'dark'
+            ? '0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.4)'
+            : '0 -1px 2px rgba(0,0,0,0.04)',
         }}
         whileTap={{ scale: 0.985 }}
         animate={shimmer ? {
@@ -247,13 +270,17 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
 }
 
 // ─── Stacked card list with scroll physics ────────────────────────────────
-function CardStack({
+export function CardStack({
   subscriptions,
   newSubscriptionId,
   selectedSubId,
   onOpen,
   viewMode,
   numSkeleton,
+  scrollContainerRef,
+  disableElasticPull = false,
+  layoutIdPrefix = 'card',
+  variant = 'light',
 }: {
   subscriptions: SubscriptionWithCosts[]
   newSubscriptionId?: string
@@ -261,14 +288,21 @@ function CardStack({
   onOpen: (sub: SubscriptionWithCosts) => void
   viewMode: 'monthly' | 'yearly'
   numSkeleton: boolean
+  scrollContainerRef?: React.RefObject<HTMLElement | null>
+  disableElasticPull?: boolean
+  layoutIdPrefix?: string
+  variant?: 'light' | 'dark'
 }) {
-  // Organic scroll: spring-smoothed velocity drives per-card parallax
-  const { scrollY } = useScroll()
+  // Organic scroll: spring-smoothed velocity drives per-card parallax.
+  // When scrollContainerRef is provided, track the inner container instead
+  // of the window — needed inside fixed draggable surfaces.
+  const { scrollY } = useScroll(scrollContainerRef ? { container: scrollContainerRef } : undefined)
   const rawVelocity = useVelocity(scrollY)
   const springVelocity = useSpring(rawVelocity, { stiffness: 180, damping: 28 })
 
-  // Pull-down elastic: drives both the stack Y translation and card gap expansion
-  const elasticY = useElasticPullDown()
+  // Pull-down elastic: drives both the stack Y translation and card gap expansion.
+  // Disabled inside custom scroll containers — the hook only supports window scroll.
+  const elasticY = useElasticPullDown(!disableElasticPull)
   const gapExtra = useTransform(elasticY, [0, 65], [0, 24])
   const dynamicMargin = useTransform(gapExtra, v => `${STACK_MARGIN_PX + v}px`)
 
@@ -292,6 +326,9 @@ function CardStack({
             onOpen={onOpen}
             viewMode={viewMode}
             numSkeleton={numSkeleton}
+            scrollContainerRef={scrollContainerRef}
+            layoutIdPrefix={layoutIdPrefix}
+            variant={variant}
           />
         </motion.div>
       ))}
@@ -612,6 +649,11 @@ export default function SubscriptionsView({
     return () => { if (skeletonTimer.current) clearTimeout(skeletonTimer.current) }
   }, [])
 
+  // When wrapped in a DraggableAnalyticsSurface (mobile), the inner fixed
+  // scroll container owns the real scroll — forward its ref to CardStack so
+  // velocity + per-card exit transforms read from the right source.
+  const surfaceScrollRef = useScrollContainerRef()
+
   function openSub(sub: SubscriptionWithCosts) {
     setClosingSubId(null)
     setSelectedSub(sub)
@@ -781,6 +823,8 @@ export default function SubscriptionsView({
                 onOpen={openSub}
                 viewMode={viewMode}
                 numSkeleton={numSkeleton}
+                scrollContainerRef={surfaceScrollRef ?? undefined}
+                disableElasticPull={!!surfaceScrollRef}
               />
             )}
             <InactiveCardsRow subscriptions={inactiveSubs} onOpen={openSub} />

@@ -1,22 +1,31 @@
 'use client'
 
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useContext, type ReactNode, type RefObject } from 'react'
 import type { MotionValue } from 'framer-motion'
 
 /**
- * Provides a scroll position MotionValue when the default `window.scrollY`
- * source is not appropriate — e.g. inside a draggable fixed-position surface
- * that hosts its own scroll container.
+ * Provides a scroll position MotionValue and the DOM element ref of the
+ * owning scroll container, when the default `window.scrollY` source is
+ * not appropriate — e.g. inside a draggable fixed-position surface that
+ * hosts its own scroll container.
  *
- * Consumers: `useEffectiveScrollY()` — reads this value when present.
+ * Consumers:
+ * - `useEffectiveScrollY()` → reads `scrollY` MotionValue
+ * - `useScrollContainerRef()` → reads `ref` for framer-motion's
+ *   `useScroll({ container })` option (target/progress tracking)
  */
-const ScrollContainerContext = createContext<MotionValue<number> | null>(null)
+export interface ScrollContainerValue {
+  scrollY: MotionValue<number>
+  ref: RefObject<HTMLElement | null>
+}
+
+const ScrollContainerContext = createContext<ScrollContainerValue | null>(null)
 
 export function ScrollContainerProvider({
   value,
   children,
 }: {
-  value: MotionValue<number>
+  value: ScrollContainerValue
   children: ReactNode
 }) {
   return (
@@ -26,6 +35,12 @@ export function ScrollContainerProvider({
   )
 }
 
+/** Returns the scrollY MotionValue, or null when outside a provider. */
 export function useScrollContainer(): MotionValue<number> | null {
-  return useContext(ScrollContainerContext)
+  return useContext(ScrollContainerContext)?.scrollY ?? null
+}
+
+/** Returns the scroll container element ref, or null when outside a provider. */
+export function useScrollContainerRef(): RefObject<HTMLElement | null> | null {
+  return useContext(ScrollContainerContext)?.ref ?? null
 }
