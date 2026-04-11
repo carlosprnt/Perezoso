@@ -63,17 +63,21 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
       style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom) + 24px)' }}
     >
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex flex-col gap-1">
-          <DarkMenuItem
-            icon={<Settings size={18} strokeWidth={2} />}
+        {/* 2-column grid: Ajustes + Compartir datos as tile cells.
+            Each cell is a very dark gray card with the icon stacked
+            above the label. */}
+        <div className="grid grid-cols-2 gap-2">
+          <DarkTile
+            icon={<Settings size={22} strokeWidth={2} />}
             label="Ajustes"
             onClick={handleSettings}
           />
-          <DarkMenuItem
-            icon={<Share2 size={18} strokeWidth={2} />}
+          <DarkTile
+            icon={<Share2 size={22} strokeWidth={2} />}
             label={t('nav.shareData')}
             onClick={handleShare}
           />
+        </div>
 
           {/* Upgrade-to-Pro banner — same structure as the Settings
               Perezoso Plus banner but transparent with a static white
@@ -101,7 +105,6 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
             </div>
           )}
         </div>
-      </div>
 
       {/* Footer row: logout (left) + theme toggle (right), both matching
           size/typography so they visually share a baseline. */}
@@ -173,7 +176,9 @@ function ThemeToggleLink() {
   )
 }
 
-function DarkMenuItem({
+// Tile cell for the 2-column grid at the top of the black layer.
+// Very dark gray card, icon on top, label underneath.
+function DarkTile({
   icon,
   label,
   onClick,
@@ -188,10 +193,10 @@ function DarkMenuItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full flex items-center gap-3 px-3 py-3.5 rounded-[16px] text-[16px] font-medium text-left active:bg-white/10 transition-colors disabled:opacity-50 text-white"
+      className="flex flex-col items-start gap-6 px-5 py-5 rounded-[20px] bg-[#151517] text-white active:bg-[#1F1F22] transition-colors disabled:opacity-50 min-h-[120px]"
     >
-      {icon && <span className="opacity-80 flex-shrink-0">{icon}</span>}
-      <span className="flex-1 truncate">{label}</span>
+      {icon && <span className="opacity-95">{icon}</span>}
+      <span className="text-[15px] font-semibold">{label}</span>
     </button>
   )
 }
