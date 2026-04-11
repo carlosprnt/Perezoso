@@ -143,6 +143,34 @@ interface Props {
   shareText: string
   currency?: string
   logoUrls?: string[]
+  sharedLogoUrls?: string[]
+}
+
+/** Inline row of up to 4 overlapping circular subscription logos used
+    inside the hero narrative text. Each logo has `position: relative` so
+    z-index works — leftmost sits on top visually (descending z-index
+    from left to right). */
+function LogoStack({ urls }: { urls: string[] }) {
+  const visible = urls.slice(0, 4)
+  if (visible.length === 0) return null
+  return (
+    <span className="inline-flex items-center align-middle mx-1.5 -my-1">
+      {visible.map((url, i) => (
+        <span
+          key={url + i}
+          className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E]"
+          style={{
+            marginLeft: i === 0 ? 0 : -10,
+            position: 'relative',
+            zIndex: 4 - i,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt="" className="w-full h-full object-cover" />
+        </span>
+      ))}
+    </span>
+  )
 }
 
 export default function DashboardSummaryHero({
@@ -152,6 +180,7 @@ export default function DashboardSummaryHero({
   shareText,
   currency = 'EUR',
   logoUrls = [],
+  sharedLogoUrls = [],
 }: Props) {
   const t = useT()
   const heroRef = useRef<HTMLDivElement>(null)
@@ -297,32 +326,18 @@ export default function DashboardSummaryHero({
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
-          {logoUrls.length > 0 && (
-            <span className="inline-flex items-center align-middle mx-1.5 -my-1">
-              {logoUrls.slice(0, 4).map((url, i) => (
-                <span
-                  key={url + i}
-                  className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E]"
-                  style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 4 - i }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                </span>
-              ))}
-            </span>
-          )}
+          <LogoStack urls={logoUrls} />
           <span className="text-[#616161] dark:text-[#8E8E93]">{total === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
         {hasSave && (
           <>
             <br />
-            {/* Line 2 — shared count */}
+            {/* Line 2 — shared count with stacked logos */}
             <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youShare')}{' '}</span>
-            <span className="whitespace-nowrap">
-              <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
-              <span className="text-[#616161] dark:text-[#8E8E93]">&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
-            </span>
+            <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
+            <LogoStack urls={sharedLogoUrls} />
+            <span className="text-[#616161] dark:text-[#8E8E93]">{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
             <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
             <br />
             {/* Line 3 — savings with monthly↔annual toggle */}

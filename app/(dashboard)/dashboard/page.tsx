@@ -56,6 +56,11 @@ export default async function DashboardPage() {
     .map(s => resolveSubscriptionLogoUrl(s.name, s.logo_url))
     .filter((u): u is string => !!u)
 
+  const sharedLogoUrls = subs
+    .filter(s => s.is_shared && (s.status === 'active' || s.status === 'trial'))
+    .map(s => resolveSubscriptionLogoUrl(s.name, s.logo_url))
+    .filter((u): u is string => !!u)
+
   const shareText = `My monthly subscriptions: ${formatCurrency(stats.total_monthly_cost, 'EUR')} across ${subs.length} subscriptions — tracked with Perezoso 🦥`
 
   const categoryRows = topCategories.map(({ category, monthly_cost }) => ({
@@ -75,6 +80,7 @@ export default async function DashboardPage() {
           sharedCount={sharedCount}
           shareText={shareText}
           logoUrls={activeLogoUrls}
+          sharedLogoUrls={sharedLogoUrls}
         />
       )}
 
