@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus } from '@/lib/icons'
+import { Plus } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from './PlatformPicker'
 import SubscriptionForm from './SubscriptionForm'

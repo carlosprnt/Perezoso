@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from '@/lib/icons'
+import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Terms of Service' }
 

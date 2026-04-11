@@ -1,7 +1,7 @@
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
-import { ArrowLeft } from '@/lib/icons'
+import { ArrowLeft } from 'lucide-react'
 import { getPlatformById } from '@/lib/constants/platforms'
 import type { Metadata } from 'next'
 

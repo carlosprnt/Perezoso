@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, animate as fmAnimate } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from '@/lib/icons'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'

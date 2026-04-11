@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
-import { RefreshCw } from '@/lib/icons'
+import { RefreshCw } from 'lucide-react'
 
 interface ErrorStateProps {
   title?: string

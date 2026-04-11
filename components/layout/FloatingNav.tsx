@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, Plus } from '@/lib/icons'
+import { LayoutGrid, Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import BottomSheet from '@/components/ui/BottomSheet'
 import PlatformPicker from '@/components/subscriptions/PlatformPicker'

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Share2, Settings, Sun, Moon } from '@/lib/icons'
+import { LogOut, Share2, Settings, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useT } from '@/lib/i18n/LocaleProvider'

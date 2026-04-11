@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { X, Check, SlidersHorizontal } from '@/lib/icons'
+import { X, Check, SlidersHorizontal } from 'lucide-react'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { Button } from '@/components/ui/Button'
 import type { SubscriptionStatus, Category } from '@/types'

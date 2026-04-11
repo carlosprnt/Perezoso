@@ -9,7 +9,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import SubscriptionDetailOverlay from './SubscriptionDetailOverlay'
-import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown, X } from '@/lib/icons'
+import { SlidersHorizontal, CalendarDays, Check, ChevronsUpDown, X } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'

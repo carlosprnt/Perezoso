@@ -1,6 +1,6 @@
 'use client'
 
-import { Check } from '@/lib/icons'
+import { Check } from 'lucide-react'
 import SubscriptionAvatar from './SubscriptionAvatar'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { DetectedSubscription } from '@/types/detected-subscription'

@@ -5,7 +5,7 @@ import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
-import { Coins, Copy, Users, Package } from '@/lib/icons'
+import { Coins, Copy, Users, Package } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { SavingsOpportunity } from '@/lib/calculations/savings'
 
