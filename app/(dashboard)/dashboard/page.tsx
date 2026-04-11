@@ -15,7 +15,7 @@ import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
-import DashboardFixedGreeting from '@/components/dashboard/DashboardFixedGreeting'
+import AccountMenuPanel from '@/components/dashboard/AccountMenuPanel'
 import DraggableSurface from '@/components/ui/DraggableSurface'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
@@ -118,18 +118,13 @@ export default async function DashboardPage() {
   return (
     <div>
       <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
-      {/* Mobile: two-layer draggable surface. Fixed greeting stays at the
-          top of the viewport, interpolating its text color from dark to
-          white as the foreground slides down over the black backdrop.
-          Desktop (lg+): passthrough — dashboardContent renders in-place. */}
-      <DraggableSurface
-        backdrop={<div className="h-full" aria-hidden />}
-        fixedHeader={
-          isEmpty ? null : (
-            <DashboardFixedGreeting firstName={firstName} shareText={shareText} />
-          )
-        }
-      >
+      {/* Mobile: two-layer draggable surface. Tapping the avatar (or
+          dragging the foreground down) reveals the dark backdrop layer
+          which contains the account menu items (settings, share, logout,
+          admin, etc.) — replacing the popover dropdown on mobile.
+          Desktop (lg+): passthrough — dashboardContent renders in-place
+          and the avatar uses its default dropdown popover. */}
+      <DraggableSurface backdrop={<AccountMenuPanel shareText={shareText} />}>
         {dashboardContent}
       </DraggableSurface>
     </div>

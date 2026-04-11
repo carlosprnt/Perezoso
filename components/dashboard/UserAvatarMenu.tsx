@@ -12,9 +12,14 @@ import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscript
 
 interface UserAvatarMenuProps {
   shareText?: string
+  /** When provided, tapping the avatar calls this instead of opening the
+      dropdown. Used on the dashboard mobile surface where the account menu
+      lives in the backdrop layer (revealed by dispatching
+      `oso:reveal-analytics`) rather than as a popover. */
+  onTap?: () => void
 }
 
-export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
+export default function UserAvatarMenu({ shareText, onTap }: UserAvatarMenuProps) {
   const router = useRouter()
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -91,6 +96,11 @@ export default function UserAvatarMenu({ shareText }: UserAvatarMenuProps) {
       setFlipDuration('0.45s')
       setCoinDeg(d => d + 900)
       setTimeout(() => { flipping.current = false }, 500)
+    }
+    // External tap handler takes over (e.g. dashboard surface reveal).
+    if (onTap) {
+      onTap()
+      return
     }
     handleOpen()
   }

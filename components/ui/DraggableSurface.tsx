@@ -21,7 +21,6 @@ const SNAP_SPRING = {
 
 // ─── Surface progress context ────────────────────────────────────────────
 // Exposes a normalized MotionValue<number> going from 0 (raised) to 1 (lowered).
-// Consumers like DashboardFixedGreeting read it to drive color interpolation.
 const SurfaceProgressContext = createContext<MotionValue<number> | null>(null)
 
 export function useSurfaceProgress(): MotionValue<number> | null {
@@ -30,16 +29,14 @@ export function useSurfaceProgress(): MotionValue<number> | null {
 
 // ─── Props ────────────────────────────────────────────────────────────────
 interface Props {
-  /** Content for the dark back layer, revealed by dragging the foreground down. */
+  /** Content for the dark back layer, revealed by dragging the foreground down
+      or by dispatching the `oso:reveal-analytics` window event. */
   backdrop: ReactNode
-  /** Optional fixed header rendered above both layers (stays in place while the
-      foreground is dragged). Receives drag progress via `useSurfaceProgress()`. */
-  fixedHeader?: ReactNode
   /** Main content — lives inside the foreground scroll container. */
   children: ReactNode
 }
 
-export default function DraggableSurface({ backdrop, fixedHeader, children }: Props) {
+export default function DraggableSurface({ backdrop, children }: Props) {
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -58,7 +55,7 @@ export default function DraggableSurface({ backdrop, fixedHeader, children }: Pr
   }
 
   return (
-    <MobileDraggableSurface backdrop={backdrop} fixedHeader={fixedHeader}>
+    <MobileDraggableSurface backdrop={backdrop}>
       {children}
     </MobileDraggableSurface>
   )
@@ -67,11 +64,9 @@ export default function DraggableSurface({ backdrop, fixedHeader, children }: Pr
 // ─── Mobile two-layer surface ─────────────────────────────────────────────
 function MobileDraggableSurface({
   backdrop,
-  fixedHeader,
   children,
 }: {
   backdrop: ReactNode
-  fixedHeader?: ReactNode
   children: ReactNode
 }) {
   const y = useMotionValue(0)
@@ -116,16 +111,28 @@ function MobileDraggableSurface({
     }
   }, [y])
 
-  // ── Programmatic reveal via custom event ────────────────────────────────
+  // ── Programmatic reveal / hide via custom events ───────────────────────
   useEffect(() => {
     function onReveal() {
       if (raisedRef.current && loweredYRef.current > 0) {
         raisedRef.current = false
+        haptics.tap('light')
         animate(y, loweredYRef.current, SNAP_SPRING)
       }
     }
+    function onHide() {
+      if (!raisedRef.current) {
+        raisedRef.current = true
+        haptics.tap('light')
+        animate(y, 0, SNAP_SPRING)
+      }
+    }
     window.addEventListener('oso:reveal-analytics', onReveal)
-    return () => window.removeEventListener('oso:reveal-analytics', onReveal)
+    window.addEventListener('oso:hide-analytics', onHide)
+    return () => {
+      window.removeEventListener('oso:reveal-analytics', onReveal)
+      window.removeEventListener('oso:hide-analytics', onHide)
+    }
   }, [y])
 
   // ── Inner scroll sync to context MotionValue ────────────────────────────
@@ -278,13 +285,6 @@ function MobileDraggableSurface({
           boxShadow: '0 -12px 40px rgba(0,0,0,0.22)',
         }}
       >
-        {/* Grabber handle at the top edge */}
-        <div className="absolute inset-x-0 top-0 pt-[env(safe-area-inset-top)] pointer-events-none z-[1]">
-          <div className="flex justify-center pt-2">
-            <div className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
-          </div>
-        </div>
-
         <div
           ref={scrollRef}
           onClick={handleSurfaceTap}
@@ -302,18 +302,6 @@ function MobileDraggableSurface({
           </div>
         </div>
       </motion.div>
-
-      {/* ── Layer 3 — Fixed header above both layers ──────────────────── */}
-      {fixedHeader && (
-        <div
-          className="fixed left-0 right-0 z-20 pointer-events-none"
-          style={{ top: 'env(safe-area-inset-top)' }}
-        >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pointer-events-auto">
-            {fixedHeader}
-          </div>
-        </div>
-      )}
     </SurfaceProgressContext.Provider>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import { formatCurrency } from '@/lib/utils/currency'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
 import { useT } from '@/lib/i18n/LocaleProvider'
@@ -151,25 +150,27 @@ export default function DashboardSummaryHero({
   currency = 'EUR',
   logoUrls = [],
 }: Props) {
-  const t       = useT()
-  const ref     = useRef<HTMLDivElement>(null)
-  const scrollY = useEffectiveScrollY()
+  const t = useT()
 
   const [savingsPeriod, setSavingsPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [showSkeleton, setShowSkeleton]   = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // On mobile, the avatar tap reveals the DraggableSurface's dark backdrop
+  // (where the account menu items live). On desktop, the default dropdown
+  // popover is used.
+  const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    return scrollY.on('change', (v: number) => {
-      if (!ref.current) return
-      const progress = Math.max(0, Math.min(1, v / 220))
-      const opacity  = 1 - progress
-      const blur     = progress * 12  // 0→12px
-      ref.current.style.opacity       = String(opacity)
-      ref.current.style.filter        = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : ''
-      ref.current.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto'
-    })
-  }, [scrollY])
+    const mql = window.matchMedia('(max-width: 1023px)')
+    const update = () => setIsMobile(mql.matches)
+    update()
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
+
+  const avatarTapOverride = isMobile
+    ? () => window.dispatchEvent(new Event('oso:reveal-analytics'))
+    : undefined
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
@@ -203,19 +204,13 @@ export default function DashboardSummaryHero({
     : `${savingsYr} ${t('dashboard.perYear')}`
 
   return (
-    <div
-      ref={ref}
-      className="sticky pb-5 bg-[#F7F8FA] dark:bg-[#121212]"
-      style={{ top: 'env(safe-area-inset-top)' }}
-    >
-      {/* Greeting + avatar — invisible on mobile (space preserved) so the
-          DashboardFixedGreeting overlay can replace it without visual
-          duplication. Visible on desktop where no fixed header exists. */}
-      <div className="flex items-center justify-between mb-3 invisible lg:visible">
+    <div className="pb-5">
+      {/* Greeting + avatar */}
+      <div className="flex items-center justify-between mb-3">
         <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
-        <UserAvatarMenu shareText={shareText} />
+        <UserAvatarMenu shareText={shareText} onTap={avatarTapOverride} />
       </div>
 
       {/* Main statement — tapping figures spawns money confetti */}
