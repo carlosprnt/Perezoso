@@ -34,7 +34,7 @@ export default function DashboardFixedGreeting({
   // still receives taps in the raised state.
   const pointerEvents = useTransform(p, (v) => (v > 0.02 ? 'auto' : 'none'))
   // Text color interpolates dark → white as the backdrop is revealed.
-  const textColor = useTransform(p, [0, 0.3], ['#424242', '#F2F2F7'])
+  const textColor = useTransform(p, [0, 0.3], ['#000000', '#F2F2F7'])
   // Font size grows from 17px → 25px (+8px) as the surface is lowered.
   const fontSize = useTransform(p, [0, 1], [17, 25])
 

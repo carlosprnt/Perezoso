@@ -209,7 +209,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
                 key={count}
                 onClick={() => handleDemoMode(count)}
                 disabled={isPending}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left disabled:opacity-50"
+                className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left disabled:opacity-50"
               >
                 {label}
                 {isPending ? <Loader2 size={13} className="animate-spin text-[#8E8E93]" /> : null}
@@ -233,19 +233,19 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
         /* ── Normal menu ──────────────────────────────────────────────── */
         <>
           <div className="px-4 py-3 border-b border-[#F0F0F0] dark:border-[#2C2C2E]">
-            <p className="text-sm font-semibold text-[#424242] dark:text-[#F2F2F7] truncate">{name}</p>
+            <p className="text-sm font-semibold text-[#000000] dark:text-[#F2F2F7] truncate">{name}</p>
           </div>
           <div className="py-1.5">
             <button
               onClick={() => { setOpen(false); router.push('/settings') }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
             >
               <Settings size={15} className="text-[#616161] dark:text-[#8E8E93]" />
               Ajustes
             </button>
             <button
               onClick={handleShare}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
             >
               <Share2 size={15} className="text-[#616161] dark:text-[#8E8E93]" />
               {t('nav.shareData')}

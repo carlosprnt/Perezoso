@@ -34,7 +34,7 @@ function InsightCell({
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-[#737373] dark:text-[#8E8E93] font-medium mb-0.5">{label}</p>
-        <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
+        <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
         {sub && <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug truncate">{sub}</p>}
       </div>
     </div>
@@ -82,7 +82,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ① Highest cost */}
       <InsightCell
         icon={<TrendingUp size={20} />}
-        iconCls="bg-[#F5F5F5] text-[#424242]"
+        iconCls="bg-[#F5F5F5] text-[#000000]"
         label={t('dashboard.highestCost')}
         value={highest?.name ?? '—'}
         sub={
@@ -95,7 +95,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ② Top category */}
       <InsightCell
         icon={CatIcon ? <CatIcon size={20} /> : null}
-        iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#424242]'}
+        iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#000000]'}
         label={t('dashboard.topCategory')}
         value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
         sub={
@@ -108,7 +108,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ③ Shared plans */}
       <InsightCell
         icon={<Users size={20} />}
-        iconCls="bg-[#F5F5F5] text-[#424242] dark:bg-[#2C2C2E] dark:text-[#E5E5EA]"
+        iconCls="bg-[#F5F5F5] text-[#000000] dark:bg-[#2C2C2E] dark:text-[#E5E5EA]"
         label={t('dashboard.sharedPlans')}
         value={
           sharedSubs.length > 0

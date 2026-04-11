@@ -148,12 +148,12 @@ function TreemapCell({
       style={{ backgroundColor: item.color, ...style }}
     >
       {/* Top: name */}
-      <p className={`font-semibold text-[#424242]/80 truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
+      <p className={`font-semibold text-[#000000]/80 truncate ${isLarge ? 'text-[15px]' : 'text-[13px]'}`}>
         {label}
       </p>
 
       {/* Bottom: percentage or price */}
-      <p className={`font-bold text-[#424242]/80 ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
+      <p className={`font-bold text-[#000000]/80 ${isLarge ? 'text-[32px] leading-none' : 'text-[20px] leading-none'}`}>
         {showPrice
           ? formatCurrency(item.monthly_cost, currency, locale)
           : `${Math.round(item.pct)}%`

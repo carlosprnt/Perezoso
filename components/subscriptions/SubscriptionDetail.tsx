@@ -80,7 +80,7 @@ function DetailRow({
     <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? '' : 'border-b border-[#F0F0F0] dark:border-[#232325]'}`}>
       <span className="text-[#C0C0C0] dark:text-[#8E8E93] flex-shrink-0">{icon}</span>
       <span className="text-sm text-[#737373] dark:text-[#AEAEB2] flex-1 leading-tight">{label}</span>
-      <span className="text-sm font-medium text-[#424242] dark:text-[#F2F2F7] text-right leading-tight">{value}</span>
+      <span className="text-sm font-medium text-[#000000] dark:text-[#F2F2F7] text-right leading-tight">{value}</span>
     </div>
   )
 }
@@ -131,7 +131,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
             onClick={() => router.back()}
             className="w-9 h-9 rounded-xl flex items-center justify-center bg-white dark:bg-[#2C2C2E] border border-[#E8E8E8] dark:border-[#3A3A3C] active:border-[#D4D4D4] transition-colors"
           >
-            <ArrowLeft size={17} className="text-[#424242] dark:text-[#F2F2F7]" />
+            <ArrowLeft size={17} className="text-[#000000] dark:text-[#F2F2F7]" />
           </button>
         </div>
 
@@ -143,7 +143,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
             size="xl"
             corner="rounded-[8px]"
           />
-          <h1 className="text-[22px] font-bold text-[#424242] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
+          <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
             {sub.name}
           </h1>
           <div className="flex items-center flex-wrap justify-center gap-2">
@@ -159,7 +159,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
                 </span>
               )}
             </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#AEAEB2]">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#AEAEB2]">
               {billingLabel}
             </span>
           </div>
@@ -172,14 +172,14 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
           <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] p-4">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-3xl font-bold text-[#424242] dark:text-[#F2F2F7] tabular-nums leading-none">
+                <p className="text-3xl font-bold text-[#000000] dark:text-[#F2F2F7] tabular-nums leading-none">
                   {formatCurrency(sub.my_monthly_cost, sub.currency)}
                 </p>
                 <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-[#737373] dark:text-[#AEAEB2] mb-0.5">{t('detail.annually')}</p>
-                <p className="text-lg font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
+                <p className="text-lg font-semibold text-[#000000] dark:text-[#F2F2F7] tabular-nums">
                   {formatCurrency(sub.my_annual_cost, sub.currency)}
                 </p>
               </div>
@@ -236,7 +236,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
                   />
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs font-semibold text-[#424242] dark:text-[#F2F2F7]">{daysLabel}</span>
+                  <span className="text-xs font-semibold text-[#000000] dark:text-[#F2F2F7]">{daysLabel}</span>
                   <span className="text-xs text-[#A0A0A0] dark:text-[#8E8E93]">{nextDateFormatted}</span>
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function SubscriptionDetail({ subscription: sub }: SubscriptionDe
                 <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#8E8E93] uppercase tracking-wider">{t('detail.notes')}</p>
               </div>
               <div className="border-t border-[#F0F0F0] dark:border-[#232325] px-4 py-4">
-                <p className="text-sm text-[#424242] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
+                <p className="text-sm text-[#000000] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
               </div>
             </div>
           )}

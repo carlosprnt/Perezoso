@@ -108,7 +108,7 @@ export default function CalendarDaySheet({
         {/* Header */}
         <div className="flex-shrink-0 flex items-start justify-between px-5 pt-2 pb-4">
           <div>
-            <h2 className="text-[22px] font-bold text-[#424242] dark:text-[#F2F2F7] tracking-tight capitalize leading-none">
+            <h2 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight capitalize leading-none">
               {dateLabel}
             </h2>
             <div className="flex items-center gap-2 mt-2">
@@ -185,7 +185,7 @@ function SubscriptionRow({
         corner="rounded-[8px]"
       />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#424242] dark:text-[#F2F2F7] truncate">{sub.name}</p>
+        <p className="text-sm font-semibold text-[#000000] dark:text-[#F2F2F7] truncate">{sub.name}</p>
         <p className="text-xs text-[#737373] dark:text-[#8E8E93] mt-0.5">
           {daysLeftLabel}
           <span className="mx-1">·</span>
@@ -193,7 +193,7 @@ function SubscriptionRow({
         </p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-sm font-semibold text-[#424242] dark:text-[#F2F2F7] tabular-nums">
+        <p className="text-sm font-semibold text-[#000000] dark:text-[#F2F2F7] tabular-nums">
           {formatCurrency(sub.price_amount, sub.currency)}
         </p>
       </div>

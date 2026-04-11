@@ -45,7 +45,7 @@ export function LockedBanner({ headline, cta = 'Ver planes', trigger, className 
         <div className="w-8 h-8 rounded-full bg-[#EEEEFF] flex items-center justify-center flex-shrink-0">
           <Lock size={14} className="text-[#000000]" />
         </div>
-        <p className="text-[14px] text-[#424242] font-medium">{headline}</p>
+        <p className="text-[14px] text-[#000000] font-medium">{headline}</p>
       </div>
       <button
         onClick={() => openPaywall(trigger)}

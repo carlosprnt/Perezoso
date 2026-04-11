@@ -108,13 +108,13 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: seg.color }}
               />
-              <span className="flex-1 text-[13px] text-[#424242] dark:text-[#F2F2F7] truncate">
+              <span className="flex-1 text-[13px] text-[#000000] dark:text-[#F2F2F7] truncate">
                 {label(seg.category)}
               </span>
               <span className="text-[11px] text-[#8E8E93] flex-shrink-0">
                 {Math.round(seg.pct)}%
               </span>
-              <span className="text-[13px] font-semibold tabular-nums text-[#424242] dark:text-[#F2F2F7]">
+              <span className="text-[13px] font-semibold tabular-nums text-[#000000] dark:text-[#F2F2F7]">
                 {formatCurrency(seg.monthly_cost, currency, locale)}
               </span>
             </button>

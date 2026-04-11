@@ -15,8 +15,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // Primary = nav blue (#000000), all sizes fixed to 40 px
 const VARIANTS: Record<Variant, string> = {
   primary:   'bg-[#000000] text-white hover:bg-[#000000] active:bg-[#000000] border border-[#000000]',
-  secondary: 'bg-white text-[#424242] border border-[#D4D4D4] hover:bg-[#F5F5F5] hover:border-[#A3A3A3] dark:bg-[#2C2C2E] dark:text-[#F2F2F7] dark:border-[#3A3A3C] dark:hover:bg-[#3A3A3C]',
-  ghost:     'bg-transparent text-[#424242] hover:bg-[#F5F5F5] border border-transparent dark:text-[#AEAEB2] dark:hover:bg-[#2C2C2E]',
+  secondary: 'bg-white text-[#000000] border border-[#D4D4D4] hover:bg-[#F5F5F5] hover:border-[#A3A3A3] dark:bg-[#2C2C2E] dark:text-[#F2F2F7] dark:border-[#3A3A3C] dark:hover:bg-[#3A3A3C]',
+  ghost:     'bg-transparent text-[#000000] hover:bg-[#F5F5F5] border border-transparent dark:text-[#AEAEB2] dark:hover:bg-[#2C2C2E]',
   danger:    'bg-[#DC2626] text-white hover:bg-[#B91C1C] active:bg-[#991B1B] border border-[#DC2626]',
 }
 

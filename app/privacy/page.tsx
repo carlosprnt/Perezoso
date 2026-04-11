@@ -8,15 +8,15 @@ const LAST_UPDATED = 'April 6, 2026'
 
 export default function PrivacyPage() {
   return (
-    <main className="max-w-2xl mx-auto px-5 py-10 text-[#424242] dark:text-[#F2F2F7]">
-      <Link href="/" className="inline-flex items-center gap-2 text-[13px] text-[#737373] dark:text-[#8E8E93] mb-6 hover:text-[#424242] dark:hover:text-[#F2F2F7] transition-colors">
+    <main className="max-w-2xl mx-auto px-5 py-10 text-[#000000] dark:text-[#F2F2F7]">
+      <Link href="/" className="inline-flex items-center gap-2 text-[13px] text-[#737373] dark:text-[#8E8E93] mb-6 hover:text-[#000000] dark:hover:text-[#F2F2F7] transition-colors">
         <ArrowLeft size={14} /> Back
       </Link>
 
       <h1 className="text-[28px] font-bold mb-1">Privacy Policy</h1>
       <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mb-8">Last updated: {LAST_UPDATED}</p>
 
-      <div className="space-y-6 text-[15px] leading-relaxed text-[#424242] dark:text-[#AEAEB2]">
+      <div className="space-y-6 text-[15px] leading-relaxed text-[#000000] dark:text-[#AEAEB2]">
         <p>
           Perezoso (&ldquo;we&rdquo;, &ldquo;us&rdquo;) is a subscription tracking tool that helps you keep a tidy
           overview of the recurring services you pay for. This policy explains what we store,
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         </p>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">1. Data we collect</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">1. Data we collect</h2>
           <ul className="list-disc pl-5 space-y-1.5">
             <li><strong>Account</strong>: email, name and avatar URL provided by your sign-in provider (e.g. Google).</li>
             <li><strong>Subscriptions you create</strong>: name, price, billing period, category, notes and other fields you enter.</li>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">2. Gmail access (optional)</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">2. Gmail access (optional)</h2>
           <p>
             If you choose to connect Gmail for subscription detection, Perezoso requests the
             <code className="mx-1 px-1.5 py-0.5 rounded bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[13px]">gmail.readonly</code>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">3. How we use your data</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">3. How we use your data</h2>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>Display your subscriptions and renewal dates inside the app.</li>
             <li>Calculate totals and insights shown on your dashboard.</li>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">4. Storage and processing</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">4. Storage and processing</h2>
           <p>
             Your account and subscription data are stored with Supabase (EU region). Product
             analytics events are stored with PostHog Cloud EU. Both providers are GDPR
@@ -69,7 +69,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">5. Your rights</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">5. Your rights</h2>
           <p>You can at any time:</p>
           <ul className="list-disc pl-5 space-y-1.5 mt-2">
             <li>Access, edit or delete any subscription from the app.</li>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-2">6. Contact</h2>
+          <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">6. Contact</h2>
           <p>
             For anything privacy-related, write to{' '}
             <a className="text-[#000000] underline" href="mailto:hello@carlospariente.com">hello@carlospariente.com</a>.

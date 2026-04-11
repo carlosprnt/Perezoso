@@ -262,7 +262,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               <Loader2 size={24} className="text-[#000000] animate-spin" />
             </div>
             <div>
-              <p className="text-[15px] font-semibold text-[#424242] dark:text-[#F2F2F7]">{t('gmail.searching')}</p>
+              <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7]">{t('gmail.searching')}</p>
               <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1">{t('gmail.searchingDesc')}</p>
             </div>
           </motion.div>
@@ -280,7 +280,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               onError={e => { (e.target as HTMLImageElement).src = '/logo.png' }}
             />
             <div>
-              <p className="text-[16px] font-bold text-[#424242] dark:text-[#F2F2F7]">{t('gmail.connectTitle')}</p>
+              <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7]">{t('gmail.connectTitle')}</p>
               <p className="text-[13px] text-[#616161] dark:text-[#AEAEB2] mt-1.5 leading-relaxed max-w-xs mx-auto">
                 {t('gmail.connectDesc')}
               </p>
@@ -304,7 +304,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
         {sheetState.type === 'results' && (
           <motion.div key="results" {...fadeSlide} className="flex flex-col min-h-0">
             <div className="px-5 pt-1 pb-4 flex-shrink-0">
-              <p className="text-[13px] font-semibold text-[#424242] dark:text-[#F2F2F7]">
+              <p className="text-[13px] font-semibold text-[#000000] dark:text-[#F2F2F7]">
                 {sheetState.candidates.length === 1
                   ? t('gmail.found', { count: sheetState.candidates.length })
                   : t('gmail.foundPlural', { count: sheetState.candidates.length })}
@@ -363,7 +363,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
             <div className="w-14 h-14 rounded-2xl bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center">
               <Loader2 size={24} className="text-[#000000] animate-spin" />
             </div>
-            <p className="text-[15px] font-semibold text-[#424242] dark:text-[#F2F2F7]">
+            <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7]">
               {sheetState.total === 1
                 ? t('gmail.adding', { count: sheetState.total })
                 : t('gmail.addingPlural', { count: sheetState.total })}
@@ -380,7 +380,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               <CheckCircle2 size={30} className="text-[#16A34A]" />
             </div>
             <div>
-              <p className="text-[16px] font-bold text-[#424242] dark:text-[#F2F2F7]">
+              <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7]">
                 {sheetState.count === 1
                   ? t('gmail.done', { count: sheetState.count })
                   : t('gmail.donePlural', { count: sheetState.count })}
@@ -410,7 +410,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
             />
             <div>
-              <p className="text-[15px] font-semibold text-[#424242] dark:text-[#F2F2F7]">{t('gmail.empty')}</p>
+              <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7]">{t('gmail.empty')}</p>
               <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-relaxed">
                 {t('gmail.emptyDesc')}
               </p>
@@ -442,7 +442,7 @@ export default function GmailSubscriptionSearchSheet({ isOpen, onClose }: Props)
               <AlertCircle size={28} className="text-[#DC2626]" />
             </div>
             <div>
-              <p className="text-[15px] font-semibold text-[#424242] dark:text-[#F2F2F7]">{t('gmail.error')}</p>
+              <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7]">{t('gmail.error')}</p>
               <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1">{sheetState.message}</p>
             </div>
             <button

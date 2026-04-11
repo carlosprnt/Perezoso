@@ -111,7 +111,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
             </div>
             <div>
               <p className="text-[13px] text-[#616161] font-medium">Perezoso Pro</p>
-              <h2 className="text-[17px] font-bold text-[#424242] leading-tight">{copy.headline}</h2>
+              <h2 className="text-[17px] font-bold text-[#000000] leading-tight">{copy.headline}</h2>
               <p className="text-[13px] text-[#616161] leading-snug">{copy.subheadline}</p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
                 <div className="w-5 h-5 rounded-full bg-[#000000] flex items-center justify-center flex-shrink-0">
                   <Check size={11} strokeWidth={3} className="text-white" />
                 </div>
-                <span className="text-[15px] text-[#424242]">{b.text}</span>
+                <span className="text-[15px] text-[#000000]">{b.text}</span>
               </div>
             ))}
           </div>
@@ -207,8 +207,8 @@ function PlanCard({
           {badge}
         </span>
       )}
-      <p className="text-[13px] font-semibold text-[#424242]">{label}</p>
-      <p className="text-[12px] text-[#424242]">{price}</p>
+      <p className="text-[13px] font-semibold text-[#000000]">{label}</p>
+      <p className="text-[12px] text-[#000000]">{price}</p>
       {perMonth && <p className="text-[11px] text-[#616161] mt-0.5">{perMonth}</p>}
     </button>
   )

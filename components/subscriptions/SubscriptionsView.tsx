@@ -187,7 +187,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
           />
 
           <div className="flex-1 min-w-0">
-            <p className="text-[16px] font-bold text-[#424242] dark:text-[#F2F2F7] leading-snug truncate">{sub.name}</p>
+            <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">{sub.name}</p>
             <p className="text-[14px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
               {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
             </p>
@@ -201,7 +201,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
               </div>
             ) : (
               <>
-                <p className="text-[16px] font-bold text-[#424242] dark:text-[#F2F2F7] tabular-nums leading-snug">
+                <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7] tabular-nums leading-snug">
                   {viewMode === 'monthly'
                     ? formatCurrency(sub.my_monthly_cost, sub.currency)
                     : formatCurrency(sub.my_annual_cost, sub.currency)}
@@ -321,7 +321,7 @@ function InactiveCard({
         size="md"
         corner="rounded-xl"
       />
-      <p className="text-[14px] font-bold text-[#424242] dark:text-[#F2F2F7] truncate flex-1 leading-snug">{sub.name}</p>
+      <p className="text-[14px] font-bold text-[#000000] dark:text-[#F2F2F7] truncate flex-1 leading-snug">{sub.name}</p>
       <p
         className="text-[12px] font-medium flex-shrink-0"
         style={{ color: STATUS_COLOR[sub.status] ?? '#9CA3AF' }}
@@ -508,7 +508,7 @@ function SortDropdown({
                 <button
                   key={mode}
                   onClick={() => { onSelect(mode); setOpen(false) }}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] flex-shrink-0" />}
@@ -640,9 +640,9 @@ export default function SubscriptionsView({
         {/* Title row */}
         <div className="flex items-start justify-between pt-2">
           <div>
-            <h1 className="text-[28px] font-bold text-[#424242] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
+            <h1 className="text-[28px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
             {allCount > 0 && (
-              <p className="text-[18px] font-bold text-[#424242] dark:text-[#F2F2F7] mt-1 leading-snug">
+              <p className="text-[18px] font-bold text-[#000000] dark:text-[#F2F2F7] mt-1 leading-snug">
                 Pagas{' '}
                 <button
                   onClick={toggleViewMode}
@@ -712,7 +712,7 @@ export default function SubscriptionsView({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.4, filter: 'blur(4px)', y: -6 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
                 >
                   {t(`status.${currentStatus}` as Parameters<typeof t>[0])}
                   <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
@@ -728,7 +728,7 @@ export default function SubscriptionsView({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.4, filter: 'blur(4px)', y: -6 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
                 >
                   {t(`categories.${currentCategory}` as Parameters<typeof t>[0])}
                   <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
@@ -745,10 +745,10 @@ export default function SubscriptionsView({
               <motion.div
                 style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
               >
-                <p className="text-[45px] font-extrabold text-[#424242] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2">
+                <p className="text-[45px] font-extrabold text-[#000000] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2">
                   Todavía no has añadido ninguna
                 </p>
-                <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] leading-snug mb-6">
+                <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug mb-6">
                   {t('subscriptions.getStarted')}
                 </p>
               </motion.div>
@@ -756,7 +756,7 @@ export default function SubscriptionsView({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-sm font-medium text-[#424242] dark:text-[#F2F2F7] mb-1">
+              <p className="text-sm font-medium text-[#000000] dark:text-[#F2F2F7] mb-1">
                 {t('subscriptions.noResults')}
               </p>
               <p className="text-xs text-[#737373] dark:text-[#8E8E93]">

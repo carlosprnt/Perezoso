@@ -77,6 +77,16 @@ export default async function RootLayout({
         />
         {/* iOS PWA splash screens */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* Rounded sans-serif fallback for non-Apple browsers.
+            On iOS / macOS, `ui-rounded` in the font-stack resolves to
+            SF Pro Rounded natively — Nunito is only loaded as a
+            progressive fallback for Android / Windows / Linux users. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
         {/*
           black-translucent: removes the iOS system UIVisualEffectView that
           renders a white/blur bar above the WKWebView. With "default", that

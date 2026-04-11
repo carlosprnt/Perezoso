@@ -120,7 +120,7 @@ function AuthButtons({
       <button
         onClick={onGoogle}
         disabled={isLoading}
-        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#424242] active:bg-[#F2F2F7] transition-colors disabled:opacity-60"
+        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#000000] active:bg-[#F2F2F7] transition-colors disabled:opacity-60"
       >
         {isLoading
           ? <span className="w-5 h-5 border-2 border-[#E8E8E8] border-t-[#000000] rounded-full animate-spin" />
@@ -130,7 +130,7 @@ function AuthButtons({
 
       <button
         disabled
-        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#424242] opacity-40 cursor-not-allowed"
+        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#000000] opacity-40 cursor-not-allowed"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.05 12.536c-.024-2.422 1.977-3.586 2.068-3.643-1.127-1.65-2.881-1.875-3.505-1.9-1.495-.15-2.917.879-3.676.879-.757 0-1.933-.857-3.176-.833-1.635.025-3.142.948-3.984 2.411-1.697 2.94-.434 7.29 1.222 9.685.81 1.172 1.77 2.489 3.034 2.443 1.218-.05 1.679-.79 3.153-.79 1.474 0 1.888.79 3.178.764 1.311-.024 2.14-1.196 2.945-2.372.927-1.36 1.308-2.68 1.333-2.748-.03-.013-2.561-.983-2.592-3.896zm-2.39-7.168c.677-.821 1.135-1.956 1.009-3.091-.978.04-2.162.651-2.862 1.472-.627.728-1.176 1.891-1.028 3.007 1.091.085 2.203-.567 2.881-1.388z" />
@@ -619,8 +619,8 @@ export default function LoginScreen() {
           >
             {SLIDES.map((s, i) => (
               <div key={i} data-measure>
-                <h1 className="text-[28px] font-extrabold text-[#424242] leading-tight mb-3">{s.title}</h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed mb-5">{s.body}</p>
+                <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">{s.title}</h1>
+                <p className="text-[15px] text-[#000000] leading-relaxed mb-5">{s.body}</p>
               </div>
             ))}
           </div>
@@ -640,10 +640,10 @@ export default function LoginScreen() {
                   transition={{ duration: 0.2 }}
                   className="absolute top-0 left-0 right-0"
                 >
-                  <h1 className="text-[28px] font-extrabold text-[#424242] leading-tight mb-3">
+                  <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">
                     {SLIDES[slide].title}
                   </h1>
-                  <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
+                  <p className="text-[15px] text-[#000000] leading-relaxed mb-5">
                     {SLIDES[slide].body}
                   </p>
                 </motion.div>
@@ -655,10 +655,10 @@ export default function LoginScreen() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="text-[28px] font-extrabold text-[#424242] leading-tight mb-3">
+                  <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">
                     Empieza ahora
                   </h1>
-                  <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
+                  <p className="text-[15px] text-[#000000] leading-relaxed mb-5">
                     Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
                   </p>
                 </motion.div>
@@ -688,7 +688,7 @@ export default function LoginScreen() {
             <div className="flex items-center gap-3">
               <button
                 onClick={openSignIn}
-                className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#424242] active:bg-[#F2F2F7] transition-colors"
+                className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#000000] active:bg-[#F2F2F7] transition-colors"
               >
                 Iniciar sesión
               </button>
@@ -756,7 +756,7 @@ export default function LoginScreen() {
         >
           <div className="w-full max-w-xl mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[17px] font-semibold text-[#424242]">Iniciar sesión</h3>
+              <h3 className="text-[17px] font-semibold text-[#000000]">Iniciar sesión</h3>
               <button
                 onClick={() => setSheetOpen(false)}
                 disabled={isLoading}

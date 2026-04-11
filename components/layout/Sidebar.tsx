@@ -46,7 +46,7 @@ export default function Sidebar({ profile }: SidebarProps) {
           height={32}
           className="rounded-xl flex-shrink-0"
         />
-        <span className="font-bold text-[#424242] dark:text-[#F2F2F7] text-base tracking-tight">Perezoso</span>
+        <span className="font-bold text-[#000000] dark:text-[#F2F2F7] text-base tracking-tight">Perezoso</span>
       </div>
 
       {/* Navigation */}
@@ -61,8 +61,8 @@ export default function Sidebar({ profile }: SidebarProps) {
                 flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium
                 transition-all duration-150
                 ${isActive
-                  ? 'bg-[#121212] text-white dark:bg-[#F2F2F7] dark:text-[#424242]'
-                  : 'text-[#424242] hover:bg-[#F5F5F5] hover:text-[#424242] dark:text-[#AEAEB2] dark:hover:bg-[#2C2C2E] dark:hover:text-[#F2F2F7]'
+                  ? 'bg-[#121212] text-white dark:bg-[#F2F2F7] dark:text-[#000000]'
+                  : 'text-[#000000] hover:bg-[#F5F5F5] hover:text-[#000000] dark:text-[#AEAEB2] dark:hover:bg-[#2C2C2E] dark:hover:text-[#F2F2F7]'
                 }
               `}
             >
@@ -77,7 +77,7 @@ export default function Sidebar({ profile }: SidebarProps) {
       <div className="border-t border-[#E8E8E8] dark:border-[#2C2C2E] pt-4 mt-4">
         {profile?.full_name && (
           <div className="px-3 mb-3">
-            <p className="text-xs font-medium text-[#424242] dark:text-[#F2F2F7] truncate">{profile.full_name}</p>
+            <p className="text-xs font-medium text-[#000000] dark:text-[#F2F2F7] truncate">{profile.full_name}</p>
           </div>
         )}
         <button

@@ -141,7 +141,7 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
       <span
         className={`
           text-[13px] font-medium leading-none flex-shrink-0
-          ${isToday ? 'text-[#000000] font-semibold' : hasSubs ? 'text-[#424242] dark:text-[#F2F2F7]' : 'text-[#A0A0A0] dark:text-[#8E8E93]'}
+          ${isToday ? 'text-[#000000] font-semibold' : hasSubs ? 'text-[#000000] dark:text-[#F2F2F7]' : 'text-[#A0A0A0] dark:text-[#8E8E93]'}
         `}
       >
         {day}
@@ -302,7 +302,7 @@ export default function CalendarView({ subscriptions }: Props) {
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.h1
                 key={`${year}-${month}`}
-                className="text-[28px] font-bold text-[#424242] dark:text-[#F2F2F7] tracking-tight capitalize leading-none"
+                className="text-[28px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight capitalize leading-none"
                 initial={{ x: direction.current * 32, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: direction.current * -32, opacity: 0 }}
