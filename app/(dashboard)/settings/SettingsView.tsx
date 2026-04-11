@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2 } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -13,12 +13,14 @@ import {
   deleteAccount,
   type UserPreferences,
 } from './actions'
+import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
 import haptics from '@/lib/haptics'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
 import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 
 interface Props {
   preferences: UserPreferences
+  userEmail: string | null
 }
 
 // lucide-react dropped the Twitter glyph, so we inline the X/Twitter mark.
@@ -95,9 +97,10 @@ function Group({ children }: { children: React.ReactNode }) {
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export default function SettingsView({ preferences }: Props) {
+export default function SettingsView({ preferences, userEmail }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
+  const [isDemoPending, startDemoTransition] = useTransition()
   const { preference, setPreference } = useTheme()
   const { isPro, openPaywall } = useSubscription()
   const gate = useFeatureGate()
@@ -109,6 +112,31 @@ export default function SettingsView({ preferences }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [demoOpen, setDemoOpen] = useState(false)
+
+  const isAdmin = userEmail === 'carlosprnt@gmail.com'
+
+  function handleDemoMode(count: number) {
+    startDemoTransition(async () => {
+      await setDemoMode(count)
+      setDemoOpen(false)
+    })
+  }
+
+  function handleRestoreProduction() {
+    startDemoTransition(async () => {
+      await restoreProductionState()
+      setDemoOpen(false)
+    })
+  }
+
+  const DEMO_MODES = [
+    { label: 'Sin suscripciones', count: 0 },
+    { label: '1 suscripción',     count: 1 },
+    { label: '2 suscripciones',   count: 2 },
+    { label: '3 suscripciones',   count: 3 },
+    { label: '20 suscripciones',  count: 20 },
+  ] as const
 
   async function handleDeleteAccount() {
     setIsDeleting(true)
@@ -289,6 +317,53 @@ export default function SettingsView({ preferences }: Props) {
           </select>
         </div>
       </Group>
+
+      {/* ── Admin & Demo (gated) ───────────────────────────────────────── */}
+      {isAdmin && (
+        <Group>
+          <Row
+            icon={<IconTile bg="#000000"><ShieldCheck size={15} /></IconTile>}
+            label="Admin"
+            right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
+            onClick={() => router.push('/admin/style-audit')}
+          />
+          {demoOpen ? (
+            <>
+              {DEMO_MODES.map(({ label, count }, i) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => handleDemoMode(count)}
+                  disabled={isDemoPending}
+                  className={`w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50 ${
+                    i < DEMO_MODES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'
+                  }`}
+                >
+                  <IconTile bg="#6366F1"><Sparkles size={15} /></IconTile>
+                  <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">{label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleRestoreProduction}
+                disabled={isDemoPending}
+                className="w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
+              >
+                <IconTile bg="#737373"><Sparkles size={15} /></IconTile>
+                <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">Volver a producción</span>
+              </button>
+            </>
+          ) : (
+            <Row
+              icon={<IconTile bg="#6366F1"><Sparkles size={15} /></IconTile>}
+              label="Demo"
+              right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
+              onClick={() => setDemoOpen(true)}
+              last
+            />
+          )}
+        </Group>
+      )}
 
       {/* ── Custom categories ──────────────────────────────────────────── */}
       <Group>

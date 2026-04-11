@@ -1,33 +1,23 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Share2, ShieldCheck, Loader2, RotateCcw, Settings, ChevronLeft, ChevronRight, Sun, Moon } from 'lucide-react'
+import { LogOut, Share2, Settings, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useT } from '@/lib/i18n/LocaleProvider'
-import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
 
 /**
  * Dark-themed account menu rendered inside the DraggableSurface backdrop
  * on the Dashboard. Tapping the avatar reveals this layer; actions dispatch
  * `oso:hide-analytics` to dismiss before navigating/executing.
+ *
+ * Admin + Demo controls live inside the Settings page (gated there by the
+ * user's email); this panel keeps only the quick-access user actions.
  */
 export default function AccountMenuPanel({ shareText }: { shareText?: string }) {
   const router = useRouter()
   const t = useT()
-  const [isPending, startTransition] = useTransition()
-  const [email, setEmail] = useState<string | null>(null)
-  const [demoOpen, setDemoOpen] = useState(false)
-
-  // Only need the email for admin gating — the big user card is gone.
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setEmail(data.user.email ?? null)
-    })
-  }, [])
 
   function hideSurface() {
     window.dispatchEvent(new Event('oso:hide-analytics'))
@@ -58,121 +48,41 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
     router.push('/settings')
   }
 
-  function handleAdmin() {
-    hideSurface()
-    router.push('/admin/style-audit')
-  }
-
-  function handleDemoMode(count: number) {
-    startTransition(async () => {
-      await setDemoMode(count)
-      setDemoOpen(false)
-      hideSurface()
-    })
-  }
-
-  function handleRestoreProduction() {
-    startTransition(async () => {
-      await restoreProductionState()
-      setDemoOpen(false)
-      hideSurface()
-    })
-  }
-
-  const isAdmin = email === 'carlosprnt@gmail.com'
-
-  const DEMO_MODES = [
-    { label: 'Sin suscripciones', count: 0 },
-    { label: '1 suscripción',     count: 1 },
-    { label: '2 suscripciones',   count: 2 },
-    { label: '3 suscripciones',   count: 3 },
-    { label: '20 suscripciones',  count: 20 },
-  ] as const
-
   return (
     // Bottom padding clears the foreground peek strip (PEEK_HEIGHT = 120px)
-    // plus the iOS safe-area inset so the theme toggle stays visible above
-    // the bottom of the dark layer.
+    // plus the iOS safe-area inset so the footer row stays above the strip.
     <div
       className="h-full flex flex-col px-5 pt-24"
       style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom) + 24px)' }}
     >
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {demoOpen ? (
-          /* ── Demo submenu ───────────────────────────────────────────── */
-          <div>
-            <button
-              onClick={() => setDemoOpen(false)}
-              className="flex items-center gap-1.5 text-[#FFFFFF] text-[14px] font-semibold mb-5 active:opacity-60 transition-opacity"
-            >
-              <ChevronLeft size={16} strokeWidth={2.5} />
-              Demo
-            </button>
-            <div className="flex flex-col gap-1">
-              {DEMO_MODES.map(({ label, count }) => (
-                <DarkMenuItem
-                  key={count}
-                  label={label}
-                  onClick={() => handleDemoMode(count)}
-                  disabled={isPending}
-                  loading={isPending}
-                />
-              ))}
-              <div className="h-px bg-white/10 my-2" />
-              <DarkMenuItem
-                icon={<RotateCcw size={18} strokeWidth={2} />}
-                label="Volver a producción"
-                onClick={handleRestoreProduction}
-                disabled={isPending}
-                loading={isPending}
-                accent
-              />
-            </div>
-          </div>
-        ) : (
-          /* ── Main menu ──────────────────────────────────────────────── */
-          <div className="flex flex-col gap-1">
-            <DarkMenuItem
-              icon={<Settings size={18} strokeWidth={2} />}
-              label="Ajustes"
-              onClick={handleSettings}
-            />
-            <DarkMenuItem
-              icon={<Share2 size={18} strokeWidth={2} />}
-              label={t('nav.shareData')}
-              onClick={handleShare}
-            />
-            {isAdmin && (
-              <>
-                <div className="h-px bg-white/10 my-2" />
-                <DarkMenuItem
-                  icon={<ShieldCheck size={18} strokeWidth={2} />}
-                  label="Admin"
-                  onClick={handleAdmin}
-                  accent
-                />
-                <DarkMenuItem
-                  icon={<ChevronRight size={18} strokeWidth={2} />}
-                  label="Demo"
-                  onClick={() => setDemoOpen(true)}
-                  accent
-                  trailing={<ChevronRight size={16} className="text-white/30" />}
-                />
-              </>
-            )}
-            <div className="h-px bg-white/10 my-2" />
-            <DarkMenuItem
-              icon={<LogOut size={18} strokeWidth={2} />}
-              label={t('nav.logout')}
-              onClick={handleLogout}
-              danger
-            />
-          </div>
-        )}
+        <div className="flex flex-col gap-1">
+          <DarkMenuItem
+            icon={<Settings size={18} strokeWidth={2} />}
+            label="Ajustes"
+            onClick={handleSettings}
+          />
+          <DarkMenuItem
+            icon={<Share2 size={18} strokeWidth={2} />}
+            label={t('nav.shareData')}
+            onClick={handleShare}
+          />
+        </div>
       </div>
 
-      {/* Theme toggle pinned to the bottom of the dark layer */}
-      <ThemeToggleLink />
+      {/* Footer row: theme toggle (left) + logout (right), both matching
+          size/typography so they visually share a baseline. */}
+      <div className="flex items-center justify-between mt-4">
+        <ThemeToggleLink />
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
+          aria-label={t('nav.logout')}
+        >
+          <LogOut size={18} strokeWidth={2} />
+          {t('nav.logout')}
+        </button>
+      </div>
     </div>
   )
 }
@@ -185,10 +95,10 @@ function ThemeToggleLink() {
   return (
     <button
       onClick={toggle}
-      className="self-start flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity mt-4"
+      className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
       aria-label="Toggle theme"
     >
-      <span className="relative w-5 h-5 flex items-center justify-center">
+      <span className="relative w-[18px] h-[18px] flex items-center justify-center">
         <AnimatePresence initial={false} mode="wait">
           {isDark ? (
             <motion.span
@@ -235,38 +145,20 @@ function DarkMenuItem({
   label,
   onClick,
   disabled,
-  loading,
-  accent,
-  danger,
-  trailing,
 }: {
   icon?: React.ReactNode
   label: string
   onClick: () => void
   disabled?: boolean
-  loading?: boolean
-  accent?: boolean
-  danger?: boolean
-  trailing?: React.ReactNode
 }) {
-  const color = danger
-    ? 'text-red-400'
-    : accent
-    ? 'text-[#FFFFFF]'
-    : 'text-white'
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full flex items-center gap-3 px-3 py-3.5 rounded-[16px] text-[16px] font-medium text-left active:bg-white/10 transition-colors disabled:opacity-50 ${color}`}
+      className="w-full flex items-center gap-3 px-3 py-3.5 rounded-[16px] text-[16px] font-medium text-left active:bg-white/10 transition-colors disabled:opacity-50 text-white"
     >
       {icon && <span className="opacity-80 flex-shrink-0">{icon}</span>}
       <span className="flex-1 truncate">{label}</span>
-      {loading ? (
-        <Loader2 size={16} className="animate-spin opacity-60 flex-shrink-0" />
-      ) : (
-        trailing
-      )}
     </button>
   )
 }
