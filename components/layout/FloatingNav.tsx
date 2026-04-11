@@ -184,7 +184,7 @@ export default function FloatingNav() {
           <motion.button
             onClick={handlePlusTap}
             aria-label="Add subscription"
-            className="relative flex items-center justify-center rounded-full bg-[#3D3BF3]"
+            className="relative flex items-center justify-center rounded-full bg-[#000000]"
             style={{
               width: 56,
               height: 56,
@@ -218,13 +218,13 @@ export default function FloatingNav() {
           >
             <button
               onClick={() => setStep('gmail')}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF] border border-[#3D3BF3] dark:border-[#8B89FF] bg-transparent flex items-center justify-center active:bg-[#F0F0FF] dark:active:bg-[#1E1D3A] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#000000] dark:text-[#FFFFFF] border border-[#000000] dark:border-[#FFFFFF] bg-transparent flex items-center justify-center active:bg-[#F5F5F5] dark:active:bg-[#2C2C2E] transition-colors"
             >
               {t('picker.searchGmail')}
             </button>
             <button
               onClick={() => handleSelect(null)}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] flex items-center justify-center active:bg-[#3230D0] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#000000] flex items-center justify-center active:bg-[#000000] transition-colors"
             >
               {t('picker.enterManually')}
             </button>

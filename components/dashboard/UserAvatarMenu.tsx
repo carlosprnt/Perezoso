@@ -197,7 +197,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
           <div className="px-4 py-3 border-b border-[#F0F0F0] dark:border-[#2C2C2E] flex items-center gap-2">
             <button
               onClick={() => setDemoOpen(false)}
-              className="text-[#3D3BF3] flex items-center gap-1 text-sm font-medium"
+              className="text-[#000000] flex items-center gap-1 text-sm font-medium"
             >
               <ChevronLeft size={15} />
               Demo
@@ -219,7 +219,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
             <button
               onClick={handleRestoreProduction}
               disabled={isPending}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#3D3BF3] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left disabled:opacity-50"
+              className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#000000] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left disabled:opacity-50"
             >
               <span className="flex items-center gap-3">
                 <RotateCcw size={15} />
@@ -233,7 +233,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
         /* ── Normal menu ──────────────────────────────────────────────── */
         <>
           <div className="px-4 py-3 border-b border-[#F0F0F0] dark:border-[#2C2C2E]">
-            <p className="text-sm font-semibold text-[#121212] dark:text-[#F2F2F7] truncate">{name}</p>
+            <p className="text-sm font-semibold text-[#424242] dark:text-[#F2F2F7] truncate">{name}</p>
           </div>
           <div className="py-1.5">
             <button
@@ -255,14 +255,14 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
                 <div className="h-px bg-[#F0F0F0] dark:bg-[#2C2C2E] mx-2 my-1" />
                 <button
                   onClick={() => { setOpen(false); router.push('/admin/style-audit') }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#3D3BF3] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#000000] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
                 >
                   <ShieldCheck size={15} />
                   Admin
                 </button>
                 <button
                   onClick={() => setDemoOpen(true)}
-                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#3D3BF3] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#000000] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
                 >
                   <span className="flex items-center gap-3">
                     <ChevronRight size={15} />

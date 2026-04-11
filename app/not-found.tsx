@@ -13,13 +13,13 @@ export default function NotFound() {
           className="mb-6 select-none"
           draggable={false}
         />
-        <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mb-1">Página no encontrada</h1>
+        <h1 className="text-[22px] font-bold text-[#424242] dark:text-[#F2F2F7] mb-1">Página no encontrada</h1>
         <p className="text-sm text-[#737373] dark:text-[#8E8E93] mb-6">
           La página que buscas no existe.
         </p>
         <Link
           href="/dashboard"
-          className="text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF]"
+          className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]"
         >
           Ir al inicio →
         </Link>

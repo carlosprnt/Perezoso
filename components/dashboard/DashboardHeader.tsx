@@ -24,7 +24,7 @@ export default function DashboardHeader({ title, subtitle, shareText }: Props) {
     >
       <div className="flex items-center justify-between py-2">
         <div>
-          <h1 className="text-2xl font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-bold text-[#424242] dark:text-[#F2F2F7] tracking-tight">{title}</h1>
           <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-0.5">{subtitle}</p>
         </div>
         <UserAvatarMenu shareText={shareText} />

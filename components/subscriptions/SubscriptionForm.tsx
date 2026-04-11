@@ -66,7 +66,7 @@ function Row({
         last ? '' : 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
+      <span className="text-[16px] text-[#424242] dark:text-[#F2F2F7]">{label}</span>
       <div className="flex items-center gap-1 flex-shrink-0 ml-4">{children}</div>
     </div>
   )
@@ -90,7 +90,7 @@ function SelectRow({
         last ? '' : 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
+      <span className="text-[16px] text-[#424242] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
       <div className="flex items-center gap-1 flex-shrink-0 ml-4 pointer-events-none">
         <span className="text-[15px] text-[#616161] dark:text-[#AEAEB2]">{value}</span>
         <ChevronsUpDown size={13} className="text-[#737373] dark:text-[#8E8E93]" />
@@ -127,9 +127,9 @@ function DateRow({
         last ? '' : 'border-b border-[#F0F0F0] dark:border-[#2C2C2E]'
       }`}
     >
-      <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
+      <span className="text-[16px] text-[#424242] dark:text-[#F2F2F7] pointer-events-none">{label}</span>
       <div className="flex-shrink-0 ml-4 pointer-events-none">
-        <span className="bg-[#F0F0F0] dark:bg-[#3A3A3C] rounded-full px-3 py-1.5 text-[13px] font-medium text-[#121212] dark:text-[#F2F2F7]">
+        <span className="bg-[#F0F0F0] dark:bg-[#3A3A3C] rounded-full px-3 py-1.5 text-[13px] font-medium text-[#424242] dark:text-[#F2F2F7]">
           {formatted}
         </span>
       </div>
@@ -162,7 +162,7 @@ function Toggle({
       <div
         className="
           w-11 h-6 rounded-full bg-[#DADADA] dark:bg-[#3A3A3C]
-          peer-checked:bg-[#3D3BF3]
+          peer-checked:bg-[#000000]
           after:content-[''] after:absolute after:top-[2px] after:left-[2px]
           after:bg-white after:rounded-full after:h-5 after:w-5
           after:transition-all peer-checked:after:translate-x-5
@@ -449,7 +449,7 @@ export default function SubscriptionForm({
 
       {/* ── Header: title + close ────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-5 pt-3 pb-3">
-        <h2 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7]">
+        <h2 className="text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7]">
           {mode === 'create' ? t('sheets.createNew') : t('sheets.editSubscription')}
         </h2>
         <button
@@ -483,7 +483,7 @@ export default function SubscriptionForm({
             onChange={e => setName(e.target.value)}
             placeholder={t('form.subscriptionName')}
             autoFocus={false}
-            className="w-full bg-transparent text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none leading-snug"
+            className="w-full bg-transparent text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none leading-snug"
             style={{ fontSize: 17 }}
           />
           <div className="flex items-center gap-2 mt-2">
@@ -511,7 +511,7 @@ export default function SubscriptionForm({
               value={priceAmount}
               onChange={e => setPriceAmount(e.target.value)}
               placeholder="0.00"
-              className="bg-transparent text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none flex-1 tabular-nums"
+              className="bg-transparent text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none flex-1 tabular-nums"
               style={{ fontSize: 17 }}
             />
           </div>
@@ -554,7 +554,7 @@ export default function SubscriptionForm({
                 min="1"
                 value={billingIntervalCount}
                 onChange={e => setBillingIntervalCount(e.target.value)}
-                className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#121212] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums" style={{ fontSize: 16 }}
+                className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#424242] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums" style={{ fontSize: 16 }}
               />
             </Row>
           )}
@@ -640,7 +640,7 @@ export default function SubscriptionForm({
                   min="2"
                   value={sharedWithCount}
                   onChange={e => setSharedWithCount(e.target.value)}
-                  className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#121212] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums" style={{ fontSize: 16 }}
+                  className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#424242] dark:text-[#F2F2F7] outline-none w-20 text-right tabular-nums" style={{ fontSize: 16 }}
                 />
               </Row>
               <SelectRow
@@ -666,7 +666,7 @@ export default function SubscriptionForm({
                     value={userShareAmount}
                     onChange={e => setUserShareAmount(e.target.value)}
                     placeholder="4.99"
-                    className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none w-24 text-right tabular-nums" style={{ fontSize: 16 }}
+                    className="bg-[#F0F0F0] dark:bg-[#2C2C2E] rounded-xl px-3 py-1.5 text-[16px] text-[#424242] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none w-24 text-right tabular-nums" style={{ fontSize: 16 }}
                   />
                 </Row>
               )}
@@ -695,7 +695,7 @@ export default function SubscriptionForm({
             )}
           </Row>
           <div className="px-4 py-3">
-            <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7]">{t('form.notes')}</span>
+            <span className="text-[16px] text-[#424242] dark:text-[#F2F2F7]">{t('form.notes')}</span>
             <textarea
               value={notes}
               onChange={e => { setNotes(e.target.value); autoSize(e.currentTarget) }}
@@ -734,14 +734,14 @@ export default function SubscriptionForm({
         <div className="mx-5 mb-3 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#F0F0F0] dark:border-[#2C2C2E]">
           <div className="flex items-center px-4 min-h-[52px] py-3">
             <Bell size={16} className="text-[#C0C0C0] dark:text-[#8E8E93] flex-shrink-0 mr-3" />
-            <span className="text-[16px] text-[#121212] dark:text-[#F2F2F7] flex-1">{t('form.reminderToggle')}</span>
+            <span className="text-[16px] text-[#424242] dark:text-[#F2F2F7] flex-1">{t('form.reminderToggle')}</span>
             <button
               type="button"
               role="switch"
               aria-checked={reminderOn}
               onClick={() => setReminderOn(v => !v)}
               className="relative flex-shrink-0 transition-colors duration-200"
-              style={{ width: 44, height: 26, borderRadius: 13, background: reminderOn ? '#3D3BF3' : '#D1D1D6' }}
+              style={{ width: 44, height: 26, borderRadius: 13, background: reminderOn ? '#000000' : '#D1D1D6' }}
             >
               <motion.div
                 layout
@@ -775,7 +775,7 @@ export default function SubscriptionForm({
                         onClick={() => setReminderDays(d)}
                         className="flex-1 h-10 rounded-full text-[13px] font-semibold transition-colors"
                         style={{
-                          background: reminderDays === d ? '#3D3BF3' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                          background: reminderDays === d ? '#000000' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
                           color: reminderDays === d ? 'white' : isDark ? '#AEAEB2' : '#424242',
                         }}
                       >
@@ -819,7 +819,7 @@ export default function SubscriptionForm({
           <button
             type="submit"
             disabled={isPending}
-            className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold disabled:opacity-40 active:bg-[#3230D0] transition-colors"
+            className="flex-1 h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold disabled:opacity-40 active:bg-[#000000] transition-colors"
           >
             {isPending ? (
               <span className="inline-flex items-center justify-center gap-1" aria-label="Loading">
@@ -843,7 +843,7 @@ export default function SubscriptionForm({
             className="w-full bg-white dark:bg-[#1C1C1E] rounded-t-[32px] px-5 pt-5 pb-4"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">
+            <h3 className="text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7] mb-1">
               {t('form.deleteTitle')}
             </h3>
             <p className="text-[14px] text-[#737373] dark:text-[#AEAEB2] mb-5">
@@ -861,7 +861,7 @@ export default function SubscriptionForm({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="w-full h-12 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity"
+                className="w-full h-12 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity"
               >
                 {t('form.keepIt')}
               </button>
@@ -881,7 +881,7 @@ export default function SubscriptionForm({
             className="w-full bg-white dark:bg-[#1C1C1E] rounded-t-[32px] px-5 pt-5 pb-4"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">
+            <h3 className="text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7] mb-1">
               {t('form.discardTitle')}
             </h3>
             <p className="text-[14px] text-[#737373] dark:text-[#AEAEB2] mb-5">
@@ -898,7 +898,7 @@ export default function SubscriptionForm({
               <button
                 type="button"
                 onClick={() => setShowCancelConfirm(false)}
-                className="w-full h-12 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity"
+                className="w-full h-12 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity"
               >
                 {t('form.keepEditing')}
               </button>

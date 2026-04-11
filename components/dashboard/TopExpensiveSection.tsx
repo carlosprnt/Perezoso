@@ -52,18 +52,18 @@ export default function TopExpensiveSection({ subscriptions }: Props) {
                 corner="rounded-[8px]"
               />
             </div>
-            <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">{sub.name}</p>
+            <p className="text-[14px] font-bold text-[#424242] dark:text-[#F2F2F7] truncate leading-snug">{sub.name}</p>
             {sub.is_shared ? (
               <div className="mt-1.5 space-y-0.5">
                 <p className="text-[12px] text-[#737373] dark:text-[#8E8E93]">
                   Total: {formatCurrency(sub.monthly_equivalent_cost, sub.currency)}/mo
                 </p>
-                <p className="text-[13px] font-semibold text-[#121212] dark:text-[#F2F2F7]">
+                <p className="text-[13px] font-semibold text-[#424242] dark:text-[#F2F2F7]">
                   {t('dashboard.yourShare')}: {formatCurrency(sub.my_monthly_cost, sub.currency)}/mo
                 </p>
               </div>
             ) : (
-              <p className="text-[15px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums mt-1.5">
+              <p className="text-[15px] font-bold text-[#424242] dark:text-[#F2F2F7] tabular-nums mt-1.5">
                 {formatCurrency(sub.my_monthly_cost, sub.currency)}
                 <span className="text-[12px] font-normal text-[#737373] dark:text-[#8E8E93] ml-0.5">/mo</span>
               </p>

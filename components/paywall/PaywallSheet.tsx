@@ -111,7 +111,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
             </div>
             <div>
               <p className="text-[13px] text-[#616161] font-medium">Perezoso Pro</p>
-              <h2 className="text-[17px] font-bold text-[#121212] leading-tight">{copy.headline}</h2>
+              <h2 className="text-[17px] font-bold text-[#424242] leading-tight">{copy.headline}</h2>
               <p className="text-[13px] text-[#616161] leading-snug">{copy.subheadline}</p>
             </div>
           </div>
@@ -120,10 +120,10 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
           <div className="space-y-2.5 mb-6">
             {PAYWALL_BENEFITS.map(b => (
               <div key={b.id} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-[#3D3BF3] flex items-center justify-center flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-[#000000] flex items-center justify-center flex-shrink-0">
                   <Check size={11} strokeWidth={3} className="text-white" />
                 </div>
-                <span className="text-[15px] text-[#121212]">{b.text}</span>
+                <span className="text-[15px] text-[#424242]">{b.text}</span>
               </div>
             ))}
           </div>
@@ -157,7 +157,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
           <button
             onClick={handlePurchase}
             disabled={loading}
-            className="w-full h-[52px] rounded-full bg-[#3D3BF3] text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60 active:bg-[#3230D0] transition-colors mb-3"
+            className="w-full h-[52px] rounded-full bg-[#000000] text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60 active:bg-[#000000] transition-colors mb-3"
           >
             {loading
               ? <Loader2 size={18} className="animate-spin" />
@@ -169,7 +169,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
             <button
               onClick={handleRestore}
               disabled={restoring}
-              className="w-full h-10 text-[13px] text-[#3D3BF3] font-medium disabled:opacity-50"
+              className="w-full h-10 text-[13px] text-[#000000] font-medium disabled:opacity-50"
             >
               {restoring ? 'Restaurando…' : 'Restaurar compra'}
             </button>
@@ -199,15 +199,15 @@ function PlanCard({
     <button
       onClick={onClick}
       className={`flex-1 rounded-2xl border-2 p-3 text-left transition-all ${
-        selected ? 'border-[#3D3BF3] bg-[#F0F0FF]' : 'border-[#E8E8E8] bg-white'
+        selected ? 'border-[#000000] bg-[#F5F5F5]' : 'border-[#E8E8E8] bg-white'
       }`}
     >
       {badge && (
-        <span className="text-[10px] font-semibold text-[#3D3BF3] bg-[#E8E8FF] rounded-full px-2 py-0.5 mb-1.5 inline-block">
+        <span className="text-[10px] font-semibold text-[#000000] bg-[#F0F0F0] rounded-full px-2 py-0.5 mb-1.5 inline-block">
           {badge}
         </span>
       )}
-      <p className="text-[13px] font-semibold text-[#121212]">{label}</p>
+      <p className="text-[13px] font-semibold text-[#424242]">{label}</p>
       <p className="text-[12px] text-[#424242]">{price}</p>
       {perMonth && <p className="text-[11px] text-[#616161] mt-0.5">{perMonth}</p>}
     </button>

@@ -123,7 +123,7 @@ function spawnLogoConfetti(originX: number, originY: number, logoUrls: string[])
         } else {
           // Fallback: accent-colored square
           roundRect(ctx, -half, -half, p.size, p.size, r)
-          ctx.fillStyle = '#3D3BF3'; ctx.fill()
+          ctx.fillStyle = '#000000'; ctx.fill()
         }
         ctx.restore()
       }
@@ -259,7 +259,7 @@ export default function DashboardSummaryHero({
         className="flex items-center justify-between mb-3"
         style={{ opacity: greetingOpacity }}
       >
-        <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
+        <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
         <UserAvatarMenu
@@ -270,29 +270,29 @@ export default function DashboardSummaryHero({
       </motion.div>
 
       {/* Main statement — tapping figures spawns money confetti */}
-      <p className="text-[40px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
+      <p className="text-[40px] font-extrabold text-[#424242] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
         {t('dashboard.spendStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
+          <span className="text-[#000000] dark:text-[#FFFFFF]">{monthly}</span>
         </button>.<br />
         {t('dashboard.annualStatement')}<br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>
+          <span className="text-[#000000] dark:text-[#FFFFFF]">{annual}</span>
         </button>.
       </p>
 
       {/* Supporting statement */}
-      <p className="text-[18px] font-bold text-black dark:text-[#F2F2F7] leading-relaxed" style={{ maxWidth: '100%' }}>
+      <p className="text-[18px] font-bold text-[#424242] dark:text-[#F2F2F7] leading-relaxed" style={{ maxWidth: '100%' }}>
         {t('dashboard.youHave')}{' '}
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+          <span className="text-[#000000] dark:text-[#FFFFFF]">
             {total} {total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}
           </span>
         </button>.
         {hasSave && (
           <>
             {' '}{t('dashboard.youShare')}{' '}
-            <span className="text-[#3D3BF3] dark:text-[#8B89FF] whitespace-nowrap">
+            <span className="text-[#000000] dark:text-[#FFFFFF] whitespace-nowrap">
               {sharedCount}&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}
             </span>
             {' '}{t('dashboard.andSave')}{' '}
@@ -303,11 +303,11 @@ export default function DashboardSummaryHero({
             >
               {showSkeleton ? (
                 <span
-                  className="inline-block align-middle rounded-md bg-[#3D3BF3]/20 dark:bg-[#8B89FF]/20 animate-pulse"
+                  className="inline-block align-middle rounded-md bg-[#000000]/20 dark:bg-[#FFFFFF]/20 animate-pulse"
                   style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
                 />
               ) : (
-                <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+                <span className="text-[#000000] dark:text-[#FFFFFF]">
                   {savingsLabel}
                 </span>
               )}

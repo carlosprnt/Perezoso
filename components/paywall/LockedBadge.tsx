@@ -19,7 +19,7 @@ export function ProBadge({ trigger, className = '' }: BadgeProps) {
     <span
       role={trigger ? 'button' : undefined}
       onClick={trigger ? () => openPaywall(trigger) : undefined}
-      className={`inline-flex items-center gap-1 text-[11px] font-semibold text-[#3D3BF3] bg-[#EEEEFF] rounded-full px-2 py-0.5 select-none ${trigger ? 'cursor-pointer' : ''} ${className}`}
+      className={`inline-flex items-center gap-1 text-[11px] font-semibold text-[#000000] bg-[#EEEEFF] rounded-full px-2 py-0.5 select-none ${trigger ? 'cursor-pointer' : ''} ${className}`}
     >
       <Lock size={9} strokeWidth={2.5} />
       Pro
@@ -39,17 +39,17 @@ export function LockedBanner({ headline, cta = 'Ver planes', trigger, className 
   const { openPaywall } = useSubscription()
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-2xl border border-[#E8E8FF] bg-[#F5F5FF] px-4 py-3 ${className}`}
+      className={`flex items-center justify-between gap-3 rounded-2xl border border-[#F0F0F0] bg-[#F5F5FF] px-4 py-3 ${className}`}
     >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-[#EEEEFF] flex items-center justify-center flex-shrink-0">
-          <Lock size={14} className="text-[#3D3BF3]" />
+          <Lock size={14} className="text-[#000000]" />
         </div>
-        <p className="text-[14px] text-[#121212] font-medium">{headline}</p>
+        <p className="text-[14px] text-[#424242] font-medium">{headline}</p>
       </div>
       <button
         onClick={() => openPaywall(trigger)}
-        className="text-[13px] font-semibold text-[#3D3BF3] whitespace-nowrap"
+        className="text-[13px] font-semibold text-[#000000] whitespace-nowrap"
       >
         {cta}
       </button>

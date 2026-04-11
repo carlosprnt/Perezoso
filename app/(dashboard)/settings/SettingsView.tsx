@@ -63,7 +63,7 @@ function Row({
   const inner = (
     <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
-      <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
+      <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
       {right}
     </div>
@@ -192,9 +192,9 @@ export default function SettingsView({ preferences }: Props) {
           className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center active:bg-[#E5E5EA] dark:active:bg-[#2C2C2E] transition-colors"
           aria-label="Atrás"
         >
-          <ArrowLeft size={20} className="text-[#121212] dark:text-[#F2F2F7]" />
+          <ArrowLeft size={20} className="text-[#424242] dark:text-[#F2F2F7]" />
         </button>
-        <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7]">Ajustes</h1>
+        <h1 className="text-[22px] font-bold text-[#424242] dark:text-[#F2F2F7]">Ajustes</h1>
       </div>
       <div className="px-5">
 
@@ -206,13 +206,13 @@ export default function SettingsView({ preferences }: Props) {
             <img src="/logo-premium.png" alt="Perezoso Pro" className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-semibold text-[#121212] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
+            <p className="text-[15px] font-semibold text-[#424242] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
             <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
               {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
             </p>
           </div>
           {isPro ? (
-            <span className="h-8 px-4 rounded-full bg-[#E8E8FF] text-[#3D3BF3] text-[13px] font-semibold flex items-center flex-shrink-0">
+            <span className="h-8 px-4 rounded-full bg-[#F0F0F0] text-[#000000] text-[13px] font-semibold flex items-center flex-shrink-0">
               Activo
             </span>
           ) : (
@@ -221,7 +221,7 @@ export default function SettingsView({ preferences }: Props) {
                 haptics.tap()
                 openPaywall('general')
               }}
-              className="h-8 px-4 rounded-full bg-[#3D3BF3] text-white text-[13px] font-semibold flex-shrink-0 active:bg-[#3230D0] transition-colors"
+              className="h-8 px-4 rounded-full bg-[#000000] text-white text-[13px] font-semibold flex-shrink-0 active:bg-[#000000] transition-colors"
             >
               Mejorar
             </button>
@@ -233,7 +233,7 @@ export default function SettingsView({ preferences }: Props) {
       <Group>
         <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Moneda</span>
+          <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">Moneda</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
             {CURRENCIES.find(c => c.code === currency)?.symbol} {currency}
           </span>
@@ -252,7 +252,7 @@ export default function SettingsView({ preferences }: Props) {
         </div>
         <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
           <IconTile bg="#EF4444"><Bell size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Notificaciones</span>
+          <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">Notificaciones</span>
           <button
             role="switch"
             aria-checked={notifications}
@@ -271,7 +271,7 @@ export default function SettingsView({ preferences }: Props) {
       <Group>
         <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5">
           <IconTile bg="#374151"><Moon size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Apariencia</span>
+          <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">Apariencia</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
             {THEMES.find(t => t.key === preference)?.label ?? 'Sistema'}
           </span>
@@ -298,7 +298,7 @@ export default function SettingsView({ preferences }: Props) {
             className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
-            <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{cat}</span>
+            <span className="flex-1 text-[15px] text-[#424242] dark:text-[#F2F2F7]">{cat}</span>
             <button
               onClick={() => handleRemoveCategory(cat)}
               className="w-7 h-7 rounded-full flex items-center justify-center text-[#8E8E93] active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
@@ -316,13 +316,13 @@ export default function SettingsView({ preferences }: Props) {
             onChange={e => setNewCategory(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory() } }}
             placeholder="Nueva categoría"
-            className="flex-1 bg-transparent text-[15px] text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none"
+            className="flex-1 bg-transparent text-[15px] text-[#424242] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none"
             style={{ fontSize: 16 }}
           />
           <button
             onClick={handleAddCategory}
             disabled={!newCategory.trim()}
-            className="text-[15px] font-semibold text-[#3D3BF3] disabled:opacity-30"
+            className="text-[15px] font-semibold text-[#000000] disabled:opacity-30"
           >
             Añadir
           </button>
@@ -338,7 +338,7 @@ export default function SettingsView({ preferences }: Props) {
           onClick={() => { if (typeof window !== 'undefined') window.open('https://perezoso.app', '_blank') }}
         />
         <Row
-          icon={<IconTile bg="#3D3BF3"><Share2 size={15} /></IconTile>}
+          icon={<IconTile bg="#000000"><Share2 size={15} /></IconTile>}
           label="Compartir con un amigo"
           right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
           onClick={handleShare}
@@ -355,7 +355,7 @@ export default function SettingsView({ preferences }: Props) {
           href="https://twitter.com/carlosprnt"
         />
         <Row
-          icon={<IconTile bg="#3D3BF3"><Mail size={15} /></IconTile>}
+          icon={<IconTile bg="#000000"><Mail size={15} /></IconTile>}
           label="hello@carlospariente.com"
           right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
           href="mailto:hello@carlospariente.com"
@@ -394,7 +394,7 @@ export default function SettingsView({ preferences }: Props) {
             style={{ paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">
+            <h3 className="text-[17px] font-semibold text-[#424242] dark:text-[#F2F2F7] mb-1">
               ¿Eliminar tu cuenta?
             </h3>
             <p className="text-[14px] text-[#737373] dark:text-[#AEAEB2] mb-5">
@@ -418,7 +418,7 @@ export default function SettingsView({ preferences }: Props) {
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="w-full h-12 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity disabled:opacity-40"
+                className="w-full h-12 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#424242] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity disabled:opacity-40"
               >
                 Volver
               </button>

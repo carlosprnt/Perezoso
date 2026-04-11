@@ -27,7 +27,7 @@ function Row({ label, value, accent, dim }: { label: string; value: string; acce
       <span className={`text-[14px] font-semibold ${
         accent ? 'text-[#059669] dark:text-[#4ADE80]'
         : dim  ? 'text-[#8E8E93] dark:text-[#636366]'
-               : 'text-[#121212] dark:text-[#F2F2F7]'
+               : 'text-[#424242] dark:text-[#F2F2F7]'
       }`}>
         {value}
       </span>
@@ -101,7 +101,7 @@ function SwitchToYearlyDetail({ opp, locale }: { opp: SavingsOpportunity; locale
       <div className="flex items-center gap-3 mb-5">
         <SubscriptionAvatar name={name} logoUrl={logoUrl} size="lg" corner="rounded-[12px]" />
         <div>
-          <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7]">{name}</p>
+          <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">{name}</p>
           <p className="text-[13px] text-[#737373] dark:text-[#8E8E93]">{t('savings.monthlyBilling')}</p>
         </div>
       </div>
@@ -114,7 +114,7 @@ function SwitchToYearlyDetail({ opp, locale }: { opp: SavingsOpportunity; locale
       </Section>
 
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[13px] font-semibold text-[#121212] dark:text-[#F2F2F7]">{t('savings.ifAnnual')}</p>
+        <p className="text-[13px] font-semibold text-[#424242] dark:text-[#F2F2F7]">{t('savings.ifAnnual')}</p>
         <p className="text-[11px] font-medium text-[#059669] dark:text-[#4ADE80]">{t('savings.estimatedAnnual')}</p>
       </div>
       <div className="mb-5">
@@ -142,7 +142,7 @@ function DuplicateCategoryDetail({ opp, locale }: { opp: SavingsOpportunity; loc
           <Copy size={24} strokeWidth={2} style={{ color: '#D97706' }} />
         </div>
         <div>
-          <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7]">
+          <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">
             {t('savings.duplicateCategoryTitle').replace('{category}', catLabel.toLowerCase())}
           </p>
           <p className="text-[13px] text-[#737373] dark:text-[#8E8E93]">
@@ -162,7 +162,7 @@ function DuplicateCategoryDetail({ opp, locale }: { opp: SavingsOpportunity; loc
               size="sm"
               corner="rounded-[6px]"
             />
-            <span className="flex-1 text-[14px] text-[#121212] dark:text-[#F2F2F7]">{name}</span>
+            <span className="flex-1 text-[14px] text-[#424242] dark:text-[#F2F2F7]">{name}</span>
             {i === 0 && (
               <span className="text-[11px] font-semibold text-[#D97706] bg-[#FEF3C7] dark:bg-[#2D1F00] px-2 py-0.5 rounded-full">
                 {t('savings.cheapest')}
@@ -188,7 +188,7 @@ function SharedPlanDetail({ opp, locale }: { opp: SavingsOpportunity; locale: st
       <div className="flex items-center gap-3 mb-5">
         <SubscriptionAvatar name={name} logoUrl={logoUrl} size="lg" corner="rounded-[12px]" />
         <div>
-          <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7]">{name}</p>
+          <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">{name}</p>
           <p className="text-[13px] text-[#737373] dark:text-[#8E8E93]">{t('savings.soloplan')}</p>
         </div>
       </div>
@@ -219,7 +219,7 @@ function BundleDetail({ opp, locale }: { opp: SavingsOpportunity; locale: string
           <Package size={24} strokeWidth={2} style={{ color: '#7C3AED' }} />
         </div>
         <div>
-          <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7]">{t('savings.bundleTitle')}</p>
+          <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">{t('savings.bundleTitle')}</p>
           <p className="text-[13px] text-[#737373] dark:text-[#8E8E93]">{names.join(' + ')}</p>
         </div>
       </div>
@@ -235,7 +235,7 @@ function BundleDetail({ opp, locale }: { opp: SavingsOpportunity; locale: string
               size="sm"
               corner="rounded-[6px]"
             />
-            <span className="flex-1 text-[14px] text-[#121212] dark:text-[#F2F2F7]">{name}</span>
+            <span className="flex-1 text-[14px] text-[#424242] dark:text-[#F2F2F7]">{name}</span>
           </div>
         ))}
       </Section>
@@ -268,7 +268,7 @@ export default function SavingsDetailSheet({ opportunity, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="mt-2 w-full h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors"
+          className="mt-2 w-full h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold active:bg-[#000000] transition-colors"
         >
           {t('savings.dismiss')}
         </button>

@@ -39,12 +39,12 @@ function PlatformRow({
           <span className="text-[15px] font-bold" style={{ color: fg }}>{initials}</span>
         )}
       </div>
-      <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] flex-1 truncate">
+      <p className="text-[14px] font-semibold text-[#424242] dark:text-[#F2F2F7] flex-1 truncate">
         {platform.name}
       </p>
       <button
         onClick={() => onAdd(platform)}
-        className="text-[13px] font-semibold text-[#3D3BF3] dark:text-[#8B89FF] flex-shrink-0 active:opacity-60 transition-opacity"
+        className="text-[13px] font-semibold text-[#000000] dark:text-[#FFFFFF] flex-shrink-0 active:opacity-60 transition-opacity"
       >
         Añadir
       </button>
@@ -81,7 +81,7 @@ export default function QuickAddPlatforms() {
             <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-white dark:bg-[#2C2C2E]">
               <Plus size={18} strokeWidth={2} className="text-[#8E8E93]" />
             </div>
-            <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] flex-1">
+            <p className="text-[14px] font-semibold text-[#424242] dark:text-[#F2F2F7] flex-1">
               Añadir manualmente
             </p>
           </button>

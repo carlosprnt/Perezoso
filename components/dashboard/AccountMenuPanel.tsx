@@ -103,7 +103,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
           <div>
             <button
               onClick={() => setDemoOpen(false)}
-              className="flex items-center gap-1.5 text-[#8B89FF] text-[14px] font-semibold mb-5 active:opacity-60 transition-opacity"
+              className="flex items-center gap-1.5 text-[#FFFFFF] text-[14px] font-semibold mb-5 active:opacity-60 transition-opacity"
             >
               <ChevronLeft size={16} strokeWidth={2.5} />
               Demo
@@ -252,7 +252,7 @@ function DarkMenuItem({
   const color = danger
     ? 'text-red-400'
     : accent
-    ? 'text-[#8B89FF]'
+    ? 'text-[#FFFFFF]'
     : 'text-white'
   return (
     <button

@@ -32,19 +32,19 @@ export default function EmptyDashboardHero({ firstName, shareText }: Props) {
     <div ref={ref} className="sticky top-0 pb-5 bg-[#F7F8FA] dark:bg-[#121212]">
       {/* Greeting + avatar */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
+        <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
         <UserAvatarMenu shareText={shareText} />
       </div>
 
       {/* Main empty statement */}
-      <p className="text-[45px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2" style={{ maxWidth: '100%' }}>
+      <p className="text-[45px] font-extrabold text-[#424242] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2" style={{ maxWidth: '100%' }}>
         Aún no tienes ninguna suscripción añadida.
       </p>
 
       {/* Tagline */}
-      <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug">
+      <p className="text-[17px] font-bold text-[#424242] dark:text-[#F2F2F7] leading-snug">
         Empieza a añadir y descubre patrones de gasto y consejos de ahorro.
       </p>
     </div>
