@@ -149,7 +149,9 @@ interface Props {
 /** Inline row of up to 4 overlapping circular subscription logos used
     inside the hero narrative text. Each logo has `position: relative` so
     z-index works — leftmost sits on top visually (descending z-index
-    from left to right). */
+    from left to right). Uses `background-image + cover` instead of an
+    inner <img> so the logo always fills the container edge-to-edge
+    regardless of the source image's intrinsic dimensions. */
 function LogoStack({ urls }: { urls: string[] }) {
   const visible = urls.slice(0, 4)
   if (visible.length === 0) return null
@@ -158,16 +160,15 @@ function LogoStack({ urls }: { urls: string[] }) {
       {visible.map((url, i) => (
         <span
           key={url + i}
-          className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E]"
+          className="inline-block w-8 h-8 rounded-full border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E] bg-cover bg-center"
           style={{
+            backgroundImage: `url("${url}")`,
             marginLeft: i === 0 ? 0 : -10,
             position: 'relative',
             zIndex: 4 - i,
           }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt="" className="w-full h-full object-cover" />
-        </span>
+          aria-hidden
+        />
       ))}
     </span>
   )
