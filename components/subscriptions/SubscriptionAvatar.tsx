@@ -37,11 +37,15 @@ export default function SubscriptionAvatar({
   const { bg, fg } = getAvatarPastel(name)
   const initials = getInitials(name)
 
-  // Resolve which URL to attempt (explicit URL wins over slug-derived URL)
+  // Resolve which URL to attempt (explicit URL wins over slug-derived URL).
+  // Simple Icons URLs always append a colour — brand colour if the caller
+  // provided one via an explicit logoUrl, black otherwise. Without the
+  // colour suffix simpleicons.org returns SVGs that render near-invisible
+  // on the white avatar background.
   const resolvedUrl = logoUrl
     ? logoUrl
     : simpleIconSlug
-      ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}`
+      ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}/000000`
       : null
 
   if (resolvedUrl && !imgError) {
