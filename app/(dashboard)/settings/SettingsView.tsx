@@ -38,13 +38,16 @@ function TwitterIcon({ size = 17, className }: { size?: number; className?: stri
   )
 }
 
-// Monochrome icon tile — 32x32 light-gray background with a black
-// icon. Shared by every settings row so sections look cohesive (no
-// rainbow of coloured tiles). The `bg` prop used to let each row
-// pick its own colour; it's ignored now but kept for API stability.
-function IconTile({ children }: { bg?: string; children: React.ReactNode }) {
+// Monochrome icon tile — 40x40 white background with a black icon.
+// Shared by every settings row so sections look cohesive (no rainbow
+// of coloured tiles). The optional `bg` prop overrides the default
+// white — used only by the danger zone (light-red "Eliminar cuenta").
+function IconTile({ bg, children }: { bg?: string; children: React.ReactNode }) {
   return (
-    <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7]">
+    <div
+      className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[#000000] dark:text-[#F2F2F7]"
+      style={{ backgroundColor: bg ?? '#FFFFFF' }}
+    >
       {children}
     </div>
   )
@@ -503,7 +506,9 @@ export default function SettingsView({ preferences, profile }: Props) {
           onClick={() => setShowDeleteConfirm(true)}
           className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
         >
-          <IconTile bg="#DC2626"><Trash2 size={15} /></IconTile>
+          <IconTile bg="#FEE2E2">
+            <Trash2 size={15} className="text-[#DC2626]" />
+          </IconTile>
           <span className="flex-1 text-[15px] font-medium text-[#DC2626]">Eliminar cuenta</span>
         </button>
       </Group>

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Share2, Settings, Sun, Moon, Sparkles } from 'lucide-react'
+import { LogOut, Share2, Settings, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
@@ -75,25 +75,36 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
             onClick={handleShare}
           />
 
-          {/* Upgrade-to-Pro banner — full-width CTA below "Compartir datos".
-              Same animated blue shimmer border as the Settings card so the
-              Pro branding stays consistent across surfaces. Hidden when the
-              user is already Pro. */}
+          {/* Upgrade-to-Pro banner — same structure as the Settings
+              Perezoso Plus banner but with colours inverted so it reads
+              well against the black layer: white card bg, black text +
+              CTA. Shimmer border unchanged. Hidden when already Pro. */}
           {!isPro && (
             <div
-              className="relative mt-4 rounded-[20px] p-[2px]"
+              className="relative mt-4 rounded-[18px] p-[2px]"
               style={{
                 background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
                 animation: 'shimmer-rotate 3s linear infinite',
               }}
             >
-              <button
-                onClick={handleUpgrade}
-                className="w-full h-14 rounded-[18px] bg-white text-black flex items-center justify-center gap-2 text-[15px] font-semibold active:opacity-90 transition-opacity"
-              >
-                <Sparkles size={18} strokeWidth={2.2} />
-                Mejorar a Pro
-              </button>
+              <div className="bg-white rounded-2xl px-5 py-5 flex items-center gap-4">
+                {/* Title + description */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[20px] font-bold text-black leading-tight">
+                    Perezoso Plus
+                  </p>
+                  <p className="text-[13px] text-black/60 mt-1 leading-snug">
+                    Desbloquea todas las features
+                  </p>
+                </div>
+                {/* CTA — far right, black bg to contrast the white card */}
+                <button
+                  onClick={handleUpgrade}
+                  className="h-10 px-5 rounded-full bg-black text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+                >
+                  Mejorar
+                </button>
+              </div>
             </div>
           )}
         </div>

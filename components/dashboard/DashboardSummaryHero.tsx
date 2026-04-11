@@ -278,12 +278,12 @@ export default function DashboardSummaryHero({
       <p className="text-[33px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.spendStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#F2F2F7] text-[41px]">{monthly}</span>
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[50px]">{monthly}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span><br />
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.annualStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#F2F2F7] text-[41px]">{annual}</span>
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[50px]">{annual}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
       </p>
