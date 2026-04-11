@@ -165,28 +165,40 @@ export default function FloatingNav() {
         {/* + button — right edge, 16px margin, same bottom as pill.
             When the user has no subscriptions yet, it scales to 2x to
             emphasize it as the primary call to action. */}
-        <motion.button
-          onClick={handlePlusTap}
-          aria-label="Add subscription"
-          className="absolute right-4 pointer-events-auto flex items-center justify-center rounded-full bg-[#3D3BF3]"
-          style={{
-            width: 56,
-            height: 56,
-            originX: 1,
-            originY: 1,
-            bottom: `calc(${bottomOffset} + 4px)`,
-            boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
-          }}
-          animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
-          transition={
-            emphasizeAdd
-              ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
-              : { type: 'spring', stiffness: 300, damping: 22 }
-          }
-          whileTap={{ scale: 0.95 }}
+        <div
+          className="absolute right-4 pointer-events-auto"
+          style={{ bottom: `calc(${bottomOffset} + 4px)` }}
         >
-          <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-        </motion.button>
+          {/* Animated shimmer ring */}
+          <div
+            className="absolute inset-[-2px] rounded-full"
+            style={{
+              background: 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(255,255,255,0.45) 75%, transparent 90%, transparent 100%)',
+              animation: 'shimmer-spin 3s linear infinite',
+            }}
+          />
+          <motion.button
+            onClick={handlePlusTap}
+            aria-label="Add subscription"
+            className="relative flex items-center justify-center rounded-full bg-[#3D3BF3]"
+            style={{
+              width: 56,
+              height: 56,
+              originX: 1,
+              originY: 1,
+              boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
+            }}
+            animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
+            transition={
+              emphasizeAdd
+                ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
+                : { type: 'spring', stiffness: 300, damping: 22 }
+            }
+            whileTap={{ scale: 0.95 }}
+          >
+            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+          </motion.button>
+        </div>
       </nav>
       )}
 

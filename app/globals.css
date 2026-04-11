@@ -201,6 +201,11 @@ input, select, textarea {
 @keyframes logo-float-6 { 0%,100%{translate:0 0}    50%{translate:0 -6px}  }
 @keyframes logo-float-7 { 0%,100%{translate:0 0}    50%{translate:0 -13px} }
 
+@keyframes shimmer-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 @keyframes bell-ring {
   0%,100% { transform: rotate(0deg);   }
   8%       { transform: rotate(-28deg); }
