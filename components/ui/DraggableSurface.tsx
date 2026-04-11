@@ -309,9 +309,14 @@ function MobileDraggableSurface({
       </motion.div>
 
       {/* ── Layer 3 — Fixed overlay above both layers ─────────────────── */}
+      {/* Container is pointer-events: none so clicks pass through to the
+          foreground when the overlay's children are invisible. Children
+          re-enable pointer events on the elements they care about
+          (e.g. DashboardFixedGreeting sets pointer-events auto once
+          progress > 0.02). */}
       {fixedHeader && (
         <div
-          className="fixed left-0 right-0 z-20"
+          className="fixed left-0 right-0 z-20 pointer-events-none"
           style={{ top: 'env(safe-area-inset-top)' }}
         >
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
