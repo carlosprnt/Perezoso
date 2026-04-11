@@ -15,8 +15,6 @@ import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
-import DashboardWalletBackdrop from '@/components/dashboard/DashboardWalletBackdrop'
-import DraggableAnalyticsSurface from '@/components/subscriptions/DraggableAnalyticsSurface'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -63,8 +61,9 @@ export default async function DashboardPage() {
     pct: stats.total_monthly_cost > 0 ? (monthly_cost / stats.total_monthly_cost) * 100 : 0,
   }))
 
-  const dashboardContent = (
-    <>
+  return (
+    <div>
+      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
       {isEmpty ? (
         <EmptyDashboardHero firstName={firstName} shareText={shareText} />
       ) : (
@@ -112,24 +111,6 @@ export default async function DashboardPage() {
           </>
         )}
       </DashboardCardStack>
-    </>
-  )
-
-  return (
-    <div>
-      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
-      {/* Mobile: two-layer surface reveals the subscription wallet behind.
-          Empty state: transparent passthrough — no backdrop to reveal.
-          Desktop (lg+): passthrough, standard in-place layout. */}
-      {isEmpty ? (
-        dashboardContent
-      ) : (
-        <DraggableAnalyticsSurface
-          backdrop={<DashboardWalletBackdrop subscriptions={subs} stats={stats} />}
-        >
-          {dashboardContent}
-        </DraggableAnalyticsSurface>
-      )}
     </div>
   )
 }

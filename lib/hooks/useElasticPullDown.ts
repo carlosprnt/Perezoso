@@ -13,7 +13,7 @@ import { isNative } from '@/lib/platform'
  *
  * On release: overdamped spring snaps back cleanly with no oscillation.
  */
-export function useElasticPullDown(enabled: boolean = true): MotionValue<number> {
+export function useElasticPullDown(): MotionValue<number> {
   const pullY = useMotionValue(0)
   // Overdamped spring: snaps back quickly without bouncing
   const springY = useSpring(pullY, {
@@ -26,9 +26,6 @@ export function useElasticPullDown(enabled: boolean = true): MotionValue<number>
   const pullingRef = useRef(false)
 
   useEffect(() => {
-    // Hook can be disabled (e.g. when CardStack is hosted inside a
-    // custom scroll container that owns its own pull-down mechanics).
-    if (!enabled) return
     // On native (Capacitor) platforms, iOS handles overscroll natively.
     // Registering a non-passive touchmove listener would fight the system gesture.
     if (isNative()) return
@@ -85,7 +82,7 @@ export function useElasticPullDown(enabled: boolean = true): MotionValue<number>
       window.removeEventListener('touchend', onRelease)
       window.removeEventListener('touchcancel', onRelease)
     }
-  }, [pullY, enabled])
+  }, [pullY])
 
   return springY
 }
