@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
@@ -14,13 +15,18 @@ import {
   type UserPreferences,
 } from './actions'
 import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
+import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
 import haptics from '@/lib/haptics'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
 import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 
 interface Props {
   preferences: UserPreferences
-  userEmail: string | null
+  profile: {
+    name: string | null
+    email: string | null
+    avatarUrl: string | null
+  }
 }
 
 // lucide-react dropped the Twitter glyph, so we inline the X/Twitter mark.
@@ -32,19 +38,21 @@ function TwitterIcon({ size = 17, className }: { size?: number; className?: stri
   )
 }
 
-// iOS-style coloured icon tile
-function IconTile({ bg, children }: { bg: string; children: React.ReactNode }) {
+// Monochrome icon tile — 32x32 light-gray background with a black
+// icon. Shared by every settings row so sections look cohesive (no
+// rainbow of coloured tiles). The `bg` prop used to let each row
+// pick its own colour; it's ignored now but kept for API stability.
+function IconTile({ children }: { bg?: string; children: React.ReactNode }) {
   return (
-    <div
-      className="w-7 h-7 rounded-[7px] flex items-center justify-center flex-shrink-0 text-white"
-      style={{ backgroundColor: bg }}
-    >
+    <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7]">
       {children}
     </div>
   )
 }
 
 // Single row inside a grouped card. Separator drawn automatically unless `last`.
+// Vertical padding matches horizontal padding (px-4 py-4 → 16px all around)
+// so each row's breathing room is consistent with the card edges.
 function Row({
   icon,
   label,
@@ -63,7 +71,7 @@ function Row({
   href?: string
 }) {
   const inner = (
-    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
+    <div className={`flex items-center gap-3 px-4 py-4 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
       <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
@@ -97,7 +105,7 @@ function Group({ children }: { children: React.ReactNode }) {
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export default function SettingsView({ preferences, userEmail }: Props) {
+export default function SettingsView({ preferences, profile }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [isDemoPending, startDemoTransition] = useTransition()
@@ -113,8 +121,13 @@ export default function SettingsView({ preferences, userEmail }: Props) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [demoOpen, setDemoOpen] = useState(false)
+  const [avatarImgError, setAvatarImgError] = useState(false)
 
-  const isAdmin = userEmail === 'carlosprnt@gmail.com'
+  const isAdmin = profile.email === 'carlosprnt@gmail.com'
+
+  const displayName = profile.name || profile.email?.split('@')[0] || 'Account'
+  const { bg: avatarBg, fg: avatarFg } = getAvatarPastel(displayName)
+  const avatarInitials = getInitials(displayName)
 
   function handleDemoMode(count: number) {
     startDemoTransition(async () => {
@@ -266,9 +279,45 @@ export default function SettingsView({ preferences, userEmail }: Props) {
         </div>
       </div>
 
+      {/* ── User card (avatar · name · email) ──────────────────────────── */}
+      <Group>
+        <div className="flex items-center gap-4 px-4 py-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+            {profile.avatarUrl && !avatarImgError ? (
+              <Image
+                src={profile.avatarUrl}
+                alt={displayName}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+                unoptimized
+                onError={() => setAvatarImgError(true)}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-[16px] font-semibold"
+                style={{ backgroundColor: avatarBg, color: avatarFg }}
+              >
+                {avatarInitials}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7] truncate leading-tight">
+              {displayName}
+            </p>
+            {profile.email && (
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] truncate mt-0.5">
+                {profile.email}
+              </p>
+            )}
+          </div>
+        </div>
+      </Group>
+
       {/* ── Currency + Notifications ───────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
+        <div className="relative flex items-center gap-3 px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Moneda</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
@@ -287,7 +336,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="flex items-center gap-3 px-4 py-4">
           <IconTile bg="#EF4444"><Bell size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Notificaciones</span>
           <button
@@ -306,7 +355,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
 
       {/* ── Appearance ─────────────────────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="relative flex items-center gap-3 px-4 py-4">
           <IconTile bg="#374151"><Moon size={15} /></IconTile>
           <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Apariencia</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
@@ -344,7 +393,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
                   type="button"
                   onClick={() => handleDemoMode(count)}
                   disabled={isDemoPending}
-                  className={`w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50 ${
+                  className={`w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50 ${
                     i < DEMO_MODES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'
                   }`}
                 >
@@ -356,7 +405,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
                 type="button"
                 onClick={handleRestoreProduction}
                 disabled={isDemoPending}
-                className="w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
               >
                 <IconTile bg="#737373"><Sparkles size={15} /></IconTile>
                 <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">Volver a producción</span>
@@ -379,7 +428,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
         {categories.map((cat, i) => (
           <div
             key={cat}
-            className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
+            className={`flex items-center gap-3 px-4 py-4 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
             <span className="flex-1 text-[15px] text-[#000000] dark:text-[#F2F2F7]">{cat}</span>
@@ -392,7 +441,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
             </button>
           </div>
         ))}
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="flex items-center gap-3 px-4 py-4">
           <IconTile bg="#8B5CF6"><Plus size={15} /></IconTile>
           <input
             type="text"
@@ -452,7 +501,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
-          className="w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
         >
           <IconTile bg="#DC2626"><Trash2 size={15} /></IconTile>
           <span className="flex-1 text-[15px] font-medium text-[#DC2626]">Eliminar cuenta</span>
