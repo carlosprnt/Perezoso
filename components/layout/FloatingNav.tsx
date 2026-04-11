@@ -105,11 +105,7 @@ export default function FloatingNav() {
       {/* ── Floating nav — mobile only, hidden on settings ────────────────── */}
       {!hideNav && (
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{
-          height: `calc(${BTN_H + PAD * 2}px + env(safe-area-inset-bottom))`,
-          // Follow the draggable subscription surface when it's lowered
-          transform: 'translateY(var(--surface-y, 0px))',
-        }}
+        style={{ height: `calc(${BTN_H + PAD * 2}px + env(safe-area-inset-bottom))` }}
       >
         {/* Pill — left-aligned at 20px, 16px from bottom */}
         <div className="absolute left-5 pointer-events-auto"

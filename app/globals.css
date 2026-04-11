@@ -138,11 +138,6 @@ input, select, textarea {
   --ease-decelerate:  cubic-bezier(0, 0, 0, 1);
   --ease-accelerate:  cubic-bezier(0.3, 0, 1, 1);
   --ease-emphasized:  cubic-bezier(0.2, 0, 0, 1);
-
-  /* Draggable subscription surface y-offset — published by
-     DraggableAnalyticsSurface so FloatingNav and other fixed elements
-     can follow the foreground as it's dragged down. */
-  --surface-y: 0px;
 }
 
 /* ── Animations ─────────────────────────────── */
