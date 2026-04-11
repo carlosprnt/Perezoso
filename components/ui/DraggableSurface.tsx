@@ -280,7 +280,13 @@ function MobileDraggableSurface({
         {backdrop}
       </motion.div>
 
-      {/* ── Layer 2 — Foreground draggable surface ────────────────────── */}
+      {/* ── Layer 2 — Foreground draggable surface ──────────────────────
+          onClick lives on the motion wrapper, not on the inner scroll
+          container. This avoids a known iOS quirk where attaching a click
+          listener to the scroll element can corrupt its scroll state
+          after a parent `transform` animation (which manifests as the
+          scroll getting "stuck" at one end after opening/closing the
+          black layer). */}
       <motion.div
         className="fixed inset-0 z-10 bg-[#F7F8FA] dark:bg-[#121212] overflow-hidden"
         style={{
@@ -290,13 +296,12 @@ function MobileDraggableSurface({
           willChange: 'transform',
           boxShadow: '0 -12px 40px rgba(0,0,0,0.22)',
         }}
+        onClick={handleSurfaceTap}
       >
         <div
           ref={scrollRef}
-          onClick={handleSurfaceTap}
           className="h-full w-full overflow-y-auto"
           style={{
-            overscrollBehavior: 'contain',
             paddingTop: 'env(safe-area-inset-top)',
           }}
         >

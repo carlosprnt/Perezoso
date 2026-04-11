@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
 import { useSurfaceProgress } from '@/components/ui/DraggableSurface'
@@ -44,6 +45,21 @@ export default function DashboardFixedGreeting({
     window.dispatchEvent(new Event('oso:hide-analytics'))
   }
 
+  // Track when the surface is lowered so the avatar flips to the
+  // Perezoso logo face in sync with the reveal gesture.
+  const [flipped, setFlipped] = useState(false)
+  useEffect(() => {
+    if (!progress) return
+    let last = false
+    return progress.on('change', v => {
+      const isLowered = v > 0.5
+      if (isLowered !== last) {
+        last = isLowered
+        setFlipped(isLowered)
+      }
+    })
+  }, [progress])
+
   return (
     <motion.div
       className="flex items-center justify-between"
@@ -55,7 +71,7 @@ export default function DashboardFixedGreeting({
       >
         {t('dashboard.greeting')} {name}.
       </motion.p>
-      <UserAvatarMenu shareText={shareText} onTap={handleTap} />
+      <UserAvatarMenu shareText={shareText} onTap={handleTap} flipped={flipped} />
     </motion.div>
   )
 }

@@ -17,9 +17,14 @@ interface UserAvatarMenuProps {
       lives in the backdrop layer (revealed by dispatching
       `oso:reveal-analytics`) rather than as a popover. */
   onTap?: () => void
+  /** External flip state — when it transitions from undefined/false to true
+      the avatar does its 2.5-turn coin flip to the Perezoso logo face,
+      and back again on false. Used so the drag-to-reveal gesture on the
+      dashboard surface also triggers the flip, not just a tap. */
+  flipped?: boolean
 }
 
-export default function UserAvatarMenu({ shareText, onTap }: UserAvatarMenuProps) {
+export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatarMenuProps) {
   const router = useRouter()
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -89,9 +94,28 @@ export default function UserAvatarMenu({ shareText, onTap }: UserAvatarMenuProps
     }
   }, [open])
 
-  function handleAvatarClick() {
-    // Coin flip: 900° = 2.5 full turns, always lands on the opposite face
+  // External `flipped` prop — when it toggles, trigger the same 2.5-turn
+  // coin flip animation, matching the visual of a direct tap. This lets
+  // drag-to-reveal on the dashboard surface produce the flip without a
+  // tap event ever firing.
+  const prevFlippedRef = useRef(flipped)
+  useEffect(() => {
+    if (flipped === undefined) return
+    if (prevFlippedRef.current === flipped) return
+    prevFlippedRef.current = flipped
     if (!flipping.current) {
+      flipping.current = true
+      setFlipDuration('0.45s')
+      setCoinDeg(d => d + 900)
+      setTimeout(() => { flipping.current = false }, 500)
+    }
+  }, [flipped])
+
+  function handleAvatarClick() {
+    // Coin flip on tap — but only when not externally controlled by
+    // `flipped`. External control drives the flip via the useEffect above,
+    // so we skip the direct tap-triggered flip to avoid double-flipping.
+    if (flipped === undefined && !flipping.current) {
       flipping.current = true
       setFlipDuration('0.45s')
       setCoinDeg(d => d + 900)

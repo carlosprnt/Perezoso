@@ -200,6 +200,26 @@ export default function DashboardSummaryHero({
   const fallback = useMotionValue(0)
   const greetingOpacity = useTransform(surfaceProgress ?? fallback, [0, 0.08], [1, 0])
 
+  // Track whether the surface is "lowered" (past the halfway point) so
+  // the avatar can flip to the Perezoso logo face in sync with the reveal
+  // gesture. `null` means we're outside a surface context (e.g. desktop)
+  // and the avatar uses its default tap-driven flip.
+  const [surfaceFlipped, setSurfaceFlipped] = useState<boolean | undefined>(
+    surfaceProgress ? false : undefined
+  )
+  useEffect(() => {
+    if (!surfaceProgress) return
+    let last = false
+    setSurfaceFlipped(false)
+    return surfaceProgress.on('change', v => {
+      const isLowered = v > 0.5
+      if (isLowered !== last) {
+        last = isLowered
+        setSurfaceFlipped(isLowered)
+      }
+    })
+  }, [surfaceProgress])
+
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   function handleSavingsTap() {
@@ -242,7 +262,11 @@ export default function DashboardSummaryHero({
         <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
-        <UserAvatarMenu shareText={shareText} onTap={avatarTapOverride} />
+        <UserAvatarMenu
+          shareText={shareText}
+          onTap={avatarTapOverride}
+          flipped={surfaceFlipped}
+        />
       </motion.div>
 
       {/* Main statement — tapping figures spawns money confetti */}

@@ -90,7 +90,13 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
   ] as const
 
   return (
-    <div className="h-full flex flex-col px-5 pt-24 pb-10">
+    // Bottom padding clears the foreground peek strip (PEEK_HEIGHT = 120px)
+    // plus the iOS safe-area inset so the theme toggle stays visible above
+    // the bottom of the dark layer.
+    <div
+      className="h-full flex flex-col px-5 pt-24"
+      style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom) + 24px)' }}
+    >
       <div className="flex-1 min-h-0 overflow-y-auto">
         {demoOpen ? (
           /* ── Demo submenu ───────────────────────────────────────────── */
