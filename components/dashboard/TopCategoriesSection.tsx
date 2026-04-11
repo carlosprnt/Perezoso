@@ -57,9 +57,14 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
 
   return (
     <div>
-      {/* Segmented bar — each segment individually rounded */}
+      {/* Segmented bar — each segment individually rounded.
+          flex-grow (not width %) so the 3px gaps don't push the last
+          segment past the container's right edge, which made the bar
+          look like it had a smaller right margin than left. With
+          flex-basis: 0 + flex-grow: pct, gaps are taken out of the
+          available space before segments are distributed. */}
       <div
-        className="flex h-12 mb-4"
+        className="flex h-12 mb-4 w-full"
         style={{
           transform:       mounted ? 'scaleX(1)' : 'scaleX(0)',
           transformOrigin: 'left',
@@ -72,12 +77,13 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
             key={seg.category}
             className="rounded-[12px]"
             style={{
-              width:           `${seg.pct}%`,
+              flexGrow:        seg.pct,
+              flexShrink:      0,
+              flexBasis:       0,
               backgroundColor: seg.color,
               opacity:         active !== null && active !== i ? 0.35 : 1,
               transition:      'opacity 0.15s ease',
               cursor:          'pointer',
-              flexShrink:      0,
               minWidth:        8,
             }}
             onMouseEnter={() => setActive(i)}

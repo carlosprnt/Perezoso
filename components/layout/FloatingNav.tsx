@@ -173,11 +173,14 @@ export default function FloatingNav() {
           className="absolute right-4 pointer-events-auto"
           style={{ bottom: `calc(${bottomOffset} + 4px)` }}
         >
-          {/* Animated shimmer ring */}
+          {/* Animated shimmer ring — white on dark mode, dark gray on
+              light mode so it's visible against the light pill backdrop. */}
           <div
             className="absolute inset-[-2px] rounded-full"
             style={{
-              background: 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(255,255,255,0.45) 75%, transparent 90%, transparent 100%)',
+              background: isDarkMode
+                ? 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(255,255,255,0.45) 75%, transparent 90%, transparent 100%)'
+                : 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(90,90,90,0.55) 75%, transparent 90%, transparent 100%)',
               animation: 'shimmer-spin 3s linear infinite',
             }}
           />
@@ -190,7 +193,6 @@ export default function FloatingNav() {
               height: 56,
               originX: 1,
               originY: 1,
-              boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
             }}
             animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
             transition={
