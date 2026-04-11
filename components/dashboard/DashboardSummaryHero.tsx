@@ -273,16 +273,17 @@ export default function DashboardSummaryHero({
       </motion.div>
 
       {/* Main statement — tapping figures spawns money confetti.
-          Narrative text in dark gray (#616161), amounts in pure black. */}
+          Narrative text in dark gray (#616161) at 33px, amounts in pure
+          black bumped +8px to 41px so the numbers stand out. */}
       <p className="text-[33px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.spendStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#F2F2F7]">{monthly}</span>
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[41px]">{monthly}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span><br />
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.annualStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#000000] dark:text-[#F2F2F7]">{annual}</span>
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[41px]">{annual}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
       </p>
