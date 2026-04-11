@@ -226,12 +226,9 @@ export default function SettingsView({ preferences, userEmail }: Props) {
       <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
-      {/* Outer wrapper has the animated conic-gradient as background;
-          a 2px padding creates the visible ring while the inner card's
-          solid bg masks the center. The ring's width is exactly 2px on
-          every edge. `shimmer-rotate` spins only the gradient angle via
-          a CSS custom property — the element itself does NOT rotate
-          (which would distort the rectangle). */}
+      {/* Horizontal banner: logo (left) · title + description (center) ·
+          upgrade button (right). Outer wrapper carries the animated
+          conic-gradient shimmer border. */}
       <div
         className="relative mb-3 rounded-[18px] p-[2px]"
         style={{
@@ -239,26 +236,26 @@ export default function SettingsView({ preferences, userEmail }: Props) {
           animation: 'shimmer-rotate 3s linear infinite',
         }}
       >
-        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-6 py-6 flex flex-col gap-5">
-          {/* Logo tile */}
-          <div className="w-[72px] h-[72px] rounded-[18px] overflow-hidden bg-white">
+        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
+          {/* Logo */}
+          <div className="w-[72px] h-[72px] rounded-[18px] overflow-hidden flex-shrink-0 bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Perezoso Plus" className="w-full h-full object-cover" />
           </div>
 
-          {/* Title on its own line */}
-          <p className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
-            Perezoso Plus
-          </p>
+          {/* Title + description */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+              Perezoso Plus
+            </p>
+            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+              {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
+            </p>
+          </div>
 
-          {/* Subtitle on its own line */}
-          <p className="text-[15px] text-[#737373] dark:text-[#8E8E93] leading-snug -mt-3">
-            {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
-          </p>
-
-          {/* Full-width CTA / status */}
+          {/* CTA / status — far right */}
           {isPro ? (
-            <span className="w-full h-12 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[15px] font-semibold flex items-center justify-center">
+            <span className="h-10 px-5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[14px] font-semibold flex items-center flex-shrink-0">
               Activo
             </span>
           ) : (
@@ -267,7 +264,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
                 haptics.tap()
                 openPaywall('general')
               }}
-              className="w-full h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold active:opacity-80 transition-opacity"
+              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
             >
               Mejorar
             </button>
