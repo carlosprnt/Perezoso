@@ -70,10 +70,9 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
         </div>
       </div>
 
-      {/* Footer row: theme toggle (left) + logout (right), both matching
+      {/* Footer row: logout (left) + theme toggle (right), both matching
           size/typography so they visually share a baseline. */}
       <div className="flex items-center justify-between mt-4">
-        <ThemeToggleLink />
         <button
           onClick={handleLogout}
           className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
@@ -82,6 +81,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
           <LogOut size={18} strokeWidth={2} />
           {t('nav.logout')}
         </button>
+        <ThemeToggleLink />
       </div>
     </div>
   )
@@ -98,6 +98,17 @@ function ThemeToggleLink() {
       className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
       aria-label="Toggle theme"
     >
+      <AnimatePresence initial={false} mode="wait">
+        <motion.span
+          key={isDark ? 'dark-label' : 'light-label'}
+          initial={{ y: 6, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -6, opacity: 0 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {isDark ? 'Dark mode' : 'Light mode'}
+        </motion.span>
+      </AnimatePresence>
       <span className="relative w-[18px] h-[18px] flex items-center justify-center">
         <AnimatePresence initial={false} mode="wait">
           {isDark ? (
@@ -125,17 +136,6 @@ function ThemeToggleLink() {
           )}
         </AnimatePresence>
       </span>
-      <AnimatePresence initial={false} mode="wait">
-        <motion.span
-          key={isDark ? 'dark-label' : 'light-label'}
-          initial={{ y: 6, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -6, opacity: 0 }}
-          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {isDark ? 'Dark mode' : 'Light mode'}
-        </motion.span>
-      </AnimatePresence>
     </button>
   )
 }

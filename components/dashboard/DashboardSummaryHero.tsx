@@ -287,8 +287,12 @@ export default function DashboardSummaryHero({
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
       </p>
 
-      {/* Supporting statement — same palette split */}
+      {/* Supporting statement — three separate lines:
+          1. Tienes {total} suscripciones activas.
+          2. Compartes {sharedCount} suscripciones.
+          3. Reduces {savings} tu gasto al año (or al mes on tap). */}
       <p className="text-[18px] font-bold leading-relaxed" style={{ maxWidth: '100%' }}>
+        {/* Line 1 — active subscriptions */}
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
@@ -297,29 +301,34 @@ export default function DashboardSummaryHero({
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
         {hasSave && (
           <>
-            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{t('dashboard.youShare')}{' '}</span>
+            <br />
+            {/* Line 2 — shared count */}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youShare')}{' '}</span>
             <span className="whitespace-nowrap">
               <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
               <span className="text-[#616161] dark:text-[#8E8E93]">&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
             </span>
-            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{t('dashboard.andSave')}{' '}</span>
+            <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
+            <br />
+            {/* Line 3 — savings with monthly↔annual toggle */}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.reduceSpend')}{' '}</span>
             <button
               onClick={handleSavingsTap}
-              className="inline align-baseline cursor-pointer select-none"
+              className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform"
               aria-label="Cambiar entre ahorro mensual y anual"
             >
               {showSkeleton ? (
                 <span
                   className="inline-block align-middle rounded-md bg-[#000000]/20 dark:bg-[#FFFFFF]/20 animate-pulse"
-                  style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
+                  style={{ width: '5ch', height: '1em', verticalAlign: 'baseline' }}
                 />
               ) : (
                 <span className="text-[#000000] dark:text-[#F2F2F7]">
-                  {savingsLabel}
+                  {savingsPeriod === 'monthly' ? savingsMo : savingsYr}
                 </span>
               )}
             </button>
-            <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
+            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{savingsPeriod === 'monthly' ? t('dashboard.yourSpendMonthly') : t('dashboard.yourSpendAnnual')}.</span>
           </>
         )}
       </p>
