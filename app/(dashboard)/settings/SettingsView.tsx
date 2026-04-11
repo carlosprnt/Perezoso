@@ -226,9 +226,9 @@ export default function SettingsView({ preferences, userEmail }: Props) {
       <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
-      {/* Horizontal banner: logo (left) · title + description (center) ·
-          upgrade button (right). Outer wrapper carries the animated
-          conic-gradient shimmer border. */}
+      {/* Horizontal banner: title + description (left) · upgrade button (right).
+          Solid black background with a white CTA. Outer wrapper carries
+          the animated conic-gradient shimmer border. */}
       <div
         className="relative mb-3 rounded-[18px] p-[2px]"
         style={{
@@ -236,26 +236,20 @@ export default function SettingsView({ preferences, userEmail }: Props) {
           animation: 'shimmer-rotate 3s linear infinite',
         }}
       >
-        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
-          {/* Logo */}
-          <div className="w-[72px] h-[72px] rounded-[18px] overflow-hidden flex-shrink-0 bg-white">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Perezoso Plus" className="w-full h-full object-cover" />
-          </div>
-
+        <div className="bg-[#000000] rounded-2xl px-5 py-5 flex items-center gap-4">
           {/* Title + description */}
           <div className="flex-1 min-w-0">
-            <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+            <p className="text-[20px] font-bold text-white leading-tight">
               Perezoso Plus
             </p>
-            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+            <p className="text-[13px] text-white/60 mt-1 leading-snug">
               {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
             </p>
           </div>
 
           {/* CTA / status — far right */}
           {isPro ? (
-            <span className="h-10 px-5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[14px] font-semibold flex items-center flex-shrink-0">
+            <span className="h-10 px-5 rounded-full bg-white/10 text-white text-[14px] font-semibold flex items-center flex-shrink-0">
               Activo
             </span>
           ) : (
@@ -264,7 +258,7 @@ export default function SettingsView({ preferences, userEmail }: Props) {
                 haptics.tap()
                 openPaywall('general')
               }}
-              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+              className="h-10 px-5 rounded-full bg-white text-[#000000] text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
             >
               Mejorar
             </button>
