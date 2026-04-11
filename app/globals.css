@@ -217,6 +217,21 @@ input, select, textarea {
   to   { transform: rotate(360deg); }
 }
 
+/* Conic-gradient angle sweep — for rectangular borders where
+   rotating the whole element would distort the shape. Animates only
+   the conic-gradient's `from` angle via a CSS custom property.
+   Required browser features: CSS @property (Chrome 85+, Safari 16+,
+   Firefox 128+). iOS 16+ covers our install base. */
+@property --shimmer-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes shimmer-rotate {
+  to { --shimmer-angle: 360deg; }
+}
+
 @keyframes bell-ring {
   0%,100% { transform: rotate(0deg);   }
   8%       { transform: rotate(-28deg); }

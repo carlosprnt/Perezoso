@@ -226,45 +226,52 @@ export default function SettingsView({ preferences, userEmail }: Props) {
       <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
-      <div className="relative mb-3">
-        {/* Animated blue shimmer ring — conic-gradient rotating around
-            the card edge, visible through a 2px outline. */}
-        <div
-          className="absolute inset-[-2px] rounded-[18px] pointer-events-none"
-          style={{
-            background: 'conic-gradient(from 0deg, transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
-            animation: 'shimmer-spin 3s linear infinite',
-          }}
-          aria-hidden
-        />
-        <div className="relative bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-5 px-6 py-6">
-            <div className="w-[88px] h-[88px] rounded-[20px] overflow-hidden flex-shrink-0 bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Perezoso Plus" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
-              <p className="text-[15px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
-                {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
-              </p>
-            </div>
-            {isPro ? (
-              <span className="h-10 px-5 rounded-full bg-[#F0F0F0] text-[#000000] text-[14px] font-semibold flex items-center flex-shrink-0">
-                Activo
-              </span>
-            ) : (
-              <button
-                onClick={() => {
-                  haptics.tap()
-                  openPaywall('general')
-                }}
-                className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
-              >
-                Mejorar
-              </button>
-            )}
+      {/* Outer wrapper has the animated conic-gradient as background;
+          a 2px padding creates the visible ring while the inner card's
+          solid bg masks the center. The ring's width is exactly 2px on
+          every edge. `shimmer-rotate` spins only the gradient angle via
+          a CSS custom property — the element itself does NOT rotate
+          (which would distort the rectangle). */}
+      <div
+        className="relative mb-3 rounded-[18px] p-[2px]"
+        style={{
+          background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
+          animation: 'shimmer-rotate 3s linear infinite',
+        }}
+      >
+        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-6 py-6 flex flex-col gap-5">
+          {/* Logo tile */}
+          <div className="w-[72px] h-[72px] rounded-[18px] overflow-hidden bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Perezoso Plus" className="w-full h-full object-cover" />
           </div>
+
+          {/* Title on its own line */}
+          <p className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+            Perezoso Plus
+          </p>
+
+          {/* Subtitle on its own line */}
+          <p className="text-[15px] text-[#737373] dark:text-[#8E8E93] leading-snug -mt-3">
+            {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
+          </p>
+
+          {/* Full-width CTA / status */}
+          {isPro ? (
+            <span className="w-full h-12 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[15px] font-semibold flex items-center justify-center">
+              Activo
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                haptics.tap()
+                openPaywall('general')
+              }}
+              className="w-full h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold active:opacity-80 transition-opacity"
+            >
+              Mejorar
+            </button>
+          )}
         </div>
       </div>
 
