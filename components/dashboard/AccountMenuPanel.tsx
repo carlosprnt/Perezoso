@@ -76,35 +76,28 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
           />
 
           {/* Upgrade-to-Pro banner — same structure as the Settings
-              Perezoso Plus banner but with colours inverted so it reads
-              well against the black layer: white card bg, black text +
-              CTA. Shimmer border unchanged. Hidden when already Pro. */}
+              Perezoso Plus banner but transparent with a static white
+              1px stroke so it blends with the black backdrop. White
+              text, white CTA pill. Hidden when already Pro. */}
           {!isPro && (
-            <div
-              className="relative mt-4 rounded-[18px] p-[2px]"
-              style={{
-                background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
-                animation: 'shimmer-rotate 3s linear infinite',
-              }}
-            >
-              <div className="bg-white rounded-2xl px-5 py-5 flex items-center gap-4">
-                {/* Title + description */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[20px] font-bold text-black leading-tight">
-                    Perezoso Plus
-                  </p>
-                  <p className="text-[13px] text-black/60 mt-1 leading-snug">
-                    Desbloquea todas las features
-                  </p>
-                </div>
-                {/* CTA — far right, black bg to contrast the white card */}
-                <button
-                  onClick={handleUpgrade}
-                  className="h-10 px-5 rounded-full bg-black text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
-                >
-                  Mejorar
-                </button>
+            <div className="relative mt-4 rounded-2xl border border-white/90 px-5 py-5 flex items-center gap-4">
+              {/* Title + description */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[20px] font-bold text-white leading-tight">
+                  Perezoso Plus
+                </p>
+                <p className="text-[13px] text-white/70 mt-1 leading-snug">
+                  Desbloquea todas las features
+                </p>
               </div>
+              {/* CTA — solid white pill with black text, pops against the
+                  transparent card + dark backdrop. */}
+              <button
+                onClick={handleUpgrade}
+                className="h-10 px-5 rounded-full bg-white text-black text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+              >
+                Mejorar
+              </button>
             </div>
           )}
         </div>
