@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/supabase/auth'
 import Sidebar from '@/components/layout/Sidebar'
 import FloatingNav from '@/components/layout/FloatingNav'
 import SubscriptionToastHost from '@/components/dashboard/SubscriptionToastHost'
+import SettingsModal from '@/components/dashboard/SettingsModal'
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider'
 import { detectLocale } from '@/lib/i18n/translations'
 import { SubscriptionProvider } from '@/lib/revenuecat/SubscriptionProvider'
@@ -59,6 +60,8 @@ export default async function DashboardLayout({
           <FloatingNav />
           {/* Toast host — survives sheet/form unmount */}
           <SubscriptionToastHost />
+          {/* Settings modal — opened via `oso:open-settings` event */}
+          <SettingsModal />
         </div>
       </SubscriptionProvider>
     </LocaleProvider>

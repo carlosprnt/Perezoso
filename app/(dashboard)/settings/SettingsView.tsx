@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles } from 'lucide-react'
+import { ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -27,6 +27,11 @@ interface Props {
     email: string | null
     avatarUrl: string | null
   }
+  /** Called when the user dismisses the view. When provided, the close
+      button dispatches this (used when rendered inside a modal). When
+      absent, falls back to `router.back()` for the standalone /settings
+      route. */
+  onClose?: () => void
 }
 
 // lucide-react dropped the Twitter glyph, so we inline the X/Twitter mark.
@@ -109,7 +114,7 @@ function Group({ children }: { children: React.ReactNode }) {
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export default function SettingsView({ preferences, profile }: Props) {
+export default function SettingsView({ preferences, profile, onClose }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [isDemoPending, startDemoTransition] = useTransition()
@@ -225,20 +230,22 @@ export default function SettingsView({ preferences, profile }: Props) {
     { key: 'system', label: 'Sistema' },
   ] as const
 
+  const handleClose = onClose ?? (() => router.back())
+
   return (
     <div className="pb-8">
-      {/* Header — normal document flow, no sticky/negative-margin tricks.
-          The parent (dashboard)/layout.tsx already handles safe-area-top
-          and page padding, so this header just lives in the normal flow. */}
-      <div className="flex items-center gap-3 mb-5">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center active:bg-[#E5E5EA] dark:active:bg-[#2C2C2E] transition-colors"
-          aria-label="Atrás"
-        >
-          <ArrowLeft size={20} className="text-[#000000] dark:text-[#F2F2F7]" />
-        </button>
+      {/* Header — title on the left, X-in-a-circle dismiss button on
+          the right. The X uses `onClose` when provided (modal) and
+          falls back to `router.back()` for the standalone route. */}
+      <div className="flex items-center justify-between mb-5">
         <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7]">Ajustes</h1>
+        <button
+          onClick={handleClose}
+          className="w-9 h-9 -mr-1 rounded-full flex items-center justify-center bg-[#F0F0F0] dark:bg-[#2C2C2E] active:bg-[#E5E5EA] dark:active:bg-[#3A3A3C] transition-colors"
+          aria-label="Cerrar"
+        >
+          <X size={16} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7]" />
+        </button>
       </div>
       <div>
 

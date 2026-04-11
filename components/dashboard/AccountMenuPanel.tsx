@@ -52,7 +52,10 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
 
   function handleSettings() {
     hideSurface()
-    router.push('/settings')
+    // Open the modal instead of navigating. The SettingsModal mounted
+    // in the dashboard layout listens for this event and slides the
+    // settings view in as a bottom sheet.
+    window.dispatchEvent(new Event('oso:open-settings'))
   }
 
   return (
