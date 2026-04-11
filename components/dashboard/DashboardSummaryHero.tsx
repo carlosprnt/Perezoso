@@ -297,7 +297,21 @@ export default function DashboardSummaryHero({
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
-          <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}</span>
+          {logoUrls.length > 0 && (
+            <span className="inline-flex items-center align-middle mx-1.5 -my-1">
+              {logoUrls.slice(0, 4).map((url, i) => (
+                <span
+                  key={url + i}
+                  className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-white dark:bg-[#1C1C1E]"
+                  style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 4 - i }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </span>
+              ))}
+            </span>
+          )}
+          <span className="text-[#616161] dark:text-[#8E8E93]">{total === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
         {hasSave && (
