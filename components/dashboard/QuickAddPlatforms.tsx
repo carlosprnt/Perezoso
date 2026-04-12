@@ -21,8 +21,8 @@ const QUICK_ADD_PLATFORMS = QUICK_ADD_IDS
   .filter(Boolean) as typeof PLATFORMS
 
 const ROW_TRANSITION = {
-  duration: 0.45,
-  ease: [0.22, 1, 0.36, 1] as const,
+  duration: 0.6,
+  ease: [0.16, 1, 0.3, 1] as const,
 }
 
 function PlatformRow({
@@ -45,7 +45,7 @@ function PlatformRow({
       initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
       whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
       viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
-      transition={{ ...ROW_TRANSITION, delay: index * 0.04 }}
+      transition={{ ...ROW_TRANSITION, delay: index * 0.06 }}
     >
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
