@@ -14,18 +14,22 @@ interface InsightsProps {
 }
 
 // ─── Individual horizontal card ──────────────────────────────────────────────
+// Layout: [Icon]  label (small)        rightTop
+//                 title (bold)         rightBottom
 function InsightCell({
   icon,
   iconCls,
   label,
   value,
-  sub,
+  rightTop,
+  rightBottom,
 }: {
   icon: React.ReactNode
   iconCls: string
   label: string
   value: string
-  sub: string
+  rightTop?: string
+  rightBottom?: string
 }) {
   return (
     <div className="bg-white dark:bg-[#1C1C1E] rounded-[32px] px-4 py-3 flex items-center gap-3">
@@ -33,10 +37,15 @@ function InsightCell({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] text-[#737373] dark:text-[#8E8E93] font-medium mb-0.5">{label}</p>
+        <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mb-0.5">{label}</p>
         <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
-        {sub && <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug truncate">{sub}</p>}
       </div>
+      {(rightTop || rightBottom) && (
+        <div className="text-right flex-shrink-0">
+          {rightTop && <p className="text-[12px] text-[#000000] dark:text-[#F2F2F7] font-semibold leading-snug">{rightTop}</p>}
+          {rightBottom && <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5">{rightBottom}</p>}
+        </div>
+      )}
     </div>
   )
 }
@@ -85,11 +94,8 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         iconCls="bg-[#F5F5F5] text-[#000000]"
         label={t('dashboard.highestCost')}
         value={highest?.name ?? '—'}
-        sub={
-          highest
-            ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} ${perMonth} · ${t(`categories.${highest.category}` as Parameters<typeof t>[0])}`
-            : ''
-        }
+        rightTop={highest ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} /mes` : undefined}
+        rightBottom={highest ? t(`categories.${highest.category}` as Parameters<typeof t>[0]) : undefined}
       />
 
       {/* ② Top category */}
@@ -98,11 +104,8 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
         iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#000000]'}
         label={t('dashboard.topCategory')}
         value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
-        sub={
-          topCat
-            ? `${formatCurrency(topCat.monthly_cost, dominantCurrency, locale)} ${perMonth} · ${topCat.count} ${locale === 'es' ? 'suscr.' : 'subs'}`
-            : ''
-        }
+        rightTop={topCat ? `${formatCurrency(topCat.monthly_cost, dominantCurrency, locale)} /mes` : undefined}
+        rightBottom={topCat ? `${topCat.count} ${locale === 'es' ? 'suscr.' : 'subs'}` : undefined}
       />
 
       {/* ③ Shared plans */}
@@ -115,11 +118,8 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
             ? `${sharedSubs.length} ${locale === 'es' ? (sharedSubs.length === 1 ? 'plan' : 'planes') : (sharedSubs.length === 1 ? 'plan' : 'plans')}`
             : t('dashboard.noPlans')
         }
-        sub={
-          sharedSubs.length > 0
-            ? t('dashboard.saving').replace('{amount}', `${formatCurrency(sharedSavings, dominantCurrency, locale)} ${perMonth}`)
-            : ''
-        }
+        rightTop={sharedSubs.length > 0 ? formatCurrency(sharedSavings, dominantCurrency, locale) : undefined}
+        rightBottom={sharedSubs.length > 0 ? '/mes' : undefined}
       />
 
     </div>
