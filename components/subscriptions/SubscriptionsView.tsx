@@ -432,7 +432,7 @@ function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
+        <div className="absolute top-full right-0 mt-2 w-48 max-h-[320px] overflow-y-auto bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
           <div className="p-2">
             {/* Status section */}
             <p className="text-[11px] font-semibold text-[#737373] dark:text-[#8E8E93] uppercase tracking-wider px-3 pt-1.5 pb-1">{t('subscriptions.filterStatus')}</p>
