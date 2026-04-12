@@ -22,12 +22,14 @@ const BTN_H = 48   // button height
 const PAD  = 8     // pill padding
 const GAP  = 8     // gap between buttons
 
-function CardIcon({ active }: { active: boolean }) {
+function CardIcon({ active, stripColor }: { active: boolean; stripColor?: string }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor"
       strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="5" width="20" height="14" rx="3" />
-      <line x1="2" y1="10" x2="22" y2="10" strokeWidth={active ? 0 : 2} />
+      {/* Stripe — when filled, drawn in the indicator-bg colour so it
+          cuts through the solid fill and the icon still reads as a card. */}
+      <line x1="2" y1="10" x2="22" y2="10" stroke={active ? stripColor : 'currentColor'} strokeWidth={2} />
     </svg>
   )
 }
@@ -161,7 +163,7 @@ export default function FloatingNav() {
               <div className="relative flex items-center justify-center rounded-full"
                 style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? activeIconColor : inactiveIconColor }}
               >
-                <CardIcon active={isSubs} />
+                <CardIcon active={isSubs} stripColor={isDarkMode ? '#F2F2F7' : '#121212'} />
               </div>
             </Link>
 
