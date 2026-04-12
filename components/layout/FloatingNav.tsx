@@ -208,17 +208,17 @@ export default function FloatingNav() {
               right: 10,
               bottom: 10,
               height: '70dvh',
-              borderRadius: 28,
+              transformOrigin: 'bottom center',
             }}
-            initial={{ opacity: 0, scale: 0.85, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ scale: 0, borderRadius: '50%', opacity: 0 }}
+            animate={{ scale: 1, borderRadius: 28, opacity: 1 }}
+            exit={{ scale: 0, borderRadius: '50%', opacity: 0 }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Background with blur */}
             <div
               className="absolute inset-0 bg-[#0a0a0a]/95"
-              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 28 }}
+              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'inherit' }}
             />
 
             {/* Content */}
