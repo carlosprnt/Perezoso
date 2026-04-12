@@ -58,9 +58,9 @@ function PlatformRow({
         </p>
         <button
           onClick={() => onAdd(platform)}
-          className="text-[13px] font-semibold text-[#000000] dark:text-[#FFFFFF] flex-shrink-0 active:opacity-60 transition-opacity"
+          className="w-8 h-8 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] flex items-center justify-center flex-shrink-0 active:opacity-60 transition-opacity"
         >
-          Añadir
+          <Plus size={16} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7]" />
         </button>
       </div>
       {!isLast && <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />}

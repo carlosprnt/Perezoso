@@ -211,7 +211,7 @@ export default function FloatingNav() {
               transformOrigin: 'bottom center',
             }}
             initial={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 40, opacity: 0 }}
-            animate={{ scaleX: 1, scaleY: 1, borderRadius: 28, opacity: 1 }}
+            animate={{ scaleX: 1, scaleY: 1, borderRadius: 32, opacity: 1 }}
             exit={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 40, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
