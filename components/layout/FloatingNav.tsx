@@ -210,10 +210,10 @@ export default function FloatingNav() {
               height: '70dvh',
               transformOrigin: 'bottom center',
             }}
-            initial={{ scale: 0, borderRadius: '50%', opacity: 0 }}
-            animate={{ scale: 1, borderRadius: 28, opacity: 1 }}
-            exit={{ scale: 0, borderRadius: '50%', opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 40, opacity: 0 }}
+            animate={{ scaleX: 1, scaleY: 1, borderRadius: 28, opacity: 1 }}
+            exit={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 40, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Background with blur */}
             <div
