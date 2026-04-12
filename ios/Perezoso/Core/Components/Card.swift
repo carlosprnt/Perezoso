@@ -17,12 +17,12 @@ struct Card<Content: View>: View {
     }
 
     let style: Style
-    var cornerRadius: CGFloat = Radius.xl
+    var cornerRadius: CGFloat = Radius.card
     @ViewBuilder let content: () -> Content
 
     init(
         _ style: Style = .flat,
-        cornerRadius: CGFloat = Radius.xl,
+        cornerRadius: CGFloat = Radius.card,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.style = style

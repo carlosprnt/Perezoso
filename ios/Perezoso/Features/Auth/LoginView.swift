@@ -30,16 +30,19 @@ struct LoginView: View {
          "Descubre patrones y recomendaciones para reducir lo que pagas cada mes."),
     ]
 
-    /// Brand logos that float in the hero area (matching web's floatingLogos)
-    private let floatingLogos: [(name: String, icon: String, offset: CGSize, delay: Double)] = [
-        ("Netflix",  "play.tv.fill",        CGSize(width: -100, height: -60), 0.0),
-        ("Spotify",  "music.note",          CGSize(width: 90, height: -90),  0.3),
-        ("Figma",    "paintbrush.fill",     CGSize(width: -50, height: -140), 0.6),
-        ("YouTube",  "play.rectangle.fill", CGSize(width: 70, height: -30),  0.2),
-        ("iCloud",   "cloud.fill",          CGSize(width: -120, height: -160), 0.8),
-        ("Notion",   "doc.text.fill",       CGSize(width: 110, height: -140), 0.5),
-        ("GitHub",   "chevron.left.forwardslash.chevron.right", CGSize(width: -80, height: -200), 1.0),
-        ("Twitch",   "play.fill",           CGSize(width: 60, height: -200), 0.4),
+    /// Brand logos matching web's FLOATING_LOGOS — positioned as percentages
+    /// of the hero area, with sizes and float animation delays.
+    private let floatingLogos: [(slug: String, name: String, leftPct: CGFloat, topPct: CGFloat, size: CGFloat, delay: Double)] = [
+        ("netflix",  "Netflix",  0.04, 0.08, 52, 0.0),
+        ("figma",    "Figma",    0.36, 0.02, 42, 0.6),
+        ("spotify",  "Spotify",  0.66, 0.05, 46, 0.5),
+        ("revolut",  "Revolut",  0.52, 0.13, 40, 0.1),
+        ("duolingo", "Duolingo", 0.05, 0.22, 44, 0.9),
+        ("youtube",  "YouTube",  0.74, 0.20, 50, 0.3),
+        ("notion",   "Notion",   0.03, 0.50, 44, 0.8),
+        ("twitch",   "Twitch",   0.68, 0.52, 52, 0.2),
+        ("github",   "GitHub",   0.52, 0.63, 46, 0.4),
+        ("icloud",   "iCloud",   0.08, 0.60, 44, 0.7),
     ]
 
     var body: some View {
@@ -105,18 +108,18 @@ struct LoginView: View {
 
     private var floatingLogosView: some View {
         GeometryReader { geo in
-            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height * 0.32)
             ZStack {
-                ForEach(Array(floatingLogos.enumerated()), id: \.offset) { idx, logo in
-                    FloatingLogoView(
-                        icon: logo.icon,
-                        initialName: String(logo.name.prefix(1)),
-                        position: CGPoint(
-                            x: center.x + logo.offset.width,
-                            y: center.y + logo.offset.height
-                        ),
+                ForEach(Array(floatingLogos.enumerated()), id: \.offset) { _, logo in
+                    FloatingLogoTile(
+                        slug: logo.slug,
+                        name: logo.name,
+                        size: logo.size,
                         delay: logo.delay,
                         appeared: appeared
+                    )
+                    .position(
+                        x: geo.size.width * logo.leftPct + logo.size / 2,
+                        y: geo.size.height * logo.topPct + logo.size / 2
                     )
                 }
             }
@@ -289,46 +292,50 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Floating Logo
+// MARK: - Floating Logo Tile
 
-/// Individual floating logo bubble matching web's logo-float animations.
-private struct FloatingLogoView: View {
-    let icon: String
-    let initialName: String
-    let position: CGPoint
+/// White tile with brand logo from CDN, matching web's FloatingLogoTile.
+/// `bg-white rounded-[14px] border border-[#E8E8E8] shadow-[0_4px_14px_rgba(0,0,0,0.09)]`
+private struct FloatingLogoTile: View {
+    let slug: String
+    let name: String
+    let size: CGFloat
     let delay: Double
     let appeared: Bool
 
     @State private var floatOffset: CGFloat = 0
 
     var body: some View {
-        Image(systemName: icon)
-            .font(.system(size: 18, weight: .medium))
-            .foregroundStyle(Color.textMuted.opacity(0.5))
-            .frame(width: 44, height: 44)
-            .background(Color.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.borderLight, lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
-            .position(x: position.x, y: position.y + floatOffset)
-            .scaleEffect(appeared ? 1 : 0)
-            .opacity(appeared ? 0.7 : 0)
-            .animation(
-                .easeOut(duration: 0.4).delay(delay),
-                value: appeared
-            )
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: Double.random(in: 3...5))
-                    .repeatForever(autoreverses: true)
-                    .delay(delay)
-                ) {
-                    floatOffset = CGFloat.random(in: -10...10)
-                }
+        ZStack {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color(hex: "#E8E8E8"), lineWidth: 1)
+
+            // First letter fallback (CDN images won't load in simulator
+            // without network, so show the initial as fallback)
+            Text(String(name.prefix(1)))
+                .font(.rounded(.bold, size: size * 0.35))
+                .foregroundStyle(Color.textMuted)
+        }
+        .frame(width: size, height: size)
+        .shadow(color: .black.opacity(0.09), radius: 7, y: 4)
+        .offset(y: floatOffset)
+        .scaleEffect(appeared ? 1 : 0.4)
+        .opacity(appeared ? 1 : 0)
+        .animation(
+            .spring(response: 0.45, dampingFraction: 0.6).delay(delay),
+            value: appeared
+        )
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: Double.random(in: 2.5...3.5))
+                .repeatForever(autoreverses: true)
+                .delay(delay)
+            ) {
+                floatOffset = CGFloat.random(in: -8...8)
             }
+        }
     }
 }
 

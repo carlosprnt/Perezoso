@@ -72,15 +72,15 @@ struct CustomBottomSheet<Content: View>: View {
                                     dismiss()
                                 } label: {
                                     Image(systemName: "xmark")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(Color.textMuted)
-                                        .frame(width: 28, height: 28)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(Color.textSecondary)
+                                        .frame(width: 44, height: 44)
                                         .background(Color.surfaceSecondary)
                                         .clipShape(Circle())
                                 }
                             }
                             .padding(.horizontal, Spacing.xl)
-                            .padding(.bottom, Spacing.md)
+                            .padding(.vertical, Spacing.md)
                         }
 
                         // Content

@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// Colored subscription card matching the web's SubscriptionCard
-/// component with 16 color presets, progress bar, status indicator,
-/// and billing period info.
+/// Colored subscription card matching the web's SubscriptionCard.tsx.
 ///
-/// Web uses `rounded-3xl` (24px) for subscription cards with custom
-/// background colors and adaptive text colors.
+/// Web layout: horizontal row with avatar | name+category | price+status,
+/// progress bar below, then days-left + next date. Uses `rounded-3xl`
+/// (24px) with custom background colors and adaptive text colors.
 struct SubscriptionCard: View {
     let subscription: Subscription
     var onTap: (() -> Void)?
@@ -19,44 +18,69 @@ struct SubscriptionCard: View {
             Haptics.tap(.light)
             onTap?()
         } label: {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // ── Top row: logo + status ────────────────────
-                HStack(alignment: .top) {
+            VStack(spacing: Spacing.md) {
+                // ── Top row: avatar + name/category + price/status ──
+                HStack(spacing: Spacing.lg) {
                     LogoAvatar(
                         name: subscription.name,
                         logoURL: URL(string: subscription.logoUrl ?? ""),
-                        size: 44
+                        size: 48
                     )
 
-                    Spacer()
-
-                    cardStatusDot
-                }
-
-                Spacer(minLength: Spacing.sm)
-
-                // ── Bottom: name + amount ─────────────────────
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text(subscription.name)
-                        .font(.rounded(.semibold, size: 15))
-                        .foregroundStyle(Color(hex: preset.text))
-                        .lineLimit(1)
-
-                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xxs) {
-                        Text(CurrencyFormat.string(for: subscription.amount, currency: subscription.currency))
+                    // Name + category
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(subscription.name)
                             .font(.rounded(.bold, size: 20))
                             .foregroundStyle(Color(hex: preset.text))
+                            .lineLimit(1)
 
-                        Text("/ \(subscription.billingPeriod.shortLabel)")
-                            .font(.rounded(.medium, size: 12))
+                        Text(subscription.category.localizedName)
+                            .font(.rounded(.regular, size: 14))
                             .foregroundStyle(Color(hex: preset.subtitle))
+                            .lineLimit(1)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Price + status
+                    VStack(alignment: .trailing, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(CurrencyFormat.string(for: subscription.monthlyEquivalent, currency: subscription.currency))
+                                .font(.rounded(.bold, size: 16))
+                                .foregroundStyle(Color(hex: preset.text))
+
+                            Text("/mo")
+                                .font(.rounded(.regular, size: 14))
+                                .foregroundStyle(Color(hex: preset.subtitle))
+                        }
+
+                        Text(statusLabel)
+                            .font(.rounded(.semibold, size: 14))
+                            .foregroundStyle(statusColor)
+                    }
+                    .flexShrink()
                 }
 
-                // ── Progress bar ──────────────────────────────
-                progressBar
+                // ── Progress bar + billing info ──────────────────
+                if subscription.nextBillingDate > .distantPast {
+                    VStack(spacing: Spacing.xs) {
+                        // Progress bar
+                        progressBar
+
+                        // Days left + next date
+                        HStack {
+                            Text(daysLabel)
+                                .font(.rounded(.regular, size: 12))
+                                .foregroundStyle(Color(hex: preset.subtitle))
+                            Spacer()
+                            Text(formattedNextDate)
+                                .font(.rounded(.regular, size: 12))
+                                .foregroundStyle(Color(hex: preset.subtitle))
+                        }
+                    }
+                }
             }
-            .padding(Spacing.xl)
+            .padding(.horizontal, Spacing.xl)
+            .padding(.vertical, Spacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(hex: preset.background))
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -66,25 +90,14 @@ struct SubscriptionCard: View {
                         preset.id == "white"
                             ? Color(hex: preset.border)
                             : Color.clear,
-                        lineWidth: 1
+                        lineWidth: 1.5
                     )
             )
         }
         .buttonStyle(.pressable)
     }
 
-    // MARK: - Status dot
-
-    private var cardStatusDot: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 6, height: 6)
-            Text(statusLabel)
-                .font(.micro)
-                .foregroundStyle(Color(hex: preset.subtitle))
-        }
-    }
+    // MARK: - Status
 
     private var statusColor: Color {
         preset.isDark ? subscription.status.darkColor : subscription.status.lightColor
@@ -92,10 +105,10 @@ struct SubscriptionCard: View {
 
     private var statusLabel: String {
         switch subscription.status {
-        case .active:    "Activa"
-        case .paused:    "Pausada"
-        case .cancelled: "Cancelada"
-        case .trial:     "Prueba"
+        case .active:    "Active"
+        case .paused:    "Paused"
+        case .cancelled: "Cancelled"
+        case .trial:     "Trial"
         }
     }
 
@@ -122,6 +135,23 @@ struct SubscriptionCard: View {
             }
         }
         .frame(height: 4)
+    }
+
+    // MARK: - Billing helpers
+
+    private var daysLabel: String {
+        let d = subscription.daysUntilBilling
+        if d == 0 { return "Hoy" }
+        if d == 1 { return "Mañana" }
+        return "En \(d) días"
+    }
+
+    private var formattedNextDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.locale = Locale(identifier: "es_ES")
+        return formatter.string(from: subscription.nextBillingDate)
     }
 }
 
@@ -150,6 +180,14 @@ struct PressableButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == PressableButtonStyle {
     static var pressable: PressableButtonStyle { .init() }
+}
+
+// MARK: - Flex shrink helper
+
+private extension View {
+    func flexShrink() -> some View {
+        self.layoutPriority(-1)
+    }
 }
 
 #Preview {

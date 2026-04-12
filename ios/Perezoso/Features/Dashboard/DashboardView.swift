@@ -53,27 +53,11 @@ struct DashboardView: View {
 
     private var headerRow: some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Hola, \(auth.profile?.firstName ?? "").")
-                    .font(.title)
-                    .foregroundStyle(Color.textPrimary)
-            }
+            Text("Hola, \(auth.profile?.firstName ?? "").")
+                .font(.rounded(.bold, size: 17))
+                .foregroundStyle(Color.textPrimary)
 
             Spacer()
-
-            // Calendar button
-            Button {
-                Haptics.tap(.light)
-                onCalendarTap?()
-            } label: {
-                Image(systemName: "calendar")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Color.textMuted)
-                    .frame(width: 40, height: 40)
-                    .background(Color.surface)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.borderLight, lineWidth: 1))
-            }
 
             // Avatar / Settings button
             Button {
@@ -92,64 +76,57 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Spending Hero
+    // MARK: - Spending Hero (narrative prose — matches web DashboardSummaryHero)
 
     private var spendingHero: some View {
-        Card(.elevated) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Este mes gastas")
-                    .font(.bodyRegular)
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // "Este mes gastas" + big monthly amount
+            buildNarrativeText()
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Supporting line: active subs count
+            let total = store.activeSubscriptions.count
+            Group {
+                Text("Tienes ")
+                    .foregroundStyle(Color.textSecondary) +
+                Text("\(total)")
+                    .foregroundStyle(Color.textPrimary) +
+                Text(" \(total == 1 ? "suscripción activa" : "suscripciones activas").")
                     .foregroundStyle(Color.textSecondary)
-
-                Text(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))
-                    .font(.system(size: 50, weight: .bold, design: .serif))
-                    .foregroundStyle(Color.textPrimary)
-                    .contentTransition(.numericText())
-
-                Text("Eso al año es \(CurrencyFormat.string(for: store.yearlyTotal, currency: "EUR")).")
-                    .font(.largeStatement)
-                    .foregroundStyle(Color.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(Spacing.xl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .font(.rounded(.bold, size: 18))
         }
+        .padding(.bottom, Spacing.sm)
     }
 
-    // MARK: - Quick Stats
+    @ViewBuilder
+    private func buildNarrativeText() -> some View {
+        let monthly = CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR")
+        let annual = CurrencyFormat.string(for: store.yearlyTotal, currency: "EUR")
 
-    private var statsRow: some View {
-        HStack(spacing: Spacing.md) {
-            statCard(
-                value: "\(store.activeSubscriptions.count)",
-                label: "Activas",
-                icon: "rectangle.stack.fill"
-            )
-            statCard(
-                value: "\(store.renewingSoon.count)",
-                label: "Por renovar",
-                icon: "clock.fill"
-            )
-        }
-    }
+        VStack(alignment: .leading, spacing: 0) {
+            // Line 1: "Este mes gastas"
+            Text("Este mes gastas")
+                .font(.rounded(.heavy, size: 25))
+                .foregroundStyle(Color.textSecondary)
 
-    private func statCard(value: String, label: String, icon: String) -> some View {
-        Card {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack {
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.accent)
-                    Spacer()
-                }
-                Text(value)
-                    .font(.rounded(.bold, size: 28))
-                    .foregroundStyle(Color.textPrimary)
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(Color.textMuted)
-            }
-            .padding(Spacing.lg)
+            // Line 2: big monthly amount
+            Text(monthly)
+                .font(.system(size: 50, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.textPrimary)
+                .contentTransition(.numericText())
+
+            // Line 3: "Eso al año es"
+            Text("Eso al año es")
+                .font(.rounded(.heavy, size: 25))
+                .foregroundStyle(Color.textSecondary)
+                .padding(.top, 2)
+
+            // Line 4: big annual amount
+            Text(annual)
+                .font(.system(size: 50, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.textPrimary)
+                .contentTransition(.numericText())
         }
     }
 
