@@ -675,24 +675,24 @@ export default function SubscriptionsView({
             >
               <CalendarDays size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
             </button>
-            <motion.button
-              onClick={handleFilterTap}
-              animate={filterShake}
-              className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-            >
-              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
-              {hasActiveFilters && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#000000] border-2 border-white" />
-              )}
-            </motion.button>
           </div>
         </div>
       </motion.div>
 
-      {/* Sort control — just above cards. Hidden when there are no subs. */}
+      {/* Sort + Filter control — just above cards. Hidden when there are no subs. */}
       {allCount > 0 && (
-        <div className="relative z-[30] px-1 mt-2 mb-[9px]">
+        <div className="relative z-[30] px-1 mt-2 mb-[9px] flex items-center justify-between">
           <SortDropdown current={sortMode} onSelect={(mode) => { setSortMode(mode); AnalyticsEvents.sortChanged(mode) }} />
+          <motion.button
+            onClick={handleFilterTap}
+            animate={filterShake}
+            className="flex items-center gap-1 active:opacity-60 transition-opacity"
+          >
+            <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">Filtrar</span>
+            {hasActiveFilters && (
+              <span className="w-2 h-2 rounded-full bg-[#000000]" />
+            )}
+          </motion.button>
         </div>
       )}
 
