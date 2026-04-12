@@ -20,7 +20,7 @@ final class AuthStore: @unchecked Sendable {
         case signedIn
     }
 
-    private(set) var state: AuthState = .unknown
+    nonisolated(unsafe) private(set) var state: AuthState = .unknown
     private(set) var session: Session?
     private(set) var profile: Profile?
 
