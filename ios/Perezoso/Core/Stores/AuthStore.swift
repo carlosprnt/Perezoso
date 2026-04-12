@@ -49,7 +49,7 @@ final class AuthStore: @unchecked Sendable {
             // the app never gets stuck on a white screen.
             session = try await withThrowingTaskGroup(of: Session.self) { group in
                 group.addTask {
-                    try await SupabaseManager.client.auth.session
+                    try await SupabaseManager.requireClient.auth.session
                 }
                 group.addTask {
                     try await Task.sleep(for: .seconds(5))
@@ -72,7 +72,7 @@ final class AuthStore: @unchecked Sendable {
         // Listen for future auth state changes (sign-in, sign-out,
         // token refresh) and update state reactively.
         Task { [weak self] in
-            for await (event, newSession) in SupabaseManager.client.auth.authStateChanges {
+            for await (event, newSession) in SupabaseManager.requireClient.auth.authStateChanges {
                 guard let self else { return }
                 switch event {
                 case .signedIn:
@@ -103,7 +103,7 @@ final class AuthStore: @unchecked Sendable {
         else {
             throw AuthError.missingAppleCredential
         }
-        let session = try await SupabaseManager.client.auth.signInWithIdToken(
+        let session = try await SupabaseManager.requireClient.auth.signInWithIdToken(
             credentials: .init(provider: .apple, idToken: idToken)
         )
         self.session = session
@@ -119,7 +119,7 @@ final class AuthStore: @unchecked Sendable {
     @MainActor
     func signInWithGoogle() async throws {
         // 1. Build the OAuth authorization URL
-        let oauthURL = try SupabaseManager.client.auth.getOAuthSignInURL(
+        let oauthURL = try SupabaseManager.requireClient.auth.getOAuthSignInURL(
             provider: .google,
             redirectTo: URL(string: "perezoso://auth/callback")
         )
@@ -146,7 +146,7 @@ final class AuthStore: @unchecked Sendable {
         }
 
         // 3. Exchange the callback URL for a Supabase session
-        let newSession = try await SupabaseManager.client.auth.session(from: callbackURL)
+        let newSession = try await SupabaseManager.requireClient.auth.session(from: callbackURL)
         self.session = newSession
         await fetchProfile()
         state = .signedIn
@@ -155,7 +155,7 @@ final class AuthStore: @unchecked Sendable {
     // MARK: - Sign out
 
     func signOut() async {
-        try? await SupabaseManager.client.auth.signOut()
+        try? await SupabaseManager.requireClient.auth.signOut()
         session = nil
         profile = nil
         state = .signedOut
@@ -166,7 +166,7 @@ final class AuthStore: @unchecked Sendable {
     private func fetchProfile() async {
         guard let userId = session?.user.id else { return }
         do {
-            profile = try await SupabaseManager.client
+            profile = try await SupabaseManager.requireClient
                 .from("profiles")
                 .select()
                 .eq("id", value: userId.uuidString)

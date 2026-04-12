@@ -27,14 +27,17 @@ struct AppEnvironment {
         let anonKey = Self.plistValue("SUPABASE_ANON_KEY")
         let rcKey = Self.plistValue("REVENUECAT_IOS_KEY")
 
-        let hasValidKeys = urlString != nil
-            && URL(string: urlString!) != nil
+        // URL(string: "https:") is technically valid but has no host —
+        // the Supabase SDK will crash. This happens when xcconfig
+        // truncates https:// because // starts a comment. Require a host.
+        let parsedURL = urlString.flatMap { URL(string: $0) }
+        let hasValidKeys = parsedURL?.host != nil
             && anonKey != nil && !anonKey!.isEmpty
             && rcKey != nil && !rcKey!.isEmpty
 
         #if DEBUG
-        if hasValidKeys {
-            self.supabaseURL = URL(string: urlString!)!
+        if hasValidKeys, let validURL = parsedURL {
+            self.supabaseURL = validURL
             self.supabaseAnonKey = anonKey!
             self.revenueCatKey = rcKey!
             self.isPreview = false
@@ -86,6 +89,11 @@ struct AppEnvironment {
         print("  SUPABASE_ANON_KEY: \(key.prefix(20))…")
         print("  REVENUECAT_KEY:    \(rc.prefix(20))…")
         print("  isPreview:         \(shared.isPreview)")
+        if url == "https:" || url.hasSuffix(":") {
+            print("  ⚠️  URL looks truncated! In Config.xcconfig use:")
+            print("     SUPABASE_URL = https:/$()/your-project.supabase.co")
+            print("     (// in xcconfig is a comment — use $() to escape)")
+        }
         print("────────────────────────")
     }
     #endif

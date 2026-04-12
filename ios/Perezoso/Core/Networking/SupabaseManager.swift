@@ -5,37 +5,27 @@ import Supabase
 ///
 /// Initialised lazily at first access from the keys in
 /// `AppEnvironment` (which reads from Info.plist ← Config.xcconfig).
-/// When running in preview / placeholder mode the client still gets
-/// created with dummy values — but `AuthStore.bootstrap()` will
-/// skip using it, so the app never crashes.
+/// When running in preview / placeholder mode the client is `nil`
+/// and all stores should guard on `AppEnvironment.shared.isPreview`.
 enum SupabaseManager {
-    /// The shared client. Use this from stores and services.
-    /// Lazy `nonisolated(unsafe)` avoids eager `static let` init that
-    /// can crash the Supabase SDK if keys are placeholders.
-    nonisolated(unsafe) static private(set) lazy var client: SupabaseClient = {
+
+    /// The shared client — `nil` when keys are missing or preview mode.
+    nonisolated(unsafe) static let client: SupabaseClient? = {
         let env = AppEnvironment.shared
+        guard !env.isPreview else { return nil }
+
         return SupabaseClient(
             supabaseURL: env.supabaseURL,
-            supabaseKey: env.supabaseAnonKey,
-            options: .init(
-                db: .init(
-                    encoder: {
-                        let e = JSONEncoder()
-                        e.keyEncodingStrategy = .convertToSnakeCase
-                        e.dateEncodingStrategy = .iso8601
-                        return e
-                    }(),
-                    decoder: {
-                        let d = JSONDecoder()
-                        d.keyDecodingStrategy = .convertFromSnakeCase
-                        d.dateDecodingStrategy = .iso8601
-                        return d
-                    }()
-                ),
-                auth: .init(
-                    redirectToURL: URL(string: "perezoso://auth/callback")
-                )
-            )
+            supabaseKey: env.supabaseAnonKey
         )
     }()
+
+    /// Non-optional accessor for convenience. Crashes only if called
+    /// while `isPreview` is true — stores guard against that already.
+    static var requireClient: SupabaseClient {
+        guard let client else {
+            fatalError("SupabaseManager.client is nil — are you in preview mode?")
+        }
+        return client
+    }
 }

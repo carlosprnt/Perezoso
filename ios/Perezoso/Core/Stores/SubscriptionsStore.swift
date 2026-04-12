@@ -50,7 +50,7 @@ final class SubscriptionsStore: @unchecked Sendable {
         isLoading = true
         error = nil
         do {
-            subscriptions = try await SupabaseManager.client
+            subscriptions = try await SupabaseManager.requireClient
                 .from("subscriptions")
                 .select()
                 .order("next_billing_date", ascending: true)
@@ -63,7 +63,7 @@ final class SubscriptionsStore: @unchecked Sendable {
     }
 
     func create(_ subscription: Subscription) async throws {
-        try await SupabaseManager.client
+        try await SupabaseManager.requireClient
             .from("subscriptions")
             .insert(subscription)
             .execute()
@@ -71,7 +71,7 @@ final class SubscriptionsStore: @unchecked Sendable {
     }
 
     func update(_ subscription: Subscription) async throws {
-        try await SupabaseManager.client
+        try await SupabaseManager.requireClient
             .from("subscriptions")
             .update(subscription)
             .eq("id", value: subscription.id.uuidString)
@@ -80,7 +80,7 @@ final class SubscriptionsStore: @unchecked Sendable {
     }
 
     func delete(id: UUID) async throws {
-        try await SupabaseManager.client
+        try await SupabaseManager.requireClient
             .from("subscriptions")
             .delete()
             .eq("id", value: id.uuidString)
