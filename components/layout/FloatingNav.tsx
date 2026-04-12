@@ -121,25 +121,36 @@ export default function FloatingNav() {
           style={{ bottom: bottomOffset }}
         >
           <div
-            className="floating-pill relative flex items-center rounded-full overflow-hidden"
+            className="floating-pill relative flex items-center rounded-full"
             style={{
               padding: PAD,
               gap: GAP,
               background: isDarkMode ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.65)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: `1px solid ${isDarkMode ? '#3A3A3C' : '#BCBCBC'}`,
             }}
           >
-            {/* Dashboard button — active = black stroke on container */}
+            {/* Sliding stroke indicator — animates horizontally between
+                Dashboard (x=0) and Subscriptions (x=2*(BTN_W+GAP)).
+                The "+" button in the middle is skipped. */}
+            <motion.div
+              className="absolute rounded-full"
+              style={{
+                width: BTN_W,
+                height: BTN_H,
+                top: PAD,
+                left: PAD,
+                zIndex: 1,
+                border: `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}`,
+              }}
+              animate={{ x: isSubs ? 2 * (BTN_W + GAP) : 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
+            />
+
+            {/* Dashboard button */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
-              <div className="relative flex items-center justify-center rounded-full transition-all"
-                style={{
-                  width: BTN_W,
-                  height: BTN_H,
-                  zIndex: 2,
-                  border: isDash ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
-                }}
+              <div className="relative flex items-center justify-center rounded-full"
+                style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
               >
                 <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill={isDash ? iconColor : 'none'} />
               </div>
@@ -162,16 +173,10 @@ export default function FloatingNav() {
               <Plus size={20} color={isDarkMode ? '#000000' : '#ffffff'} strokeWidth={2.5} />
             </motion.button>
 
-            {/* Subscriptions button — active = black stroke on container */}
+            {/* Subscriptions button */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
-              <div className="relative flex items-center justify-center rounded-full transition-all"
-                style={{
-                  width: BTN_W,
-                  height: BTN_H,
-                  zIndex: 2,
-                  color: iconColor,
-                  border: isSubs ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
-                }}
+              <div className="relative flex items-center justify-center rounded-full"
+                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: iconColor }}
               >
                 <CardIcon filled={isSubs} />
               </div>
