@@ -42,7 +42,7 @@ function PlatformRow({
     <motion.div
       initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
       whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-      viewport={{ once: false, amount: 0.8 }}
+      viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
       transition={ROW_TRANSITION}
     >
       <div className="flex items-center gap-3 py-3">
@@ -95,7 +95,7 @@ export default function QuickAddPlatforms() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
             whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-            viewport={{ once: false, amount: 0.8 }}
+            viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
             transition={ROW_TRANSITION}
           >
             <button
