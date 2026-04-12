@@ -134,7 +134,7 @@ function ThemeToggleLink() {
   return (
     <button
       onClick={toggle}
-      className="flex items-center gap-2.5 text-[14px] font-medium text-white/70 active:opacity-60 transition-opacity"
+      className="flex items-center gap-2.5 text-[14px] font-medium text-white active:opacity-60 transition-opacity"
       aria-label="Toggle theme"
     >
       <AnimatePresence initial={false} mode="wait">
