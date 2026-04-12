@@ -29,10 +29,12 @@ function PlatformRow({
   platform,
   onAdd,
   isLast,
+  index,
 }: {
   platform: PlatformPreset
   onAdd: (p: PlatformPreset | null) => void
   isLast: boolean
+  index: number
 }) {
   const logoUrl = resolvePlatformLogoUrl(platform)
   const { fg } = getAvatarPastel(platform.name)
@@ -43,7 +45,7 @@ function PlatformRow({
       initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
       whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
       viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
-      transition={ROW_TRANSITION}
+      transition={{ ...ROW_TRANSITION, delay: index * 0.04 }}
     >
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
@@ -89,6 +91,7 @@ export default function QuickAddPlatforms() {
               platform={platform}
               onAdd={setSelected}
               isLast={i === QUICK_ADD_PLATFORMS.length - 1}
+              index={i}
             />
           ))}
           <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />
