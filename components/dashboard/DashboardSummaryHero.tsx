@@ -149,12 +149,16 @@ interface Props {
 /** Inline row of up to 3 overlapping circular subscription logos.
     If there are more than 3, the 4th slot shows "..." to indicate
     more exist. Tapping the stack fires a bubble animation where all
-    logos float upward and fade out. */
+    logos float upward gently from the "..." position and fade out
+    with blur. */
 function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
   const show3 = urls.slice(0, 3)
   const hasMore = urls.length > 3
   const [bubbling, setBubbling] = useState(false)
   const [bubbleKey, setBubbleKey] = useState(0)
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null)
+  const dotsRef = useRef<HTMLSpanElement>(null)
+  const stackRef = useRef<HTMLSpanElement>(null)
 
   // All logos for the bubble animation (up to 8)
   const bubbleUrls = (allUrls ?? urls).slice(0, 8)
@@ -162,16 +166,22 @@ function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
   const handleTap = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     if (bubbling) return
+    // Get the origin point: the "..." dot if visible, or the last logo
+    const ref = dotsRef.current ?? stackRef.current
+    if (ref) setOriginRect(ref.getBoundingClientRect())
     setBubbling(true)
     setBubbleKey(k => k + 1)
-    setTimeout(() => setBubbling(false), 1200)
-  }, [bubbling])
+    // Auto-dismiss once the slowest bubble has finished
+    const maxDuration = bubbleUrls.length * 250 + 3200
+    setTimeout(() => setBubbling(false), maxDuration)
+  }, [bubbling, bubbleUrls.length])
 
   if (show3.length === 0) return null
 
   return (
     <>
       <span
+        ref={stackRef}
         className="inline-flex items-center align-middle mx-1.5 -my-1 cursor-pointer"
         onClick={handleTap}
         role="button"
@@ -200,6 +210,7 @@ function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
         {/* "..." indicator when there are more than 3 */}
         {hasMore && (
           <span
+            ref={dotsRef}
             className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#E5E5EA] dark:bg-[#3A3A3C] text-[11px] font-bold text-[#737373] dark:text-[#AEAEB2]"
             style={{
               marginLeft: -10,
@@ -212,16 +223,24 @@ function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
         )}
       </span>
 
-      {/* Bubble animation — logos float up and fade out */}
+      {/* Bubble animation — logos emerge from the "..." dot and drift
+          upward gently at different speeds/sizes, fading with blur. */}
       {bubbling && (
-        <BubbleOverlay key={bubbleKey} urls={bubbleUrls} />
+        <BubbleOverlay key={bubbleKey} urls={bubbleUrls} originRect={originRect} />
       )}
     </>
   )
 }
 
-/** Portal-free overlay that renders each logo as a bubble floating upward. */
-function BubbleOverlay({ urls }: { urls: string[] }) {
+/** Portal-free overlay — logos emerge one by one from the "..." dot
+    position, drift upward at different speeds and sizes, fading out
+    with a gentle blur. Much calmer than the previous burst. */
+function BubbleOverlay({ urls, originRect }: { urls: string[]; originRect: DOMRect | null }) {
+  if (!originRect) return null
+  // Centre of the "..." dot in viewport coords
+  const cx = originRect.left + originRect.width / 2
+  const cy = originRect.top + originRect.height / 2
+
   return (
     <span
       className="fixed inset-0 pointer-events-none"
@@ -229,25 +248,33 @@ function BubbleOverlay({ urls }: { urls: string[] }) {
       aria-hidden
     >
       {urls.map((url, i) => {
-        // Spread bubbles across the horizontal center with some randomness
-        const left = 20 + (i / (urls.length - 1 || 1)) * 60 // 20% → 80%
-        const delay = i * 0.07
-        const duration = 0.7 + Math.random() * 0.3
+        // Each logo drifts slightly left/right from the origin for variety
+        const offsetX = (Math.random() - 0.5) * 60
+        const scale = 0.7 + Math.random() * 0.6          // 0.7 – 1.3
+        const duration = 1.8 + Math.random() * 1.2        // 1.8 – 3.0s
+        const delay = i * 0.25 + Math.random() * 0.15     // stagger ~250ms
+        const driftY = -200 - Math.random() * 180          // -200 to -380
         return (
           <motion.span
             key={url + i}
-            className="absolute w-11 h-11 rounded-full overflow-hidden bg-white shadow-lg p-1"
-            style={{ left: `${left}%`, bottom: '45%' }}
-            initial={{ y: 0, opacity: 1, scale: 0.4 }}
+            className="absolute w-10 h-10 rounded-full overflow-hidden bg-white shadow-md p-1"
+            style={{
+              left: cx - 20,
+              top: cy - 20,
+            }}
+            initial={{ y: 0, x: 0, opacity: 0, scale: 0.3, filter: 'blur(0px)' }}
             animate={{
-              y: -300 - Math.random() * 200,
-              opacity: [1, 1, 0],
-              scale: [0.4, 1.1, 0.8],
+              y: driftY,
+              x: offsetX,
+              opacity: [0, 1, 1, 0],
+              scale: [0.3, scale, scale * 0.9],
+              filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(6px)'],
             }}
             transition={{
               duration,
               delay,
-              ease: [0.2, 0, 0, 1],
+              ease: [0.15, 0, 0.25, 1],
+              times: [0, 0.15, 0.7, 1],
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
