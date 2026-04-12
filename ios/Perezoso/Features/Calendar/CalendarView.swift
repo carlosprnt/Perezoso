@@ -19,26 +19,31 @@ struct CalendarView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.xl) {
-                    monthHeader
-                    weekdayRow
-                    dayGrid
-                    if let date = selectedDate {
-                        renewalList(for: date)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
+        ScrollView {
+            VStack(spacing: Spacing.xl) {
+                // Title (when not embedded in NavigationStack)
+                HStack {
+                    Text("Calendario")
+                        .font(.title)
+                        .foregroundStyle(Color.textPrimary)
+                    Spacer()
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, 100)
+
+                monthHeader
+                weekdayRow
+                dayGrid
+                if let date = selectedDate {
+                    renewalList(for: date)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
-            .background(Color.background)
-            .navigationTitle("Calendario")
-            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: displayedMonth)
-            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: selectedDate)
+            .padding(.horizontal, Spacing.xl)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, 120)
         }
+        .background(Color.background)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: displayedMonth)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: selectedDate)
     }
 
     // MARK: - Subviews
@@ -177,14 +182,12 @@ struct CalendarView: View {
               let firstDay = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth))
         else { return [] }
 
-        // Weekday of first day (Mon=1 … Sun=7 in ISO calendar)
-        let firstWeekday = (calendar.component(.weekday, from: firstDay) + 5) % 7 // convert Sun=1 to Mon=0
+        let firstWeekday = (calendar.component(.weekday, from: firstDay) + 5) % 7
         var cells: [Date?] = Array(repeating: nil, count: firstWeekday)
         for day in range {
             let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay)!
             cells.append(date)
         }
-        // Pad to full week
         while cells.count % 7 != 0 { cells.append(nil) }
         return cells
     }
@@ -229,9 +232,9 @@ private struct DayCell: View {
                 }
 
                 Text("\(day)")
-                    .font(.inter(.medium, size: 14))
+                    .font(.rounded(.medium, size: 14))
                     .foregroundStyle(
-                        isSelected ? Color.white :
+                        isSelected ? Color.accentForeground :
                         isToday ? Color.accent :
                         Color.textPrimary
                     )
@@ -241,7 +244,7 @@ private struct DayCell: View {
             HStack(spacing: 2) {
                 ForEach(0..<min(renewalCount, 3), id: \.self) { _ in
                     Circle()
-                        .fill(isSelected ? Color.white.opacity(0.8) : Color.accent)
+                        .fill(isSelected ? Color.accentForeground.opacity(0.8) : Color.accent)
                         .frame(width: 4, height: 4)
                 }
             }

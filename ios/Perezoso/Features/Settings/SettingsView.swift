@@ -4,7 +4,8 @@ import SwiftUI
 ///
 /// Sections: user profile, Perezoso Pro upgrade CTA, appearance,
 /// notifications toggle, preferred currency, and destructive actions
-/// (sign out, delete account).
+/// (sign out, delete account). Uses rounded typography and adaptive
+/// accent colors matching the web design.
 struct SettingsView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(SubscriptionsStore.self) private var store
@@ -19,26 +20,31 @@ struct SettingsView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.xl) {
-                    profileSection
-                    if !(auth.profile?.isPro ?? false) {
-                        proSection
-                    }
-                    appearanceSection
-                    notificationsSection
-                    currencySection
-                    dangerSection
-                    versionFooter
+        ScrollView {
+            VStack(spacing: Spacing.xl) {
+                // Title (when presented as sheet)
+                HStack {
+                    Text("Ajustes")
+                        .font(.title)
+                        .foregroundStyle(Color.textPrimary)
+                    Spacer()
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, 100)
+
+                profileSection
+                if !(auth.profile?.isPro ?? false) {
+                    proSection
+                }
+                appearanceSection
+                notificationsSection
+                currencySection
+                dangerSection
+                versionFooter
             }
-            .background(Color.background)
-            .navigationTitle("Ajustes")
+            .padding(.horizontal, Spacing.xl)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, 120)
         }
+        .background(Color.background)
         .sheet(isPresented: $showPaywall) {
             PaywallView()
                 .presentationDragIndicator(.visible)
@@ -73,13 +79,12 @@ struct SettingsView: View {
     private var profileSection: some View {
         SettingsSection(title: "Perfil") {
             HStack(spacing: Spacing.md) {
-                // Avatar
                 Circle()
                     .fill(Color.accentLight)
                     .frame(width: 52, height: 52)
                     .overlay(
                         Text(avatarInitial)
-                            .font(.inter(.bold, size: 20))
+                            .font(.rounded(.bold, size: 20))
                             .foregroundStyle(Color.accent)
                     )
 
@@ -308,12 +313,16 @@ private enum AppearanceMode: String, CaseIterable, Identifiable {
 
 private struct ProBadge: View {
     var body: some View {
-        Text("PRO")
-            .font(.micro)
-            .foregroundStyle(.white)
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xxs)
-            .background(Color.accent, in: Capsule())
+        HStack(spacing: 4) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 9))
+            Text("PRO")
+                .font(.micro)
+        }
+        .foregroundStyle(Color.textPrimary)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xxs)
+        .background(Color(hex: "#EEEEFF"), in: Capsule())
     }
 }
 

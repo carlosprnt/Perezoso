@@ -4,9 +4,9 @@ import AuthenticationServices
 /// Login / onboarding screen matching the web app's `/login`.
 ///
 /// Shows a page-style carousel with 4 value-proposition slides
-/// (+ a 5th login-only slide), floating subscription brand logos
-/// in the hero area, the Perezoso sloth logo in the center, and
-/// a bottom panel with "Iniciar sesión" / "Continuar" CTAs.
+/// (+ a 5th login-only slide), the Perezoso sloth logo in the center,
+/// and a bottom panel with "Iniciar sesión" / "Continuar" CTAs.
+/// Uses rounded typography and the adaptive accent colors.
 struct LoginView: View {
     @Environment(AuthStore.self) private var auth
     @State private var currentSlide = 0
@@ -38,7 +38,6 @@ struct LoginView: View {
                         Image("Logo")
                             .resizable()
                     } else {
-                        // Placeholder until the real logo is added to Assets
                         ZStack {
                             Color.accentLight
                             Image(systemName: "tortoise.fill")
@@ -72,7 +71,7 @@ struct LoginView: View {
                                 .foregroundStyle(Color.textSecondary)
                                 .animation(.easeInOut(duration: 0.2), value: currentSlide)
                         }
-                        .id(currentSlide) // force re-render for transition
+                        .id(currentSlide)
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .leading).combined(with: .opacity)
@@ -112,7 +111,6 @@ struct LoginView: View {
                             }
                         }
                     } else {
-                        // Last slide: show auth providers directly
                         authButtons
                     }
                 }
@@ -149,7 +147,6 @@ struct LoginView: View {
 
     private var authButtons: some View {
         VStack(spacing: Spacing.sm) {
-            // Sign in with Apple (native)
             SignInWithAppleButton(.signIn) { request in
                 request.requestedScopes = [.email, .fullName]
             } onCompletion: { result in
@@ -159,7 +156,6 @@ struct LoginView: View {
             .frame(height: 48)
             .clipShape(.capsule)
 
-            // Google OAuth
             PrimaryButton(title: "Continuar con Google", isLoading: isLoading) {
                 Task { await handleGoogleSignIn() }
             }

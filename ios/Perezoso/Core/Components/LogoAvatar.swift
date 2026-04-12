@@ -36,7 +36,7 @@ struct LogoAvatar: View {
 
     private var initialFallback: some View {
         Text(String(name.prefix(1)).uppercased())
-            .font(.inter(.bold, size: size * 0.4))
+            .font(.rounded(.bold, size: size * 0.4))
             .foregroundStyle(Color.textMuted)
     }
 }

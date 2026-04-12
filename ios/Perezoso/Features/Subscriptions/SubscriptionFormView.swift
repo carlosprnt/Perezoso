@@ -3,8 +3,8 @@ import SwiftUI
 /// Create / edit form for a subscription.
 ///
 /// Injected with a `mode` that determines whether it creates a new
-/// subscription or edits an existing one. On save it calls the
-/// appropriate `SubscriptionsStore` method and dismisses itself.
+/// subscription or edits an existing one. Includes card color picker
+/// with 16 presets matching the web app.
 struct SubscriptionFormView: View {
     @Environment(SubscriptionsStore.self) private var store
     @Environment(AuthStore.self) private var auth
@@ -45,12 +45,12 @@ struct SubscriptionFormView: View {
     @State private var status: Subscription.Status = .active
     @State private var notes: String = ""
     @State private var logoURLText: String = ""
+    @State private var cardColor: String? = nil
 
     // MARK: - Action state
 
     @State private var isSaving = false
     @State private var errorMessage: String?
-    @State private var showValidationAlert = false
 
     // MARK: - Supported currencies
 
@@ -60,7 +60,6 @@ struct SubscriptionFormView: View {
 
     init(mode: Mode) {
         self.mode = mode
-        // Populate state from existing subscription if editing.
         if let sub = mode.subscription {
             _name = State(initialValue: sub.name)
             _amountText = State(initialValue: "\(sub.amount)")
@@ -72,6 +71,7 @@ struct SubscriptionFormView: View {
             _status = State(initialValue: sub.status)
             _notes = State(initialValue: sub.notes ?? "")
             _logoURLText = State(initialValue: sub.logoUrl ?? "")
+            _cardColor = State(initialValue: sub.cardColor)
         }
     }
 
@@ -124,7 +124,7 @@ struct SubscriptionFormView: View {
                         LabeledFormField(label: "Periodo") {
                             Picker("Periodo", selection: $billingPeriod) {
                                 ForEach(Subscription.BillingPeriod.allCases, id: \.self) { period in
-                                    Text(period.rawValue.capitalized).tag(period)
+                                    Text(period.localizedName).tag(period)
                                 }
                             }
                             .labelsHidden()
@@ -175,6 +175,9 @@ struct SubscriptionFormView: View {
                             .labelsHidden()
                         }
                     }
+
+                    // ── Card color picker ─────────────────────
+                    cardColorSection
 
                     // ── Notes ─────────────────────────────────
                     FormSection(title: "Notas") {
@@ -228,6 +231,53 @@ struct SubscriptionFormView: View {
         }
     }
 
+    // MARK: - Card Color Section
+
+    private var cardColorSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("Color de tarjeta")
+                .font(.caption)
+                .foregroundStyle(Color.textMuted)
+                .padding(.horizontal, Spacing.xs)
+
+            Card {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.sm), count: 8), spacing: Spacing.sm) {
+                    ForEach(CardColorPreset.presets) { preset in
+                        Button {
+                            Haptics.selection()
+                            cardColor = preset.id == "white" ? nil : preset.id
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: Radius.sm, style: .continuous)
+                                    .fill(Color(hex: preset.background))
+                                    .frame(height: 36)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: Radius.sm, style: .continuous)
+                                            .stroke(
+                                                preset.id == "white"
+                                                    ? Color.borderLight
+                                                    : Color.clear,
+                                                lineWidth: 1
+                                            )
+                                    )
+
+                                if (cardColor == nil && preset.id == "white") ||
+                                   cardColor == preset.id {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(
+                                            preset.isDark ? Color.white : Color.black
+                                        )
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(Spacing.lg)
+            }
+        }
+    }
+
     // MARK: - Save
 
     private func save() async {
@@ -266,6 +316,7 @@ struct SubscriptionFormView: View {
                     notes: notes.isEmpty ? nil : notes,
                     trialEndDate: nil,
                     sharedWith: nil,
+                    cardColor: cardColor,
                     createdAt: .now,
                     updatedAt: .now
                 )
@@ -283,6 +334,7 @@ struct SubscriptionFormView: View {
                 updated.category = category
                 updated.logoUrl = logoURLText.isEmpty ? nil : logoURLText
                 updated.notes = notes.isEmpty ? nil : notes
+                updated.cardColor = cardColor
                 try await store.update(updated)
             }
 

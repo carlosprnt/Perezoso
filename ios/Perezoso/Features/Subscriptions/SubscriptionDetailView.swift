@@ -4,7 +4,7 @@ import SwiftUI
 ///
 /// Shows the subscription's logo, name, amount, billing period,
 /// next billing date, category, status badge, and notes.
-/// An "Editar" toolbar button opens `SubscriptionFormView` in edit mode.
+/// Uses the card color preset as background for the hero section.
 struct SubscriptionDetailView: View {
     @Environment(SubscriptionsStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -15,44 +15,16 @@ struct SubscriptionDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
 
+    private var preset: CardColorPreset { subscription.colorPreset }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.lg) {
-                    // ── Hero header ────────────────────────────
-                    VStack(spacing: Spacing.md) {
-                        LogoAvatar(
-                            name: subscription.name,
-                            logoURL: URL(string: subscription.logoUrl ?? ""),
-                            size: 72
-                        )
+                    // ── Colored hero header ───────────────────
+                    heroCard
 
-                        Text(subscription.name)
-                            .font(.title)
-                            .foregroundStyle(Color.textPrimary)
-
-                        StatusBadge(status: subscription.status)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, Spacing.xl)
-
-                    // ── Amount card ────────────────────────────
-                    Card(.elevated) {
-                        VStack(spacing: Spacing.sm) {
-                            Text(CurrencyFormat.string(for: subscription.amount,
-                                                       currency: subscription.currency))
-                                .font(.heroNumber)
-                                .foregroundStyle(Color.textPrimary)
-
-                            Text(billingPeriodLabel)
-                                .font(.bodyRegular)
-                                .foregroundStyle(Color.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.xl)
-                    }
-
-                    // ── Details list ───────────────────────────
+                    // ── Details list ──────────────────────────
                     Card {
                         VStack(spacing: 0) {
                             DetailRow(
@@ -72,7 +44,7 @@ struct SubscriptionDetailView: View {
                             DetailRow(
                                 icon: "arrow.triangle.2.circlepath",
                                 label: "Periodo",
-                                value: subscription.billingPeriod.rawValue.capitalized
+                                value: subscription.billingPeriod.localizedName
                             )
 
                             if let notes = subscription.notes, !notes.isEmpty {
@@ -86,7 +58,7 @@ struct SubscriptionDetailView: View {
                         }
                     }
 
-                    // ── Monthly equivalent (if yearly/quarterly) ──
+                    // ── Monthly equivalent ────────────────────
                     if subscription.billingPeriod != .monthly {
                         Card {
                             HStack {
@@ -103,41 +75,33 @@ struct SubscriptionDetailView: View {
                         }
                     }
 
-                    // ── Danger zone ────────────────────────────
-                    Button(role: .destructive) {
-                        Haptics.notification(.warning)
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Eliminar suscripción", systemImage: "trash")
-                            .font(.bodyMedium)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
+                    // ── Actions ───────────────────────────────
+                    VStack(spacing: Spacing.sm) {
+                        SecondaryButton(title: "Editar suscripción") {
+                            Haptics.tap(.light)
+                            showEditSheet = true
+                        }
+
+                        DangerButton(title: "Eliminar suscripción", isLoading: isDeleting) {
+                            Haptics.notification(.warning)
+                            showDeleteConfirmation = true
+                        }
                     }
-                    .tint(Color.danger)
-                    .buttonStyle(.bordered)
-                    .clipShape(.capsule)
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xxxl)
             }
             .background(Color.background)
-            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Editar") {
-                        Haptics.tap(.light)
-                        showEditSheet = true
-                    }
-                    .font(.bodyMedium)
-                    .tint(Color.accent)
-                }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(Color.textMuted)
                     }
-                    .font(.bodyMedium)
-                    .tint(Color.textSecondary)
                 }
             }
         }
@@ -158,6 +122,69 @@ struct SubscriptionDetailView: View {
         } message: {
             Text("Esta acción no se puede deshacer.")
         }
+    }
+
+    // MARK: - Hero Card
+
+    private var heroCard: some View {
+        VStack(spacing: Spacing.lg) {
+            LogoAvatar(
+                name: subscription.name,
+                logoURL: URL(string: subscription.logoUrl ?? ""),
+                size: 72
+            )
+
+            VStack(spacing: Spacing.xs) {
+                Text(subscription.name)
+                    .font(.rounded(.bold, size: 22))
+                    .foregroundStyle(Color(hex: preset.text))
+
+                StatusBadge(status: subscription.status)
+            }
+
+            VStack(spacing: Spacing.xxs) {
+                Text(CurrencyFormat.string(for: subscription.amount,
+                                           currency: subscription.currency))
+                    .font(.system(size: 40, weight: .bold, design: .serif))
+                    .foregroundStyle(Color(hex: preset.text))
+
+                Text(billingPeriodLabel)
+                    .font(.bodyRegular)
+                    .foregroundStyle(Color(hex: preset.subtitle))
+            }
+
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(
+                            preset.isDark
+                                ? Color.white.opacity(0.15)
+                                : Color.black.opacity(0.08)
+                        )
+                        .frame(height: 4)
+                    Capsule()
+                        .fill(
+                            preset.isDark
+                                ? Color.white.opacity(0.70)
+                                : Color.black.opacity(0.35)
+                        )
+                        .frame(width: geo.size.width * subscription.billingProgress, height: 4)
+                }
+            }
+            .frame(height: 4)
+        }
+        .padding(Spacing.xxl)
+        .frame(maxWidth: .infinity)
+        .background(Color(hex: preset.background))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(
+                    preset.id == "white" ? Color(hex: preset.border) : Color.clear,
+                    lineWidth: 1
+                )
+        )
     }
 
     // MARK: - Helpers

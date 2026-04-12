@@ -14,8 +14,6 @@ struct RootView: View {
         ZStack {
             switch auth.state {
             case .unknown:
-                // First launch / bootstrap in progress — show a
-                // background-only splash matching the app chrome.
                 Color.background
                     .ignoresSafeArea()
                     .transition(.opacity)
@@ -33,44 +31,60 @@ struct RootView: View {
     }
 }
 
-/// The main tab bar shown to authenticated users. Mirrors the
-/// primary navigation of the web app: Dashboard · Subscriptions ·
-/// Calendar · Settings.
+/// The main navigation shown to authenticated users.
+///
+/// Replaces the standard TabView with a custom floating pill
+/// navigation bar matching the web app's mobile UI.
+/// Shows: Dashboard · Subscriptions (with floating + button).
+/// Calendar and Settings are accessible from the dashboard header.
 struct MainTabView: View {
-    @State private var selectedTab: Tab = .dashboard
-
-    enum Tab: Hashable {
-        case dashboard
-        case subscriptions
-        case calendar
-        case settings
-    }
+    @State private var selectedTab: AppTab = .dashboard
+    @State private var showAddSheet = false
+    @State private var showCalendar = false
+    @State private var showSettings = false
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView()
-                .tabItem {
-                    Label("Inicio", systemImage: "house.fill")
+        ZStack(alignment: .bottom) {
+            // ── Active tab content ──────────────────────────
+            Group {
+                switch selectedTab {
+                case .dashboard:
+                    DashboardView(
+                        onCalendarTap: { showCalendar = true },
+                        onSettingsTap: { showSettings = true }
+                    )
+                case .subscriptions:
+                    SubscriptionsListView()
+                case .calendar:
+                    CalendarView()
+                case .settings:
+                    SettingsView()
                 }
-                .tag(Tab.dashboard)
+            }
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.15), value: selectedTab)
 
-            SubscriptionsListView()
-                .tabItem {
-                    Label("Suscripciones", systemImage: "rectangle.stack.fill")
-                }
-                .tag(Tab.subscriptions)
-
+            // ── Floating nav bar ────────────────────────────
+            FloatingNavBar(selectedTab: $selectedTab) {
+                showAddSheet = true
+            }
+            .padding(.bottom, 16)
+        }
+        .ignoresSafeArea(.keyboard)
+        .sheet(isPresented: $showAddSheet) {
+            SubscriptionFormView(mode: .create)
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(Radius.sheet)
+        }
+        .sheet(isPresented: $showCalendar) {
             CalendarView()
-                .tabItem {
-                    Label("Calendario", systemImage: "calendar")
-                }
-                .tag(Tab.calendar)
-
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(Radius.sheet)
+        }
+        .sheet(isPresented: $showSettings) {
             SettingsView()
-                .tabItem {
-                    Label("Ajustes", systemImage: "gearshape.fill")
-                }
-                .tag(Tab.settings)
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(Radius.sheet)
         }
     }
 }

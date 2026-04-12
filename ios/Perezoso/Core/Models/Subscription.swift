@@ -20,6 +20,7 @@ struct Subscription: Codable, Identifiable, Hashable, Sendable {
     var notes: String?
     var trialEndDate: Date?
     var sharedWith: Int?
+    var cardColor: String?        // Matches web card_color presets
     var createdAt: Date?
     var updatedAt: Date?
 
@@ -27,6 +28,15 @@ struct Subscription: Codable, Identifiable, Hashable, Sendable {
 
     enum BillingPeriod: String, Codable, CaseIterable, Sendable {
         case monthly, yearly, weekly, quarterly
+
+        var localizedName: String {
+            switch self {
+            case .monthly:   "Mensual"
+            case .yearly:    "Anual"
+            case .weekly:    "Semanal"
+            case .quarterly: "Trimestral"
+            }
+        }
     }
 
     enum Status: String, Codable, CaseIterable, Sendable {
@@ -108,6 +118,24 @@ extension Subscription {
     var isRenewingSoon: Bool {
         daysUntilBilling >= 0 && daysUntilBilling <= 7
     }
+
+    /// Progress through the current billing period (0.0 to 1.0).
+    var billingProgress: Double {
+        let totalDays: Double = switch billingPeriod {
+        case .weekly:    7 * Double(billingIntervalCount)
+        case .monthly:   30 * Double(billingIntervalCount)
+        case .quarterly: 90 * Double(billingIntervalCount)
+        case .yearly:    365 * Double(billingIntervalCount)
+        }
+        let remaining = max(0, Double(daysUntilBilling))
+        let elapsed = totalDays - remaining
+        return min(1.0, max(0.0, elapsed / totalDays))
+    }
+
+    /// The card color preset for this subscription.
+    var colorPreset: CardColorPreset {
+        CardColorPreset.preset(for: cardColor)
+    }
 }
 
 // MARK: - Mock data for previews
@@ -128,6 +156,7 @@ extension Subscription {
         notes: nil,
         trialEndDate: nil,
         sharedWith: nil,
+        cardColor: nil,
         createdAt: .now,
         updatedAt: .now
     )
@@ -138,16 +167,25 @@ extension Subscription {
               currency: "EUR", billingPeriod: .monthly, billingIntervalCount: 1,
               nextBillingDate: Calendar.current.date(byAdding: .day, value: 12, to: .now)!,
               status: .active, category: .music,
-              logoUrl: "https://cdn.simpleicons.org/spotify"),
+              logoUrl: "https://cdn.simpleicons.org/spotify",
+              cardColor: "lime"),
         .init(id: UUID(), userId: UUID(), name: "iCloud+", amount: 2.99,
               currency: "EUR", billingPeriod: .monthly, billingIntervalCount: 1,
               nextBillingDate: Calendar.current.date(byAdding: .day, value: 20, to: .now)!,
               status: .active, category: .cloud,
-              logoUrl: "https://cdn.simpleicons.org/icloud"),
+              logoUrl: "https://cdn.simpleicons.org/icloud",
+              cardColor: "ice"),
         .init(id: UUID(), userId: UUID(), name: "ChatGPT Plus", amount: 20.00,
               currency: "USD", billingPeriod: .monthly, billingIntervalCount: 1,
               nextBillingDate: Calendar.current.date(byAdding: .day, value: 2, to: .now)!,
               status: .active, category: .productivity,
-              logoUrl: "https://cdn.simpleicons.org/openai"),
+              logoUrl: "https://cdn.simpleicons.org/openai",
+              cardColor: "black"),
+        .init(id: UUID(), userId: UUID(), name: "YouTube Premium", amount: 11.99,
+              currency: "EUR", billingPeriod: .monthly, billingIntervalCount: 1,
+              nextBillingDate: Calendar.current.date(byAdding: .day, value: 15, to: .now)!,
+              status: .active, category: .streaming,
+              logoUrl: "https://cdn.simpleicons.org/youtube",
+              cardColor: "navy"),
     ]
 }

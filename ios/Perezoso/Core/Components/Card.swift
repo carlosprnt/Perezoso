@@ -1,7 +1,10 @@
 import SwiftUI
 
-/// Base card container matching the web app's card style: white
-/// surface, subtle border, rounded corners, optional shadow.
+/// Base card container matching the web app's card style.
+///
+/// Web uses `rounded-[32px]` (32px) for cards. On iOS this maps to
+/// `Radius.sheet` for the default card style, matching the web's
+/// generous rounded corners.
 ///
 /// ```swift
 /// Card { Text("Hello") }
@@ -14,19 +17,25 @@ struct Card<Content: View>: View {
     }
 
     let style: Style
+    var cornerRadius: CGFloat = Radius.xl
     @ViewBuilder let content: () -> Content
 
-    init(_ style: Style = .flat, @ViewBuilder content: @escaping () -> Content) {
+    init(
+        _ style: Style = .flat,
+        cornerRadius: CGFloat = Radius.xl,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
         self.style = style
+        self.cornerRadius = cornerRadius
         self.content = content
     }
 
     var body: some View {
         content()
             .background(Color.surface)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(Color.borderLight, lineWidth: 1)
             )
             .shadow(
