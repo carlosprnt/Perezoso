@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
@@ -29,11 +30,24 @@ function PlatformRow({
   isLast: boolean
 }) {
   const logoUrl = resolvePlatformLogoUrl(platform)
-  const { bg, fg } = getAvatarPastel(platform.name)
+  const { fg } = getAvatarPastel(platform.name)
   const initials = getInitials(platform.name)
 
+  // Scroll-driven entrance/exit animation:
+  //   entering viewport → scale 0.9→1, opacity 0→1, blur 6→0
+  //   leaving viewport  → scale 1→0.5, opacity 1→0, blur 0→6
+  const rowRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'start 0.75', 'end 0.25', 'end start'],
+  })
+  const scale   = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.9, 1, 1, 0.5])
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0])
+  const blur    = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [6, 0, 0, 6])
+  const filterCss = useTransform(blur, v => v > 0.2 ? `blur(${v.toFixed(1)}px)` : 'none')
+
   return (
-    <div>
+    <motion.div ref={rowRef} style={{ scale, opacity, filter: filterCss }}>
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
           {logoUrl ? (
@@ -53,14 +67,12 @@ function PlatformRow({
         </button>
       </div>
       {!isLast && <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />}
-    </div>
+    </motion.div>
   )
 }
 
 export default function QuickAddPlatforms() {
   const [selected, setSelected] = useState<PlatformPreset | null | undefined>(undefined)
-  // undefined = closed, null = manual (no preset), PlatformPreset = with preset
-
   const isOpen = selected !== undefined
 
   function close() {
@@ -82,11 +94,7 @@ export default function QuickAddPlatforms() {
               isLast={i === QUICK_ADD_PLATFORMS.length - 1}
             />
           ))}
-
-          {/* Divider before manual */}
           <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />
-
-          {/* Custom / manual */}
           <button
             onClick={() => setSelected(null)}
             className="w-full flex items-center gap-3 py-3 text-left active:opacity-60 transition-opacity"
@@ -101,7 +109,6 @@ export default function QuickAddPlatforms() {
         </div>
       </div>
 
-      {/* Subscription form sheet */}
       <BottomSheet isOpen={isOpen} onClose={close} height="full">
         <SubscriptionForm
           mode="create"
