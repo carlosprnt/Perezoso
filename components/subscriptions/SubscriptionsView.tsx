@@ -355,7 +355,141 @@ function InactiveCardsRow({
   )
 }
 
-// ─── Filter bottom sheet ───────────────────────────────────────────────────
+// ─── Filter dropdown ──────────────────────────────────────────────────────
+function FilterDropdown({
+  currentStatus,
+  currentCategory,
+}: {
+  currentStatus: string
+  currentCategory: string
+}) {
+  const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const hasActive = (currentStatus && currentStatus !== 'all') || (currentCategory && currentCategory !== 'all')
+
+  const statusOptions: { value: string; label: string }[] = [
+    { value: 'active',    label: t('status.active') },
+    { value: 'trial',     label: t('status.trial') },
+    { value: 'paused',    label: t('status.paused') },
+    { value: 'cancelled', label: t('status.cancelled') },
+  ]
+
+  const categoryOptions = CATEGORIES.map(cat => ({
+    value: cat.value,
+    label: t(`categories.${cat.value}` as Parameters<typeof t>[0]),
+  }))
+
+  function applyFilter(key: 'status' | 'category', value: string) {
+    const p = new URLSearchParams()
+    // Preserve the OTHER filter if set.
+    if (key === 'status') {
+      if (value !== currentStatus) p.set('status', value)
+      if (currentCategory && currentCategory !== 'all') p.set('category', currentCategory)
+    } else {
+      if (currentStatus && currentStatus !== 'all') p.set('status', currentStatus)
+      if (value !== currentCategory) p.set('category', value)
+    }
+    router.push(`${pathname}${p.size ? '?' + p.toString() : ''}`, { scroll: false })
+    setOpen(false)
+  }
+
+  function clearAll() {
+    router.push(pathname, { scroll: false })
+    setOpen(false)
+  }
+
+  // Close on outside click or scroll
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    function onScroll() { setOpen(false) }
+    if (open) {
+      document.addEventListener('mousedown', onMouseDown)
+      window.addEventListener('scroll', onScroll, { passive: true })
+    }
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [open])
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 active:opacity-60 transition-opacity"
+      >
+        <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">Filtrar</span>
+        {hasActive && <span className="w-2 h-2 rounded-full bg-[#000000]" />}
+        <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#8E8E93] ml-0.5" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
+          <div className="p-2">
+            {/* Status section */}
+            <p className="text-[11px] font-semibold text-[#737373] dark:text-[#8E8E93] uppercase tracking-wider px-3 pt-1.5 pb-1">{t('subscriptions.filterStatus')}</p>
+            {statusOptions.map(({ value, label }) => {
+              const active = currentStatus === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => applyFilter('status', value)}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                >
+                  {label}
+                  {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] flex-shrink-0" />}
+                </button>
+              )
+            })}
+
+            {/* Divider */}
+            <div className="h-px bg-[#E8E8E8] dark:bg-[#2C2C2E] mx-2 my-1.5" />
+
+            {/* Category section */}
+            <p className="text-[11px] font-semibold text-[#737373] dark:text-[#8E8E93] uppercase tracking-wider px-3 pt-1.5 pb-1">{t('subscriptions.filterCategory')}</p>
+            {categoryOptions.map(({ value, label }) => {
+              const active = currentCategory === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => applyFilter('category', value)}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                >
+                  {label}
+                  {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] flex-shrink-0" />}
+                </button>
+              )
+            })}
+
+            {/* Clear all — only when there's an active filter */}
+            {hasActive && (
+              <>
+                <div className="h-px bg-[#E8E8E8] dark:bg-[#2C2C2E] mx-2 my-1.5" />
+                <button
+                  onClick={clearAll}
+                  className="w-full px-3 py-2 text-sm text-[#737373] dark:text-[#8E8E93] text-left rounded-[8px] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors"
+                >
+                  {t('subscriptions.clearFilters')}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Filter bottom sheet (kept for backward compat but no longer
+//     triggered from the main UI — the FilterDropdown above replaces it) ──
 
 interface FilterSheetProps {
   isOpen: boolean
@@ -683,16 +817,7 @@ export default function SubscriptionsView({
       {allCount > 0 && (
         <div className="relative z-[30] px-1 mt-2 mb-[9px] flex items-center justify-between">
           <SortDropdown current={sortMode} onSelect={(mode) => { setSortMode(mode); AnalyticsEvents.sortChanged(mode) }} />
-          <motion.button
-            onClick={handleFilterTap}
-            animate={filterShake}
-            className="flex items-center gap-1 active:opacity-60 transition-opacity"
-          >
-            <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">Filtrar</span>
-            {hasActiveFilters && (
-              <span className="w-2 h-2 rounded-full bg-[#000000]" />
-            )}
-          </motion.button>
+          <FilterDropdown currentStatus={currentStatus} currentCategory={currentCategory} />
         </div>
       )}
 
