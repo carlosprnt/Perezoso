@@ -86,7 +86,7 @@ export default function FloatingNav() {
 
   const gate = useFeatureGate()
   const hasNoSubs = subsCount === 0
-  const emphasizeAdd = isSubs && hasNoSubs
+  const emphasizeAdd = (isSubs || isDash) && hasNoSubs
 
   function handlePlusTap() {
     haptics.tap('medium')
