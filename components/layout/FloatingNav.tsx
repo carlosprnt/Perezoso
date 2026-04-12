@@ -22,14 +22,12 @@ const BTN_H = 48   // button height
 const PAD  = 8     // pill padding
 const GAP  = 8     // gap between buttons
 
-function CardIcon({ active, stripColor }: { active: boolean; stripColor?: string }) {
+function CardIcon({ active: _active }: { active?: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor"
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="5" width="20" height="14" rx="3" />
-      {/* Stripe — when filled, drawn in the indicator-bg colour so it
-          cuts through the solid fill and the icon still reads as a card. */}
-      <line x1="2" y1="10" x2="22" y2="10" stroke={active ? stripColor : 'currentColor'} strokeWidth={2} />
+      <line x1="2" y1="10" x2="22" y2="10" />
     </svg>
   )
 }
@@ -92,12 +90,11 @@ export default function FloatingNav() {
     setStep('pick')
   }
 
-  // x offset of the sliding bg: Dashboard=0, Subscriptions=1
-  const bgX = isSubs ? BTN_W + GAP : 0
+  // x offset of the sliding bg — no longer used (active = stroke, not fill)
+  // const bgX = isSubs ? BTN_W + GAP : 0
 
-  // Icon colors depend on dark mode
-  const activeIconColor = isDarkMode ? '#121212' : '#ffffff'
-  const inactiveIconColor = isDarkMode ? '#AEAEB2' : '#121212'
+  // All icons are dark in both modes; active state is on the container (stroke).
+  const iconColor = isDarkMode ? '#F2F2F7' : '#000000'
 
   // Bottom offset: 20px + safe-area
   const bottomOffset = 'calc(env(safe-area-inset-bottom) - 20px)'
@@ -113,8 +110,8 @@ export default function FloatingNav() {
           transform: 'translateY(var(--surface-y, 0px))',
         }}
       >
-        {/* Pill — left-aligned at 20px, 16px from bottom */}
-        <div className="absolute left-5 pointer-events-auto"
+        {/* Pill — centred at bottom */}
+        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto"
           style={{ bottom: bottomOffset }}
         >
           <div
@@ -128,86 +125,53 @@ export default function FloatingNav() {
               border: `1px solid ${isDarkMode ? '#3A3A3C' : '#BCBCBC'}`,
             }}
           >
-            {/* Static backgrounds — always visible behind each button */}
-            <div
-              className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
-            />
-            <div
-              className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + BTN_W + GAP, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
-            />
-
-            {/* Sliding indicator */}
-            <motion.div
-              className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, zIndex: 1, backgroundColor: isDarkMode ? '#F2F2F7' : '#121212' }}
-              animate={{ x: bgX }}
-              transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
-            />
-
-            {/* Dashboard button — filled when active, outline when inactive */}
+            {/* Dashboard button — active = black stroke on container */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
-              <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+              <div className="relative flex items-center justify-center rounded-full transition-all"
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  border: isDash ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
+                }}
               >
-                <LayoutGrid size={20} strokeWidth={2}
-                  color={isDash ? activeIconColor : inactiveIconColor}
-                  fill={isDash ? (isDarkMode ? '#121212' : '#ffffff') : 'none'}
-                />
+                <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill="none" />
               </div>
             </Link>
 
-            {/* Subscriptions button — filled when active, outline when inactive */}
+            {/* + button — black circle with white plus, same height */}
+            <motion.button
+              onClick={handlePlusTap}
+              aria-label="Add subscription"
+              className="relative flex items-center justify-center rounded-full bg-[#000000] dark:bg-[#F2F2F7]"
+              style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+              animate={emphasizeAdd ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+              transition={
+                emphasizeAdd
+                  ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
+                  : { type: 'spring', stiffness: 300, damping: 22 }
+              }
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus size={20} color={isDarkMode ? '#000000' : '#ffffff'} strokeWidth={2.5} />
+            </motion.button>
+
+            {/* Subscriptions button — active = black stroke on container */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
-              <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? activeIconColor : inactiveIconColor }}
+              <div className="relative flex items-center justify-center rounded-full transition-all"
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  color: iconColor,
+                  border: isSubs ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
+                }}
               >
-                <CardIcon active={isSubs} stripColor={isDarkMode ? '#F2F2F7' : '#121212'} />
+                <CardIcon />
               </div>
             </Link>
 
           </div>
-        </div>
-
-        {/* + button — right edge, 16px margin, same bottom as pill.
-            When the user has no subscriptions yet, it scales to 2x to
-            emphasize it as the primary call to action. */}
-        <div
-          className="absolute right-4 pointer-events-auto"
-          style={{ bottom: `calc(${bottomOffset} + 4px)` }}
-        >
-          {/* Animated shimmer ring — white on dark mode, dark gray on
-              light mode so it's visible against the light pill backdrop. */}
-          <div
-            className="absolute inset-[-2px] rounded-full"
-            style={{
-              background: isDarkMode
-                ? 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(255,255,255,0.45) 75%, transparent 90%, transparent 100%)'
-                : 'conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(90,90,90,0.55) 75%, transparent 90%, transparent 100%)',
-              animation: 'shimmer-spin 3s linear infinite',
-            }}
-          />
-          <motion.button
-            onClick={handlePlusTap}
-            aria-label="Add subscription"
-            className="relative flex items-center justify-center rounded-full bg-[#000000]"
-            style={{
-              width: 56,
-              height: 56,
-              originX: 1,
-              originY: 1,
-            }}
-            animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
-            transition={
-              emphasizeAdd
-                ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
-                : { type: 'spring', stiffness: 300, damping: 22 }
-            }
-            whileTap={{ scale: 0.95 }}
-          >
-            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-          </motion.button>
         </div>
       </nav>
       )}
