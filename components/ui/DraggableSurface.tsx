@@ -319,7 +319,7 @@ function MobileDraggableSurface({
             paddingTop: 'env(safe-area-inset-top)',
           }}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-28">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6 pt-6 pb-28">
             <ScrollContainerProvider value={scrollY}>
               {children}
             </ScrollContainerProvider>
@@ -338,7 +338,7 @@ function MobileDraggableSurface({
           className="fixed left-0 right-0 z-20 pointer-events-none"
           style={{ top: 'env(safe-area-inset-top)' }}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
+          <div className="max-w-5xl mx-auto px-5 sm:px-6 pt-6">
             {fixedHeader}
           </div>
         </div>

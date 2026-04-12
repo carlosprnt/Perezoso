@@ -51,7 +51,7 @@ export default async function DashboardLayout({
           <Sidebar profile={profile as Profile | null} />
 
           <main className="lg:pl-56 pb-28 lg:pb-0 min-h-dvh">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
+            <div className="max-w-5xl mx-auto px-5 sm:px-6 py-6 lg:py-8">
               {children}
             </div>
           </main>
