@@ -82,13 +82,9 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
           />
         </div>
 
-          {/* Upgrade-to-Pro banner — same structure as the Settings
-              Perezoso Plus banner but transparent with a static white
-              1px stroke so it blends with the black backdrop. White
-              text, white CTA pill. Hidden when already Pro. */}
-          {!isPro && (
+          {/* Pro status banner */}
+          {!isPro ? (
             <div className="relative mt-4 rounded-2xl border border-white/90 px-5 py-5 flex items-center gap-4">
-              {/* Title + description */}
               <div className="flex-1 min-w-0">
                 <p className="text-[20px] font-bold text-white leading-tight">
                   Perezoso Plus
@@ -97,14 +93,26 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
                   Desbloquea todas las features
                 </p>
               </div>
-              {/* CTA — solid white pill with black text, pops against the
-                  transparent card + dark backdrop. */}
               <button
                 onClick={handleUpgrade}
                 className="h-10 px-5 rounded-full bg-white text-black text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
               >
                 Mejorar
               </button>
+            </div>
+          ) : (
+            <div className="relative mt-4 rounded-2xl border border-white/20 px-5 py-5 flex items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-[20px] font-bold text-white leading-tight">
+                  Perezoso Plus
+                </p>
+                <p className="text-[13px] text-white/50 mt-1 leading-snug">
+                  Ya tienes la versión Pro
+                </p>
+              </div>
+              <span className="h-8 px-4 rounded-full bg-white/10 text-white/80 text-[13px] font-semibold flex items-center flex-shrink-0">
+                Activo
+              </span>
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles } from 'lucide-react'
+import { ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles, Check } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -131,6 +131,7 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [demoOpen, setDemoOpen] = useState(false)
   const [avatarImgError, setAvatarImgError] = useState(false)
+  const [showProManage, setShowProManage] = useState(false)
 
   const isAdmin = profile.email === 'carlosprnt@gmail.com'
 
@@ -251,33 +252,86 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
       <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
-      {/* Horizontal banner: title + description (left) · upgrade button (right).
-          Gray card matching the rest of the settings groups. Outer wrapper
-          carries the animated conic-gradient shimmer border. */}
-      <div
-        className="relative mb-3 rounded-[18px] p-[2px]"
-        style={{
-          background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
-          animation: 'shimmer-rotate 3s linear infinite',
-        }}
-      >
-        <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
-          {/* Title + description */}
-          <div className="flex-1 min-w-0">
-            <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
-              Perezoso Plus
-            </p>
-            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
-              {isPro ? 'Suscripción activa' : 'Desbloquea todas las features'}
-            </p>
+      {isPro ? (
+        /* Pro active — no shimmer, static gray card with Activo tag + Gestionar */
+        <div className="mb-3 bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+                  Perezoso Plus
+                </p>
+                <span className="h-6 px-2.5 rounded-full bg-[#34C759]/15 text-[#34C759] text-[11px] font-semibold flex items-center">
+                  Activo
+                </span>
+              </div>
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+                Suscripción activa
+              </p>
+            </div>
+            <button
+              onClick={() => setShowProManage(!showProManage)}
+              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+            >
+              Gestionar
+            </button>
           </div>
 
-          {/* CTA / status — far right */}
-          {isPro ? (
-            <span className="h-10 px-5 rounded-full bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[14px] font-semibold flex items-center flex-shrink-0">
-              Activo
-            </span>
-          ) : (
+          {/* Expandable Pro management section */}
+          {showProManage && (
+            <div className="mt-5 pt-5 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
+              <p className="text-[13px] font-semibold text-[#000000] dark:text-[#F2F2F7] mb-3">
+                Tu plan incluye
+              </p>
+              <ul className="space-y-2.5 mb-5">
+                {[
+                  'Suscripciones ilimitadas',
+                  'Alertas de renovación personalizadas',
+                  'Recomendaciones de ahorro avanzadas',
+                  'Categorías personalizadas',
+                  'Calendario de pagos completo',
+                  'Detección de suscripciones por Gmail',
+                  'Soporte prioritario',
+                ].map(benefit => (
+                  <li key={benefit} className="flex items-start gap-2.5">
+                    <Check size={14} strokeWidth={3} className="text-[#34C759] mt-0.5 flex-shrink-0" />
+                    <span className="text-[14px] text-[#000000] dark:text-[#F2F2F7] leading-snug">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => {
+                  // For web demo, just open the App Store subscription management.
+                  // In production with Capacitor this would call RevenueCat's manage URL.
+                  if (typeof window !== 'undefined') {
+                    window.open('https://apps.apple.com/account/subscriptions', '_blank')
+                  }
+                }}
+                className="w-full h-12 rounded-full text-[14px] font-semibold text-[#DC2626] bg-[#DC2626]/10 active:bg-[#DC2626]/20 transition-colors"
+              >
+                Cancelar suscripción
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Not Pro — shimmer border + upgrade CTA */
+        <div
+          className="relative mb-3 rounded-[18px] p-[2px]"
+          style={{
+            background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
+            animation: 'shimmer-rotate 3s linear infinite',
+          }}
+        >
+          <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+                Perezoso Plus
+              </p>
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+                Desbloquea todas las features
+              </p>
+            </div>
             <button
               onClick={() => {
                 haptics.tap()
@@ -287,9 +341,9 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
             >
               Mejorar
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── User card (avatar · name · email) ──────────────────────────── */}
       <Group>
