@@ -6,20 +6,20 @@ import { redirect } from 'next/navigation'
 
 const DEMO_SUBSCRIPTIONS = [
   // ── 1–14: original set ────────────────────────────────────────────────────
-  { name: 'Netflix',          logo_url: 'https://cdn.simpleicons.org/netflix', category: 'streaming',    price_amount: 17.99,  currency: 'EUR', billing_period: 'monthly', is_shared: true,  shared_with_count: 3, user_share_mode: 'split_evenly', days_offset: 5,   status: 'active'    },
-  { name: 'Spotify',          logo_url: 'https://cdn.simpleicons.org/spotify', category: 'music',        price_amount: 9.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 12,  status: 'active'    },
-  { name: 'Disney+',          logo_url: 'https://cdn.simpleicons.org/disneyplus', category: 'streaming',    price_amount: 109.90, currency: 'EUR', billing_period: 'yearly',  is_shared: true,  shared_with_count: 4, user_share_mode: 'split_evenly', days_offset: 120, status: 'active'    },
-  { name: 'Apple TV+',        logo_url: null,                                                                     category: 'streaming',    price_amount: 8.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 20,  status: 'active'    },
-  { name: 'Notion',           logo_url: 'https://cdn.simpleicons.org/notion', category: 'productivity', price_amount: 16.00,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 3,   status: 'active'    },
-  { name: 'Linear',           logo_url: null,                                                                     category: 'productivity', price_amount: 8.00,   currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 18,  status: 'active'    },
-  { name: 'iCloud+',          logo_url: 'https://cdn.simpleicons.org/icloud', category: 'cloud',        price_amount: 2.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 7,   status: 'active'    },
-  { name: 'GitHub',           logo_url: 'https://cdn.simpleicons.org/github', category: 'cloud',        price_amount: 4.00,   currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 1,   status: 'active'    },
-  { name: 'ChatGPT Plus',     logo_url: null,                                                                     category: 'ai',           price_amount: 20.00,  currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 15,  status: 'active'    },
-  { name: 'Claude Pro',       logo_url: null,                                                                     category: 'ai',           price_amount: 20.00,  currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 22,  status: 'active'    },
-  { name: 'Xbox Game Pass',   logo_url: null,                                                                     category: 'gaming',       price_amount: 14.99,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 9,   status: 'paused'    },
-  { name: 'Headspace',        logo_url: null,                                                                     category: 'health',       price_amount: 69.99,  currency: 'EUR', billing_period: 'yearly',  is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 200, status: 'active'    },
-  { name: 'Coursera Plus',    logo_url: null,                                                                     category: 'education',    price_amount: 399.00, currency: 'EUR', billing_period: 'yearly',  is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 60,  status: 'cancelled' },
-  { name: 'Figma',            logo_url: 'https://cdn.simpleicons.org/figma', category: 'productivity', price_amount: 15.00,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 14,  status: 'trial'     },
+  { name: 'Netflix',          logo_url: 'https://cdn.simpleicons.org/netflix/E50914', category: 'streaming',    price_amount: 17.99,  currency: 'EUR', billing_period: 'monthly', is_shared: true,  shared_with_count: 3, user_share_mode: 'split_evenly', days_offset: 5,   status: 'active'    },
+  { name: 'Spotify',          logo_url: 'https://cdn.simpleicons.org/spotify/1DB954', category: 'music',        price_amount: 9.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 12,  status: 'active'    },
+  { name: 'Disney+',          logo_url: 'https://svgl.app/library/disneyplus.svg', category: 'streaming',    price_amount: 109.90, currency: 'EUR', billing_period: 'yearly',  is_shared: true,  shared_with_count: 4, user_share_mode: 'split_evenly', days_offset: 120, status: 'active'    },
+  { name: 'Apple TV+',        logo_url: 'https://cdn.simpleicons.org/appletv/000000', category: 'streaming',    price_amount: 8.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 20,  status: 'active'    },
+  { name: 'Notion',           logo_url: 'https://cdn.simpleicons.org/notion/000000', category: 'productivity', price_amount: 16.00,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 3,   status: 'active'    },
+  { name: 'Linear',           logo_url: 'https://cdn.simpleicons.org/linear/5E6AD2', category: 'productivity', price_amount: 8.00,   currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 18,  status: 'active'    },
+  { name: 'iCloud+',          logo_url: 'https://cdn.simpleicons.org/icloud/3693F9', category: 'cloud',        price_amount: 2.99,   currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 7,   status: 'active'    },
+  { name: 'GitHub',           logo_url: 'https://cdn.simpleicons.org/github/181717', category: 'cloud',        price_amount: 4.00,   currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 1,   status: 'active'    },
+  { name: 'ChatGPT Plus',     logo_url: 'https://cdn.simpleicons.org/openai/412991', category: 'ai',           price_amount: 20.00,  currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 15,  status: 'active'    },
+  { name: 'Claude Pro',       logo_url: 'https://cdn.simpleicons.org/anthropic/191919', category: 'ai',           price_amount: 20.00,  currency: 'USD', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 22,  status: 'active'    },
+  { name: 'Xbox Game Pass',   logo_url: 'https://cdn.simpleicons.org/xbox/107C10', category: 'gaming',       price_amount: 14.99,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 9,   status: 'paused'    },
+  { name: 'Headspace',        logo_url: 'https://cdn.simpleicons.org/headspace/F47D31', category: 'health',       price_amount: 69.99,  currency: 'EUR', billing_period: 'yearly',  is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 200, status: 'active'    },
+  { name: 'Coursera Plus',    logo_url: 'https://cdn.simpleicons.org/coursera/0056D2', category: 'education',    price_amount: 399.00, currency: 'EUR', billing_period: 'yearly',  is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 60,  status: 'cancelled' },
+  { name: 'Figma',            logo_url: 'https://cdn.simpleicons.org/figma/F24E1E', category: 'productivity', price_amount: 15.00,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 14,  status: 'trial'     },
   // ── 15–20: extra subs for the 20-item demo ────────────────────────────────
   { name: 'Amazon Prime',     logo_url: null,                                                                     category: 'streaming',    price_amount: 4.99,   currency: 'EUR', billing_period: 'monthly', is_shared: true,  shared_with_count: 2, user_share_mode: 'split_evenly', days_offset: 8,   status: 'active'    },
   { name: 'YouTube Premium',  logo_url: null,                                                                     category: 'streaming',    price_amount: 13.99,  currency: 'EUR', billing_period: 'monthly', is_shared: false, shared_with_count: 1, user_share_mode: 'split_evenly', days_offset: 11,  status: 'active'    },
@@ -74,7 +74,7 @@ export async function loadDemoData() {
  * Admin-only: replace all subscriptions with the first N demo entries.
  * count = 0 → empty account (onboarding state)
  */
-export async function setDemoMode(count: number) {
+export async function setDemoMode(count: number, isPro: boolean = false) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.email !== 'carlosprnt@gmail.com') return
@@ -126,6 +126,13 @@ export async function setDemoMode(count: number) {
       console.error('[setDemoMode] insert failed', insertError, { count, rows })
       throw new Error(`Demo insert failed: ${insertError.message}`)
     }
+  }
+
+  // Toggle Pro status on the user's profile if requested.
+  if (isPro) {
+    await supabase.from('profiles').update({ is_pro: true }).eq('id', user.id)
+  } else {
+    await supabase.from('profiles').update({ is_pro: false }).eq('id', user.id)
   }
 
   revalidatePath('/dashboard')

@@ -138,9 +138,9 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
   const { bg: avatarBg, fg: avatarFg } = getAvatarPastel(displayName)
   const avatarInitials = getInitials(displayName)
 
-  function handleDemoMode(count: number) {
+  function handleDemoMode(count: number, isPro: boolean = false) {
     startDemoTransition(async () => {
-      await setDemoMode(count)
+      await setDemoMode(count, isPro)
       setDemoOpen(false)
     })
   }
@@ -153,11 +153,12 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
   }
 
   const DEMO_MODES = [
-    { label: 'Sin suscripciones', count: 0 },
-    { label: '1 suscripción',     count: 1 },
-    { label: '2 suscripciones',   count: 2 },
-    { label: '3 suscripciones',   count: 3 },
-    { label: '20 suscripciones',  count: 20 },
+    { label: 'Sin suscripciones', count: 0,  isPro: false },
+    { label: '1 suscripción',     count: 1,  isPro: false },
+    { label: '2 suscripciones',   count: 2,  isPro: false },
+    { label: '3 suscripciones',   count: 3,  isPro: false },
+    { label: '10 suscripciones + Pro', count: 10, isPro: true },
+    { label: '20 suscripciones',  count: 20, isPro: false },
   ] as const
 
   async function handleDeleteAccount() {
@@ -398,11 +399,11 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
           />
           {demoOpen ? (
             <>
-              {DEMO_MODES.map(({ label, count }, i) => (
+              {DEMO_MODES.map(({ label, count, isPro: pro }, i) => (
                 <button
-                  key={count}
+                  key={label}
                   type="button"
-                  onClick={() => handleDemoMode(count)}
+                  onClick={() => handleDemoMode(count, pro)}
                   disabled={isDemoPending}
                   className={`w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50 ${
                     i < DEMO_MODES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'
