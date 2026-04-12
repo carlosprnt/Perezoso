@@ -45,7 +45,22 @@ final class AuthStore: @unchecked Sendable {
         }
 
         do {
-            session = try await SupabaseManager.client.auth.session
+            // Race the session check against a 5-second timeout so
+            // the app never gets stuck on a white screen.
+            session = try await withThrowingTaskGroup(of: Session.self) { group in
+                group.addTask {
+                    try await SupabaseManager.client.auth.session
+                }
+                group.addTask {
+                    try await Task.sleep(for: .seconds(5))
+                    throw CancellationError()
+                }
+                guard let result = try await group.next() else {
+                    throw CancellationError()
+                }
+                group.cancelAll()
+                return result
+            }
             await fetchProfile()
             state = .signedIn
         } catch {
