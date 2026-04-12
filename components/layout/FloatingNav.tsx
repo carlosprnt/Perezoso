@@ -150,7 +150,12 @@ export default function FloatingNav() {
             {/* Dashboard button */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
               <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  border: isDash ? 'none' : `1.5px solid ${isDarkMode ? '#2C2C2E' : '#E5E5EA'}`,
+                }}
               >
                 <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill={isDash ? iconColor : 'none'} />
               </div>
@@ -176,7 +181,13 @@ export default function FloatingNav() {
             {/* Subscriptions button */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
               <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: iconColor }}
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  color: iconColor,
+                  border: isSubs ? 'none' : `1.5px solid ${isDarkMode ? '#2C2C2E' : '#E5E5EA'}`,
+                }}
               >
                 <CardIcon filled={isSubs} />
               </div>
