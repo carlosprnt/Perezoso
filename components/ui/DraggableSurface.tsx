@@ -157,6 +157,7 @@ function MobileDraggableSurface({
 
     let startY = 0
     let startBase = 0
+    let startScrollTop = 0
     let startedRaised = true
     let lastY = 0
     let lastT = 0
@@ -174,6 +175,12 @@ function MobileDraggableSurface({
       locked = false
       startedRaised = raisedRef.current
       startBase = raisedRef.current ? 0 : loweredYRef.current
+      // Capture scrollTop ONCE here so the touchmove handler never
+      // does a live DOM read — eliminates the non-passive listener
+      // blocking browser scroll optimisation on iOS, which was
+      // causing intermittent scroll-lock after opening/closing the
+      // surface.
+      startScrollTop = el?.scrollTop ?? 0
     }
 
     function onTouchMove(e: TouchEvent) {
@@ -193,16 +200,15 @@ function MobileDraggableSurface({
           // Lowered → any gesture is a surface drag.
           mode = 'drag'
           locked = true
+        } else if (startScrollTop <= 0 && dy > DRAG_START_THRESHOLD) {
+          // Raised + gesture started at the very top + pulling down
+          // → steal from native scroll and start dragging the surface.
+          mode = 'drag'
+          locked = true
         } else {
-          // Raised → only steal when at scrollTop 0 pulling down.
-          const sc = el?.scrollTop ?? 0
-          if (sc <= 0 && dy > DRAG_START_THRESHOLD) {
-            mode = 'drag'
-            locked = true
-          } else {
-            mode = 'scroll'
-            locked = true
-          }
+          // Raised + scrolled into content → let native scroll handle it.
+          mode = 'scroll'
+          locked = true
         }
       }
 
