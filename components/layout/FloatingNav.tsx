@@ -24,8 +24,8 @@ const GAP  = 8     // gap between buttons
 
 function TagHeartIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor"
+      strokeWidth={active ? 2 : 2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
       <path d="M8.5 8.5c.5-1 2-1 2 .5 0 1-2 2-2 2s-2-1-2-2c0-1.5 1.5-1.5 2-.5z" strokeWidth="1.5" />
     </svg>
@@ -144,22 +144,24 @@ export default function FloatingNav() {
               transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
             />
 
-            {/* Dashboard button */}
+            {/* Dashboard button — filled when active, outline when inactive */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
               <div className="relative flex items-center justify-center rounded-full"
                 style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
               >
                 <LayoutGrid size={20} strokeWidth={2}
-                  color={isDash ? activeIconColor : inactiveIconColor} />
+                  color={isDash ? activeIconColor : inactiveIconColor}
+                  fill={isDash ? (isDarkMode ? '#121212' : '#ffffff') : 'none'}
+                />
               </div>
             </Link>
 
-            {/* Subscriptions button */}
+            {/* Subscriptions button — filled when active, outline when inactive */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
               <div className="relative flex items-center justify-center rounded-full"
                 style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? activeIconColor : inactiveIconColor }}
               >
-                <TagHeartIcon active={false} />
+                <TagHeartIcon active={isSubs} />
               </div>
             </Link>
 
