@@ -137,19 +137,24 @@ export default function SavingsCarousel({ items, opportunities, onReminderActiva
             className="relative w-full"
             style={{ paddingBottom: peekEntries.length * PEEK_OFFSET }}
           >
-            {/* Peek card */}
+            {/* Peek card — shows the NEXT card's actual content (not a
+                blank placeholder) so dragging the front card reveals a
+                real preview. pointer-events: none prevents accidental
+                taps on the peek card's buttons while it's stacked. */}
             {peekEntries.map((entry, idx) => {
               const depth  = idx + 1
               const target = isExiting ? depth - 1 : depth
               return (
                 <motion.div
                   key={entry.i}
-                  className="absolute inset-0 rounded-[32px] bg-white dark:bg-[#1C1C1E]"
+                  className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none"
                   initial={{ y: depth * PEEK_OFFSET, scale: 1 - depth * PEEK_SCALE, opacity: 1 - depth * PEEK_DIM }}
                   animate={{ y: target * PEEK_OFFSET, scale: 1 - target * PEEK_SCALE, opacity: 1 - target * PEEK_DIM }}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   style={{ zIndex: PEEK_COUNT - idx, boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}
-                />
+                >
+                  {renderFront(entry)}
+                </motion.div>
               )
             })}
 
