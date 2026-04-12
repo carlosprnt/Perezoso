@@ -213,7 +213,7 @@ export default function FloatingNav() {
             initial={{ scale: 0, borderRadius: '50%', opacity: 0 }}
             animate={{ scale: 1, borderRadius: 28, opacity: 1 }}
             exit={{ scale: 0, borderRadius: '50%', opacity: 0 }}
-            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Background with blur */}
             <div
