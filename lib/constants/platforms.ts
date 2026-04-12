@@ -382,16 +382,17 @@ const SIMPLE_ICONS_CDN = 'https://cdn.simpleicons.org'
  * Returns a CDN URL for the platform's logo, or null if none can be resolved.
  * Uses the explicit logoUrl override first, then Simple Icons CDN.
  *
- * Simple Icons URLs always include an explicit colour suffix: brand colour
- * when known, falling back to pure black (`000000`). Without the colour,
- * some icons render transparent/near-white against white backgrounds —
- * the explicit hex forces a visible fill so logos are always readable.
+ * When the platform has a `brandColor`, it's appended to the URL so the
+ * icon renders in that colour. Otherwise the CDN serves the icon in its
+ * default brand colour automatically.
  */
 export function resolvePlatformLogoUrl(platform: PlatformPreset): string | null {
   if (platform.logoUrl) return platform.logoUrl
   if (platform.simpleIconSlug) {
-    const color = (platform.brandColor ?? '#000000').replace('#', '')
-    return `${SIMPLE_ICONS_CDN}/${platform.simpleIconSlug}/${color}`
+    if (platform.brandColor) {
+      return `${SIMPLE_ICONS_CDN}/${platform.simpleIconSlug}/${platform.brandColor.replace('#', '')}`
+    }
+    return `${SIMPLE_ICONS_CDN}/${platform.simpleIconSlug}`
   }
   return null
 }

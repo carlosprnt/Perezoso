@@ -7,7 +7,7 @@ interface SubscriptionAvatarProps {
   name: string
   /** Explicit logo URL (takes priority over simpleIconSlug) */
   logoUrl?: string | null
-  /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug}/000000 */
+  /** Simple Icons slug — resolves to cdn.simpleicons.org/{slug} */
   simpleIconSlug?: string | null
   size?: 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl'
   /** Override corner radius class. Defaults to 'rounded-xl' (12px). Use e.g. 'rounded-[8px]' for 8px. */
@@ -25,28 +25,6 @@ const SIZE = {
 
 const SIMPLE_ICONS_CDN = 'https://cdn.simpleicons.org'
 
-/**
- * Normalise a URL so Simple Icons requests always include an explicit
- * colour. Historical subscriptions may have been saved with the old
- * format `cdn.simpleicons.org/{slug}` (no colour suffix), which the
- * CDN serves as SVGs that render near-invisible on white backgrounds.
- * This patches both old stored URLs AND new slug-derived URLs to
- * always append `/000000` when missing.
- */
-function normaliseLogoUrl(url: string): string {
-  if (!url.includes('cdn.simpleicons.org')) return url
-  // Strip any query string while inspecting path structure.
-  const [base, query] = url.split('?')
-  const withoutHost = base.replace(/^https?:\/\/cdn\.simpleicons\.org\//, '')
-  const parts = withoutHost.split('/').filter(Boolean)
-  // /slug (1 part) → no colour → append 000000
-  // /slug/color (2 parts) → already has colour
-  // /slug/_/bg (3 parts) → already has colour
-  if (parts.length >= 2) return url
-  const patched = `${SIMPLE_ICONS_CDN}/${parts[0]}/000000`
-  return query ? `${patched}?${query}` : patched
-}
-
 export default function SubscriptionAvatar({
   name,
   logoUrl,
@@ -60,13 +38,13 @@ export default function SubscriptionAvatar({
   const initials = getInitials(name)
 
   // Resolve which URL to attempt (explicit URL wins over slug-derived URL).
-  // Both paths are normalised so Simple Icons URLs always carry a colour.
-  const rawUrl = logoUrl
+  // Simple Icons CDN serves brand-coloured logos by default — no need to
+  // append a colour suffix unless we want to override it.
+  const resolvedUrl = logoUrl
     ? logoUrl
     : simpleIconSlug
-      ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}/000000`
+      ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}`
       : null
-  const resolvedUrl = rawUrl ? normaliseLogoUrl(rawUrl) : null
 
   if (resolvedUrl && !imgError) {
     return (
