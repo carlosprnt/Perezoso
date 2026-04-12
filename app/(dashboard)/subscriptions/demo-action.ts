@@ -128,12 +128,10 @@ export async function setDemoMode(count: number, isPro: boolean = false) {
     }
   }
 
-  // Toggle Pro status on the user's profile if requested.
-  if (isPro) {
-    await supabase.from('profiles').update({ is_pro: true }).eq('id', user.id)
-  } else {
-    await supabase.from('profiles').update({ is_pro: false }).eq('id', user.id)
-  }
+  // Toggle Pro status via user_metadata (always writable, no schema dep).
+  await supabase.auth.updateUser({
+    data: { is_pro: isPro },
+  })
 
   revalidatePath('/', 'layout')
   revalidatePath('/dashboard')
@@ -164,8 +162,8 @@ export async function restoreProductionState() {
     await supabase.from('subscriptions').insert(rows)
   }
 
-  // Clear the backup so the next demo session captures a fresh snapshot.
-  await supabase.auth.updateUser({ data: { prod_subs_backup: null } })
+  // Clear the backup + reset Pro status so the next demo session is clean.
+  await supabase.auth.updateUser({ data: { prod_subs_backup: null, is_pro: false } })
 
   revalidatePath('/dashboard')
   revalidatePath('/subscriptions')
