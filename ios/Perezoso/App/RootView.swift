@@ -1,12 +1,6 @@
 import SwiftUI
 
-/// Auth-gated root view. Shows the login / onboarding flow when the
-/// user is not authenticated, and the main tab bar otherwise.
-///
-/// Auth state changes produce a smooth cross-fade between the two
-/// branches — no navigation push, because "logged in" and "not
-/// logged in" are fundamentally different app states, not sibling
-/// screens.
+/// Auth-gated root view — smooth cross-fade between login and main app.
 struct RootView: View {
     @Environment(AuthStore.self) private var auth
 
@@ -31,12 +25,8 @@ struct RootView: View {
     }
 }
 
-/// The main navigation shown to authenticated users.
-///
-/// Replaces the standard TabView with a custom floating pill
-/// navigation bar matching the web app's mobile UI.
-/// Shows: Dashboard · Subscriptions (with floating + button).
-/// Calendar and Settings are accessible from the dashboard header.
+/// Custom navigation with floating pill nav bar.
+/// Uses custom overlays for all secondary screens — no native sheets.
 struct MainTabView: View {
     @State private var selectedTab: AppTab = .dashboard
     @State private var showAddSheet = false
@@ -71,20 +61,21 @@ struct MainTabView: View {
             .padding(.bottom, 16)
         }
         .ignoresSafeArea(.keyboard)
-        .sheet(isPresented: $showAddSheet) {
-            SubscriptionFormView(mode: .create)
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(Radius.sheet)
+        // All overlays are custom — no native .sheet()
+        .overlay {
+            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripción") {
+                SubscriptionFormView(mode: .create)
+            }
         }
-        .sheet(isPresented: $showCalendar) {
-            CalendarView()
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(Radius.sheet)
+        .overlay {
+            CustomBottomSheet(isPresented: $showCalendar, height: .full) {
+                CalendarView()
+            }
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(Radius.sheet)
+        .overlay {
+            CustomBottomSheet(isPresented: $showSettings, height: .full) {
+                SettingsView()
+            }
         }
     }
 }

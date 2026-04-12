@@ -1,10 +1,7 @@
 import SwiftUI
 
-/// Subscription list — all subscriptions with filter, search, and
-/// the ability to add new ones. Mirrors `/subscriptions` on the web.
-///
-/// Uses the new SubscriptionCard component with colored presets
-/// instead of plain list rows.
+/// Subscription list with colored cards, custom search bar,
+/// filter sheet, and custom detail overlay — no native sheets.
 struct SubscriptionsListView: View {
     @Environment(SubscriptionsStore.self) private var store
     @State private var searchText = ""
@@ -16,7 +13,6 @@ struct SubscriptionsListView: View {
 
     private var filteredSubscriptions: [Subscription] {
         var result = store.subscriptions
-
         if let statusFilter {
             result = result.filter { $0.status == statusFilter }
         }
@@ -36,65 +32,69 @@ struct SubscriptionsListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    // ── Header row ────────────────────────────
-                    headerRow
+        ScrollView {
+            VStack(spacing: Spacing.md) {
+                headerRow
+                searchBar
 
-                    // ── Search bar ────────────────────────────
-                    searchBar
+                if hasActiveFilters {
+                    filterChips
+                }
 
-                    // ── Active filter chips ───────────────────
-                    if hasActiveFilters {
-                        filterChips
-                    }
+                HStack {
+                    Text("\(filteredSubscriptions.count) suscripciones")
+                        .font(.caption)
+                        .foregroundStyle(Color.textMuted)
+                    Spacer()
+                }
 
-                    // ── Subscription count ────────────────────
-                    HStack {
-                        Text("\(filteredSubscriptions.count) suscripciones")
-                            .font(.caption)
-                            .foregroundStyle(Color.textMuted)
-                        Spacer()
-                    }
-
-                    // ── Subscription cards ────────────────────
-                    if filteredSubscriptions.isEmpty && !store.isLoading {
-                        emptyState
-                            .padding(.top, Spacing.xxxl)
-                    } else {
-                        LazyVStack(spacing: Spacing.md) {
-                            ForEach(filteredSubscriptions) { sub in
-                                SubscriptionCard(subscription: sub) {
-                                    selectedSubscription = sub
-                                }
+                if filteredSubscriptions.isEmpty && !store.isLoading {
+                    emptyState
+                        .padding(.top, Spacing.xxxl)
+                } else {
+                    LazyVStack(spacing: Spacing.md) {
+                        ForEach(Array(filteredSubscriptions.enumerated()), id: \.element.id) { idx, sub in
+                            SubscriptionCard(subscription: sub) {
+                                selectedSubscription = sub
                             }
+                            .opacity(1)
+                            .animation(
+                                .spring(response: 0.35, dampingFraction: 0.8)
+                                .delay(Double(idx) * 0.055),
+                                value: filteredSubscriptions.count
+                            )
                         }
                     }
                 }
-                .padding(.horizontal, Spacing.xl)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, 120)
             }
-            .background(Color.background)
-            .sheet(item: $selectedSubscription) { sub in
-                SubscriptionDetailView(subscription: sub)
-                    .presentationDragIndicator(.visible)
-                    .presentationCornerRadius(Radius.sheet)
+            .padding(.horizontal, Spacing.xl)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, 120)
+        }
+        .background(Color.background)
+        .refreshable {
+            await store.fetch()
+        }
+        // Custom overlays instead of native sheets
+        .overlay {
+            if let sub = selectedSubscription {
+                SubscriptionDetailOverlay(
+                    subscription: sub,
+                    isPresented: Binding(
+                        get: { selectedSubscription != nil },
+                        set: { if !$0 { selectedSubscription = nil } }
+                    )
+                )
             }
-            .sheet(isPresented: $showAddSheet) {
+        }
+        .overlay {
+            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripción") {
                 SubscriptionFormView(mode: .create)
-                    .presentationDragIndicator(.visible)
-                    .presentationCornerRadius(Radius.sheet)
             }
-            .sheet(isPresented: $showFilterSheet) {
-                filterSheet
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
-                    .presentationCornerRadius(Radius.sheet)
-            }
-            .refreshable {
-                await store.fetch()
+        }
+        .overlay {
+            CustomBottomSheet(isPresented: $showFilterSheet, title: "Filtros") {
+                filterContent
             }
         }
     }
@@ -151,7 +151,6 @@ struct SubscriptionsListView: View {
                     .stroke(Color.borderLight, lineWidth: 1)
             )
 
-            // Filter button
             Button {
                 Haptics.tap(.light)
                 showFilterSheet = true
@@ -167,7 +166,6 @@ struct SubscriptionsListView: View {
                             RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
                                 .stroke(hasActiveFilters ? Color.clear : Color.borderLight, lineWidth: 1)
                         )
-
                     if hasActiveFilters {
                         Circle()
                             .fill(Color.danger)
@@ -224,111 +222,82 @@ struct SubscriptionsListView: View {
         .background(Color.accent, in: Capsule())
     }
 
-    // MARK: - Filter Sheet
+    // MARK: - Filter Content
 
-    private var filterSheet: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.xl) {
-                    // Status filters
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        Text("Estado")
-                            .font(.micro)
-                            .foregroundStyle(Color.textMuted)
-                            .padding(.horizontal, Spacing.xs)
-
-                        Card {
-                            VStack(spacing: 0) {
-                                ForEach(Subscription.Status.allCases, id: \.self) { status in
-                                    Button {
-                                        Haptics.selection()
-                                        statusFilter = statusFilter == status ? nil : status
-                                    } label: {
-                                        HStack {
-                                            Text(status.rawValue.capitalized)
-                                                .font(.bodyMedium)
-                                                .foregroundStyle(Color.textPrimary)
-                                            Spacer()
-                                            if statusFilter == status {
-                                                Image(systemName: "checkmark")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                                    .foregroundStyle(Color.accent)
-                                            }
-                                        }
-                                        .padding(Spacing.lg)
-                                    }
-                                    if status != Subscription.Status.allCases.last {
-                                        Divider().padding(.leading, Spacing.lg)
+    private var filterContent: some View {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Estado")
+                    .font(.micro)
+                    .foregroundStyle(Color.textMuted)
+                    .padding(.horizontal, Spacing.xs)
+                Card {
+                    VStack(spacing: 0) {
+                        ForEach(Subscription.Status.allCases, id: \.self) { status in
+                            Button {
+                                Haptics.selection()
+                                statusFilter = statusFilter == status ? nil : status
+                            } label: {
+                                HStack {
+                                    Text(status.rawValue.capitalized)
+                                        .font(.bodyMedium)
+                                        .foregroundStyle(Color.textPrimary)
+                                    Spacer()
+                                    if statusFilter == status {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(Color.accent)
                                     }
                                 }
+                                .padding(Spacing.lg)
                             }
-                        }
-                    }
-
-                    // Category filters
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        Text("Categoría")
-                            .font(.micro)
-                            .foregroundStyle(Color.textMuted)
-                            .padding(.horizontal, Spacing.xs)
-
-                        Card {
-                            VStack(spacing: 0) {
-                                ForEach(Subscription.Category.allCases, id: \.self) { cat in
-                                    Button {
-                                        Haptics.selection()
-                                        categoryFilter = categoryFilter == cat ? nil : cat
-                                    } label: {
-                                        HStack(spacing: Spacing.md) {
-                                            Image(systemName: cat.symbolName)
-                                                .font(.system(size: 14))
-                                                .foregroundStyle(Color.textMuted)
-                                                .frame(width: 20)
-                                            Text(cat.localizedName)
-                                                .font(.bodyMedium)
-                                                .foregroundStyle(Color.textPrimary)
-                                            Spacer()
-                                            if categoryFilter == cat {
-                                                Image(systemName: "checkmark")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                                    .foregroundStyle(Color.accent)
-                                            }
-                                        }
-                                        .padding(Spacing.lg)
-                                    }
-                                    if cat != Subscription.Category.allCases.last {
-                                        Divider().padding(.leading, Spacing.lg + 20 + Spacing.md)
-                                    }
-                                }
+                            if status != Subscription.Status.allCases.last {
+                                Divider().padding(.leading, Spacing.lg)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, Spacing.xxxl)
             }
-            .background(Color.background)
-            .navigationTitle("Filtros")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") {
-                        showFilterSheet = false
-                    }
-                    .tint(Color.textSecondary)
-                }
-                if hasActiveFilters {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Limpiar") {
-                            statusFilter = nil
-                            categoryFilter = nil
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Categoría")
+                    .font(.micro)
+                    .foregroundStyle(Color.textMuted)
+                    .padding(.horizontal, Spacing.xs)
+                Card {
+                    VStack(spacing: 0) {
+                        ForEach(Subscription.Category.allCases, id: \.self) { cat in
+                            Button {
+                                Haptics.selection()
+                                categoryFilter = categoryFilter == cat ? nil : cat
+                            } label: {
+                                HStack(spacing: Spacing.md) {
+                                    Image(systemName: cat.symbolName)
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(Color.textMuted)
+                                        .frame(width: 20)
+                                    Text(cat.localizedName)
+                                        .font(.bodyMedium)
+                                        .foregroundStyle(Color.textPrimary)
+                                    Spacer()
+                                    if categoryFilter == cat {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(Color.accent)
+                                    }
+                                }
+                                .padding(Spacing.lg)
+                            }
+                            if cat != Subscription.Category.allCases.last {
+                                Divider().padding(.leading, Spacing.lg + 20 + Spacing.md)
+                            }
                         }
-                        .tint(Color.danger)
                     }
                 }
             }
         }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.bottom, Spacing.xxxl)
     }
 
     // MARK: - Empty State
@@ -342,8 +311,8 @@ struct SubscriptionsListView: View {
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
             Text(hasActiveFilters
-                 ? "Ninguna suscripción coincide con los filtros seleccionados."
-                 : "Añade tu primera suscripción para empezar a trackear tus gastos.")
+                 ? "Ninguna suscripción coincide con los filtros."
+                 : "Añade tu primera suscripción para empezar.")
                 .font(.bodyRegular)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)

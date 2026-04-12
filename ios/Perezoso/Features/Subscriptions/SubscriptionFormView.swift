@@ -78,7 +78,6 @@ struct SubscriptionFormView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.lg) {
                     // ── Basic info ────────────────────────────
@@ -218,17 +217,6 @@ struct SubscriptionFormView: View {
                 .padding(.bottom, Spacing.xxxl)
             }
             .background(Color.background)
-            .navigationTitle(mode.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        dismiss()
-                    }
-                    .tint(Color.textSecondary)
-                }
-            }
-        }
     }
 
     // MARK: - Card Color Section
