@@ -17,6 +17,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request })
   }
 
+  try {
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -87,4 +89,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   return supabaseResponse
+  } catch {
+    // If the middleware fails (e.g. Supabase timeout, edge runtime
+    // issue), let the request pass through rather than returning a 500.
+    return NextResponse.next({ request })
+  }
 }
