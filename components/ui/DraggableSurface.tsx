@@ -184,6 +184,14 @@ function MobileDraggableSurface({
     }
 
     function onTouchMove(e: TouchEvent) {
+      // FAST EXIT — once locked to native scroll, return immediately so
+      // the non-passive listener doesn't block the browser's scroll
+      // compositor. This is the fix for the intermittent scroll-lock:
+      // even though we don't call preventDefault in scroll mode, iOS
+      // still waits for a non-passive handler to complete before
+      // applying scroll. Returning in <1µs makes that wait negligible.
+      if (locked && mode === 'scroll') return
+
       const t = e.touches[0]
       const cy = t.clientY
       const dy = cy - startY

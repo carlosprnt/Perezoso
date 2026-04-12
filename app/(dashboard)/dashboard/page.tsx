@@ -133,11 +133,7 @@ export default async function DashboardPage() {
           and the avatar uses its default dropdown popover. */}
       <DraggableSurface
         backdrop={<AccountMenuPanel shareText={shareText} />}
-        fixedHeader={
-          isEmpty ? null : (
-            <DashboardFixedGreeting firstName={firstName} shareText={shareText} />
-          )
-        }
+        fixedHeader={<DashboardFixedGreeting firstName={firstName} shareText={shareText} />}
       >
         {dashboardContent}
       </DraggableSurface>
