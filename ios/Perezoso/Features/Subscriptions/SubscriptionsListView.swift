@@ -1,7 +1,15 @@
 import SwiftUI
 
-/// Subscription list with colored cards, custom search bar,
-/// filter sheet, and custom detail overlay — no native sheets.
+/// Subscription list with wallet-style stacked white cards matching
+/// the web's SubscriptionsView.tsx exactly.
+///
+/// Web spec:
+/// - Active subs: white cards stacked with -76px overlap (wallet style)
+/// - Card radius: 28px, shadow: 0 -1px 2px rgba(0,0,0,0.04)
+/// - Card padding: 20px all sides
+/// - Top row: avatar(48) + name(16px bold)+category(14px) + price(16px bold)+status(14px)
+/// - Progress bar: 4px green #22C55E
+/// - Inactive subs: compact rows at bottom, 20px radius
 struct SubscriptionsListView: View {
     @Environment(SubscriptionsStore.self) private var store
     @State private var searchText = ""
@@ -27,6 +35,14 @@ struct SubscriptionsListView: View {
         return result
     }
 
+    private var activeSubscriptions: [Subscription] {
+        filteredSubscriptions.filter { $0.status == .active || $0.status == .trial }
+    }
+
+    private var inactiveSubscriptions: [Subscription] {
+        filteredSubscriptions.filter { $0.status != .active && $0.status != .trial }
+    }
+
     private var hasActiveFilters: Bool {
         statusFilter != nil || categoryFilter != nil
     }
@@ -34,13 +50,18 @@ struct SubscriptionsListView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Spacing.md) {
+                // ── Header ──────────────────────────────────
                 headerRow
+
+                // ── Search ──────────────────────────────────
                 searchBar
 
+                // ── Filter chips ────────────────────────────
                 if hasActiveFilters {
                     filterChips
                 }
 
+                // ── Count ───────────────────────────────────
                 HStack {
                     Text("\(filteredSubscriptions.count) suscripciones")
                         .font(.caption)
@@ -52,18 +73,14 @@ struct SubscriptionsListView: View {
                     emptyState
                         .padding(.top, Spacing.xxxl)
                 } else {
-                    LazyVStack(spacing: Spacing.md) {
-                        ForEach(Array(filteredSubscriptions.enumerated()), id: \.element.id) { idx, sub in
-                            SubscriptionCard(subscription: sub) {
-                                selectedSubscription = sub
-                            }
-                            .opacity(1)
-                            .animation(
-                                .spring(response: 0.35, dampingFraction: 0.8)
-                                .delay(Double(idx) * 0.055),
-                                value: filteredSubscriptions.count
-                            )
-                        }
+                    // ── Active: wallet stack ─────────────────
+                    if !activeSubscriptions.isEmpty {
+                        walletStack
+                    }
+
+                    // ── Inactive: compact rows ──────────────
+                    if !inactiveSubscriptions.isEmpty {
+                        inactiveSection
                     }
                 }
             }
@@ -75,7 +92,6 @@ struct SubscriptionsListView: View {
         .refreshable {
             await store.fetch()
         }
-        // Custom overlays instead of native sheets
         .overlay {
             if let sub = selectedSubscription {
                 SubscriptionDetailOverlay(
@@ -88,7 +104,7 @@ struct SubscriptionsListView: View {
             }
         }
         .overlay {
-            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripción") {
+            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripcion") {
                 SubscriptionFormView(mode: .create)
             }
         }
@@ -102,22 +118,15 @@ struct SubscriptionsListView: View {
     // MARK: - Header
 
     private var headerRow: some View {
-        HStack {
-            Text("Suscripciones")
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            Text("Mis suscripciones")
                 .font(.title)
                 .foregroundStyle(Color.textPrimary)
-            Spacer()
-            Button {
-                Haptics.tap(.light)
-                showAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.accentForeground)
-                    .frame(width: 36, height: 36)
-                    .background(Color.accent, in: Circle())
-            }
+            Text("\(activeSubscriptions.count) activas \u{00B7} \(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))/mes")
+                .font(.caption)
+                .foregroundStyle(Color.textMuted)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Search
@@ -172,6 +181,69 @@ struct SubscriptionsListView: View {
                             .frame(width: 8, height: 8)
                             .offset(x: -4, y: 4)
                     }
+                }
+            }
+        }
+    }
+
+    // MARK: - Wallet Stack (active subscriptions)
+
+    private var walletStack: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(activeSubscriptions.enumerated()), id: \.element.id) { idx, sub in
+                WalletCardView(subscription: sub) {
+                    Haptics.tap(.light)
+                    selectedSubscription = sub
+                }
+                .zIndex(Double(idx + 1))
+                .offset(y: CGFloat(idx) * -76)
+            }
+        }
+        // Compensate for the negative offsets so the stack doesn't leave empty space
+        .padding(.bottom, activeSubscriptions.count > 1
+                 ? CGFloat(activeSubscriptions.count - 1) * -76
+                 : 0)
+    }
+
+    // MARK: - Inactive Section
+
+    private var inactiveSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Inactivas")
+                .font(.rounded(.semibold, size: 13))
+                .foregroundStyle(Color.textMuted)
+                .padding(.top, Spacing.lg)
+
+            VStack(spacing: Spacing.sm) {
+                ForEach(inactiveSubscriptions) { sub in
+                    Button {
+                        Haptics.tap(.light)
+                        selectedSubscription = sub
+                    } label: {
+                        HStack(spacing: Spacing.md) {
+                            LogoAvatar(
+                                name: sub.name,
+                                logoURL: URL(string: sub.logoUrl ?? ""),
+                                size: 40
+                            )
+
+                            Text(sub.name)
+                                .font(.rounded(.bold, size: 14))
+                                .foregroundStyle(Color.textPrimary)
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            Text(statusLabel(for: sub.status))
+                                .font(.rounded(.medium, size: 12))
+                                .foregroundStyle(statusColor(for: sub.status))
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.md)
+                        .background(Color.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    }
+                    .buttonStyle(.pressable)
                 }
             }
         }
@@ -260,7 +332,7 @@ struct SubscriptionsListView: View {
             }
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Categoría")
+                Text("Categoria")
                     .font(.micro)
                     .foregroundStyle(Color.textMuted)
                     .padding(.horizontal, Spacing.xs)
@@ -311,19 +383,173 @@ struct SubscriptionsListView: View {
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
             Text(hasActiveFilters
-                 ? "Ninguna suscripción coincide con los filtros."
-                 : "Añade tu primera suscripción para empezar.")
+                 ? "Ninguna suscripcion coincide con los filtros."
+                 : "Anade tu primera suscripcion para empezar.")
                 .font(.bodyRegular)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
             if !hasActiveFilters {
-                PrimaryButton(title: "Añadir suscripción") {
+                PrimaryButton(title: "Anadir suscripcion") {
                     showAddSheet = true
                 }
                 .frame(maxWidth: 240)
             }
         }
         .padding(.horizontal, Spacing.xxxl)
+    }
+
+    // MARK: - Helpers
+
+    private func statusLabel(for status: Subscription.Status) -> String {
+        switch status {
+        case .active:    "Activa"
+        case .paused:    "Pausada"
+        case .cancelled: "Cancelada"
+        case .trial:     "Prueba"
+        }
+    }
+
+    private func statusColor(for status: Subscription.Status) -> Color {
+        switch status {
+        case .active:    Color(hex: "#16A34A")
+        case .paused:    Color(hex: "#E07B1A")
+        case .cancelled: Color(hex: "#EF4444")
+        case .trial:     Color(hex: "#D97706")
+        }
+    }
+}
+
+// MARK: - Wallet Card (matches web's stacked white cards)
+
+/// White card used in the subscription list wallet stack.
+/// Matches web: bg-white, borderRadius 28, px-5 pt-5 pb-5,
+/// shadow 0 -1px 2px rgba(0,0,0,0.04), progress bar green #22C55E.
+private struct WalletCardView: View {
+    let subscription: Subscription
+    var onTap: (() -> Void)?
+
+    var body: some View {
+        Button {
+            onTap?()
+        } label: {
+            VStack(spacing: Spacing.xl) {
+                // ── Top row: avatar | name+cat | price+status ──
+                HStack(alignment: .top, spacing: Spacing.xl) {
+                    LogoAvatar(
+                        name: subscription.name,
+                        logoURL: URL(string: subscription.logoUrl ?? ""),
+                        size: 48
+                    )
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(subscription.name)
+                            .font(.rounded(.bold, size: 16))
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                        Text(subscription.category.localizedName)
+                            .font(.rounded(.regular, size: 14))
+                            .foregroundStyle(Color.textMuted)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(CurrencyFormat.string(for: subscription.monthlyEquivalent, currency: subscription.currency))
+                                .font(.rounded(.bold, size: 16))
+                                .foregroundStyle(Color.textPrimary)
+                            Text("/mes")
+                                .font(.rounded(.regular, size: 12))
+                                .foregroundStyle(Color.textMuted)
+                        }
+                        Text(walletStatusLabel)
+                            .font(.rounded(.semibold, size: 14))
+                            .foregroundStyle(walletStatusColor)
+                    }
+                    .layoutPriority(-1)
+                }
+
+                // ── Progress section ───────────────────────────
+                if subscription.nextBillingDate > .distantPast {
+                    VStack(spacing: Spacing.xs) {
+                        Text(daysLabel)
+                            .font(.rounded(.regular, size: 12))
+                            .foregroundStyle(Color.textMuted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // Progress bar (green)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.black.opacity(0.07))
+                                    .frame(height: 4)
+                                Capsule()
+                                    .fill(Color(hex: "#22C55E"))
+                                    .frame(width: geo.size.width * subscription.billingProgress, height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+
+                        // Days + date
+                        HStack {
+                            Text(daysShortLabel)
+                                .font(.rounded(.regular, size: 12))
+                                .foregroundStyle(Color.textMuted)
+                            Spacer()
+                            Text(formattedNextDate)
+                                .font(.rounded(.regular, size: 12))
+                                .foregroundStyle(Color.textMuted)
+                        }
+                    }
+                }
+            }
+            .padding(Spacing.xl)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: .black.opacity(0.04), radius: 1, y: -1)
+        }
+        .buttonStyle(.pressable)
+    }
+
+    private var walletStatusLabel: String {
+        switch subscription.status {
+        case .active:    "Activa"
+        case .paused:    "Pausada"
+        case .cancelled: "Cancelada"
+        case .trial:     "Prueba"
+        }
+    }
+
+    private var walletStatusColor: Color {
+        switch subscription.status {
+        case .active:    Color(hex: "#16A34A")
+        case .paused:    Color(hex: "#E07B1A")
+        case .cancelled: Color(hex: "#EF4444")
+        case .trial:     Color(hex: "#D97706")
+        }
+    }
+
+    private var daysLabel: String {
+        let d = subscription.daysUntilBilling
+        if d == 0 { return "Se renueva hoy" }
+        if d == 1 { return "Se renueva manana" }
+        return "Se renueva en \(d) dias"
+    }
+
+    private var daysShortLabel: String {
+        let d = subscription.daysUntilBilling
+        if d == 0 { return "Hoy" }
+        if d == 1 { return "1 dia" }
+        return "\(d) dias"
+    }
+
+    private var formattedNextDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.locale = Locale(identifier: "es_ES")
+        return formatter.string(from: subscription.nextBillingDate)
     }
 }
 

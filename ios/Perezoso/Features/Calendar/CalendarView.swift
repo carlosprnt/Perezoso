@@ -1,10 +1,16 @@
 import SwiftUI
 
-/// Monthly calendar grid with subscription renewal indicators.
+/// Monthly calendar grid matching the web's CalendarView.tsx.
 ///
-/// Shows a 7-column grid of day cells with dots on dates that have
-/// one or more renewals. Tapping a date with renewals reveals a
-/// small list of those subscriptions below the grid.
+/// Web spec:
+/// - Day cells: 80px min-height, 12px radius, 5px gap
+/// - Day number: 13px medium, black if has subs / gray if not
+/// - Logo: 32px CellLogo centered in cell, "+N" badge if >1
+/// - Today: 1.5px solid black border
+/// - Month header: animated title + circular nav buttons (40x40)
+/// - Month summary: total cost | renewal count (13px, pipe separator)
+/// - Swipe left/right for month navigation
+/// - Tapping day opens CalendarDaySheet
 struct CalendarView: View {
     @Environment(SubscriptionsStore.self) private var store
 
@@ -15,13 +21,11 @@ struct CalendarView: View {
     }()
 
     @State private var selectedDate: Date?
-
-    // MARK: - Body
+    @State private var showDaySheet = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: Spacing.xl) {
-                // Title (when not embedded in NavigationStack)
                 HStack {
                     Text("Calendario")
                         .font(.title)
@@ -30,30 +34,56 @@ struct CalendarView: View {
                 }
 
                 monthHeader
+                monthSummary
                 weekdayRow
                 dayGrid
-                if let date = selectedDate {
-                    renewalList(for: date)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
             }
             .padding(.horizontal, Spacing.xl)
             .padding(.top, Spacing.md)
             .padding(.bottom, 120)
         }
         .background(Color.background)
+        .gesture(
+            DragGesture(minimumDistance: 50)
+                .onEnded { value in
+                    if value.translation.width < -50 {
+                        Haptics.selection()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth)!
+                            selectedDate = nil
+                        }
+                    } else if value.translation.width > 50 {
+                        Haptics.selection()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth)!
+                            selectedDate = nil
+                        }
+                    }
+                }
+        )
+        .overlay {
+            if showDaySheet, let date = selectedDate {
+                CustomBottomSheet(
+                    isPresented: $showDaySheet,
+                    title: dayLabel(for: date)
+                ) {
+                    calendarDaySheet(for: date)
+                }
+            }
+        }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: displayedMonth)
-        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: selectedDate)
     }
 
-    // MARK: - Subviews
+    // MARK: - Month Header
 
     private var monthHeader: some View {
         HStack {
             Button {
                 Haptics.selection()
-                displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth)!
-                selectedDate = nil
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth)!
+                    selectedDate = nil
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .semibold))
@@ -67,15 +97,22 @@ struct CalendarView: View {
             Spacer()
 
             Text(monthYearLabel)
-                .font(.headline)
+                .font(.rounded(.bold, size: 28))
                 .foregroundStyle(Color.textPrimary)
+                .id(monthYearLabel) // Triggers animation on change
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
 
             Spacer()
 
             Button {
                 Haptics.selection()
-                displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth)!
-                selectedDate = nil
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth)!
+                    selectedDate = nil
+                }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 17, weight: .semibold))
@@ -88,85 +125,108 @@ struct CalendarView: View {
         }
     }
 
+    // MARK: - Month Summary
+
+    private var monthSummary: some View {
+        HStack(spacing: Spacing.md) {
+            let monthRenewals = allMonthRenewals
+            let totalCost = monthRenewals.reduce(Decimal.zero) { $0 + $1.amount }
+
+            Text(CurrencyFormat.string(for: totalCost, currency: "EUR"))
+                .font(.rounded(.medium, size: 13))
+                .foregroundStyle(Color.textMuted)
+
+            Rectangle()
+                .fill(Color.border)
+                .frame(width: 1, height: 12)
+
+            Text("\(monthRenewals.count) renovaciones")
+                .font(.rounded(.medium, size: 13))
+                .foregroundStyle(Color.textMuted)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Weekday Row
+
     private var weekdayRow: some View {
         LazyVGrid(columns: gridColumns, spacing: 0) {
             ForEach(["L", "M", "X", "J", "V", "S", "D"], id: \.self) { label in
                 Text(label)
-                    .font(.micro)
+                    .font(.rounded(.medium, size: 11))
                     .foregroundStyle(Color.textMuted)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.xs)
+                    .padding(.vertical, Spacing.xxs)
             }
         }
     }
+
+    // MARK: - Day Grid
 
     private var dayGrid: some View {
-        Card {
-            LazyVGrid(columns: gridColumns, spacing: 0) {
-                ForEach(calendarCells, id: \.self) { date in
-                    if let date {
-                        DayCell(
-                            date: date,
-                            isToday: calendar.isDateInToday(date),
-                            isSelected: selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false,
-                            renewalCount: renewals(on: date).count
-                        )
-                        .onTapGesture {
-                            Haptics.selection()
-                            let subs = renewals(on: date)
-                            if !subs.isEmpty {
-                                selectedDate = calendar.isDate(date, inSameDayAs: selectedDate ?? .distantPast)
-                                    ? nil
-                                    : date
-                            }
+        LazyVGrid(columns: gridColumns, spacing: 5) {
+            ForEach(calendarCells, id: \.self) { date in
+                if let date {
+                    let subs = renewals(on: date)
+                    let isToday = calendar.isDateInToday(date)
+                    let isSelected = selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false
+
+                    CalendarDayCell(
+                        date: date,
+                        isToday: isToday,
+                        isSelected: isSelected,
+                        subscriptions: subs
+                    )
+                    .onTapGesture {
+                        Haptics.selection()
+                        if !subs.isEmpty {
+                            selectedDate = date
+                            showDaySheet = true
                         }
-                    } else {
-                        Color.clear
-                            .frame(height: 44)
                     }
+                } else {
+                    Color.clear
+                        .frame(minHeight: 80)
                 }
             }
-            .padding(Spacing.sm)
         }
     }
 
-    private func renewalList(for date: Date) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(dayLabel(for: date))
-                .font(.headline)
-                .foregroundStyle(Color.textPrimary)
+    // MARK: - Calendar Day Sheet
 
+    private func calendarDaySheet(for date: Date) -> some View {
+        VStack(spacing: Spacing.md) {
             ForEach(renewals(on: date)) { sub in
-                Card {
-                    HStack(spacing: Spacing.md) {
-                        LogoAvatar(
-                            name: sub.name,
-                            logoURL: URL(string: sub.logoUrl ?? ""),
-                            size: 40
-                        )
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(sub.name)
-                                .font(.bodyMedium)
-                                .foregroundStyle(Color.textPrimary)
-                            Text(sub.category.localizedName)
-                                .font(.caption)
-                                .foregroundStyle(Color.textMuted)
-                        }
-                        Spacer()
-                        Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
+                HStack(spacing: Spacing.md) {
+                    LogoAvatar(
+                        name: sub.name,
+                        logoURL: URL(string: sub.logoUrl ?? ""),
+                        size: 40
+                    )
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(sub.name)
                             .font(.bodyMedium)
                             .foregroundStyle(Color.textPrimary)
+                        Text(sub.category.localizedName)
+                            .font(.caption)
+                            .foregroundStyle(Color.textMuted)
                     }
-                    .padding(Spacing.md)
+                    Spacer()
+                    Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
+                        .font(.bodyMedium)
+                        .foregroundStyle(Color.textPrimary)
                 }
+                .padding(.horizontal, Spacing.xl)
             }
         }
+        .padding(.vertical, Spacing.lg)
+        .padding(.bottom, Spacing.xxxl)
     }
 
     // MARK: - Helpers
 
     private let calendar = Calendar.current
-    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 5), count: 7)
 
     private var monthYearLabel: String {
         let formatter = DateFormatter()
@@ -176,7 +236,6 @@ struct CalendarView: View {
         return raw.prefix(1).uppercased() + raw.dropFirst()
     }
 
-    /// Returns an array of `Date?` values aligned to a Mon-first grid.
     private var calendarCells: [Date?] {
         guard let range = calendar.range(of: .day, in: .month, for: displayedMonth),
               let firstDay = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth))
@@ -193,8 +252,16 @@ struct CalendarView: View {
     }
 
     private func renewals(on date: Date) -> [Subscription] {
-        store.subscriptions.filter {
+        store.activeSubscriptions.filter {
             calendar.isDate($0.nextBillingDate, inSameDayAs: date)
+        }
+    }
+
+    private var allMonthRenewals: [Subscription] {
+        store.activeSubscriptions.filter { sub in
+            let comps = calendar.dateComponents([.year, .month], from: sub.nextBillingDate)
+            let displayComps = calendar.dateComponents([.year, .month], from: displayedMonth)
+            return comps.year == displayComps.year && comps.month == displayComps.month
         }
     }
 
@@ -206,55 +273,74 @@ struct CalendarView: View {
     }
 }
 
-// MARK: - Day Cell
+// MARK: - Calendar Day Cell
 
-private struct DayCell: View {
+/// Day cell matching web: 80px min-height, 12px radius,
+/// day number top-left, logo centered, +N badge if multiple.
+private struct CalendarDayCell: View {
     let date: Date
     let isToday: Bool
     let isSelected: Bool
-    let renewalCount: Int
+    let subscriptions: [Subscription]
 
     private var day: Int {
         Calendar.current.component(.day, from: date)
     }
 
+    private var hasSubs: Bool { !subscriptions.isEmpty }
+
     var body: some View {
-        VStack(spacing: 2) {
-            ZStack {
-                if isSelected {
-                    Circle()
-                        .fill(Color.accent)
-                        .frame(width: 34, height: 34)
-                } else if isToday {
-                    Circle()
-                        .stroke(Color.accent, lineWidth: 1.5)
-                        .frame(width: 34, height: 34)
-                }
+        VStack(spacing: 4) {
+            // Day number (top)
+            Text("\(day)")
+                .font(.rounded(.medium, size: 13))
+                .foregroundStyle(
+                    hasSubs
+                        ? Color.textPrimary
+                        : Color(hex: "#A0A0A0")
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 6)
+                .padding(.top, 6)
 
-                Text("\(day)")
-                    .font(.rounded(.medium, size: 14))
-                    .foregroundStyle(
-                        isSelected ? Color.accentForeground :
-                        isToday ? Color.accent :
-                        Color.textPrimary
+            Spacer()
+
+            // Logo or empty
+            if let first = subscriptions.first {
+                ZStack(alignment: .bottomTrailing) {
+                    LogoAvatar(
+                        name: first.name,
+                        logoURL: URL(string: first.logoUrl ?? ""),
+                        size: 32
                     )
-            }
 
-            // Renewal dots
-            HStack(spacing: 2) {
-                ForEach(0..<min(renewalCount, 3), id: \.self) { _ in
-                    Circle()
-                        .fill(isSelected ? Color.accentForeground.opacity(0.8) : Color.accent)
-                        .frame(width: 4, height: 4)
+                    if subscriptions.count > 1 {
+                        Text("+\(subscriptions.count - 1)")
+                            .font(.rounded(.semibold, size: 9))
+                            .foregroundStyle(Color.textMuted)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(Color.surfaceSecondary, in: Capsule())
+                            .offset(x: 6, y: 4)
+                    }
                 }
+                .padding(.bottom, 6)
+            } else {
+                Spacer()
             }
-            .frame(height: 6)
         }
-        .frame(height: 44)
+        .frame(minHeight: 80)
+        .background(Color.surfaceSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(
+                    isToday ? Color.accent : Color.clear,
+                    lineWidth: 1.5
+                )
+        )
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     CalendarView()
