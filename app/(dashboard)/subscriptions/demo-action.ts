@@ -135,6 +135,7 @@ export async function setDemoMode(count: number, isPro: boolean = false) {
     await supabase.from('profiles').update({ is_pro: false }).eq('id', user.id)
   }
 
+  revalidatePath('/', 'layout')
   revalidatePath('/dashboard')
   revalidatePath('/subscriptions')
   redirect('/dashboard')
