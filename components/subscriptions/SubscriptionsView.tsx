@@ -343,7 +343,7 @@ function InactiveCardsRow({
   if (subscriptions.length === 0) return null
   return (
     <div className="mt-8">
-      <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3 px-1">
+      <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
         {t('subscriptions.inactive')}
       </p>
       <div className="flex flex-col gap-2">
@@ -768,7 +768,7 @@ export default function SubscriptionsView({
       {/* ── Sticky header zone — sits BEHIND cards (low z-index)
               fades + blurs as cards scroll over it ─────────────── */}
       <motion.div
-        className="sticky top-0 z-[20] px-1 pb-4"
+        className="sticky top-0 z-[20] pb-4"
         style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
       >
         {/* Title row */}
@@ -815,14 +815,14 @@ export default function SubscriptionsView({
 
       {/* Sort + Filter control — just above cards. Hidden when there are no subs. */}
       {allCount > 0 && (
-        <div className="relative z-[30] px-1 mt-2 mb-[9px] flex items-center justify-between">
+        <div className="relative z-[30] mt-2 mb-[9px] flex items-center justify-between">
           <SortDropdown current={sortMode} onSelect={(mode) => { setSortMode(mode); AnalyticsEvents.sortChanged(mode) }} />
           <FilterDropdown currentStatus={currentStatus} currentCategory={currentCategory} />
         </div>
       )}
 
       {/* ── Cards — higher z-index, scroll over the header ────── */}
-      <div className="-mx-1 relative z-[1] space-y-5">
+      <div className="relative z-[1] space-y-5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
