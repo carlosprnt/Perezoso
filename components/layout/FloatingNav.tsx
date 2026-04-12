@@ -126,8 +126,8 @@ export default function FloatingNav() {
               padding: PAD,
               gap: GAP,
               background: isDarkMode ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
             }}
           >
             {/* Sliding stroke indicator — animates horizontally between
