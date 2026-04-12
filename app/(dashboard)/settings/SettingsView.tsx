@@ -261,9 +261,6 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
                 <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
                   Perezoso Plus
                 </p>
-                <span className="h-6 px-2.5 rounded-full bg-[#34C759]/15 text-[#34C759] text-[11px] font-semibold flex items-center">
-                  Activo
-                </span>
               </div>
               <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
                 Suscripción activa

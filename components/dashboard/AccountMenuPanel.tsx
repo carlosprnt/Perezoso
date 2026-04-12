@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Share2, Settings, Sun, Moon } from 'lucide-react'
+import { LogOut, Share2, Settings, Sun, Moon, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
@@ -20,6 +21,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
   const router = useRouter()
   const t = useT()
   const { isPro, openPaywall } = useSubscription()
+  const [showProManage, setShowProManage] = useState(false)
 
   function hideSurface() {
     window.dispatchEvent(new Event('oso:hide-analytics'))
@@ -101,18 +103,57 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
               </button>
             </div>
           ) : (
-            <div className="relative mt-4 rounded-2xl border border-white/20 px-5 py-5 flex items-center gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="text-[20px] font-bold text-white leading-tight">
-                  Perezoso Plus
-                </p>
-                <p className="text-[13px] text-white/50 mt-1 leading-snug">
-                  Ya tienes la versión Pro
-                </p>
+            <div className="relative mt-4 rounded-2xl border border-white/20 px-5 py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[20px] font-bold text-white leading-tight">
+                    Perezoso Plus
+                  </p>
+                  <p className="text-[13px] text-white/50 mt-1 leading-snug">
+                    Ya tienes la versión Pro
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowProManage(!showProManage)}
+                  className="h-10 px-5 rounded-full bg-white/10 text-white text-[14px] font-semibold flex-shrink-0 active:bg-white/20 transition-colors"
+                >
+                  Gestionar
+                </button>
               </div>
-              <span className="h-8 px-4 rounded-full bg-white/10 text-white/80 text-[13px] font-semibold flex items-center flex-shrink-0">
-                Activo
-              </span>
+
+              {showProManage && (
+                <div className="mt-5 pt-5 border-t border-white/10">
+                  <p className="text-[13px] font-semibold text-white mb-3">
+                    Tu plan incluye
+                  </p>
+                  <ul className="space-y-2.5 mb-5">
+                    {[
+                      'Suscripciones ilimitadas',
+                      'Alertas de renovación personalizadas',
+                      'Recomendaciones de ahorro avanzadas',
+                      'Categorías personalizadas',
+                      'Calendario de pagos completo',
+                      'Detección de suscripciones por Gmail',
+                      'Soporte prioritario',
+                    ].map(benefit => (
+                      <li key={benefit} className="flex items-start gap-2.5">
+                        <Check size={14} strokeWidth={3} className="text-[#34C759] mt-0.5 flex-shrink-0" />
+                        <span className="text-[14px] text-white/90 leading-snug">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.open('https://apps.apple.com/account/subscriptions', '_blank')
+                      }
+                    }}
+                    className="w-full h-12 rounded-full text-[14px] font-semibold text-[#FCA5A5] bg-[#FCA5A5]/10 active:bg-[#FCA5A5]/20 transition-colors"
+                  >
+                    Cancelar suscripción
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
