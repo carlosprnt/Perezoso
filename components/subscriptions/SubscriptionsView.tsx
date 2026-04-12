@@ -870,11 +870,8 @@ export default function SubscriptionsView({
               <motion.div
                 style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
               >
-                <p className="text-[45px] font-extrabold text-[#000000] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2">
+                <p className="text-[45px] font-extrabold text-[#000000] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-6">
                   Todavía no has añadido ninguna
-                </p>
-                <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug mb-6">
-                  {t('subscriptions.getStarted')}
                 </p>
               </motion.div>
               <QuickAddPlatforms />
