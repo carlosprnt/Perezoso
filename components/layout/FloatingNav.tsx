@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { LayoutGrid, Plus, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import BottomSheet from '@/components/ui/BottomSheet'
-import PlatformPicker from '@/components/subscriptions/PlatformPicker'
+import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import GmailSubscriptionSearchSheet from '@/components/subscriptions/GmailSubscriptionSearchSheet'
 import { useT } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import haptics from '@/lib/haptics'
-import type { PlatformPreset } from '@/lib/constants/platforms'
+import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 
 type Step = 'closed' | 'pick' | 'form' | 'gmail'
 
@@ -198,33 +198,96 @@ export default function FloatingNav() {
       </nav>
       )}
 
-      {/* Step 1 — Platform picker */}
-      <BottomSheet
-        isOpen={step === 'pick'}
-        onClose={close}
-        title={t('sheets.createNew')}
-        height="tall"
-        footer={
-          <div
-            className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
+      {/* ── Add panel — dark overlay expanding from the + button ─────────── */}
+      <AnimatePresence>
+        {step === 'pick' && (
+          <motion.div
+            className="lg:hidden fixed z-[55] overflow-hidden flex flex-col"
+            style={{
+              left: 10,
+              right: 10,
+              bottom: 10,
+              height: '70dvh',
+              borderRadius: 28,
+            }}
+            initial={{ opacity: 0, scale: 0.85, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            <button
-              onClick={() => setStep('gmail')}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#000000] dark:text-[#FFFFFF] border border-[#000000] dark:border-[#FFFFFF] bg-transparent flex items-center justify-center active:bg-[#F5F5F5] dark:active:bg-[#2C2C2E] transition-colors"
-            >
-              {t('picker.searchGmail')}
-            </button>
-            <button
-              onClick={() => handleSelect(null)}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#000000] flex items-center justify-center active:bg-[#000000] transition-colors"
-            >
-              {t('picker.enterManually')}
-            </button>
-          </div>
-        }
-      >
-        <PlatformPicker onSelect={handleSelect} />
-      </BottomSheet>
+            {/* Background with blur */}
+            <div
+              className="absolute inset-0 bg-[#0a0a0a]/95"
+              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 28 }}
+            />
+
+            {/* Content */}
+            <div className="relative flex flex-col h-full z-[1]">
+              {/* Header with close button */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                <h2 className="text-[17px] font-semibold text-white">{t('sheets.createNew')}</h2>
+                <button
+                  onClick={close}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center active:bg-white/20 transition-colors"
+                >
+                  <X size={15} strokeWidth={2.5} className="text-white" />
+                </button>
+              </div>
+
+              {/* Scrollable platform list */}
+              <div className="flex-1 overflow-y-auto px-3 pb-3">
+                <div className="space-y-0.5">
+                  {PLATFORMS.map(platform => (
+                    <button
+                      key={platform.id}
+                      onClick={() => handleSelect(platform)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl active:bg-white/10 transition-colors text-left"
+                    >
+                      <SubscriptionAvatar
+                        name={platform.name}
+                        logoUrl={resolvePlatformLogoUrl(platform)}
+                        size="sm40"
+                        corner="rounded-xl"
+                      />
+                      <span className="text-[15px] font-medium text-white">{platform.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer buttons */}
+              <div className="flex gap-3 px-5 py-4">
+                <button
+                  onClick={() => setStep('gmail')}
+                  className="flex-1 h-12 rounded-full text-sm font-semibold text-white border border-white/30 bg-transparent flex items-center justify-center active:bg-white/10 transition-colors"
+                >
+                  {t('picker.searchGmail')}
+                </button>
+                <button
+                  onClick={() => handleSelect(null)}
+                  className="flex-1 h-12 rounded-full text-sm font-semibold text-black bg-white flex items-center justify-center active:bg-white/90 transition-colors"
+                >
+                  {t('picker.enterManually')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Backdrop — dims the page when the add panel is open */}
+      <AnimatePresence>
+        {step === 'pick' && (
+          <motion.div
+            className="lg:hidden fixed inset-0 z-[54] bg-black/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={close}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Step 2 — Form */}
       <BottomSheet isOpen={step === 'form'} onClose={close} height="full">
