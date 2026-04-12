@@ -247,7 +247,7 @@ export default function FloatingNav() {
                         name={platform.name}
                         logoUrl={resolvePlatformLogoUrl(platform)}
                         size="sm40"
-                        corner="rounded-xl"
+                        corner="rounded-[16px]"
                       />
                       <span className="text-[15px] font-medium text-white">{platform.name}</span>
                     </button>
