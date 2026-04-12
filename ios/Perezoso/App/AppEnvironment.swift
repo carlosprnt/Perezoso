@@ -68,8 +68,25 @@ struct AppEnvironment {
     private static func plistValue(_ key: String) -> String? {
         guard let value = Bundle.main.infoDictionary?[key] as? String,
               !value.isEmpty,
-              !value.hasPrefix("$(") // unexpanded xcconfig variable
+              !value.hasPrefix("$("), // unexpanded xcconfig variable
+              value != "placeholder"
         else { return nil }
         return value
     }
+
+    /// Prints the resolved config for debugging launch issues.
+    /// Only runs in DEBUG builds; call from PerezosoApp.init() if needed.
+    #if DEBUG
+    static func debugPrint() {
+        let url = Bundle.main.infoDictionary?["SUPABASE_URL"] as? String ?? "<missing>"
+        let key = Bundle.main.infoDictionary?["SUPABASE_ANON_KEY"] as? String ?? "<missing>"
+        let rc  = Bundle.main.infoDictionary?["REVENUECAT_IOS_KEY"] as? String ?? "<missing>"
+        print("──── AppEnvironment ────")
+        print("  SUPABASE_URL:      \(url)")
+        print("  SUPABASE_ANON_KEY: \(key.prefix(20))…")
+        print("  REVENUECAT_KEY:    \(rc.prefix(20))…")
+        print("  isPreview:         \(shared.isPreview)")
+        print("────────────────────────")
+    }
+    #endif
 }
