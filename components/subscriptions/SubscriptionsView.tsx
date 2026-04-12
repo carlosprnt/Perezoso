@@ -822,7 +822,7 @@ export default function SubscriptionsView({
       )}
 
       {/* ── Cards — higher z-index, scroll over the header ────── */}
-      <div className="relative z-[1] space-y-5">
+      <div className="relative z-[1] space-y-5 -mx-2.5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
