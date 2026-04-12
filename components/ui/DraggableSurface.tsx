@@ -320,7 +320,7 @@ function MobileDraggableSurface({
           }}
         >
           <div className="max-w-5xl mx-auto px-5 sm:px-6 pt-6 pb-28">
-            <ScrollContainerProvider value={scrollY}>
+            <ScrollContainerProvider value={{ scrollY, ref: scrollRef }}>
               {children}
             </ScrollContainerProvider>
           </div>

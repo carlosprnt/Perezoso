@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
+import { useScrollContainerRef } from '@/lib/hooks/ScrollContainerContext'
 import BottomSheet from '@/components/ui/BottomSheet'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 
@@ -25,11 +26,13 @@ function PlatformRow({
   onAdd,
   isLast,
   index,
+  scrollRoot,
 }: {
   platform: PlatformPreset
   onAdd: (p: PlatformPreset | null) => void
   isLast: boolean
   index: number
+  scrollRoot?: React.RefObject<HTMLElement | null>
 }) {
   const logoUrl = resolvePlatformLogoUrl(platform)
   const { fg } = getAvatarPastel(platform.name)
@@ -44,7 +47,7 @@ function PlatformRow({
       <motion.div
         initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
         whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-        viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
+        viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px', root: scrollRoot }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
       <div className="flex items-center gap-3 py-3">
@@ -74,6 +77,7 @@ function PlatformRow({
 export default function QuickAddPlatforms() {
   const [selected, setSelected] = useState<PlatformPreset | null | undefined>(undefined)
   const isOpen = selected !== undefined
+  const scrollRoot = useScrollContainerRef()
 
   function close() {
     setSelected(undefined)
@@ -93,6 +97,7 @@ export default function QuickAddPlatforms() {
               onAdd={setSelected}
               isLast={i === QUICK_ADD_PLATFORMS.length - 1}
               index={i}
+              scrollRoot={scrollRoot}
             />
           ))}
           <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />
