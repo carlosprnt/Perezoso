@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -30,11 +30,14 @@ function PlatformRow({
   onAdd,
   isLast,
   index,
+  hasMounted,
 }: {
   platform: PlatformPreset
   onAdd: (p: PlatformPreset | null) => void
   isLast: boolean
   index: number
+  /** false = first load (staggered cascade, once). true = scroll mode (repeating). */
+  hasMounted: boolean
 }) {
   const logoUrl = resolvePlatformLogoUrl(platform)
   const { fg } = getAvatarPastel(platform.name)
@@ -44,8 +47,16 @@ function PlatformRow({
     <motion.div
       initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
       whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-      viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
-      transition={{ ...ROW_TRANSITION, delay: index * 0.06 }}
+      viewport={
+        hasMounted
+          ? { once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }
+          : { once: true, amount: 0.3 }
+      }
+      transition={
+        hasMounted
+          ? ROW_TRANSITION
+          : { ...ROW_TRANSITION, delay: index * 0.06 }
+      }
     >
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
@@ -74,6 +85,13 @@ export default function QuickAddPlatforms() {
   const [selected, setSelected] = useState<PlatformPreset | null | undefined>(undefined)
   const isOpen = selected !== undefined
 
+  // After the initial cascade finishes, switch to scroll-driven animations.
+  const [hasMounted, setHasMounted] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setHasMounted(true), QUICK_ADD_PLATFORMS.length * 60 + 800)
+    return () => clearTimeout(t)
+  }, [])
+
   function close() {
     setSelected(undefined)
   }
@@ -92,6 +110,7 @@ export default function QuickAddPlatforms() {
               onAdd={setSelected}
               isLast={i === QUICK_ADD_PLATFORMS.length - 1}
               index={i}
+              hasMounted={hasMounted}
             />
           ))}
           <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />
