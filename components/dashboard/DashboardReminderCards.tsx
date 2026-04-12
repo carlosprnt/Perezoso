@@ -37,7 +37,7 @@ function ReminderToast({ onDone }: { onDone: () => void }) {
     >
       <Bell size={20} strokeWidth={2.2} color="#000"
         style={{ animation: 'bell-ring 0.9s ease-in-out 0.1s 1', transformOrigin: 'top center', flexShrink: 0 }} />
-      <p className="text-[14px] font-medium text-[#000000] leading-snug flex-1">
+      <p className="text-[14px] font-medium text-[#000000] dark:text-[#F2F2F7] leading-snug flex-1">
         {t('reminder.toastText')}
       </p>
     </div>
