@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
 import { useSurfaceProgress } from '@/components/ui/DraggableSurface'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -146,44 +146,115 @@ interface Props {
   sharedLogoUrls?: string[]
 }
 
-/** Inline row of up to 4 overlapping circular subscription logos used
-    inside the hero narrative text. Each logo has `position: relative` so
-    z-index works — leftmost sits on top visually (descending z-index
-    from left to right).
+/** Inline row of up to 3 overlapping circular subscription logos.
+    If there are more than 3, the 4th slot shows "..." to indicate
+    more exist. Tapping the stack fires a bubble animation where all
+    logos float upward and fade out. */
+function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
+  const show3 = urls.slice(0, 3)
+  const hasMore = urls.length > 3
+  const [bubbling, setBubbling] = useState(false)
+  const [bubbleKey, setBubbleKey] = useState(0)
 
-    Uses an explicit `<img>` (not `background-image`) because external
-    SVG sources — simpleicons.org, svgl.app, Supabase storage URLs —
-    render reliably inside an <img> tag while background-image silently
-    fails for some of them, producing blank circles. `object-cover` +
-    `display: block` guarantees the image fills the 32x32 circle
-    edge-to-edge regardless of the source dimensions. A neutral gray
-    fallback behind the image keeps broken/loading logos visible so the
-    user can see the position still exists. */
-function LogoStack({ urls }: { urls: string[] }) {
-  const visible = urls.slice(0, 4)
-  if (visible.length === 0) return null
+  // All logos for the bubble animation (up to 8)
+  const bubbleUrls = (allUrls ?? urls).slice(0, 8)
+
+  const handleTap = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (bubbling) return
+    setBubbling(true)
+    setBubbleKey(k => k + 1)
+    setTimeout(() => setBubbling(false), 1200)
+  }, [bubbling])
+
+  if (show3.length === 0) return null
+
   return (
-    <span className="inline-flex items-center align-middle mx-1.5 -my-1">
-      {visible.map((url, i) => (
-        <span
-          key={url + i}
-          className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#F0F0F0] dark:bg-[#2C2C2E]"
-          style={{
-            marginLeft: i === 0 ? 0 : -10,
-            position: 'relative',
-            zIndex: 4 - i,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={url}
-            alt=""
-            loading="lazy"
-            className="block w-full h-full object-cover"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-          />
-        </span>
-      ))}
+    <>
+      <span
+        className="inline-flex items-center align-middle mx-1.5 -my-1 cursor-pointer"
+        onClick={handleTap}
+        role="button"
+        tabIndex={0}
+      >
+        {show3.map((url, i) => (
+          <span
+            key={url + i}
+            className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#F0F0F0] dark:bg-[#2C2C2E] p-0.5"
+            style={{
+              marginLeft: i === 0 ? 0 : -10,
+              position: 'relative',
+              zIndex: 4 - i,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt=""
+              loading="lazy"
+              className="block w-full h-full object-contain rounded-full"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+          </span>
+        ))}
+        {/* "..." indicator when there are more than 3 */}
+        {hasMore && (
+          <span
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#E5E5EA] dark:bg-[#3A3A3C] text-[11px] font-bold text-[#737373] dark:text-[#AEAEB2]"
+            style={{
+              marginLeft: -10,
+              position: 'relative',
+              zIndex: 0,
+            }}
+          >
+            ···
+          </span>
+        )}
+      </span>
+
+      {/* Bubble animation — logos float up and fade out */}
+      {bubbling && (
+        <BubbleOverlay key={bubbleKey} urls={bubbleUrls} />
+      )}
+    </>
+  )
+}
+
+/** Portal-free overlay that renders each logo as a bubble floating upward. */
+function BubbleOverlay({ urls }: { urls: string[] }) {
+  return (
+    <span
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 9999 }}
+      aria-hidden
+    >
+      {urls.map((url, i) => {
+        // Spread bubbles across the horizontal center with some randomness
+        const left = 20 + (i / (urls.length - 1 || 1)) * 60 // 20% → 80%
+        const delay = i * 0.07
+        const duration = 0.7 + Math.random() * 0.3
+        return (
+          <motion.span
+            key={url + i}
+            className="absolute w-11 h-11 rounded-full overflow-hidden bg-white shadow-lg p-1"
+            style={{ left: `${left}%`, bottom: '45%' }}
+            initial={{ y: 0, opacity: 1, scale: 0.4 }}
+            animate={{
+              y: -300 - Math.random() * 200,
+              opacity: [1, 1, 0],
+              scale: [0.4, 1.1, 0.8],
+            }}
+            transition={{
+              duration,
+              delay,
+              ease: [0.2, 0, 0, 1],
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="w-full h-full object-contain rounded-full" />
+          </motion.span>
+        )
+      })}
     </span>
   )
 }
@@ -341,7 +412,7 @@ export default function DashboardSummaryHero({
         <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
           <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
-          <LogoStack urls={logoUrls} />
+          <LogoStack urls={logoUrls} allUrls={logoUrls} />
           <span className="text-[#616161] dark:text-[#8E8E93]">{total === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
         </button>
         <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
@@ -351,7 +422,7 @@ export default function DashboardSummaryHero({
             {/* Line 2 — shared count with stacked logos */}
             <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youShare')}{' '}</span>
             <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
-            <LogoStack urls={sharedLogoUrls} />
+            <LogoStack urls={sharedLogoUrls} allUrls={sharedLogoUrls} />
             <span className="text-[#616161] dark:text-[#8E8E93]">{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
             <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
             <br />
