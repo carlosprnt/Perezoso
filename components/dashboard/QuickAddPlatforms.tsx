@@ -78,7 +78,7 @@ export default function QuickAddPlatforms() {
 
   return (
     <>
-      <div className="px-2.5">
+      <div>
         <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
           Añade tu primera suscripción
         </p>
