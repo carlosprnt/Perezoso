@@ -41,6 +41,12 @@ function PlatformRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
     >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, filter: 'blur(3px)' }}
+        whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+        viewport={{ once: false, amount: 0.8, margin: '-100px 0px 0px 0px' }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      >
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
           {logoUrl ? (
@@ -60,6 +66,7 @@ function PlatformRow({
         </button>
       </div>
       {!isLast && <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />}
+      </motion.div>
     </motion.div>
   )
 }
