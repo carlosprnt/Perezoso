@@ -22,12 +22,18 @@ const BTN_H = 48   // button height
 const PAD  = 8     // pill padding
 const GAP  = 8     // gap between buttons
 
-function CardIcon({ active: _active }: { active?: boolean }) {
+function CardIcon({ filled }: { filled?: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor"
       strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="5" width="20" height="14" rx="3" />
-      <line x1="2" y1="10" x2="22" y2="10" />
+      {/* Stripe drawn in bg-matching colour when filled so it cuts
+          through the solid fill and reads as a card, not a blob. */}
+      {filled ? (
+        <line x1="2" y1="10" x2="22" y2="10" stroke="#F7F8FA" strokeWidth={2.5} />
+      ) : (
+        <line x1="2" y1="10" x2="22" y2="10" />
+      )}
     </svg>
   )
 }
@@ -135,7 +141,7 @@ export default function FloatingNav() {
                   border: isDash ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
                 }}
               >
-                <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill="none" />
+                <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill={isDash ? iconColor : 'none'} />
               </div>
             </Link>
 
@@ -167,7 +173,7 @@ export default function FloatingNav() {
                   border: isSubs ? `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}` : '2px solid transparent',
                 }}
               >
-                <CardIcon />
+                <CardIcon filled={isSubs} />
               </div>
             </Link>
 
