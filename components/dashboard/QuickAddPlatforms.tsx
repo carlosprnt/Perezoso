@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
@@ -20,6 +20,11 @@ const QUICK_ADD_PLATFORMS = QUICK_ADD_IDS
   .map(id => PLATFORMS.find(p => p.id === id))
   .filter(Boolean) as typeof PLATFORMS
 
+const ROW_TRANSITION = {
+  duration: 0.45,
+  ease: [0.22, 1, 0.36, 1] as const,
+}
+
 function PlatformRow({
   platform,
   onAdd,
@@ -33,21 +38,13 @@ function PlatformRow({
   const { fg } = getAvatarPastel(platform.name)
   const initials = getInitials(platform.name)
 
-  // Scroll-driven entrance/exit animation:
-  //   entering viewport → scale 0.9→1, opacity 0→1, blur 6→0
-  //   leaving viewport  → scale 1→0.5, opacity 1→0, blur 0→6
-  const rowRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: rowRef,
-    offset: ['start end', 'start 0.75', 'end 0.25', 'end start'],
-  })
-  const scale   = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0.9, 1, 1, 0.5])
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0])
-  const blur    = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [6, 0, 0, 6])
-  const filterCss = useTransform(blur, v => v > 0.2 ? `blur(${v.toFixed(1)}px)` : 'none')
-
   return (
-    <motion.div ref={rowRef} style={{ scale, opacity, filter: filterCss }}>
+    <motion.div
+      initial={{ scale: 0.94, opacity: 0, filter: 'blur(4px)' }}
+      whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+      viewport={{ once: false, amount: 0.5 }}
+      transition={ROW_TRANSITION}
+    >
       <div className="flex items-center gap-3 py-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
           {logoUrl ? (
@@ -81,7 +78,7 @@ export default function QuickAddPlatforms() {
 
   return (
     <>
-      <div>
+      <div className="px-5">
         <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
           Añade tu primera suscripción
         </p>
@@ -95,17 +92,24 @@ export default function QuickAddPlatforms() {
             />
           ))}
           <div className="h-px bg-[#E5E5EA] dark:bg-[#2C2C2E]" />
-          <button
-            onClick={() => setSelected(null)}
-            className="w-full flex items-center gap-3 py-3 text-left active:opacity-60 transition-opacity"
+          <motion.div
+            initial={{ scale: 0.94, opacity: 0, filter: 'blur(4px)' }}
+            whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={ROW_TRANSITION}
           >
-            <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
-              <Plus size={18} strokeWidth={2} className="text-[#8E8E93]" />
-            </div>
-            <p className="text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7] flex-1">
-              Añadir manualmente
-            </p>
-          </button>
+            <button
+              onClick={() => setSelected(null)}
+              className="w-full flex items-center gap-3 py-3 text-left active:opacity-60 transition-opacity"
+            >
+              <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+                <Plus size={18} strokeWidth={2} className="text-[#8E8E93]" />
+              </div>
+              <p className="text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7] flex-1">
+                Añadir manualmente
+              </p>
+            </button>
+          </motion.div>
         </div>
       </div>
 
