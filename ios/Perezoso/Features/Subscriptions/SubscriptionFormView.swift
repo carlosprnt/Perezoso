@@ -138,6 +138,7 @@ struct SubscriptionFormView: View {
                 if mode.subscription != nil &&
                     (status == .paused || status == .cancelled) {
                     statusSection
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
                 // 5. Organization
@@ -301,7 +302,7 @@ struct SubscriptionFormView: View {
     private var trialSection: some View {
         FormCard {
             VStack(spacing: 0) {
-                FormToggleRow(label: "Periodo de prueba", isOn: $hasTrial)
+                FormToggleRow(label: "Periodo de prueba", isOn: $hasTrial.animation(MotionCurve.standard()))
                 if hasTrial {
                     Divider().padding(.leading, Spacing.lg)
                     FormDateRow(label: "Fin de prueba", date: $trialEndDate)
@@ -349,7 +350,7 @@ struct SubscriptionFormView: View {
     private var sharingSection: some View {
         FormCard {
             VStack(spacing: 0) {
-                FormToggleRow(label: "Compartida", isOn: $isShared)
+                FormToggleRow(label: "Compartida", isOn: $isShared.animation(MotionCurve.standard()))
 
                 if isShared {
                     Divider().padding(.leading, Spacing.lg)
@@ -504,7 +505,7 @@ struct SubscriptionFormView: View {
     private var reminderSection: some View {
         FormCard {
             VStack(spacing: 0) {
-                FormToggleRow(label: "Recordatorio", isOn: $reminderEnabled)
+                FormToggleRow(label: "Recordatorio", isOn: $reminderEnabled.animation(MotionCurve.standard()))
 
                 if reminderEnabled {
                     Divider().padding(.leading, Spacing.lg)

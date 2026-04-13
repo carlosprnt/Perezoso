@@ -206,6 +206,7 @@ struct SubscriptionsListView: View {
                 }
                 .zIndex(Double(idx + 1))
                 .offset(y: CGFloat(idx) * -76)
+                .staggeredEntrance(index: idx, stagger: MotionTiming.cardStagger)
             }
         }
         // Compensate for the negative offsets so the stack doesn't leave empty space

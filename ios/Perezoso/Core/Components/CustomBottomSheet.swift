@@ -33,6 +33,7 @@ struct CustomBottomSheet<Content: View>: View {
 
     @State private var dragOffset: CGFloat = 0
     @State private var sheetVisible = false
+    @State private var peekOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -96,7 +97,7 @@ struct CustomBottomSheet<Content: View>: View {
                               topTrailingRadius: Radius.sheet)
                     )
                     .shadow(color: .black.opacity(0.22), radius: 40, y: -12)
-                    .offset(y: max(0, dragOffset))
+                    .offset(y: max(0, dragOffset + peekOffset))
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -109,7 +110,7 @@ struct CustomBottomSheet<Content: View>: View {
                                    value.predictedEndTranslation.height > 200 {
                                     dismiss()
                                 } else {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    withAnimation(.spring(MotionSpring.snap)) {
                                         dragOffset = 0
                                     }
                                 }
@@ -121,11 +122,15 @@ struct CustomBottomSheet<Content: View>: View {
                 .ignoresSafeArea()
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: sheetVisible)
+        // Web: sheet entrance 0.3s decelerate [0,0,0,1]
+        .animation(MotionCurve.decelerate(duration: MotionTiming.sheetEntrance), value: sheetVisible)
         .onChange(of: isPresented) { _, newValue in
             if newValue {
                 sheetVisible = true
                 dragOffset = 0
+                peekOffset = 0
+                // Web: peek bounce after 340ms delay
+                triggerPeekBounce()
             } else {
                 sheetVisible = false
             }
@@ -137,12 +142,32 @@ struct CustomBottomSheet<Content: View>: View {
         }
     }
 
+    /// Web: peek bounce hint — bounces sheet down 22px then snaps back.
+    /// Down: 0.38s [0.34, 1.56, 0.64, 1] (overshoot)
+    /// Back: 0.36s [0.25, 0.46, 0.45, 0.94] (decelerate)
+    private func triggerPeekBounce() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + MotionTiming.peekBounceDelay) {
+            guard sheetVisible else { return }
+            // Bounce down
+            withAnimation(MotionCurve.overshoot(duration: MotionTiming.peekBounceDuration)) {
+                peekOffset = 22
+            }
+            // Snap back
+            DispatchQueue.main.asyncAfter(deadline: .now() + MotionTiming.peekSnapDuration) {
+                withAnimation(.timingCurve(0.25, 0.46, 0.45, 0.94, duration: MotionTiming.peekSnapDuration)) {
+                    peekOffset = 0
+                }
+            }
+        }
+    }
+
     private func dismiss() {
         Haptics.tap(.light)
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+        // Web: exit 0.28s [0.4, 0, 1, 1] (accelerate)
+        withAnimation(MotionCurve.exit(duration: MotionTiming.sheetDismiss)) {
             sheetVisible = false
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + MotionTiming.sheetDismiss) {
             isPresented = false
         }
     }

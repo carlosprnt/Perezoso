@@ -50,19 +50,27 @@ struct QuickAddPlatforms: View {
 
             // Platform rows
             VStack(spacing: 0) {
-                ForEach(QuickAddPlatformInfo.all) { platform in
-                    Button {
-                        Haptics.tap(.light)
-                        onSelect(platform)
-                    } label: {
-                        platformRow(platform)
-                    }
-                    .buttonStyle(.plain)
+                ForEach(Array(QuickAddPlatformInfo.all.enumerated()), id: \.element.id) { idx, platform in
+                    VStack(spacing: 0) {
+                        Button {
+                            Haptics.tap(.light)
+                            onSelect(platform)
+                        } label: {
+                            platformRow(platform)
+                        }
+                        .buttonStyle(.plain)
 
-                    // Divider (web: h-px bg-[#E5E5EA])
-                    Rectangle()
-                        .fill(Color(hex: "#E5E5EA"))
-                        .frame(height: 0.5)
+                        // Divider (web: h-px bg-[#E5E5EA])
+                        Rectangle()
+                            .fill(Color(hex: "#E5E5EA"))
+                            .frame(height: 0.5)
+                    }
+                    .staggeredEntrance(
+                        index: idx,
+                        stagger: MotionTiming.rowStagger,
+                        offsetY: 30,
+                        duration: 0.35
+                    )
                 }
 
                 // "Anadir manualmente" row
@@ -89,6 +97,12 @@ struct QuickAddPlatforms: View {
                     .padding(.vertical, 10)
                 }
                 .buttonStyle(.plain)
+                .staggeredEntrance(
+                    index: QuickAddPlatformInfo.all.count,
+                    stagger: MotionTiming.rowStagger,
+                    offsetY: 30,
+                    duration: 0.35
+                )
             }
         }
     }

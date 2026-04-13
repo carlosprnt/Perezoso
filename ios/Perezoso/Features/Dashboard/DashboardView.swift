@@ -30,29 +30,35 @@ struct DashboardView: View {
                 if store.subscriptions.isEmpty && !store.isLoading {
                     // Empty state: big hero text + QuickAddPlatforms
                     emptyDashboardHero
+                        .fadeEntrance(delay: 0.1)
                 } else {
                     // 2. Spending hero (pb-5 = 20px)
                     spendingHero
+                        .staggeredEntrance(index: 0, stagger: MotionTiming.sectionStagger, offsetY: 40)
 
                     // 3. Insight cards
                     if !store.activeSubscriptions.isEmpty {
                         insightCards
+                            .staggeredEntrance(index: 1, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
                     // 4. Upcoming renewals
                     if !store.upcomingRenewals.isEmpty {
                         upcomingSection
+                            .staggeredEntrance(index: 2, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
                     // 5. Categories bar chart
                     if !store.activeSubscriptions.isEmpty {
                         topCategoriesSection
+                            .staggeredEntrance(index: 3, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
                     // 6. Top expensive horizontal scroll (mt-3 = 12px)
                     if store.activeSubscriptions.count > 1 {
                         topExpensiveSection
                             .padding(.top, 4)
+                            .staggeredEntrance(index: 4, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
                 }
             }

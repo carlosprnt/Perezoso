@@ -28,6 +28,7 @@ struct RootView: View {
 /// Custom navigation with floating pill nav bar.
 /// Uses custom overlays for all secondary screens — no native sheets.
 struct MainTabView: View {
+    @Environment(SubscriptionsStore.self) private var store
     @State private var selectedTab: AppTab = .dashboard
     @State private var showAddSheet = false
     @State private var showCalendar = false
@@ -55,9 +56,12 @@ struct MainTabView: View {
             .animation(.easeInOut(duration: 0.15), value: selectedTab)
 
             // ── Floating nav bar ────────────────────────────
-            FloatingNavBar(selectedTab: $selectedTab) {
-                showAddSheet = true
-            }
+            // Web: + button pulses when no subscriptions
+            FloatingNavBar(
+                selectedTab: $selectedTab,
+                onAddTapped: { showAddSheet = true },
+                emphasizeAdd: store.subscriptions.isEmpty
+            )
             .padding(.bottom, 16)
         }
         .ignoresSafeArea(.keyboard)

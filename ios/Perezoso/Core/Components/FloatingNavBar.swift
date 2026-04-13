@@ -13,6 +13,7 @@ import SwiftUI
 struct FloatingNavBar: View {
     @Binding var selectedTab: AppTab
     var onAddTapped: () -> Void
+    var emphasizeAdd: Bool = false
     @Environment(\.colorScheme) private var colorScheme
 
     private let buttonWidth: CGFloat = 72
@@ -21,6 +22,9 @@ struct FloatingNavBar: View {
     private let gap: CGFloat = 8
 
     private var isDark: Bool { colorScheme == .dark }
+
+    /// Web: scale [1, 1.15, 1], duration 1.6s, repeat Infinity, easeInOut
+    @State private var addPulse = false
 
     var body: some View {
         ZStack {
@@ -37,8 +41,7 @@ struct FloatingNavBar: View {
                 }
 
             // ── Sliding stroke indicator ─────────────────────
-            // Animates between Dashboard (offset 0) and Subscriptions
-            // (offset 2*(buttonWidth+gap)), skipping the center + button
+            // Web: spring stiffness:420, damping:32, mass:0.8
             let indicatorOffset = selectedTab == .subscriptions
                 ? 2 * (buttonWidth + gap)
                 : 0.0
@@ -47,7 +50,7 @@ struct FloatingNavBar: View {
                 .stroke(Color.accent, lineWidth: 2)
                 .frame(width: buttonWidth, height: buttonHeight)
                 .offset(x: -((buttonWidth + gap)) + indicatorOffset)
-                .animation(.spring(response: 0.28, dampingFraction: 0.75), value: selectedTab)
+                .animation(.spring(MotionSpring.tabIndicator), value: selectedTab)
 
             // ── Buttons ──────────────────────────────────────
             HStack(spacing: gap) {
@@ -59,6 +62,7 @@ struct FloatingNavBar: View {
                 )
 
                 // + button — accent bg, always rounded-full
+                // Web: pulse scale [1, 1.15, 1] when no subscriptions
                 Button {
                     Haptics.tap()
                     onAddTapped()
@@ -68,6 +72,31 @@ struct FloatingNavBar: View {
                         .foregroundStyle(Color.accentForeground)
                         .frame(width: buttonWidth, height: buttonHeight)
                         .background(Color.accent, in: Capsule())
+                        .scaleEffect(addPulse ? 1.15 : 1.0)
+                }
+                .onChange(of: emphasizeAdd) { _, shouldPulse in
+                    if shouldPulse {
+                        withAnimation(
+                            .easeInOut(duration: MotionTiming.addPulseDuration)
+                            .repeatForever(autoreverses: true)
+                        ) {
+                            addPulse = true
+                        }
+                    } else {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            addPulse = false
+                        }
+                    }
+                }
+                .onAppear {
+                    if emphasizeAdd {
+                        withAnimation(
+                            .easeInOut(duration: MotionTiming.addPulseDuration)
+                            .repeatForever(autoreverses: true)
+                        ) {
+                            addPulse = true
+                        }
+                    }
                 }
 
                 // Subscriptions
@@ -89,7 +118,7 @@ struct FloatingNavBar: View {
 
         Button {
             Haptics.selection()
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+            withAnimation(.spring(MotionSpring.tabIndicator)) {
                 selectedTab = tab
             }
         } label: {
@@ -98,7 +127,6 @@ struct FloatingNavBar: View {
                 .foregroundStyle(Color.accent)
                 .frame(width: buttonWidth, height: buttonHeight)
                 .overlay {
-                    // Non-active buttons get a thin border
                     if !isActive {
                         Capsule()
                             .stroke(
