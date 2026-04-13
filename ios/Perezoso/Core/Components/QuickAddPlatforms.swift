@@ -65,7 +65,7 @@ struct QuickAddPlatforms: View {
                             .fill(Color(hex: "#E5E5EA"))
                             .frame(height: 0.5)
                     }
-                    .scrollFadeBlurScale()
+                    .scrollDrivenBlur(minScale: 0.9)
                     .staggeredEntrance(
                         index: idx,
                         stagger: MotionTiming.rowStagger,
@@ -99,7 +99,7 @@ struct QuickAddPlatforms: View {
                     .padding(.vertical, 10)
                 }
                 .buttonStyle(.plain)
-                .scrollFadeBlurScale()
+                .scrollDrivenBlur(minScale: 0.9)
                 .staggeredEntrance(
                     index: QuickAddPlatformInfo.all.count,
                     stagger: MotionTiming.rowStagger,
