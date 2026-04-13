@@ -24,7 +24,9 @@ struct DashboardView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 // 1. Header (mb-3 = 12px below greeting)
+                // Web: header fades at 0-130px scroll, blur 0→8px
                 headerRow
+                    .scrollFadeBlur()
                     .padding(.bottom, 4)
 
                 if store.subscriptions.isEmpty && !store.isLoading {
@@ -33,24 +35,29 @@ struct DashboardView: View {
                         .fadeEntrance(delay: 0.1)
                 } else {
                     // 2. Spending hero (pb-5 = 20px)
+                    // Web: fades over 220px scroll with blur 0→12px
                     spendingHero
+                        .scrollFadeBlur(maxBlur: 12)
                         .staggeredEntrance(index: 0, stagger: MotionTiming.sectionStagger, offsetY: 40)
 
                     // 3. Insight cards
                     if !store.activeSubscriptions.isEmpty {
                         insightCards
+                            .scrollFadeBlur()
                             .staggeredEntrance(index: 1, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
                     // 4. Upcoming renewals
                     if !store.upcomingRenewals.isEmpty {
                         upcomingSection
+                            .scrollFadeBlur()
                             .staggeredEntrance(index: 2, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
                     // 5. Categories bar chart
                     if !store.activeSubscriptions.isEmpty {
                         topCategoriesSection
+                            .scrollFadeBlur()
                             .staggeredEntrance(index: 3, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
 
@@ -58,6 +65,7 @@ struct DashboardView: View {
                     if store.activeSubscriptions.count > 1 {
                         topExpensiveSection
                             .padding(.top, 4)
+                            .scrollFadeBlur()
                             .staggeredEntrance(index: 4, stagger: MotionTiming.sectionStagger, offsetY: 40)
                     }
                 }

@@ -84,12 +84,13 @@ enum MotionTiming {
 // MARK: - View Modifiers
 
 /// Staggered entrance animation matching the web's card entry:
-/// y: 60→0, opacity: 0→1, duration 0.4s, easing [0.22,1,0.36,1], delay index*stagger.
+/// y: 60→0, opacity: 0→1, scale: startScale→1, duration 0.4s, easing [0.22,1,0.36,1], delay index*stagger.
 struct StaggeredEntrance: ViewModifier {
     let index: Int
     let stagger: Double
     let offsetY: CGFloat
     let duration: Double
+    let startScale: CGFloat
 
     @State private var appeared = false
 
@@ -97,6 +98,7 @@ struct StaggeredEntrance: ViewModifier {
         content
             .opacity(appeared ? 1 : 0)
             .offset(y: appeared ? 0 : offsetY)
+            .scaleEffect(appeared ? 1 : startScale)
             .animation(
                 MotionCurve.entrance(duration: duration)
                     .delay(Double(index) * stagger),
@@ -129,24 +131,49 @@ struct FadeEntrance: ViewModifier {
 }
 
 extension View {
-    /// Staggered entrance: slides up from offsetY with fade, delayed by index.
+    /// Staggered entrance: slides up from offsetY with fade + optional scale, delayed by index.
     /// Matches web's card entry animation exactly.
     func staggeredEntrance(
         index: Int,
         stagger: Double = MotionTiming.cardStagger,
         offsetY: CGFloat = 60,
-        duration: Double = 0.4
+        duration: Double = 0.4,
+        startScale: CGFloat = 1.0
     ) -> some View {
         modifier(StaggeredEntrance(
             index: index,
             stagger: stagger,
             offsetY: offsetY,
-            duration: duration
+            duration: duration,
+            startScale: startScale
         ))
     }
 
     /// Simple fade-in entrance with optional delay.
     func fadeEntrance(delay: Double = 0, duration: Double = 0.35) -> some View {
         modifier(FadeEntrance(delay: delay, duration: duration))
+    }
+
+    // MARK: - Scroll-Linked Transitions
+
+    /// Items fade and blur smoothly as they scroll out of the visible area.
+    /// Web: dashboard sections + subscription cards use scroll-linked opacity + blur.
+    func scrollFadeBlur(maxBlur: CGFloat = 8) -> some View {
+        scrollTransition(.interactive) { effect, phase in
+            effect
+                .opacity(phase.isIdentity ? 1 : 1 - abs(phase.value))
+                .blur(radius: phase.isIdentity ? 0 : abs(phase.value) * maxBlur)
+        }
+    }
+
+    /// Items fade, blur, AND scale as they scroll in/out.
+    /// Used for QuickAdd rows: entrance from 0.9→1, exit from 1→0.9.
+    func scrollFadeBlurScale(maxBlur: CGFloat = 6, minScale: CGFloat = 0.9) -> some View {
+        scrollTransition(.interactive) { effect, phase in
+            effect
+                .opacity(phase.isIdentity ? 1 : 1 - abs(phase.value))
+                .blur(radius: phase.isIdentity ? 0 : abs(phase.value) * maxBlur)
+                .scaleEffect(phase.isIdentity ? 1 : 1 - abs(phase.value) * (1 - minScale))
+        }
     }
 }
