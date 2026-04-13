@@ -1,20 +1,33 @@
+import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
+import { FloatingNav } from '../../src/components/FloatingNav';
 
-// Tab layout: renders FloatingNav instead of default tab bar.
-// FloatingNav will be implemented in Phase 6.
-// For now, use hidden native tabs so routing works.
+// Tab layout: native tab bar hidden, FloatingNav overlays at bottom.
+// FloatingNav only exposes dashboard + subscriptions (matches web).
+// Calendar and settings tabs exist for routing but are accessed
+// from other entry points (dashboard calendar button, account menu).
+
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: 'none' },
-      }}
-    >
-      <Tabs.Screen name="dashboard" />
-      <Tabs.Screen name="subscriptions" />
-      <Tabs.Screen name="calendar" />
-      <Tabs.Screen name="settings" />
-    </Tabs>
+    <View style={styles.root}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
+        }}
+      >
+        <Tabs.Screen name="dashboard" />
+        <Tabs.Screen name="subscriptions" />
+        <Tabs.Screen name="calendar" />
+        <Tabs.Screen name="settings" />
+      </Tabs>
+      <FloatingNav />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
