@@ -18,6 +18,7 @@ struct SubscriptionsListView: View {
     @State private var statusFilter: Subscription.Status?
     @State private var categoryFilter: Subscription.Category?
     @State private var showFilterSheet = false
+    @State private var selectedPlatform: QuickAddPlatformInfo?
 
     private var filteredSubscriptions: [Subscription] {
         var result = store.subscriptions
@@ -53,34 +54,39 @@ struct SubscriptionsListView: View {
                 // ── Header ──────────────────────────────────
                 headerRow
 
-                // ── Search ──────────────────────────────────
-                searchBar
-
-                // ── Filter chips ────────────────────────────
-                if hasActiveFilters {
-                    filterChips
-                }
-
-                // ── Count ───────────────────────────────────
-                HStack {
-                    Text("\(filteredSubscriptions.count) suscripciones")
-                        .font(.rounded(.medium, size: 12))
-                        .foregroundStyle(Color.textMuted)
-                    Spacer()
-                }
-
-                if filteredSubscriptions.isEmpty && !store.isLoading {
-                    emptyState
-                        .padding(.top, Spacing.xxxl)
+                if store.subscriptions.isEmpty && !store.isLoading {
+                    // ── True empty state: QuickAdd ──────────
+                    quickAddEmptyState
                 } else {
-                    // ── Active: wallet stack ─────────────────
-                    if !activeSubscriptions.isEmpty {
-                        walletStack
+                    // ── Search ──────────────────────────────
+                    searchBar
+
+                    // ── Filter chips ────────────────────────
+                    if hasActiveFilters {
+                        filterChips
                     }
 
-                    // ── Inactive: compact rows ──────────────
-                    if !inactiveSubscriptions.isEmpty {
-                        inactiveSection
+                    // ── Count ───────────────────────────────
+                    HStack {
+                        Text("\(filteredSubscriptions.count) suscripciones")
+                            .font(.rounded(.medium, size: 12))
+                            .foregroundStyle(Color.textMuted)
+                        Spacer()
+                    }
+
+                    if filteredSubscriptions.isEmpty && !store.isLoading {
+                        filteredEmptyState
+                            .padding(.top, Spacing.xxxl)
+                    } else {
+                        // ── Active: wallet stack ─────────────
+                        if !activeSubscriptions.isEmpty {
+                            walletStack
+                        }
+
+                        // ── Inactive: compact rows ──────────
+                        if !inactiveSubscriptions.isEmpty {
+                            inactiveSection
+                        }
                     }
                 }
             }
@@ -104,8 +110,8 @@ struct SubscriptionsListView: View {
             }
         }
         .overlay {
-            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripcion") {
-                SubscriptionFormView(mode: .create)
+            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripción") {
+                SubscriptionFormView(mode: .create, prefill: selectedPlatform)
             }
         }
         .overlay {
@@ -123,9 +129,11 @@ struct SubscriptionsListView: View {
                 .font(.rounded(.bold, size: 17))
                 .foregroundStyle(Color.textPrimary)
                 .tracking(-0.3)
-            Text("\(activeSubscriptions.count) activas \u{00B7} \(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))/mes")
-                .font(.rounded(.regular, size: 12))
-                .foregroundStyle(Color.textMuted)
+            if !store.subscriptions.isEmpty {
+                Text("\(activeSubscriptions.count) activas \u{00B7} \(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))/mes")
+                    .font(.rounded(.regular, size: 12))
+                    .foregroundStyle(Color.textMuted)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -373,28 +381,35 @@ struct SubscriptionsListView: View {
         .padding(.bottom, Spacing.xxxl)
     }
 
-    // MARK: - Empty State
+    // MARK: - Quick Add Empty State (no subscriptions at all)
 
-    private var emptyState: some View {
+    private var quickAddEmptyState: some View {
+        QuickAddPlatforms(
+            onSelect: { platform in
+                selectedPlatform = platform
+                showAddSheet = true
+            },
+            onAddManually: {
+                selectedPlatform = nil
+                showAddSheet = true
+            }
+        )
+    }
+
+    // MARK: - Filtered Empty State (has subs, but filters match none)
+
+    private var filteredEmptyState: some View {
         VStack(spacing: Spacing.lg) {
-            Image(systemName: "rectangle.stack.badge.plus")
+            Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundStyle(Color.textMuted)
-            Text("Sin suscripciones")
+            Text("Sin resultados")
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
-            Text(hasActiveFilters
-                 ? "Ninguna suscripcion coincide con los filtros."
-                 : "Anade tu primera suscripcion para empezar.")
+            Text("Ninguna suscripción coincide con los filtros.")
                 .font(.bodyRegular)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
-            if !hasActiveFilters {
-                PrimaryButton(title: "Anadir suscripcion") {
-                    showAddSheet = true
-                }
-                .frame(maxWidth: 240)
-            }
         }
         .padding(.horizontal, Spacing.xxxl)
     }

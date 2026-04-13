@@ -37,6 +37,7 @@ struct SubscriptionFormView: View {
     }
 
     let mode: Mode
+    let prefill: QuickAddPlatformInfo?
 
     // MARK: - Form fields
 
@@ -92,8 +93,9 @@ struct SubscriptionFormView: View {
 
     // MARK: - Init
 
-    init(mode: Mode) {
+    init(mode: Mode, prefill: QuickAddPlatformInfo? = nil) {
         self.mode = mode
+        self.prefill = prefill
         if let sub = mode.subscription {
             _name = State(initialValue: sub.name)
             _amountText = State(initialValue: "\(sub.amount)")
@@ -110,6 +112,11 @@ struct SubscriptionFormView: View {
                 _isShared = State(initialValue: true)
                 _sharedCount = State(initialValue: shared)
             }
+        } else if let prefill {
+            _name = State(initialValue: prefill.name)
+            _logoURLText = State(initialValue: prefill.logoUrl)
+            _category = State(initialValue: prefill.category)
+            _billingPeriod = State(initialValue: prefill.billingPeriod)
         }
     }
 

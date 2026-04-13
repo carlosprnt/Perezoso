@@ -17,6 +17,9 @@ struct DashboardView: View {
     var onCalendarTap: (() -> Void)?
     var onSettingsTap: (() -> Void)?
 
+    @State private var showAddSheet = false
+    @State private var selectedPlatform: QuickAddPlatformInfo?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
@@ -24,28 +27,33 @@ struct DashboardView: View {
                 headerRow
                     .padding(.bottom, 4)
 
-                // 2. Spending hero (pb-5 = 20px)
-                spendingHero
+                if store.subscriptions.isEmpty && !store.isLoading {
+                    // Empty state: big hero text + QuickAddPlatforms
+                    emptyDashboardHero
+                } else {
+                    // 2. Spending hero (pb-5 = 20px)
+                    spendingHero
 
-                // 3. Insight cards
-                if !store.activeSubscriptions.isEmpty {
-                    insightCards
-                }
+                    // 3. Insight cards
+                    if !store.activeSubscriptions.isEmpty {
+                        insightCards
+                    }
 
-                // 4. Upcoming renewals
-                if !store.upcomingRenewals.isEmpty {
-                    upcomingSection
-                }
+                    // 4. Upcoming renewals
+                    if !store.upcomingRenewals.isEmpty {
+                        upcomingSection
+                    }
 
-                // 5. Categories bar chart
-                if !store.activeSubscriptions.isEmpty {
-                    topCategoriesSection
-                }
+                    // 5. Categories bar chart
+                    if !store.activeSubscriptions.isEmpty {
+                        topCategoriesSection
+                    }
 
-                // 6. Top expensive horizontal scroll (mt-3 = 12px)
-                if store.activeSubscriptions.count > 1 {
-                    topExpensiveSection
-                        .padding(.top, 4)
+                    // 6. Top expensive horizontal scroll (mt-3 = 12px)
+                    if store.activeSubscriptions.count > 1 {
+                        topExpensiveSection
+                            .padding(.top, 4)
+                    }
                 }
             }
             .padding(.horizontal, Spacing.xl)
@@ -59,6 +67,15 @@ struct DashboardView: View {
         .task {
             if store.subscriptions.isEmpty {
                 await store.fetch()
+            }
+        }
+        .overlay {
+            CustomBottomSheet(
+                isPresented: $showAddSheet,
+                height: .full,
+                title: "Nueva suscripción"
+            ) {
+                SubscriptionFormView(mode: .create, prefill: selectedPlatform)
             }
         }
     }
@@ -86,6 +103,30 @@ struct DashboardView: View {
                             .foregroundStyle(Color.accent)
                     )
             }
+        }
+    }
+
+    // MARK: - Empty State Hero (web: text-[45px] font-extrabold leading-[1.15] tracking-tight)
+
+    private var emptyDashboardHero: some View {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            Text("Aún no tienes ninguna suscripción añadida.")
+                .font(.system(size: 45, weight: .heavy, design: .rounded))
+                .foregroundStyle(Color.textPrimary)
+                .lineSpacing(45 * 0.15)
+                .tracking(-0.5)
+                .fixedSize(horizontal: false, vertical: true)
+
+            QuickAddPlatforms(
+                onSelect: { platform in
+                    selectedPlatform = platform
+                    showAddSheet = true
+                },
+                onAddManually: {
+                    selectedPlatform = nil
+                    showAddSheet = true
+                }
+            )
         }
     }
 
