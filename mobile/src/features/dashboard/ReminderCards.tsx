@@ -2,14 +2,18 @@
 // Replicates web's SavingsOpportunityCard (reminder variant).
 //
 // Shell: rounded-[32px] bg-white px-4 pt-4 pb-3, shadow subtle
-//   [Icon 44x44 rounded-xl gradient bg] [Body text 14px, lineHeight 1.45]
+//   [Icon 44x44 rounded-xl gradient bg (135deg #DBEAFE -> #BFDBFE)]
+//   [Body text 14px, lineHeight 1.45]
 //   [Dismiss button 36px] [CTA button 36px rounded-full]
 //
+// Icon: Bell from lucide-react (20px, strokeWidth 2, color #1E3A5F)
 // The reminder card tells users about annual renewals.
 // Key text bolding pattern: specific words are bold (<strong> in web).
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Bell } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -31,16 +35,21 @@ export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCa
     <View style={[styles.shell, { backgroundColor: colors.surface }, shadows.cardSm]}>
       {/* Body row */}
       <View style={styles.body}>
-        {/* Bell icon */}
-        <View style={styles.iconWrap}>
-          <Text style={styles.bellEmoji}>🔔</Text>
-        </View>
+        {/* Bell icon with gradient bg */}
+        <LinearGradient
+          colors={['#DBEAFE', '#BFDBFE']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconWrap}
+        >
+          <Bell size={20} strokeWidth={2} color="#1E3A5F" />
+        </LinearGradient>
 
         {/* Text */}
         <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
-          Podrías evitar una{' '}
-          <Text style={styles.bodyBold}>renovación anual</Text>
-          {' '}por sorpresa si activas un aviso 7 días antes.
+          Podr{'\u00ED'}as evitar una{' '}
+          <Text style={styles.bodyBold}>renovaci{'\u00F3'}n anual</Text>
+          {' '}por sorpresa si activas un aviso 7 d{'\u00ED'}as antes.
         </Text>
       </View>
 
@@ -48,7 +57,9 @@ export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCa
       <View style={styles.buttons}>
         <Pressable onPress={onDismiss} activeScale={0.97}>
           <View style={styles.dismissBtn}>
-            <Text style={styles.dismissText}>No me interesa</Text>
+            <Text style={[styles.dismissText, {
+              color: isDark ? '#636366' : '#8E8E93',
+            }]}>No me interesa</Text>
           </View>
         </Pressable>
         <Pressable onPress={onActivate} activeScale={0.97} style={{ flex: 1 }}>
@@ -56,7 +67,7 @@ export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCa
             backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7',
           }]}>
             <Text style={[styles.ctaText, { color: colors.textPrimary }]}>
-              Avisarme 7 días antes
+              Avisarme 7 d{'\u00ED'}as antes
             </Text>
           </View>
         </Pressable>
@@ -85,11 +96,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    // Gradient bg approximation — use a light blue in RN
-    backgroundColor: '#DBEAFE',
-  },
-  bellEmoji: {
-    fontSize: 20,
   },
   bodyText: {
     flex: 1,
@@ -113,7 +119,6 @@ const styles = StyleSheet.create({
   dismissText: {
     fontFamily: fontFamily.semibold,
     fontSize: fontSize[13],
-    color: '#8E8E93',
   },
   ctaBtn: {
     height: 36,

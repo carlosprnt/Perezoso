@@ -84,3 +84,11 @@ export const MOCK_TOP_CATEGORY = {
   currency: 'EUR',
   count: 2,
 };
+
+// Logo URLs for the inline LogoStack in SummaryHero
+// Uses Simple Icons CDN — same source as web app
+export const MOCK_LOGO_URLS: string[] = [
+  'https://cdn.simpleicons.org/netflix',
+  'https://cdn.simpleicons.org/openai',
+  'https://cdn.simpleicons.org/notion',
+];

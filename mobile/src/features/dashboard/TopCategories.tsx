@@ -5,13 +5,21 @@
 //
 // The primary (top) category is always yellow (#FEF08A).
 // Other segments use their category color from the design tokens.
+//
+// Mount animation: bar scales in from left (scaleX 0->1, 0.5s standard curve)
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { categoryColors } from '../../design/colors';
+import { standard } from '../../motion/easing';
 import type { CategoryRow } from './types';
 
 interface TopCategoriesProps {
@@ -22,13 +30,13 @@ interface TopCategoriesProps {
 // Category display names
 const CATEGORY_NAMES: Record<string, string> = {
   streaming: 'Streaming',
-  music: 'Música',
+  music: 'M\u00FAsica',
   productivity: 'Productividad',
   cloud: 'Cloud',
   ai: 'IA',
   health: 'Salud',
   gaming: 'Gaming',
-  education: 'Educación',
+  education: 'Educaci\u00F3n',
   mobility: 'Movilidad',
   home: 'Hogar',
   other: 'Resto',
@@ -43,18 +51,29 @@ function formatAmount(amount: number, currency: string): string {
   const num = amount % 1 === 0
     ? amount.toFixed(0)
     : amount.toFixed(2).replace('.', ',');
-  return currency === 'US$' ? `${num}US$` : `${num}€`;
+  return currency === 'US$' ? `${num}US$` : `${num}\u20AC`;
 }
 
 export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesProps) {
   const { colors } = useTheme();
 
+  // Bar mount animation: scaleX 0 -> 1, 500ms, standard easing
+  const barScale = useSharedValue(0);
+
+  useEffect(() => {
+    barScale.value = withTiming(1, { duration: 500, easing: standard });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const barAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: barScale.value }],
+  }));
+
   if (categories.length === 0) return null;
 
   return (
     <View>
-      {/* Segmented bar */}
-      <View style={styles.bar}>
+      {/* Segmented bar with scale-in animation */}
+      <Animated.View style={[styles.bar, styles.barOriginLeft, barAnimatedStyle]}>
         {categories.map((cat, i) => (
           <View
             key={cat.category}
@@ -67,7 +86,7 @@ export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesPro
             ]}
           />
         ))}
-      </View>
+      </Animated.View>
 
       {/* Legend */}
       <View style={styles.legend}>
@@ -113,6 +132,13 @@ const styles = StyleSheet.create({
     height: 48, // h-12
     gap: 3,
     marginBottom: 16, // mb-4
+  },
+  barOriginLeft: {
+    // transformOrigin 'left' equivalent — anchor transform from left edge
+    // In RN, transform-origin defaults to center; we shift it via translate trick
+    // scaleX from left: translate to left edge, scale, translate back
+    // Actually, RN 0.81 supports transformOrigin directly
+    transformOrigin: 'left center',
   },
   segment: {
     borderRadius: radius.xl, // 12px
