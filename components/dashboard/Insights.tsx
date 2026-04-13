@@ -91,7 +91,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ① Highest cost */}
       <InsightCell
         icon={<TrendingUp size={20} />}
-        iconCls="bg-[#F5F5F5] text-[#000000]"
+        iconCls="bg-[#F5F5F5] text-[#000000] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
         label={t('dashboard.highestCost')}
         value={highest?.name ?? '—'}
         rightTop={highest ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} /mes` : undefined}

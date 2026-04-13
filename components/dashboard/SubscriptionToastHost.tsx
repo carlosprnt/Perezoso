@@ -43,7 +43,7 @@ function Toast({ kind, locale, onDone }: {
       }}
     >
       <Check size={20} strokeWidth={2.5} color="#000" style={{ flexShrink: 0 }} />
-      <p className="text-[14px] font-medium text-[#000000] leading-snug flex-1">{message}</p>
+      <p className="text-[14px] font-medium text-[#000000] dark:text-[#F2F2F7] leading-snug flex-1">{message}</p>
     </div>
   )
 }

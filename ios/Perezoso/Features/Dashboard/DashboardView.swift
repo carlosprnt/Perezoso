@@ -22,7 +22,7 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
+            LazyVStack(alignment: .leading, spacing: 8) {
                 // 1. Header (mb-3 = 12px below greeting)
                 // Web: header fades at 0-130px scroll, blur 0→8px
                 headerRow

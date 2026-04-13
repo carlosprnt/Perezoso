@@ -63,6 +63,12 @@ export function SubscriptionProvider({ children, userId, initialIsPro = false }:
   const [paywallTrigger, setPaywallTrigger]  = useState<PaywallTrigger>('general')
   const initialized = useRef(false)
 
+  // Keep isPro in sync with server-rendered initialIsPro (e.g. after
+  // demo mode toggles is_pro in the DB and the layout re-renders).
+  useEffect(() => {
+    setIsPro(initialIsPro)
+  }, [initialIsPro])
+
   const refresh = useCallback(async () => {
     if (!isCapacitor()) return   // web: trust DB value, no RC SDK to query
     const active = await isEntitlementActive()

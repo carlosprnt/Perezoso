@@ -37,8 +37,10 @@ export default async function DashboardLayout({
     null
   const detectedLocale = detectLocale(googleLocale)
 
-  // Server-side Pro status from Supabase (web fallback; native reads from RC SDK)
-  const initialIsPro = !!(profile as Profile & { is_pro?: boolean } | null)?.is_pro
+  // Server-side Pro status: check user_metadata first (set by demo mode),
+  // then fall back to the profiles table for production purchases.
+  const initialIsPro = !!(user.user_metadata?.is_pro) ||
+    !!(profile as Profile & { is_pro?: boolean } | null)?.is_pro
 
   return (
     <LocaleProvider locale={detectedLocale}>
