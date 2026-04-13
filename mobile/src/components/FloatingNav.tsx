@@ -9,12 +9,13 @@
 // Card icon: custom SVG (not lucide CreditCard) with visible stripe when filled
 
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LayoutGrid, Plus } from 'lucide-react-native';
@@ -102,7 +103,7 @@ export function FloatingNav() {
   const strokeIndicatorColor = isDark ? '#F2F2F7' : '#000000';
   const plusBg = isDark ? '#F2F2F7' : '#000000';
   const plusIconColor = isDark ? '#000000' : '#FFFFFF';
-  const navBg = isDark ? 'rgba(28, 28, 30, 0.88)' : 'rgba(255, 255, 255, 0.85)';
+  const navTint = isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.4)';
   const cardStripeColor = isDark ? '#1C1C1E' : '#F7F8FA';
 
   return (
@@ -113,7 +114,11 @@ export function FloatingNav() {
       ]}
       pointerEvents="box-none"
     >
-      <View style={[styles.pill, { backgroundColor: navBg }]}>
+      <BlurView
+        intensity={80}
+        tint={isDark ? 'dark' : 'light'}
+        style={[styles.pill, { backgroundColor: navTint }]}
+      >
         {/* Sliding stroke indicator */}
         <Animated.View
           style={[
@@ -168,7 +173,7 @@ export function FloatingNav() {
             stripeColor={cardStripeColor}
           />
         </Pressable>
-      </View>
+      </BlurView>
     </View>
   );
 }
@@ -189,6 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: PAD,
     gap: GAP,
+    overflow: 'hidden',
   },
   navButton: {
     width: BTN_W,
