@@ -8,11 +8,10 @@
 //   Background: #F0F0F0 (light) / #2C2C2E (dark)
 //   "..." dot: bg #E5E5EA/#3A3A3C, text 11px bold #737373/#AEAEB2
 //
-// Uses SvgUri for Simple Icons CDN URLs (SVG format)
+// Logo URLs must be PNG/JPEG (not SVG) — use logo.clearbit.com
 
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { SvgUri } from 'react-native-svg';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 
@@ -27,12 +26,6 @@ const LOGO_SIZE = 32; // w-8 h-8
 const OVERLAP = -10; // ml-[-10px]
 const BORDER_WIDTH = 2;
 const ICON_SIZE = LOGO_SIZE - BORDER_WIDTH * 2 - 4; // 24px
-
-const SVG_PATTERNS = ['cdn.simpleicons.org', 'svgl.app', '.svg'];
-
-function isSvgUrl(url: string): boolean {
-  return SVG_PATTERNS.some((p) => url.includes(p));
-}
 
 export function LogoStack({ logoUrls, totalCount }: LogoStackProps) {
   const { isDark } = useTheme();
@@ -59,15 +52,11 @@ export function LogoStack({ logoUrls, totalCount }: LogoStackProps) {
             },
           ]}
         >
-          {isSvgUrl(url) ? (
-            <SvgUri uri={url} width={ICON_SIZE} height={ICON_SIZE} />
-          ) : (
-            <Image
-              source={{ uri: url }}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-          )}
+          <Image
+            source={{ uri: url }}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
       ))}
       {showDots ? (
@@ -84,7 +73,7 @@ export function LogoStack({ logoUrls, totalCount }: LogoStackProps) {
           ]}
         >
           <Text style={[styles.dotText, { color: dotTextColor }]}>
-            {'\u00B7\u00B7\u00B7'}
+            ···
           </Text>
         </View>
       ) : null}
@@ -96,8 +85,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 6, // mx-1.5
-    marginVertical: -4, // -my-1
+    marginHorizontal: 6,
+    marginVertical: -4,
   },
   logoWrap: {
     width: LOGO_SIZE,
@@ -107,16 +96,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 2, // p-0.5
+    padding: 2,
   },
   logoImage: {
     width: ICON_SIZE,
     height: ICON_SIZE,
     borderRadius: ICON_SIZE / 2,
   },
-  dotWrap: {
-    // Same as logoWrap but no image
-  },
+  dotWrap: {},
   dotText: {
     fontFamily: fontFamily.bold,
     fontSize: fontSize[11],

@@ -87,15 +87,17 @@ export const MOCK_TOP_CATEGORY = {
 
 // Logo URLs for the inline LogoStack in SummaryHero
 // Uses Simple Icons CDN — same source as web app
+// PNG logos — RN Image can't render SVGs from Simple Icons CDN.
+// Using logo.clearbit.com (returns PNG) as primary source.
 export const MOCK_LOGO_URLS: string[] = [
-  'https://cdn.simpleicons.org/netflix/E50914',
-  'https://cdn.simpleicons.org/spotify/1DB954',
-  'https://cdn.simpleicons.org/openai/412991',
-  'https://cdn.simpleicons.org/notion/000000',
-  'https://cdn.simpleicons.org/youtube/FF0000',
-  'https://cdn.simpleicons.org/github/181717',
-  'https://cdn.simpleicons.org/figma/F24E1E',
-  'https://cdn.simpleicons.org/icloud/3693F9',
-  'https://cdn.simpleicons.org/anthropic/191919',
-  'https://cdn.simpleicons.org/disneyplus/113CCF',
+  'https://logo.clearbit.com/netflix.com',
+  'https://logo.clearbit.com/spotify.com',
+  'https://logo.clearbit.com/openai.com',
+  'https://logo.clearbit.com/notion.so',
+  'https://logo.clearbit.com/youtube.com',
+  'https://logo.clearbit.com/github.com',
+  'https://logo.clearbit.com/figma.com',
+  'https://logo.clearbit.com/apple.com',
+  'https://logo.clearbit.com/anthropic.com',
+  'https://logo.clearbit.com/disneyplus.com',
 ];

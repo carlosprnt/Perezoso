@@ -13,7 +13,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '1',
     name: 'ChatGPT Plus',
-    logo_url: 'https://cdn.simpleicons.org/openai/412991',
+    logo_url: 'https://logo.clearbit.com/openai.com',
     category: 'ai',
     price_amount: 20.00,
     currency: 'US$',
@@ -32,7 +32,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '2',
     name: 'Claude Pro',
-    logo_url: 'https://cdn.simpleicons.org/anthropic/191919',
+    logo_url: 'https://logo.clearbit.com/anthropic.com',
     category: 'ai',
     price_amount: 20.00,
     currency: 'US$',
@@ -51,7 +51,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '3',
     name: 'Notion',
-    logo_url: 'https://cdn.simpleicons.org/notion/000000',
+    logo_url: 'https://logo.clearbit.com/notion.so',
     category: 'productivity',
     price_amount: 16.00,
     currency: 'EUR',
@@ -70,7 +70,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '4',
     name: 'Spotify',
-    logo_url: 'https://cdn.simpleicons.org/spotify/1DB954',
+    logo_url: 'https://logo.clearbit.com/spotify.com',
     category: 'music',
     price_amount: 9.99,
     currency: 'EUR',
@@ -89,7 +89,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '5',
     name: 'Netflix',
-    logo_url: 'https://cdn.simpleicons.org/netflix/E50914',
+    logo_url: 'https://logo.clearbit.com/netflix.com',
     category: 'streaming',
     price_amount: 6.00,
     currency: 'EUR',
@@ -108,7 +108,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '6',
     name: 'YouTube Premium',
-    logo_url: 'https://cdn.simpleicons.org/youtube/FF0000',
+    logo_url: 'https://logo.clearbit.com/youtube.com',
     category: 'streaming',
     price_amount: 6.99,
     currency: 'EUR',
@@ -127,7 +127,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '7',
     name: 'GitHub',
-    logo_url: 'https://cdn.simpleicons.org/github/181717',
+    logo_url: 'https://logo.clearbit.com/github.com',
     category: 'cloud',
     price_amount: 4.00,
     currency: 'US$',
@@ -146,7 +146,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '8',
     name: 'iCloud+',
-    logo_url: 'https://cdn.simpleicons.org/icloud/3693F9',
+    logo_url: 'https://logo.clearbit.com/apple.com',
     category: 'cloud',
     price_amount: 2.99,
     currency: 'EUR',
@@ -165,7 +165,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '9',
     name: 'Figma',
-    logo_url: 'https://cdn.simpleicons.org/figma/F24E1E',
+    logo_url: 'https://logo.clearbit.com/figma.com',
     category: 'productivity',
     price_amount: 8.00,
     currency: 'EUR',
@@ -184,7 +184,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
   {
     id: '10',
     name: 'Disney+',
-    logo_url: 'https://cdn.simpleicons.org/disneyplus/113CCF',
+    logo_url: 'https://logo.clearbit.com/disneyplus.com',
     category: 'streaming',
     price_amount: 4.29,
     currency: 'EUR',
