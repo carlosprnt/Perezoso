@@ -1,7 +1,9 @@
 // Mock data for dashboard fidelity testing
 // Values match the screenshots provided by the user
+// Logo URLs resolved via platform catalog (Google Favicons PNG)
 
 import type { DashboardStats, UpcomingRenewal, CategoryRow, TopSubscription } from './types';
+import { resolvePlatformLogoUrl, logoUrlFromDomain } from '../../lib/constants/platforms';
 
 export const MOCK_STATS: DashboardStats = {
   monthlyTotal: 98.26,
@@ -19,6 +21,7 @@ export const MOCK_RENEWALS: UpcomingRenewal[] = [
     id: '1',
     name: 'GitHub',
     simpleIconSlug: 'github',
+    logoUrl: resolvePlatformLogoUrl('GitHub'),
     monthlyCost: 4.00,
     currency: 'US$',
     daysUntilRenewal: 1,
@@ -27,6 +30,7 @@ export const MOCK_RENEWALS: UpcomingRenewal[] = [
     id: '2',
     name: 'Notion',
     simpleIconSlug: 'notion',
+    logoUrl: resolvePlatformLogoUrl('Notion'),
     monthlyCost: 16.00,
     currency: 'EUR',
     daysUntilRenewal: 3,
@@ -35,6 +39,7 @@ export const MOCK_RENEWALS: UpcomingRenewal[] = [
     id: '3',
     name: 'Netflix',
     simpleIconSlug: 'netflix',
+    logoUrl: resolvePlatformLogoUrl('Netflix'),
     monthlyCost: 6.00,
     currency: 'EUR',
     daysUntilRenewal: 5,
@@ -54,6 +59,7 @@ export const MOCK_TOP_EXPENSIVE: TopSubscription[] = [
     id: '1',
     name: 'ChatGPT Plus',
     simpleIconSlug: 'openai',
+    logoUrl: resolvePlatformLogoUrl('ChatGPT Plus'),
     monthlyCost: 20.00,
     currency: 'US$',
     category: 'ai',
@@ -62,6 +68,7 @@ export const MOCK_TOP_EXPENSIVE: TopSubscription[] = [
     id: '2',
     name: 'Claude Pro',
     simpleIconSlug: 'anthropic',
+    logoUrl: resolvePlatformLogoUrl('Claude Pro'),
     monthlyCost: 20.00,
     currency: 'US$',
     category: 'ai',
@@ -70,6 +77,7 @@ export const MOCK_TOP_EXPENSIVE: TopSubscription[] = [
     id: '3',
     name: 'Notion',
     simpleIconSlug: 'notion',
+    logoUrl: resolvePlatformLogoUrl('Notion'),
     monthlyCost: 16.00,
     currency: 'EUR',
     category: 'productivity',
@@ -86,17 +94,16 @@ export const MOCK_TOP_CATEGORY = {
 };
 
 // Logo URLs for the inline LogoStack in SummaryHero
-// Google Favicons API returns PNGs at requested size — works with RN Image.
-// sz=128 gives crisp icons for 32-48px display.
+// Resolved via platform catalog — Google Favicons API (PNG)
 export const MOCK_LOGO_URLS: string[] = [
-  'https://www.google.com/s2/favicons?domain=netflix.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=spotify.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=openai.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=notion.so&sz=128',
-  'https://www.google.com/s2/favicons?domain=youtube.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=github.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=figma.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=apple.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=anthropic.com&sz=128',
-  'https://www.google.com/s2/favicons?domain=disneyplus.com&sz=128',
+  logoUrlFromDomain('netflix.com'),
+  logoUrlFromDomain('spotify.com'),
+  logoUrlFromDomain('openai.com'),
+  logoUrlFromDomain('notion.so'),
+  logoUrlFromDomain('youtube.com'),
+  logoUrlFromDomain('github.com'),
+  logoUrlFromDomain('figma.com'),
+  logoUrlFromDomain('icloud.com'),
+  logoUrlFromDomain('anthropic.com'),
+  logoUrlFromDomain('disneyplus.com'),
 ];

@@ -1,42 +1,51 @@
 // Money confetti overlay — matches web's spawnMoneyConfetti()
-// 32 emoji particles with physics: velocity, gravity, friction, rotation
-// Emojis: 💸 💵 💶 💰 🤑 💴
-// Duration: ~2.2s, gravity 0.55, friction 0.98x
+// 40 emoji particles with realistic physics: multi-burst, gravity, spin, tumble
+// Emojis: 💸 💵 💶 💰 🤑 💴 🪙 💎
+// Duration: ~2.8s, staggered bursts for natural feel
 
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
 
-const EMOJIS = ['💸', '💵', '💶', '💰', '🤑', '💴'];
-const PARTICLE_COUNT = 32;
-const DURATION = 2200; // ~130 frames at 60fps
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const EMOJIS = ['💸', '💵', '💶', '💰', '🤑', '💴', '🪙', '💎'];
+const PARTICLE_COUNT = 40;
+const DURATION = 2800;
 
 interface Particle {
   emoji: string;
   size: number;
-  // Pre-computed trajectory points (approximate physics with keyframes)
+  delay: number;
   peakY: number;
   endX: number;
   endY: number;
   rotation: number;
+  scaleEnd: number;
 }
 
 function generateParticles(): Particle[] {
-  return Array.from({ length: PARTICLE_COUNT }, () => {
-    const vx = (Math.random() - 0.5) * 14;
-    const vy = -(Math.random() * 18 + 6);
-    // Approximate physics: x drifts, y arcs up then down
-    const endX = vx * 40; // friction-dampened displacement
-    const peakY = (vy * vy) / (2 * 0.55); // peak height (negative = up)
-    const endY = vy * 130 + 0.5 * 0.55 * 130 * 130; // final Y after 130 frames
+  return Array.from({ length: PARTICLE_COUNT }, (_, i) => {
+    // 3 bursts: immediate, +100ms, +250ms for cascade effect
+    const burst = i < 15 ? 0 : i < 28 ? 100 : 250;
+    const delay = burst + Math.random() * 60;
+
+    // Wider spread for outer bursts
+    const spread = burst === 0 ? 1 : burst === 100 ? 1.3 : 1.6;
+    const vx = (Math.random() - 0.5) * 16 * spread;
+    const vy = -(Math.random() * 20 + 5);
+    const gravity = 0.45;
+
+    const endX = vx * 45;
+    const peakY = (vy * vy) / (2 * gravity);
+    const endY = vy * 140 + 0.5 * gravity * 140 * 140;
 
     return {
       emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
-      size: Math.random() * 14 + 18,
-      peakY: Math.min(peakY, 250),
-      endX: Math.max(-200, Math.min(200, endX)),
-      endY: Math.min(endY, 800),
-      rotation: (Math.random() - 0.5) * 720,
+      size: Math.random() * 12 + 20,
+      delay,
+      peakY: Math.min(peakY, 280),
+      endX: Math.max(-240, Math.min(240, endX)),
+      endY: Math.min(endY, 700),
+      rotation: (Math.random() - 0.5) * 900,
+      scaleEnd: 0.3 + Math.random() * 0.4,
     };
   });
 }
@@ -47,57 +56,86 @@ interface MoneyConfettiProps {
   onComplete: () => void;
 }
 
-export function MoneyConfetti({ originX, originY, onComplete }: MoneyConfettiProps) {
-  const particles = useMemo(generateParticles, []);
+function ConfettiParticle({
+  particle,
+  originX,
+  originY,
+}: {
+  particle: Particle;
+  originX: number;
+  originY: number;
+}) {
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: DURATION,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start(() => onComplete());
+    const timer = setTimeout(() => {
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: DURATION - particle.delay,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start();
+    }, particle.delay);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const translateX = progress.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [0, particle.endX * 0.5, particle.endX],
+  });
+  const translateY = progress.interpolate({
+    inputRange: [0, 0.12, 0.3, 0.6, 1],
+    outputRange: [0, -particle.peakY * 0.7, -particle.peakY, particle.endY * 0.3, particle.endY],
+  });
+  const opacity = progress.interpolate({
+    inputRange: [0, 0.05, 0.55, 0.85, 1],
+    outputRange: [0, 1, 1, 0.6, 0],
+  });
+  const rotate = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', `${particle.rotation}deg`],
+  });
+  const scale = progress.interpolate({
+    inputRange: [0, 0.05, 0.15, 0.8, 1],
+    outputRange: [0.2, 1.1, 1, 0.85, particle.scaleEnd],
+  });
+
+  return (
+    <Animated.Text
+      style={[
+        styles.particle,
+        {
+          left: originX,
+          top: originY,
+          fontSize: particle.size,
+          opacity,
+          transform: [{ translateX }, { translateY }, { rotate }, { scale }],
+        },
+      ]}
+    >
+      {particle.emoji}
+    </Animated.Text>
+  );
+}
+
+export function MoneyConfetti({ originX, originY, onComplete }: MoneyConfettiProps) {
+  const particles = useMemo(generateParticles, []);
+
+  useEffect(() => {
+    const timer = setTimeout(onComplete, DURATION + 400);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.overlay} pointerEvents="none">
-      {particles.map((p, i) => {
-        const translateX = progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, p.endX],
-        });
-        const translateY = progress.interpolate({
-          inputRange: [0, 0.15, 0.35, 1],
-          outputRange: [0, -p.peakY * 0.8, -p.peakY, p.endY],
-        });
-        const opacity = progress.interpolate({
-          inputRange: [0, 0.6, 1],
-          outputRange: [1, 0.8, 0],
-        });
-        const rotate = progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['0deg', `${p.rotation}deg`],
-        });
-
-        return (
-          <Animated.Text
-            key={i}
-            style={[
-              styles.particle,
-              {
-                left: originX,
-                top: originY,
-                fontSize: p.size,
-                opacity,
-                transform: [{ translateX }, { translateY }, { rotate }],
-              },
-            ]}
-          >
-            {p.emoji}
-          </Animated.Text>
-        );
-      })}
+      {particles.map((p, i) => (
+        <ConfettiParticle
+          key={i}
+          particle={p}
+          originX={originX}
+          originY={originY}
+        />
+      ))}
     </View>
   );
 }

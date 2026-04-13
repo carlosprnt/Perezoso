@@ -1,14 +1,13 @@
 // Logo confetti overlay — matches web's BubbleOverlay
-// Logos float upward from origin point with staggered timing
-// Each logo: scale in, drift up with slight horizontal offset, fade out
-// Stagger: 250ms apart, duration 1.8-3.0s each
+// Logos float upward like bubbles from the tap origin.
+// Each logo: pop in with spring, float up with wobble, fade out.
+// Uses Image (PNG from Google Favicons) — not SvgUri.
 
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
-import { SvgUri } from 'react-native-svg';
+import { View, Image, StyleSheet, Animated, Easing } from 'react-native';
 
-const { width: SCREEN_W } = Dimensions.get('window');
-const LOGO_SIZE = 40;
+const LOGO_SIZE = 44;
+const PARTICLE_COUNT = 12;
 
 interface LogoParticle {
   url: string;
@@ -17,24 +16,32 @@ interface LogoParticle {
   driftY: number;
   driftX: number;
   peakScale: number;
+  wobbleAmp: number;
+  wobbleFreq: number;
 }
 
 function generateParticles(logoUrls: string[]): LogoParticle[] {
-  // Up to 8 logos, repeat if needed for minimum count
   const urls: string[] = [];
-  const count = Math.max(8, logoUrls.length);
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
     urls.push(logoUrls[i % logoUrls.length]);
   }
 
-  return urls.map((url, i) => ({
-    url,
-    delay: i * 250 + Math.random() * 150,
-    duration: 1800 + Math.random() * 1200,
-    driftY: -(200 + Math.random() * 180),
-    driftX: (Math.random() - 0.5) * 60,
-    peakScale: 0.7 + Math.random() * 0.6,
-  }));
+  return urls.map((url, i) => {
+    // Spread particles in a fan pattern from center
+    const angle = ((i / PARTICLE_COUNT) * Math.PI * 0.8) + Math.PI * 0.1; // 10°-170° arc
+    const speed = 180 + Math.random() * 200;
+
+    return {
+      url,
+      delay: i * 120 + Math.random() * 80, // tighter stagger
+      duration: 2200 + Math.random() * 800,
+      driftY: -(Math.sin(angle) * speed + 80), // always upward
+      driftX: Math.cos(angle) * speed * 0.5 * (Math.random() > 0.5 ? 1 : -1),
+      peakScale: 0.6 + Math.random() * 0.5,
+      wobbleAmp: 3 + Math.random() * 8,
+      wobbleFreq: 2 + Math.random() * 3,
+    };
+  });
 }
 
 interface LogoConfettiProps {
@@ -54,37 +61,63 @@ function LogoParticleView({
   originY: number;
 }) {
   const progress = useRef(new Animated.Value(0)).current;
+  const wobble = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Main trajectory
       Animated.timing(progress, {
         toValue: 1,
         duration: particle.duration,
-        easing: Easing.bezier(0.15, 0, 0.25, 1),
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
+
+      // Wobble side-to-side like a real bubble
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(wobble, {
+            toValue: 1,
+            duration: 300 + Math.random() * 200,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(wobble, {
+            toValue: -1,
+            duration: 300 + Math.random() * 200,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
     }, particle.delay);
     return () => clearTimeout(timer);
   }, []);
 
   const translateY = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, particle.driftY],
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, particle.driftY * 0.1, particle.driftY],
   });
   const translateX = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, particle.driftX],
   });
+  const wobbleX = wobble.interpolate({
+    inputRange: [-1, 1],
+    outputRange: [-particle.wobbleAmp, particle.wobbleAmp],
+  });
   const scale = progress.interpolate({
-    inputRange: [0, 0.15, 0.7, 1],
-    outputRange: [0.3, particle.peakScale, particle.peakScale * 0.95, particle.peakScale * 0.9],
+    inputRange: [0, 0.08, 0.2, 0.75, 1],
+    outputRange: [0, particle.peakScale * 1.15, particle.peakScale, particle.peakScale * 0.9, 0.3],
   });
   const opacity = progress.interpolate({
-    inputRange: [0, 0.15, 0.7, 1],
-    outputRange: [0, 1, 1, 0],
+    inputRange: [0, 0.08, 0.15, 0.7, 1],
+    outputRange: [0, 0.9, 1, 0.9, 0],
   });
-
-  const isSvg = particle.url.includes('simpleicons') || particle.url.includes('.svg');
+  const rotate = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', `${(Math.random() - 0.5) * 30}deg`],
+  });
 
   return (
     <Animated.View
@@ -94,14 +127,22 @@ function LogoParticleView({
           left: originX - LOGO_SIZE / 2,
           top: originY - LOGO_SIZE / 2,
           opacity,
-          transform: [{ translateX }, { translateY }, { scale }],
+          transform: [
+            { translateX },
+            { translateY },
+            { translateX: wobbleX },
+            { scale },
+            { rotate },
+          ],
         },
       ]}
     >
       <View style={styles.logoInner}>
-        {isSvg ? (
-          <SvgUri uri={particle.url} width={28} height={28} />
-        ) : null}
+        <Image
+          source={{ uri: particle.url }}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
       </View>
     </Animated.View>
   );
@@ -113,13 +154,12 @@ export function LogoConfetti({ logoUrls, originX, originY, onComplete }: LogoCon
     [logoUrls],
   );
 
-  // Auto-dismiss after all animations complete
   useEffect(() => {
     const maxTime = particles.reduce(
       (max, p) => Math.max(max, p.delay + p.duration),
       0,
     );
-    const timer = setTimeout(onComplete, maxTime + 200);
+    const timer = setTimeout(onComplete, maxTime + 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -150,14 +190,19 @@ const styles = StyleSheet.create({
   logoInner: {
     width: LOGO_SIZE,
     height: LOGO_SIZE,
-    borderRadius: 10,
+    borderRadius: LOGO_SIZE / 2,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  logoImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
 });

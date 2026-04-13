@@ -1,6 +1,6 @@
 // Phase 3 — Shared UI primitive: SubscriptionAvatar
 // Replicates the web app's SubscriptionAvatar:
-//   Like LogoAvatar but with more size variants, Simple Icons CDN support,
+//   Like LogoAvatar but with more size variants, platform catalog support,
 //   themed border, and inner padding when showing a logo image.
 //
 // Web sizes: sm(36) sm40(40) md(44) md48(48) lg(56) xl(72)
@@ -15,6 +15,7 @@ import { fontFamily, fontSize } from '../design/typography';
 import { radius } from '../design/radius';
 import { borderWidth } from '../design/borders';
 import { getAvatarPastel, getInitials } from './LogoAvatar';
+import { resolvePlatformLogoUrl } from '../lib/constants/platforms';
 
 type AvatarSize = 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl';
 
@@ -54,12 +55,10 @@ export function SubscriptionAvatar({
   const config = SIZE_CONFIG[size];
   const [imgError, setImgError] = useState(false);
 
-  // Resolve image URL: logoUrl takes priority, then Simple Icons CDN
+  // Resolve image URL via platform catalog (returns PNG from Google Favicons)
   const resolvedUrl = useMemo(() => {
-    if (logoUrl) return logoUrl;
-    if (simpleIconSlug) return `https://cdn.simpleicons.org/${simpleIconSlug}`;
-    return null;
-  }, [logoUrl, simpleIconSlug]);
+    return resolvePlatformLogoUrl(name, logoUrl, simpleIconSlug);
+  }, [name, logoUrl, simpleIconSlug]);
 
   const borderColor = isDark ? '#3A3A3C' : '#E8E8E8';
 
