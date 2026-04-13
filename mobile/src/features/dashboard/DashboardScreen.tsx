@@ -12,19 +12,18 @@
 //
 // Mobile adaptation:
 //   - Elastic pull-down gap (8->24px) via useElasticPullDown + cardStackGap()
-//   - ScrollView with scroll-driven blur on card items
 //   - Staggered entrance animation (55ms/item, 400ms cardEntrance curve)
-//   - Hero scroll fade (opacity + blur as user scrolls)
+//   - Hero scroll fade (opacity as user scrolls)
+//   - Hero has opaque background (matches theme)
 //   - Safe area handling at top and bottom
 //   - FloatingNav space at bottom
 
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useDerivedValue,
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,12 +31,11 @@ import { CalendarDays } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
-import { ScrollBlurItem } from '../../components/ScrollBlurItem';
 import { Card, CardHeader } from '../../components/Card';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { useElasticPullDown } from '../../motion/useElasticPullDown';
-import { cardStackGap, scrollBlurProgress, scrollBlurOpacity, scrollBlurRadius } from '../../motion/interpolate';
+import { cardStackGap } from '../../motion/interpolate';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -56,8 +54,6 @@ import {
   MOCK_TOP_CATEGORY,
   MOCK_LOGO_URLS,
 } from './mockData';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Staggered entrance wrapper
 function StaggeredItem({ index, children }: { index: number; children: React.ReactNode }) {
@@ -78,12 +74,11 @@ export function DashboardScreen() {
     gap: cardStackGap(pullY.value),
   }));
 
-  // Hero scroll fade: opacity fades from 1 -> 0 over 220px scroll
+  // Hero scroll fade: only fades the hero section, not the cards below
   const heroAnimatedStyle = useAnimatedStyle(() => {
     const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
     return {
-      opacity: 1 - progress * 0.7,
-      filter: [{ blur: progress * 6 }],
+      opacity: 1 - progress * 0.6,
     };
   });
 
@@ -121,8 +116,8 @@ export function DashboardScreen() {
             },
           ]}
         >
-          {/* Hero -- scroll fade applied, not blurred on scroll */}
-          <Animated.View style={heroAnimatedStyle}>
+          {/* Hero -- scroll fade applied, opaque background */}
+          <Animated.View style={[heroAnimatedStyle, { backgroundColor: colors.background }]}>
             <SummaryHero
               firstName={MOCK_FIRST_NAME}
               stats={MOCK_STATS}
@@ -134,84 +129,59 @@ export function DashboardScreen() {
           <Animated.View style={[styles.cardStack, animatedCardStackStyle]}>
             {/* Reminder card */}
             <StaggeredItem index={0}>
-              <ScrollBlurItem
-                scrollY={scrollY}
-                viewportHeight={SCREEN_HEIGHT}
-              >
-                <ReminderCards annualCount={1} />
-              </ScrollBlurItem>
+              <ReminderCards annualCount={1} />
             </StaggeredItem>
 
             {/* Insight cards */}
             <StaggeredItem index={1}>
-              <ScrollBlurItem
-                scrollY={scrollY}
-                viewportHeight={SCREEN_HEIGHT}
-              >
-                <InsightCards
-                  highestCost={{
-                    name: MOCK_HIGHEST_COST.name,
-                    amount: `20,00US$ /mes`,
-                    category: 'IA',
-                  }}
-                  topCategory={{
-                    name: MOCK_TOP_CATEGORY.name,
-                    amount: `40,00\u20AC /mes`,
-                    count: MOCK_TOP_CATEGORY.count,
-                  }}
-                  sharedPlans={{
-                    count: MOCK_STATS.sharedCount,
-                    savings: '18,86\u20AC',
-                  }}
-                />
-              </ScrollBlurItem>
+              <InsightCards
+                highestCost={{
+                  name: MOCK_HIGHEST_COST.name,
+                  amount: `20,00US$ /mes`,
+                  category: 'IA',
+                }}
+                topCategory={{
+                  name: MOCK_TOP_CATEGORY.name,
+                  amount: `40,00\u20AC /mes`,
+                  count: MOCK_TOP_CATEGORY.count,
+                }}
+                sharedPlans={{
+                  count: MOCK_STATS.sharedCount,
+                  savings: '18,86\u20AC',
+                }}
+              />
             </StaggeredItem>
 
             {/* Upcoming Renewals */}
             <StaggeredItem index={2}>
-              <ScrollBlurItem
-                scrollY={scrollY}
-                viewportHeight={SCREEN_HEIGHT}
-              >
-                <Card>
-                  <CardHeader
-                    title="Pr\u00F3ximas renovaciones"
-                    action={calendarAction}
-                  />
-                  <UpcomingRenewals renewals={MOCK_RENEWALS} />
-                </Card>
-              </ScrollBlurItem>
+              <Card>
+                <CardHeader
+                  title="Pr\u00F3ximas renovaciones"
+                  action={calendarAction}
+                />
+                <UpcomingRenewals renewals={MOCK_RENEWALS} />
+              </Card>
             </StaggeredItem>
 
             {/* Top Categories */}
             <StaggeredItem index={3}>
-              <ScrollBlurItem
-                scrollY={scrollY}
-                viewportHeight={SCREEN_HEIGHT}
-              >
-                <Card>
-                  <CardHeader title="Categor\u00EDas con m\u00E1s gasto" />
-                  <TopCategories
-                    categories={MOCK_CATEGORIES}
-                    currency={MOCK_STATS.currency}
-                  />
-                </Card>
-              </ScrollBlurItem>
+              <Card>
+                <CardHeader title="Categor\u00EDas con m\u00E1s gasto" />
+                <TopCategories
+                  categories={MOCK_CATEGORIES}
+                  currency={MOCK_STATS.currency}
+                />
+              </Card>
             </StaggeredItem>
 
             {/* Most Expensive */}
             <StaggeredItem index={4}>
-              <ScrollBlurItem
-                scrollY={scrollY}
-                viewportHeight={SCREEN_HEIGHT}
-              >
-                <View>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    Suscripciones m{'\u00E1'}s caras
-                  </Text>
-                  <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
-                </View>
-              </ScrollBlurItem>
+              <View>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                  Suscripciones m{'\u00E1'}s caras
+                </Text>
+                <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
+              </View>
             </StaggeredItem>
           </Animated.View>
         </Animated.ScrollView>

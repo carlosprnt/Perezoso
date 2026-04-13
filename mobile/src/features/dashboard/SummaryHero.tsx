@@ -74,27 +74,34 @@ export function SummaryHero({
         )}
       </View>
 
-      {/* Main statement */}
-      <Text style={styles.statementBlock}>
+      {/* Main statement — separate Views for consistent spacing */}
+      <View style={styles.statementBlock}>
         {/* Monthly */}
-        <Text style={[styles.label, { color: labelColor }]}>
-          Al mes gastas{'\n'}
-        </Text>
-        <Text style={[styles.heroAmount, { color: amountColor }]}>
-          {formatAmount(stats.monthlyTotal, stats.currency)}
-        </Text>
-        <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
-        {'\n'}
+        <View style={styles.statementRow}>
+          <Text style={[styles.label, { color: labelColor }]}>
+            Al mes gastas
+          </Text>
+          <Text style={styles.amountRow}>
+            <Text style={[styles.heroAmount, { color: amountColor }]}>
+              {formatAmount(stats.monthlyTotal, stats.currency)}
+            </Text>
+            <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
+          </Text>
+        </View>
 
         {/* Annual */}
-        <Text style={[styles.label, { color: labelColor }]}>
-          Eso al a{'\u00F1'}o es{'\n'}
-        </Text>
-        <Text style={[styles.heroAmount, { color: amountColor }]}>
-          {formatAmount(stats.annualTotal, stats.currency)}
-        </Text>
-        <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
-      </Text>
+        <View style={styles.statementRow}>
+          <Text style={[styles.label, { color: labelColor }]}>
+            Eso al a{'\u00F1'}o es
+          </Text>
+          <Text style={styles.amountRow}>
+            <Text style={[styles.heroAmount, { color: amountColor }]}>
+              {formatAmount(stats.annualTotal, stats.currency)}
+            </Text>
+            <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
+          </Text>
+        </View>
+      </View>
 
       {/* Supporting statement with inline LogoStack */}
       <View style={styles.supportBlock}>
@@ -173,6 +180,13 @@ const styles = StyleSheet.create({
   },
   statementBlock: {
     marginBottom: 12, // mb-3
+    gap: 6, // consistent spacing between monthly and annual
+  },
+  statementRow: {
+    // Each label + amount pair
+  },
+  amountRow: {
+    // Amount + period on same line
   },
   label: {
     fontFamily: fontFamily.extrabold,
