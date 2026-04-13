@@ -207,13 +207,13 @@ const styles = StyleSheet.create({
   heroAmount: {
     fontFamily: fontFamily.extrabold,
     fontSize: fontSize[50],
-    lineHeight: fontSize[50] * lineHeight.none,
+    lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
     fontFamily: fontFamily.extrabold,
     fontSize: fontSize[50],
-    lineHeight: fontSize[50] * lineHeight.none,
+    lineHeight: fontSize[50] * lineHeight.compact,
   },
   supportBlock: {
     // Container for support lines with inline LogoStack
