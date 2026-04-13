@@ -1,12 +1,6 @@
 import SwiftUI
 
-/// Auth-gated root view. Shows the login / onboarding flow when the
-/// user is not authenticated, and the main tab bar otherwise.
-///
-/// Auth state changes produce a smooth cross-fade between the two
-/// branches — no navigation push, because "logged in" and "not
-/// logged in" are fundamentally different app states, not sibling
-/// screens.
+/// Auth-gated root view — smooth cross-fade between login and main app.
 struct RootView: View {
     @Environment(AuthStore.self) private var auth
 
@@ -14,8 +8,6 @@ struct RootView: View {
         ZStack {
             switch auth.state {
             case .unknown:
-                // First launch / bootstrap in progress — show a
-                // background-only splash matching the app chrome.
                 Color.background
                     .ignoresSafeArea()
                     .transition(.opacity)
@@ -33,44 +25,61 @@ struct RootView: View {
     }
 }
 
-/// The main tab bar shown to authenticated users. Mirrors the
-/// primary navigation of the web app: Dashboard · Subscriptions ·
-/// Calendar · Settings.
+/// Custom navigation with floating pill nav bar.
+/// Uses custom overlays for all secondary screens — no native sheets.
 struct MainTabView: View {
-    @State private var selectedTab: Tab = .dashboard
-
-    enum Tab: Hashable {
-        case dashboard
-        case subscriptions
-        case calendar
-        case settings
-    }
+    @Environment(SubscriptionsStore.self) private var store
+    @State private var selectedTab: AppTab = .dashboard
+    @State private var showAddSheet = false
+    @State private var showCalendar = false
+    @State private var showSettings = false
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView()
-                .tabItem {
-                    Label("Inicio", systemImage: "house.fill")
+        ZStack(alignment: .bottom) {
+            // ── Active tab content ──────────────────────────
+            Group {
+                switch selectedTab {
+                case .dashboard:
+                    DashboardView(
+                        onCalendarTap: { showCalendar = true },
+                        onSettingsTap: { showSettings = true }
+                    )
+                case .subscriptions:
+                    SubscriptionsListView()
+                case .calendar:
+                    CalendarView()
+                case .settings:
+                    SettingsView()
                 }
-                .tag(Tab.dashboard)
+            }
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.15), value: selectedTab)
 
-            SubscriptionsListView()
-                .tabItem {
-                    Label("Suscripciones", systemImage: "rectangle.stack.fill")
-                }
-                .tag(Tab.subscriptions)
-
-            CalendarView()
-                .tabItem {
-                    Label("Calendario", systemImage: "calendar")
-                }
-                .tag(Tab.calendar)
-
-            SettingsView()
-                .tabItem {
-                    Label("Ajustes", systemImage: "gearshape.fill")
-                }
-                .tag(Tab.settings)
+            // ── Floating nav bar ────────────────────────────
+            // Web: + button pulses when no subscriptions
+            FloatingNavBar(
+                selectedTab: $selectedTab,
+                onAddTapped: { showAddSheet = true },
+                emphasizeAdd: store.subscriptions.isEmpty
+            )
+            .padding(.bottom, 16)
+        }
+        .ignoresSafeArea(.keyboard)
+        // All overlays are custom — no native .sheet()
+        .overlay {
+            CustomBottomSheet(isPresented: $showAddSheet, height: .full, title: "Nueva suscripción") {
+                SubscriptionFormView(mode: .create)
+            }
+        }
+        .overlay {
+            CustomBottomSheet(isPresented: $showCalendar, height: .full) {
+                CalendarView()
+            }
+        }
+        .overlay {
+            CustomBottomSheet(isPresented: $showSettings, height: .full) {
+                SettingsView()
+            }
         }
     }
 }

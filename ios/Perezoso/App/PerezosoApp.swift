@@ -14,6 +14,9 @@ struct PerezosoApp: App {
     @State private var preferences = PreferencesStore()
 
     init() {
+        #if DEBUG
+        AppEnvironment.debugPrint()
+        #endif
         configureRevenueCat()
     }
 

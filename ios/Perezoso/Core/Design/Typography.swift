@@ -1,41 +1,31 @@
 import SwiftUI
 
-// MARK: - Inter font helpers
+// MARK: - System Rounded font helpers
 //
-// The Inter font files must be added to the Xcode target and listed
-// in Info.plist → "Fonts provided by application". If Inter is not
-// available at runtime the helpers fall back to the system font so
-// the app never crashes on a missing font.
+// The web app uses `font-family: ui-rounded, "SF Pro Rounded"`.
+// On iOS we match this exactly with `.system(.body, design: .rounded)`.
+// This provides SF Pro Rounded natively without bundling fonts.
 
 extension Font {
-    static func inter(_ weight: Font.Weight, size: CGFloat) -> Font {
-        let name: String = switch weight {
-        case .ultraLight: "Inter-Thin"
-        case .light:      "Inter-Light"
-        case .regular:    "Inter-Regular"
-        case .medium:     "Inter-Medium"
-        case .semibold:   "Inter-SemiBold"
-        case .bold:       "Inter-Bold"
-        case .heavy:      "Inter-ExtraBold"
-        case .black:      "Inter-Black"
-        default:          "Inter-Regular"
-        }
-        return .custom(name, size: size, relativeTo: .body)
+    static func rounded(_ weight: Font.Weight, size: CGFloat) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
     }
 
     // ── Semantic shortcuts ──────────────────────────────────
     /// Hero number — big bold number on the dashboard
-    static let heroNumber  = inter(.heavy, size: 34)
+    static let heroNumber  = rounded(.heavy, size: 34)
     /// Page / sheet title
-    static let title       = inter(.heavy, size: 28)
+    static let title       = rounded(.heavy, size: 28)
     /// Section header
-    static let headline    = inter(.bold, size: 17)
+    static let headline    = rounded(.bold, size: 17)
     /// Body text
-    static let bodyMedium  = inter(.medium, size: 15)
+    static let bodyMedium  = rounded(.medium, size: 15)
     /// Secondary body
-    static let bodyRegular = inter(.regular, size: 15)
+    static let bodyRegular = rounded(.regular, size: 15)
     /// Footnote / caption
-    static let caption     = inter(.medium, size: 12)
+    static let caption     = rounded(.medium, size: 12)
     /// Tiny label (badges, dot hints)
-    static let micro       = inter(.semibold, size: 11)
+    static let micro       = rounded(.semibold, size: 11)
+    /// Large statement text (like dashboard hero subtitle)
+    static let largeStatement = rounded(.heavy, size: 25)
 }

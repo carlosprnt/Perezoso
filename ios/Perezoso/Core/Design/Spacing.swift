@@ -29,10 +29,12 @@ enum Radius {
     static let sm: CGFloat = 6
     /// 10 pt — inputs, small cards
     static let md: CGFloat = 10
-    /// 14 pt — subscription cards
+    /// 14 pt — logo tiles, floating logos
     static let lg: CGFloat = 14
-    /// 18 pt — sheets, large cards
-    static let xl: CGFloat = 18
+    /// 24 pt — subscription cards (web rounded-3xl)
+    static let xl: CGFloat = 24
+    /// 32 pt — cards, bottom sheet top corners (web rounded-[32px])
+    static let card: CGFloat = 32
     /// 32 pt — bottom sheet top corners
     static let sheet: CGFloat = 32
     /// 40 pt — login panel top corners

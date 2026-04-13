@@ -1,150 +1,63 @@
 import SwiftUI
 
-/// Detail sheet for a single subscription.
+/// Custom full-screen subscription detail overlay matching the web's
+/// SubscriptionDetailOverlay.tsx — NOT a native sheet.
 ///
-/// Shows the subscription's logo, name, amount, billing period,
-/// next billing date, category, status badge, and notes.
-/// An "Editar" toolbar button opens `SubscriptionFormView` in edit mode.
-struct SubscriptionDetailView: View {
+/// Features:
+/// - Full-screen slide-up overlay with dark backdrop
+/// - Brand-tinted gradient header
+/// - Floating close button with backdrop blur
+/// - Logo hero with status badge
+/// - Cost display (monthly + annual)
+/// - Billing info card with progress bar
+/// - Inline edit mode via custom bottom sheet
+struct SubscriptionDetailOverlay: View {
     @Environment(SubscriptionsStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-
     let subscription: Subscription
+    @Binding var isPresented: Bool
 
     @State private var showEditSheet = false
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
 
+    private var preset: CardColorPreset { subscription.colorPreset }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.lg) {
-                    // ── Hero header ────────────────────────────
-                    VStack(spacing: Spacing.md) {
-                        LogoAvatar(
-                            name: subscription.name,
-                            logoURL: URL(string: subscription.logoUrl ?? ""),
-                            size: 72
-                        )
+        FullScreenOverlay(
+            isPresented: $isPresented,
+            tintColor: Color(hex: preset.background)
+        ) {
+            VStack(spacing: Spacing.xl) {
+                // ── Hero section ──────────────────────────
+                heroSection
 
-                        Text(subscription.name)
-                            .font(.title)
-                            .foregroundStyle(Color.textPrimary)
+                // ── Cost display ──────────────────────────
+                costSection
 
-                        StatusBadge(status: subscription.status)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, Spacing.xl)
+                // ── Billing info ──────────────────────────
+                billingSection
 
-                    // ── Amount card ────────────────────────────
-                    Card(.elevated) {
-                        VStack(spacing: Spacing.sm) {
-                            Text(CurrencyFormat.string(for: subscription.amount,
-                                                       currency: subscription.currency))
-                                .font(.heroNumber)
-                                .foregroundStyle(Color.textPrimary)
+                // ── Category & details ────────────────────
+                detailsSection
 
-                            Text(billingPeriodLabel)
-                                .font(.bodyRegular)
-                                .foregroundStyle(Color.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.xl)
-                    }
-
-                    // ── Details list ───────────────────────────
-                    Card {
-                        VStack(spacing: 0) {
-                            DetailRow(
-                                icon: "calendar",
-                                label: "Próxima facturación",
-                                value: formattedNextBillingDate
-                            )
-                            Divider().padding(.leading, Spacing.xxl + Spacing.md)
-
-                            DetailRow(
-                                icon: subscription.category.symbolName,
-                                label: "Categoría",
-                                value: subscription.category.localizedName
-                            )
-                            Divider().padding(.leading, Spacing.xxl + Spacing.md)
-
-                            DetailRow(
-                                icon: "arrow.triangle.2.circlepath",
-                                label: "Periodo",
-                                value: subscription.billingPeriod.rawValue.capitalized
-                            )
-
-                            if let notes = subscription.notes, !notes.isEmpty {
-                                Divider().padding(.leading, Spacing.xxl + Spacing.md)
-                                DetailRow(
-                                    icon: "note.text",
-                                    label: "Notas",
-                                    value: notes
-                                )
-                            }
-                        }
-                    }
-
-                    // ── Monthly equivalent (if yearly/quarterly) ──
-                    if subscription.billingPeriod != .monthly {
-                        Card {
-                            HStack {
-                                Text("Equivalente mensual")
-                                    .font(.bodyMedium)
-                                    .foregroundStyle(Color.textSecondary)
-                                Spacer()
-                                Text(CurrencyFormat.string(for: subscription.monthlyEquivalent,
-                                                           currency: subscription.currency))
-                                    .font(.bodyMedium)
-                                    .foregroundStyle(Color.textPrimary)
-                            }
-                            .padding(Spacing.lg)
-                        }
-                    }
-
-                    // ── Danger zone ────────────────────────────
-                    Button(role: .destructive) {
-                        Haptics.notification(.warning)
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Eliminar suscripción", systemImage: "trash")
-                            .font(.bodyMedium)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                    }
-                    .tint(Color.danger)
-                    .buttonStyle(.bordered)
-                    .clipShape(.capsule)
+                // ── Notes ─────────────────────────────────
+                if let notes = subscription.notes, !notes.isEmpty {
+                    notesSection(notes)
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.xxxl)
+
+                // ── Actions ───────────────────────────────
+                actionsSection
             }
-            .background(Color.background)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Editar") {
-                        Haptics.tap(.light)
-                        showEditSheet = true
-                    }
-                    .font(.bodyMedium)
-                    .tint(Color.accent)
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") {
-                        dismiss()
-                    }
-                    .font(.bodyMedium)
-                    .tint(Color.textSecondary)
-                }
-            }
+            .padding(.horizontal, Spacing.xl)
+            .padding(.top, Spacing.lg)
+            .padding(.bottom, Spacing.xxxl)
         }
-        .sheet(isPresented: $showEditSheet) {
-            SubscriptionFormView(mode: .edit(subscription))
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(Radius.sheet)
+        .overlay {
+            // Edit sheet as custom bottom sheet
+            CustomBottomSheet(isPresented: $showEditSheet, height: .full, title: "Editar suscripción") {
+                SubscriptionFormView(mode: .edit(subscription))
+                    .environment(store)
+            }
         }
         .confirmationDialog(
             "¿Eliminar \(subscription.name)?",
@@ -160,6 +73,180 @@ struct SubscriptionDetailView: View {
         }
     }
 
+    // MARK: - Hero
+
+    private var heroSection: some View {
+        VStack(spacing: Spacing.md) {
+            LogoAvatar(
+                name: subscription.name,
+                logoURL: URL(string: subscription.logoUrl ?? ""),
+                size: 72
+            )
+
+            Text(subscription.name)
+                .font(.rounded(.bold, size: 22))
+                .foregroundStyle(Color.textPrimary)
+
+            StatusBadge(status: subscription.status)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Cost
+
+    private var costSection: some View {
+        VStack(spacing: Spacing.xs) {
+            Text(CurrencyFormat.string(for: subscription.amount, currency: subscription.currency))
+                .font(.system(size: 44, weight: .bold, design: .serif))
+                .foregroundStyle(Color.textPrimary)
+
+            Text(billingPeriodLabel)
+                .font(.bodyRegular)
+                .foregroundStyle(Color.textSecondary)
+
+            if subscription.billingPeriod != .monthly {
+                Text("≈ \(CurrencyFormat.string(for: subscription.monthlyEquivalent, currency: subscription.currency))/mes")
+                    .font(.caption)
+                    .foregroundStyle(Color.textMuted)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Billing Info
+
+    private var billingSection: some View {
+        Card {
+            VStack(spacing: Spacing.lg) {
+                // Next billing
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Próxima facturación")
+                            .font(.caption)
+                            .foregroundStyle(Color.textMuted)
+                        Text(formattedNextBillingDate)
+                            .font(.bodyMedium)
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Faltan")
+                            .font(.caption)
+                            .foregroundStyle(Color.textMuted)
+                        Text(daysLabel)
+                            .font(.rounded(.bold, size: 17))
+                            .foregroundStyle(Color.accent)
+                    }
+                }
+
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.accentLight)
+                            .frame(height: 6)
+                        Capsule()
+                            .fill(Color.accent)
+                            .frame(width: geo.size.width * subscription.billingProgress, height: 6)
+                    }
+                }
+                .frame(height: 6)
+
+                // Billing cycle
+                HStack {
+                    Text("Ciclo")
+                        .font(.caption)
+                        .foregroundStyle(Color.textMuted)
+                    Spacer()
+                    Text(subscription.billingPeriod.localizedName)
+                        .font(.bodyMedium)
+                        .foregroundStyle(Color.textPrimary)
+                }
+
+                // Amount
+                HStack {
+                    Text("Importe")
+                        .font(.caption)
+                        .foregroundStyle(Color.textMuted)
+                    Spacer()
+                    Text(CurrencyFormat.string(for: subscription.amount, currency: subscription.currency))
+                        .font(.bodyMedium)
+                        .foregroundStyle(Color.textPrimary)
+                }
+            }
+            .padding(Spacing.xl)
+        }
+    }
+
+    // MARK: - Details
+
+    private var detailsSection: some View {
+        Card {
+            VStack(spacing: 0) {
+                detailRow(
+                    icon: subscription.category.symbolName,
+                    label: "Categoría",
+                    value: subscription.category.localizedName
+                )
+                Divider().padding(.leading, Spacing.xxl + Spacing.lg)
+                detailRow(
+                    icon: "arrow.triangle.2.circlepath",
+                    label: "Periodo",
+                    value: subscription.billingPeriod.localizedName
+                )
+            }
+        }
+    }
+
+    private func detailRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.textMuted)
+                .frame(width: Spacing.xl)
+            Text(label)
+                .font(.bodyRegular)
+                .foregroundStyle(Color.textSecondary)
+            Spacer()
+            Text(value)
+                .font(.bodyMedium)
+                .foregroundStyle(Color.textPrimary)
+        }
+        .padding(Spacing.lg)
+    }
+
+    // MARK: - Notes
+
+    private func notesSection(_ notes: String) -> some View {
+        Card {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Notas")
+                    .font(.caption)
+                    .foregroundStyle(Color.textMuted)
+                Text(notes)
+                    .font(.bodyRegular)
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .padding(Spacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: - Actions
+
+    private var actionsSection: some View {
+        VStack(spacing: Spacing.sm) {
+            PrimaryButton(title: "Editar suscripción") {
+                Haptics.tap(.light)
+                showEditSheet = true
+            }
+            DangerButton(title: "Eliminar suscripción", isLoading: isDeleting) {
+                Haptics.notification(.warning)
+                showDeleteConfirmation = true
+            }
+        }
+    }
+
     // MARK: - Helpers
 
     private var billingPeriodLabel: String {
@@ -169,6 +256,13 @@ struct SubscriptionDetailView: View {
         case .weekly:    "a la semana"
         case .quarterly: "cada trimestre"
         }
+    }
+
+    private var daysLabel: String {
+        let d = subscription.daysUntilBilling
+        if d == 0 { return "Hoy" }
+        if d == 1 { return "1 día" }
+        return "\(d) días"
     }
 
     private var formattedNextBillingDate: String {
@@ -184,7 +278,7 @@ struct SubscriptionDetailView: View {
         do {
             try await store.delete(id: subscription.id)
             Haptics.notification(.success)
-            dismiss()
+            isPresented = false
         } catch {
             Haptics.notification(.error)
         }
@@ -194,7 +288,7 @@ struct SubscriptionDetailView: View {
 
 // MARK: - Status Badge
 
-private struct StatusBadge: View {
+struct StatusBadge: View {
     let status: Subscription.Status
 
     var body: some View {
@@ -234,38 +328,10 @@ private struct StatusBadge: View {
     }
 }
 
-// MARK: - Detail Row
-
-private struct DetailRow: View {
-    let icon: String
-    let label: String
-    let value: String
-
-    var body: some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(Color.textMuted)
-                .frame(width: Spacing.xl)
-
-            Text(label)
-                .font(.bodyRegular)
-                .foregroundStyle(Color.textSecondary)
-
-            Spacer()
-
-            Text(value)
-                .font(.bodyMedium)
-                .foregroundStyle(Color.textPrimary)
-                .multilineTextAlignment(.trailing)
-        }
-        .padding(Spacing.lg)
-    }
-}
-
-// MARK: - Preview
-
 #Preview {
-    SubscriptionDetailView(subscription: .mock)
-        .environment(SubscriptionsStore.preview())
+    SubscriptionDetailOverlay(
+        subscription: .mock,
+        isPresented: .constant(true)
+    )
+    .environment(SubscriptionsStore.preview())
 }

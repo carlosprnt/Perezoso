@@ -3,9 +3,8 @@ import SwiftUI
 /// Pro upgrade paywall sheet.
 ///
 /// Lists Perezoso Pro features and offers a purchase CTA.
-/// RevenueCat integration is stubbed — replace the `purchase()`
-/// body with `Purchases.shared.purchase(package:)` once the
-/// RevenueCat offering is configured.
+/// Uses rounded typography and adaptive accent matching the web.
+/// RevenueCat integration is stubbed.
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -197,7 +196,6 @@ struct PaywallView: View {
         // let result = try await Purchases.shared.purchase(package: package)
         // if !result.userCancelled { dismiss() }
 
-        // Stub: simulate a delay then dismiss
         try? await Task.sleep(for: .milliseconds(800))
         Haptics.notification(.success)
         dismiss()
@@ -259,7 +257,7 @@ private struct PlanCard: View {
                         if let badge = plan.badge {
                             Text(badge)
                                 .font(.micro)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color.accentForeground)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.vertical, 2)
                                 .background(Color.accent, in: Capsule())
@@ -283,11 +281,11 @@ private struct PlanCard: View {
             }
             .padding(Spacing.lg)
             .background(
-                RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.xl, style: .continuous)
                     .fill(isSelected ? Color.accentLight : Color.surface)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: Radius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.xl, style: .continuous)
                     .stroke(isSelected ? Color.accent : Color.borderLight, lineWidth: isSelected ? 1.5 : 1)
             )
         }
