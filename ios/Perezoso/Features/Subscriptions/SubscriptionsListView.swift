@@ -53,7 +53,7 @@ struct SubscriptionsListView: View {
             LazyVStack(spacing: 8) {
                 // ── Header ──────────────────────────────────
                 headerRow
-                    .scrollFadeBlur()
+                    .scrollDrivenBlur()
 
                 if store.subscriptions.isEmpty && !store.isLoading {
                     // ── True empty state: QuickAdd ──────────
@@ -207,7 +207,7 @@ struct SubscriptionsListView: View {
                 }
                 .zIndex(Double(idx + 1))
                 .offset(y: CGFloat(idx) * -76)
-                .scrollFadeBlur()
+                .scrollDrivenBlur()
                 .staggeredEntrance(index: idx, stagger: MotionTiming.cardStagger)
             }
         }

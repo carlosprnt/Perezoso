@@ -130,6 +130,69 @@ struct FadeEntrance: ViewModifier {
     }
 }
 
+/// Continuous scroll-driven blur using `.visualEffect` (iOS 17+).
+///
+/// Reads each item's frame relative to the scroll viewport every frame and computes
+/// blur + opacity + optional scale from the item's distance to the viewport edges.
+/// No re-renders — runs entirely on the GPU composition layer.
+///
+/// Layout:
+/// ```
+/// ┌─── viewport ────────────────┐
+/// │  ▓▓▓  transition zone (blur)│  ← top ~22 %
+/// │                             │
+/// │       sharp zone (crisp)    │  ← center ~55 %
+/// │                             │
+/// │  ▓▓▓  transition zone (blur)│  ← bottom ~22 %
+/// └─────────────────────────────┘
+/// ```
+struct ScrollDrivenBlur: ViewModifier {
+    var maxBlur: CGFloat = 10
+    /// Fraction of viewport center that stays fully sharp (0.0–1.0).
+    var sharpFraction: CGFloat = 0.55
+    var fadeOpacity: Bool = true
+    /// Minimum scale at viewport edge. Set to 1.0 to disable scaling.
+    var minScale: CGFloat = 1.0
+
+    func body(content: Content) -> some View {
+        content
+            .visualEffect { effect, proxy in
+                let scrollBounds = proxy.bounds(of: .scrollView(axis: .vertical))
+                guard let scrollBounds, scrollBounds.height > 0 else {
+                    return effect.blur(radius: 0).opacity(1).scaleEffect(1)
+                }
+
+                let frame = proxy.frame(in: .scrollView(axis: .vertical))
+
+                // Item center normalised within viewport: 0 = top edge, 1 = bottom edge
+                let center = (frame.midY - scrollBounds.minY) / scrollBounds.height
+
+                // Sharp zone boundaries
+                let edge = (1 - sharpFraction) / 2
+                let lo = edge
+                let hi = 1 - edge
+
+                // Progress: 0 inside sharp zone → 1 at viewport edge → >1 beyond
+                let progress: CGFloat
+                if center < lo {
+                    progress = (lo - center) / edge
+                } else if center > hi {
+                    progress = (center - hi) / edge
+                } else {
+                    progress = 0
+                }
+
+                let t = min(max(progress, 0), 1)
+                let curved = t * t // ease-in ramp — gentle near sharp zone, steep near edge
+
+                return effect
+                    .blur(radius: curved * maxBlur)
+                    .opacity(fadeOpacity ? 1 - curved * 0.55 : 1)
+                    .scaleEffect(minScale < 1 ? 1 - curved * (1 - minScale) : 1)
+            }
+    }
+}
+
 extension View {
     /// Staggered entrance: slides up from offsetY with fade + optional scale, delayed by index.
     /// Matches web's card entry animation exactly.
@@ -154,26 +217,22 @@ extension View {
         modifier(FadeEntrance(delay: delay, duration: duration))
     }
 
-    // MARK: - Scroll-Linked Transitions
+    // MARK: - Scroll-Driven Blur
 
-    /// Items fade and blur smoothly as they scroll out of the visible area.
-    /// Web: dashboard sections + subscription cards use scroll-linked opacity + blur.
-    func scrollFadeBlur(maxBlur: CGFloat = 8) -> some View {
-        scrollTransition(.interactive) { effect, phase in
-            effect
-                .opacity(phase.isIdentity ? 1 : 1 - abs(phase.value))
-                .blur(radius: phase.isIdentity ? 0 : abs(phase.value) * maxBlur)
-        }
-    }
-
-    /// Items fade, blur, AND scale as they scroll in/out.
-    /// Used for QuickAdd rows: entrance from 0.9→1, exit from 1→0.9.
-    func scrollFadeBlurScale(maxBlur: CGFloat = 6, minScale: CGFloat = 0.9) -> some View {
-        scrollTransition(.interactive) { effect, phase in
-            effect
-                .opacity(phase.isIdentity ? 1 : 1 - abs(phase.value))
-                .blur(radius: phase.isIdentity ? 0 : abs(phase.value) * maxBlur)
-                .scaleEffect(phase.isIdentity ? 1 : 1 - abs(phase.value) * (1 - minScale))
-        }
+    /// Continuous position-based blur: items are crisp in the center of the viewport
+    /// and progressively blur + fade as they approach the top/bottom edges.
+    /// Matches the web app's scroll-linked blur behavior.
+    func scrollDrivenBlur(
+        maxBlur: CGFloat = 10,
+        sharpFraction: CGFloat = 0.55,
+        fadeOpacity: Bool = true,
+        minScale: CGFloat = 1.0
+    ) -> some View {
+        modifier(ScrollDrivenBlur(
+            maxBlur: maxBlur,
+            sharpFraction: sharpFraction,
+            fadeOpacity: fadeOpacity,
+            minScale: minScale
+        ))
     }
 }
