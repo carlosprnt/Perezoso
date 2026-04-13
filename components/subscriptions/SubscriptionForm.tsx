@@ -381,6 +381,10 @@ export default function SubscriptionForm({
           ? await createSubscription(payload, successRedirect)
           : await updateSubscription(subscription!.id, payload)
       if (result?.error) {
+        if (result.error === 'subscription_limit_reached') {
+          window.dispatchEvent(new CustomEvent('perezoso:paywall', { detail: { trigger: 'subscription_limit' } }))
+          return
+        }
         setError(result.error)
         haptics.error()
         AnalyticsEvents.errorShown('subscription_form', result.error)

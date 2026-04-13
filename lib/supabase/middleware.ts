@@ -41,9 +41,14 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Refresh the session — do not add logic between createServerClient and getUser()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Supabase unreachable — let the request through so the app can show an error
+    return NextResponse.next({ request })
+  }
 
   const { pathname } = request.nextUrl
 
