@@ -50,7 +50,7 @@ struct SubscriptionsListView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 8) {
+            LazyVStack(spacing: 8) {
                 // ── Header ──────────────────────────────────
                 headerRow
                     .scrollFadeBlur()
