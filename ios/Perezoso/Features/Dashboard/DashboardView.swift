@@ -2,14 +2,14 @@ import SwiftUI
 
 /// Main dashboard matching the web app's `/dashboard` exactly.
 ///
-/// Sections (in order):
-/// 1. Header: greeting + avatar
-/// 2. Spending hero: narrative prose (Este mes gastas + big amount + Eso al ano es + big amount)
-/// 3. Active subs count
-/// 4. Insight cards: 3 horizontal cards (highest cost, top category, shared plans)
-/// 5. Upcoming renewals: max 3 upcoming
-/// 6. Categories bar chart: segmented horizontal bar + legend
-/// 7. Top expensive: horizontal scroll cards
+/// Web layout audit:
+/// - Section gap: 8px (gap-[8px])
+/// - Hero padding-bottom: 20px (pb-5)
+/// - Greeting margin-bottom: 12px (mb-3)
+/// - Insight cards: bg-white rounded-[32px] px-4 py-3, NO border
+/// - Upcoming items: space-y-3.5 (14px), NO card wrapper, plain flex rows
+/// - Categories: in card, segmented bar h-12
+/// - Top expensive: 185px cards, rounded-[32px], NO border, p-4
 struct DashboardView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(SubscriptionsStore.self) private var store
@@ -19,11 +19,12 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.xl) {
-                // 1. Header
+            VStack(alignment: .leading, spacing: 8) {
+                // 1. Header (mb-3 = 12px below greeting)
                 headerRow
+                    .padding(.bottom, 4)
 
-                // 2. Spending hero
+                // 2. Spending hero (pb-5 = 20px)
                 spendingHero
 
                 // 3. Insight cards
@@ -41,9 +42,10 @@ struct DashboardView: View {
                     topCategoriesSection
                 }
 
-                // 6. Top expensive horizontal scroll
+                // 6. Top expensive horizontal scroll (mt-3 = 12px)
                 if store.activeSubscriptions.count > 1 {
                     topExpensiveSection
+                        .padding(.top, 4)
                 }
             }
             .padding(.horizontal, Spacing.xl)
@@ -87,7 +89,7 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Spending Hero (narrative prose)
+    // MARK: - Spending Hero (narrative prose — web: pb-5 mb-3)
 
     private var spendingHero: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -105,7 +107,7 @@ struct DashboardView: View {
             }
             .font(.rounded(.bold, size: 18))
         }
-        .padding(.bottom, Spacing.sm)
+        .padding(.bottom, Spacing.md)
     }
 
     @ViewBuilder
@@ -117,6 +119,7 @@ struct DashboardView: View {
             Text("Este mes gastas")
                 .font(.rounded(.heavy, size: 25))
                 .foregroundStyle(Color.textSecondary)
+                .tracking(-0.3)
 
             Text(monthly)
                 .font(.system(size: 50, weight: .bold, design: .rounded))
@@ -126,6 +129,7 @@ struct DashboardView: View {
             Text("Eso al ano es")
                 .font(.rounded(.heavy, size: 25))
                 .foregroundStyle(Color.textSecondary)
+                .tracking(-0.3)
                 .padding(.top, 2)
 
             Text(annual)
@@ -135,11 +139,10 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Insight Cards (3 cards matching web's Insights.tsx)
+    // MARK: - Insight Cards (web: gap-2 = 8px, NO border, rounded-[32px])
 
     private var insightCards: some View {
-        VStack(spacing: Spacing.sm) {
-            // Card 1: Highest cost subscription
+        VStack(spacing: 8) {
             if let expensive = store.activeSubscriptions.sorted(by: { $0.monthlyEquivalent > $1.monthlyEquivalent }).first {
                 InsightCardRow(
                     iconName: "arrow.up.right",
@@ -151,7 +154,6 @@ struct DashboardView: View {
                 )
             }
 
-            // Card 2: Top category
             if let topCat = topCategories.first {
                 InsightCardRow(
                     iconName: topCat.category.symbolName,
@@ -163,7 +165,6 @@ struct DashboardView: View {
                 )
             }
 
-            // Card 3: Shared plans
             let sharedSubs = store.activeSubscriptions.filter { ($0.sharedWith ?? 0) > 0 }
             if !sharedSubs.isEmpty {
                 let sharedSavings = sharedSubs.reduce(Decimal.zero) { acc, sub in
@@ -185,44 +186,41 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Upcoming Renewals
+    // MARK: - Upcoming Renewals (web: space-y-3.5 = 14px, NO card wrappers)
 
     private var upcomingSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            HStack {
-                Text("Proximas renovaciones")
-                    .font(.headline)
-                    .foregroundStyle(Color.textPrimary)
-                Spacer()
-                Text("\(store.upcomingRenewals.prefix(3).count)")
-                    .font(.caption)
-                    .foregroundStyle(Color.textMuted)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, 2)
-                    .background(Color.accentLight, in: Capsule())
-            }
+            Text("Proximas renovaciones")
+                .font(.rounded(.bold, size: 17))
+                .foregroundStyle(Color.textPrimary)
+                .tracking(-0.3)
 
-            ForEach(Array(store.upcomingRenewals.prefix(3))) { sub in
-                Card {
-                    HStack(spacing: Spacing.md) {
-                        LogoAvatar(name: sub.name, logoURL: URL(string: sub.logoUrl ?? ""), size: 40)
+            VStack(spacing: 14) {
+                ForEach(Array(store.upcomingRenewals.prefix(3))) { sub in
+                    Button {
+                        Haptics.tap(.light)
+                    } label: {
+                        HStack(spacing: Spacing.md) {
+                            LogoAvatar(name: sub.name, logoURL: URL(string: sub.logoUrl ?? ""), size: 40)
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(sub.name)
-                                .font(.bodyMedium)
-                                .foregroundStyle(Color.textPrimary)
-                            Text(renewalLabel(for: sub))
-                                .font(.caption)
-                                .foregroundStyle(Color.textMuted)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(sub.name)
+                                    .font(.rounded(.bold, size: 17))
+                                    .foregroundStyle(Color.textPrimary)
+                                    .lineLimit(1)
+                                Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
+                                    .font(.rounded(.regular, size: 12))
+                                    .foregroundStyle(Color.textMuted)
+                            }
+
+                            Spacer()
+
+                            Text(renewalDaysLabel(for: sub))
+                                .font(.rounded(.regular, size: 14))
+                                .foregroundStyle(Color.textSecondary)
                         }
-
-                        Spacer()
-
-                        Text(CurrencyFormat.string(for: sub.amount, currency: sub.currency))
-                            .font(.bodyMedium)
-                            .foregroundStyle(Color.textPrimary)
                     }
-                    .padding(Spacing.lg)
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -231,45 +229,43 @@ struct DashboardView: View {
     // MARK: - Top Categories (segmented bar chart + legend)
 
     private var topCategoriesSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Por categoria")
-                .font(.headline)
+                .font(.rounded(.bold, size: 17))
                 .foregroundStyle(Color.textPrimary)
+                .tracking(-0.3)
 
-            Card {
-                VStack(spacing: Spacing.lg) {
-                    // Segmented bar
-                    categoriesBar
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.lg)
-
-                    // Legend rows
-                    VStack(spacing: 2) {
-                        ForEach(displayCategories, id: \.category) { item in
-                            HStack(spacing: Spacing.md) {
-                                Circle()
-                                    .fill(item.color)
-                                    .frame(width: 10, height: 10)
-
-                                Text(item.label)
-                                    .font(.rounded(.regular, size: 13))
-                                    .foregroundStyle(Color.textPrimary)
-
-                                Spacer()
-
-                                Text("\(item.pct)%")
-                                    .font(.rounded(.regular, size: 11))
-                                    .foregroundStyle(Color.textMuted)
-
-                                Text(CurrencyFormat.string(for: item.total, currency: "EUR"))
-                                    .font(.rounded(.semibold, size: 13))
-                                    .foregroundStyle(Color.textPrimary)
-                            }
-                            .padding(.horizontal, Spacing.lg)
-                            .padding(.vertical, Spacing.xs)
-                        }
-                    }
+            VStack(spacing: 0) {
+                // Segmented bar
+                categoriesBar
                     .padding(.bottom, Spacing.lg)
+
+                // Legend rows (space-y-0.5 = 2px)
+                VStack(spacing: 2) {
+                    ForEach(displayCategories, id: \.category) { item in
+                        HStack(spacing: 10) {
+                            Circle()
+                                .fill(item.color)
+                                .frame(width: 10, height: 10)
+
+                            Text(item.label)
+                                .font(.rounded(.regular, size: 13))
+                                .foregroundStyle(Color.textPrimary)
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            Text("\(item.pct)%")
+                                .font(.rounded(.regular, size: 11))
+                                .foregroundStyle(Color(hex: "#8E8E93"))
+
+                            Text(CurrencyFormat.string(for: item.total, currency: "EUR"))
+                                .font(.rounded(.semibold, size: 13))
+                                .foregroundStyle(Color.textPrimary)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                    }
                 }
             }
         }
@@ -278,9 +274,10 @@ struct DashboardView: View {
     private var categoriesBar: some View {
         GeometryReader { geo in
             HStack(spacing: 3) {
-                ForEach(displayCategories, id: \.category) { item in
+                ForEach(Array(displayCategories.enumerated()), id: \.element.category) { idx, item in
+                    let segColor = idx == 0 ? Color(hex: "#FEF08A") : item.color
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(item.color)
+                        .fill(segColor)
                         .frame(width: max(8, geo.size.width * CGFloat(item.pct) / 100 - 3))
                 }
             }
@@ -288,58 +285,61 @@ struct DashboardView: View {
         .frame(height: 48)
     }
 
-    // MARK: - Top Expensive (horizontal scroll)
+    // MARK: - Top Expensive (web: gap-3=12px, 185px, rounded-[32px], NO border, p-4=16px)
 
     private var topExpensiveSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Mas caras")
-                .font(.headline)
+                .font(.rounded(.bold, size: 17))
                 .foregroundStyle(Color.textPrimary)
+                .tracking(-0.3)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.md) {
+                HStack(spacing: 12) {
                     ForEach(Array(store.activeSubscriptions
                         .sorted { $0.monthlyEquivalent > $1.monthlyEquivalent }
                         .prefix(8)
                         .enumerated()), id: \.element.id) { idx, sub in
 
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("#\(idx + 1)")
-                                .font(.rounded(.bold, size: 11))
-                                .foregroundStyle(Color.textDisabled)
-                                .textCase(.uppercase)
+                        Button {
+                            Haptics.tap(.light)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("#\(idx + 1)")
+                                    .font(.rounded(.bold, size: 11))
+                                    .foregroundStyle(Color(hex: "#B0B0B0"))
+                                    .textCase(.uppercase)
+                                    .tracking(0.5)
 
-                            LogoAvatar(
-                                name: sub.name,
-                                logoURL: URL(string: sub.logoUrl ?? ""),
-                                size: 40
-                            )
-                            .padding(.top, Spacing.sm)
-                            .padding(.bottom, Spacing.md)
+                                LogoAvatar(
+                                    name: sub.name,
+                                    logoURL: URL(string: sub.logoUrl ?? ""),
+                                    size: 48
+                                )
+                                .padding(.top, 8)
+                                .padding(.bottom, 12)
 
-                            Text(sub.name)
-                                .font(.rounded(.bold, size: 14))
-                                .foregroundStyle(Color.textPrimary)
-                                .lineLimit(1)
-
-                            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                                Text(CurrencyFormat.string(for: sub.monthlyEquivalent, currency: sub.currency))
-                                    .font(.rounded(.bold, size: 15))
+                                Text(sub.name)
+                                    .font(.rounded(.bold, size: 14))
                                     .foregroundStyle(Color.textPrimary)
-                                Text("/mes")
-                                    .font(.rounded(.regular, size: 12))
-                                    .foregroundStyle(Color.textMuted)
+                                    .lineLimit(1)
+
+                                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                                    Text(CurrencyFormat.string(for: sub.monthlyEquivalent, currency: sub.currency))
+                                        .font(.rounded(.bold, size: 15))
+                                        .foregroundStyle(Color.textPrimary)
+                                    Text("/mes")
+                                        .font(.rounded(.regular, size: 12))
+                                        .foregroundStyle(Color.textMuted)
+                                }
+                                .padding(.top, 6)
                             }
-                            .padding(.top, Spacing.xs)
+                            .padding(Spacing.lg)
+                            .frame(width: 185, alignment: .leading)
+                            .background(Color.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
                         }
-                        .padding(Spacing.lg)
-                        .frame(width: 185, alignment: .leading)
-                        .background(Color.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                                .stroke(Color.borderLight, lineWidth: 1)
-                        )
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -393,7 +393,6 @@ struct DashboardView: View {
             )
         }
 
-        // "Resto" bucket
         let restTotal = all.dropFirst(4).reduce(Decimal.zero) { $0 + $1.total }
         if restTotal > 0 {
             let restDouble = NSDecimalNumber(decimal: restTotal).doubleValue
@@ -409,18 +408,16 @@ struct DashboardView: View {
         return result
     }
 
-    private func renewalLabel(for sub: Subscription) -> String {
-        let days = sub.daysUntilBilling
-        if days == 0 { return "Se renueva hoy" }
-        if days == 1 { return "Se renueva manana" }
-        return "Se renueva en \(days) dias"
+    private func renewalDaysLabel(for sub: Subscription) -> String {
+        let d = sub.daysUntilBilling
+        if d == 0 { return "Hoy" }
+        if d == 1 { return "Manana" }
+        return "En \(d) dias"
     }
 }
 
-// MARK: - Insight Card Row
+// MARK: - Insight Card Row (web: NO border, rounded-[32px], px-4 py-3)
 
-/// Single insight card matching web's InsightCell:
-/// bg-white rounded-[32px] px-4 py-3, icon(40x40 rounded-2xl) + label+value + right column
 private struct InsightCardRow: View {
     let iconName: String
     let iconBg: Color
@@ -430,8 +427,7 @@ private struct InsightCardRow: View {
     let rightBottom: String
 
     var body: some View {
-        HStack(spacing: Spacing.md) {
-            // Icon tile 40x40
+        HStack(spacing: 12) {
             Image(systemName: iconName)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(Color.textPrimary)
@@ -439,7 +435,6 @@ private struct InsightCardRow: View {
                 .background(iconBg)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-            // Label + value
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.rounded(.regular, size: 12))
@@ -452,7 +447,6 @@ private struct InsightCardRow: View {
 
             Spacer()
 
-            // Right column
             VStack(alignment: .trailing, spacing: 2) {
                 Text(rightTop)
                     .font(.rounded(.semibold, size: 12))
@@ -467,10 +461,6 @@ private struct InsightCardRow: View {
         .padding(.vertical, Spacing.md)
         .background(Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .stroke(Color.borderLight, lineWidth: 1)
-        )
     }
 }
 

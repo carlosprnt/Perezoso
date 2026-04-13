@@ -627,7 +627,8 @@ struct SubscriptionFormView: View {
 
 // MARK: - Reusable form components
 
-/// White card container for form sections (rounded-2xl, border).
+/// White card container for form sections.
+/// Web: mx-5 mb-3 bg-white rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E]
 private struct FormCard<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
@@ -637,7 +638,7 @@ private struct FormCard<Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.borderLight, lineWidth: 1)
+                    .stroke(Color(light: "#F0F0F0", dark: "#2C2C2E"), lineWidth: 1)
             )
     }
 }

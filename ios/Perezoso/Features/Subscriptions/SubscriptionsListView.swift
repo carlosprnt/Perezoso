@@ -49,7 +49,7 @@ struct SubscriptionsListView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: Spacing.md) {
+            VStack(spacing: 8) {
                 // ── Header ──────────────────────────────────
                 headerRow
 
@@ -64,7 +64,7 @@ struct SubscriptionsListView: View {
                 // ── Count ───────────────────────────────────
                 HStack {
                     Text("\(filteredSubscriptions.count) suscripciones")
-                        .font(.caption)
+                        .font(.rounded(.medium, size: 12))
                         .foregroundStyle(Color.textMuted)
                     Spacer()
                 }
@@ -118,12 +118,13 @@ struct SubscriptionsListView: View {
     // MARK: - Header
 
     private var headerRow: some View {
-        VStack(alignment: .leading, spacing: Spacing.xxs) {
+        VStack(alignment: .leading, spacing: 2) {
             Text("Mis suscripciones")
-                .font(.title)
+                .font(.rounded(.bold, size: 17))
                 .foregroundStyle(Color.textPrimary)
+                .tracking(-0.3)
             Text("\(activeSubscriptions.count) activas \u{00B7} \(CurrencyFormat.string(for: store.monthlyTotal, currency: "EUR"))/mes")
-                .font(.caption)
+                .font(.rounded(.regular, size: 12))
                 .foregroundStyle(Color.textMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -507,9 +508,10 @@ private struct WalletCardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .shadow(color: .black.opacity(0.04), radius: 1, y: -1)
+            .shadow(color: .black.opacity(0.04), radius: 2, y: -1)
         }
         .buttonStyle(.pressable)
+        .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var walletStatusLabel: String {
