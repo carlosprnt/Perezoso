@@ -4,9 +4,9 @@
 //   Sliding stroke indicator on active tab
 //   Active icons use fill, inactive icons use stroke + subtle border
 //
-// Web dimensions: buttons 72x48, plus 72x48, padding 8, gap 8
 // Plus button: filled circle (black light / #F2F2F7 dark)
-// Active icon: filled variant, inactive: stroke + 1.5px border
+// Container: white glass ~85% opacity
+// Card icon: custom SVG (not lucide CreditCard) with visible stripe when filled
 
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
@@ -17,21 +17,56 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LayoutGrid, CreditCard, Plus } from 'lucide-react-native';
+import { LayoutGrid, Plus } from 'lucide-react-native';
+import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
 
-// Layout constants
-const BTN_W = floatingNav.buttonWidth;   // 72
-const BTN_H = floatingNav.buttonHeight;  // 48
-const PAD = floatingNav.padding;         // 8
-const GAP = floatingNav.gap;             // 8
+// ─── Custom CardIcon (matches web's CardIcon with stripe) ────────────
+function CardIcon({
+  size,
+  color,
+  filled,
+  stripeColor,
+}: {
+  size: number;
+  color: string;
+  filled: boolean;
+  stripeColor?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect
+        x={2}
+        y={4}
+        width={20}
+        height={16}
+        rx={3}
+        fill={filled ? color : 'none'}
+        stroke={color}
+        strokeWidth={2}
+      />
+      <Rect
+        x={2}
+        y={9.5}
+        width={20}
+        height={2.5}
+        fill={filled ? stripeColor || '#FFFFFF' : color}
+      />
+    </Svg>
+  );
+}
+
+// ─── Layout constants ────────────────────────────────────────────────
+const BTN_W = floatingNav.buttonWidth; // 72
+const BTN_H = floatingNav.buttonHeight; // 48
+const PAD = floatingNav.padding; // 8
+const GAP = floatingNav.gap; // 8
 
 const NAV_W = PAD + BTN_W + GAP + BTN_W + GAP + BTN_W + PAD; // 240
 const NAV_H = PAD + BTN_H + PAD; // 64
 
-// Indicator X positions
 const INDICATOR_X_LEFT = PAD;
 const INDICATOR_X_RIGHT = PAD + BTN_W + GAP + BTN_W + GAP;
 
@@ -67,6 +102,8 @@ export function FloatingNav() {
   const strokeIndicatorColor = isDark ? '#F2F2F7' : '#000000';
   const plusBg = isDark ? '#F2F2F7' : '#000000';
   const plusIconColor = isDark ? '#000000' : '#FFFFFF';
+  const navBg = isDark ? 'rgba(28, 28, 30, 0.88)' : 'rgba(255, 255, 255, 0.85)';
+  const cardStripeColor = isDark ? '#1C1C1E' : '#F7F8FA';
 
   return (
     <View
@@ -76,7 +113,7 @@ export function FloatingNav() {
       ]}
       pointerEvents="box-none"
     >
-      <View style={[styles.pill, { backgroundColor: colors.floatingNavBg }]}>
+      <View style={[styles.pill, { backgroundColor: navBg }]}>
         {/* Sliding stroke indicator */}
         <Animated.View
           style={[
@@ -90,7 +127,10 @@ export function FloatingNav() {
         <Pressable
           style={[
             styles.navButton,
-            activeIndex !== 0 && { borderWidth: 1.5, borderColor: inactiveBorder },
+            activeIndex !== 0 && {
+              borderWidth: 1.5,
+              borderColor: inactiveBorder,
+            },
           ]}
           onPress={() => router.push('/(tabs)/dashboard')}
         >
@@ -102,7 +142,7 @@ export function FloatingNav() {
           />
         </Pressable>
 
-        {/* Plus (add subscription) — filled circle */}
+        {/* Plus — filled circle */}
         <Pressable
           style={[styles.plusButton, { backgroundColor: plusBg }]}
           onPress={() => router.push('/(tabs)/subscriptions/new')}
@@ -110,19 +150,22 @@ export function FloatingNav() {
           <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
         </Pressable>
 
-        {/* Subscriptions */}
+        {/* Subscriptions — custom CardIcon with stripe */}
         <Pressable
           style={[
             styles.navButton,
-            activeIndex !== 1 && { borderWidth: 1.5, borderColor: inactiveBorder },
+            activeIndex !== 1 && {
+              borderWidth: 1.5,
+              borderColor: inactiveBorder,
+            },
           ]}
           onPress={() => router.push('/(tabs)/subscriptions')}
         >
-          <CreditCard
+          <CardIcon
             size={20}
-            strokeWidth={2}
             color={iconColor}
-            fill={activeIndex === 1 ? iconColor : 'none'}
+            filled={activeIndex === 1}
+            stripeColor={cardStripeColor}
           />
         </Pressable>
       </View>

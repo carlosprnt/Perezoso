@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: fontFamily.bold,
-    fontSize: fontSize[24],
-    lineHeight: fontSize[24] * lineHeight.tight,
+    fontFamily: fontFamily.extrabold,
+    fontSize: 34,
+    lineHeight: 34 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   subtitle: {

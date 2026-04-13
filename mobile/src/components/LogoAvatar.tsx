@@ -8,9 +8,13 @@
 //   Shape: rounded-xl (12px)
 //   With logo: border border-gray-100 shadow-sm bg-white
 //   Initials: deterministic pastel bg/fg via getAvatarPastel
+//
+// SVG support: Simple Icons CDN returns SVGs. We detect SVG URLs
+// and use SvgUri from react-native-svg instead of Image.
 
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { fontFamily, fontSize } from '../design/typography';
 import { radius } from '../design/radius';
 import { shadows } from '../design/shadows';
@@ -62,6 +66,18 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+// ─── SVG detection ──────────────────────────────────────────────────
+
+const SVG_PATTERNS = [
+  'cdn.simpleicons.org',
+  'svgl.app',
+  '.svg',
+];
+
+function isSvgUrl(url: string): boolean {
+  return SVG_PATTERNS.some((p) => url.includes(p));
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 interface LogoAvatarProps {
@@ -89,7 +105,33 @@ export function LogoAvatar({
     justifyContent: 'center',
   };
 
-  // Logo image path
+  // SVG logo path (Simple Icons CDN, svgl.app, etc.)
+  if (logoUrl && !imgError && isSvgUrl(logoUrl)) {
+    const iconPad = Math.round(config.dimension * 0.22);
+    return (
+      <View
+        style={[
+          containerBase,
+          {
+            backgroundColor: '#FFFFFF',
+            borderWidth: borderWidth.default,
+            borderColor: '#F5F5F5',
+          },
+          shadows.sm,
+          style,
+        ]}
+      >
+        <SvgUri
+          uri={logoUrl}
+          width={config.dimension - iconPad}
+          height={config.dimension - iconPad}
+          onError={() => setImgError(true)}
+        />
+      </View>
+    );
+  }
+
+  // Raster image logo path
   if (logoUrl && !imgError) {
     return (
       <View
@@ -98,7 +140,7 @@ export function LogoAvatar({
           {
             backgroundColor: '#FFFFFF',
             borderWidth: borderWidth.default,
-            borderColor: '#F5F5F5', // gray-100
+            borderColor: '#F5F5F5',
           },
           shadows.sm,
           style,
