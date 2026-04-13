@@ -156,7 +156,7 @@ export function DashboardScreen() {
             <StaggeredItem index={2}>
               <Card>
                 <CardHeader
-                  title="Pr\u00F3ximas renovaciones"
+                  title="Próximas renovaciones"
                   action={calendarAction}
                 />
                 <UpcomingRenewals renewals={MOCK_RENEWALS} />
@@ -166,7 +166,7 @@ export function DashboardScreen() {
             {/* Top Categories */}
             <StaggeredItem index={3}>
               <Card>
-                <CardHeader title="Categor\u00EDas con m\u00E1s gasto" />
+                <CardHeader title="Categorías con más gasto" />
                 <TopCategories
                   categories={MOCK_CATEGORIES}
                   currency={MOCK_STATS.currency}
@@ -178,7 +178,7 @@ export function DashboardScreen() {
             <StaggeredItem index={4}>
               <View>
                 <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                  Suscripciones m{'\u00E1'}s caras
+                  Suscripciones más caras
                 </Text>
                 <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
               </View>

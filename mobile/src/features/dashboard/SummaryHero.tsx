@@ -81,7 +81,12 @@ export function SummaryHero({
           <Text style={[styles.label, { color: labelColor }]}>
             Al mes gastas
           </Text>
-          <Text style={styles.amountRow}>
+          <Text
+            style={styles.amountRow}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             <Text style={[styles.heroAmount, { color: amountColor }]}>
               {formatAmount(stats.monthlyTotal, stats.currency)}
             </Text>
@@ -94,7 +99,12 @@ export function SummaryHero({
           <Text style={[styles.label, { color: labelColor }]}>
             Eso al a{'\u00F1'}o es
           </Text>
-          <Text style={styles.amountRow}>
+          <Text
+            style={styles.amountRow}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             <Text style={[styles.heroAmount, { color: amountColor }]}>
               {formatAmount(stats.annualTotal, stats.currency)}
             </Text>
