@@ -128,7 +128,7 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
           iconBg={categoryIconBg}
           iconColor={categoryIconColor}
           IconComponent={Bot}
-          label="Categor\u00EDa principal"
+          label="Categoría principal"
           title={topCategory.name}
           rightTop={topCategory.amount}
           rightBottom={`${topCategory.count} suscr.`}

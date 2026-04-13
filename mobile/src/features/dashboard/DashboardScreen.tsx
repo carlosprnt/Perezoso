@@ -18,7 +18,7 @@
 //   - Safe area handling at top and bottom
 //   - FloatingNav space at bottom
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -32,6 +32,8 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { Card, CardHeader } from '../../components/Card';
+import { MoneyConfetti } from '../../components/MoneyConfetti';
+import { LogoConfetti } from '../../components/LogoConfetti';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { useElasticPullDown } from '../../motion/useElasticPullDown';
@@ -65,6 +67,18 @@ export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+
+  // Confetti state
+  const [moneyConfetti, setMoneyConfetti] = useState<{ x: number; y: number } | null>(null);
+  const [logoConfetti, setLogoConfetti] = useState<{ x: number; y: number } | null>(null);
+
+  const handleAmountTap = useCallback((x: number, y: number) => {
+    setMoneyConfetti({ x, y });
+  }, []);
+
+  const handleLogosTap = useCallback((x: number, y: number) => {
+    setLogoConfetti({ x, y });
+  }, []);
 
   // Elastic pull-down for card stack gap
   const { pullY, gesture } = useElasticPullDown();
@@ -122,6 +136,8 @@ export function DashboardScreen() {
               firstName={MOCK_FIRST_NAME}
               stats={MOCK_STATS}
               logoUrls={MOCK_LOGO_URLS}
+              onAmountTap={handleAmountTap}
+              onLogosTap={handleLogosTap}
             />
           </Animated.View>
 
@@ -186,6 +202,23 @@ export function DashboardScreen() {
           </Animated.View>
         </Animated.ScrollView>
       </GestureDetector>
+
+      {/* Confetti overlays — render on top of everything */}
+      {moneyConfetti && (
+        <MoneyConfetti
+          originX={moneyConfetti.x}
+          originY={moneyConfetti.y}
+          onComplete={() => setMoneyConfetti(null)}
+        />
+      )}
+      {logoConfetti && (
+        <LogoConfetti
+          logoUrls={MOCK_LOGO_URLS}
+          originX={logoConfetti.x}
+          originY={logoConfetti.y}
+          onComplete={() => setLogoConfetti(null)}
+        />
+      )}
     </View>
   );
 }

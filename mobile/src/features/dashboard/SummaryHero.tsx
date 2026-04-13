@@ -10,8 +10,8 @@
 // gray labels, black 50px amounts, 18px bold supporting text -- defines
 // the product's visual confidence. Do not normalize these sizes.
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, type GestureResponderEvent } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
@@ -27,6 +27,10 @@ interface SummaryHeroProps {
   avatarUrl?: string | null;
   /** Logo URLs for the inline LogoStack */
   logoUrls?: string[];
+  /** Called when user taps the amount numbers — for money confetti */
+  onAmountTap?: (x: number, y: number) => void;
+  /** Called when user taps "Tienes X suscripciones" — for logo confetti */
+  onLogosTap?: (x: number, y: number) => void;
 }
 
 function formatAmount(amount: number, currency: string): string {
@@ -44,6 +48,8 @@ export function SummaryHero({
   fullName,
   avatarUrl,
   logoUrls = [],
+  onAmountTap,
+  onLogosTap,
 }: SummaryHeroProps) {
   const { colors, isDark } = useTheme();
   const labelColor = isDark ? '#8E8E93' : '#616161';
@@ -74,8 +80,13 @@ export function SummaryHero({
         )}
       </View>
 
-      {/* Main statement — separate Views for consistent spacing */}
-      <View style={styles.statementBlock}>
+      {/* Main statement — tap to trigger money confetti */}
+      <Pressable
+        style={styles.statementBlock}
+        onPress={(e: GestureResponderEvent) => {
+          onAmountTap?.(e.nativeEvent.pageX, e.nativeEvent.pageY);
+        }}
+      >
         {/* Monthly */}
         <View style={styles.statementRow}>
           <Text style={[styles.label, { color: labelColor }]}>
@@ -97,7 +108,7 @@ export function SummaryHero({
         {/* Annual */}
         <View style={styles.statementRow}>
           <Text style={[styles.label, { color: labelColor }]}>
-            Eso al a{'\u00F1'}o es
+            Eso al año es
           </Text>
           <Text
             style={styles.amountRow}
@@ -111,11 +122,16 @@ export function SummaryHero({
             <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
           </Text>
         </View>
-      </View>
+      </Pressable>
 
-      {/* Supporting statement with inline LogoStack */}
+      {/* Supporting statement with inline LogoStack — tap for logo confetti */}
       <View style={styles.supportBlock}>
-        <View style={styles.supportLine}>
+        <Pressable
+          style={styles.supportLine}
+          onPress={(e: GestureResponderEvent) => {
+            onLogosTap?.(e.nativeEvent.pageX, e.nativeEvent.pageY);
+          }}
+        >
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
             Tienes{' '}
           </Text>
@@ -128,7 +144,7 @@ export function SummaryHero({
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
             {logoUrls.length > 0 ? ' ' : ' '}suscripciones.
           </Text>
-        </View>
+        </Pressable>
         {stats.sharedCount > 0 ? (
           <View style={styles.supportLine}>
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
