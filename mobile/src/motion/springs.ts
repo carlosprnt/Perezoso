@@ -23,8 +23,6 @@ export const snap: WithSpringConfig = {
   stiffness: 340,
   damping: 36,
   mass: 0.95,
-  restDisplacementThreshold: 0.5,
-  restSpeedThreshold: 0.5,
 };
 
 /**
@@ -39,8 +37,6 @@ export const card: WithSpringConfig = {
   stiffness: 340,
   damping: 32,
   mass: 0.85,
-  restDisplacementThreshold: 0.5,
-  restSpeedThreshold: 0.5,
 };
 
 /**
