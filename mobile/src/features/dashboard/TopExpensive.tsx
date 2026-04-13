@@ -1,3 +1,125 @@
-// Phase 8 — Dashboard: TopExpensive
-import { View, Text } from 'react-native';
-export function TopExpensive() { return <View><Text>TopExpensive</Text></View>; }
+// Dashboard: TopExpensive
+// Replicates web's TopExpensiveSection.tsx
+// Horizontal scroll of ranked subscription cards.
+//
+// Each card: w-[185px] rounded-[32px] p-4
+//   #i+1 rank label (11px bold gray uppercase)
+//   Avatar (md, rounded-[8px])
+//   Name (14px bold)
+//   Price (15px bold + /mo 12px gray)
+
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTheme } from '../../design/useTheme';
+import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
+import { Pressable } from '../../components/Pressable';
+import type { TopSubscription } from './types';
+
+interface TopExpensiveProps {
+  subscriptions: TopSubscription[];
+}
+
+function formatCost(amount: number, currency: string): string {
+  const num = amount % 1 === 0
+    ? amount.toFixed(0)
+    : amount.toFixed(2).replace('.', ',');
+  return currency === 'US$' ? `${num}US$` : `${num}€`;
+}
+
+export function TopExpensive({ subscriptions }: TopExpensiveProps) {
+  const { colors } = useTheme();
+
+  if (subscriptions.length === 0) return null;
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+      snapToInterval={185 + 12} // card width + gap
+      decelerationRate="fast"
+    >
+      {subscriptions.map((sub, i) => (
+        <Pressable key={sub.id} accessibilityLabel={sub.name}>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            {/* Rank */}
+            <Text style={styles.rank}>#{i + 1}</Text>
+
+            {/* Avatar */}
+            <View style={styles.avatarWrap}>
+              <SubscriptionAvatar
+                name={sub.name}
+                simpleIconSlug={sub.simpleIconSlug}
+                logoUrl={sub.logoUrl}
+                size="md"
+                cornerRadius={8}
+              />
+            </View>
+
+            {/* Name */}
+            <Text
+              style={[styles.name, { color: colors.textPrimary }]}
+              numberOfLines={1}
+            >
+              {sub.name}
+            </Text>
+
+            {/* Price */}
+            <View style={styles.priceRow}>
+              <Text style={[styles.price, { color: colors.textPrimary }]}>
+                {formatCost(sub.monthlyCost, sub.currency)}
+              </Text>
+              <Text style={[styles.period, { color: colors.textMuted }]}>
+                {' '}/mo
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    gap: 12, // gap-3
+    paddingRight: 20, // extra space at end
+  },
+  card: {
+    width: 185,
+    borderRadius: radius.card, // 32px
+    padding: 16, // p-4
+  },
+  rank: {
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize[11],
+    color: '#B0B0B0',
+    textTransform: 'uppercase',
+    letterSpacing: letterSpacing.widest,
+  },
+  avatarWrap: {
+    marginTop: 8, // mt-2
+    marginBottom: 12, // mb-3
+  },
+  name: {
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 6, // mt-1.5
+  },
+  price: {
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize[15],
+    fontVariant: ['tabular-nums'],
+  },
+  period: {
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize[12],
+  },
+});
