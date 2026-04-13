@@ -7,9 +7,12 @@
 //   Border: #F7F8FA (light) / #121212 (dark)
 //   Background: #F0F0F0 (light) / #2C2C2E (dark)
 //   "..." dot: bg #E5E5EA/#3A3A3C, text 11px bold #737373/#AEAEB2
+//
+// Uses SvgUri for Simple Icons CDN URLs (SVG format)
 
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 
@@ -23,6 +26,13 @@ interface LogoStackProps {
 const LOGO_SIZE = 32; // w-8 h-8
 const OVERLAP = -10; // ml-[-10px]
 const BORDER_WIDTH = 2;
+const ICON_SIZE = LOGO_SIZE - BORDER_WIDTH * 2 - 4; // 24px
+
+const SVG_PATTERNS = ['cdn.simpleicons.org', 'svgl.app', '.svg'];
+
+function isSvgUrl(url: string): boolean {
+  return SVG_PATTERNS.some((p) => url.includes(p));
+}
 
 export function LogoStack({ logoUrls, totalCount }: LogoStackProps) {
   const { isDark } = useTheme();
@@ -49,11 +59,15 @@ export function LogoStack({ logoUrls, totalCount }: LogoStackProps) {
             },
           ]}
         >
-          <Image
-            source={{ uri: url }}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          {isSvgUrl(url) ? (
+            <SvgUri uri={url} width={ICON_SIZE} height={ICON_SIZE} />
+          ) : (
+            <Image
+              source={{ uri: url }}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          )}
         </View>
       ))}
       {showDots ? (
@@ -96,9 +110,9 @@ const styles = StyleSheet.create({
     padding: 2, // p-0.5
   },
   logoImage: {
-    width: LOGO_SIZE - BORDER_WIDTH * 2 - 4, // subtract border + padding
-    height: LOGO_SIZE - BORDER_WIDTH * 2 - 4,
-    borderRadius: (LOGO_SIZE - BORDER_WIDTH * 2 - 4) / 2,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: ICON_SIZE / 2,
   },
   dotWrap: {
     // Same as logoWrap but no image

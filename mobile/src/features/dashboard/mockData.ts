@@ -88,7 +88,14 @@ export const MOCK_TOP_CATEGORY = {
 // Logo URLs for the inline LogoStack in SummaryHero
 // Uses Simple Icons CDN — same source as web app
 export const MOCK_LOGO_URLS: string[] = [
-  'https://cdn.simpleicons.org/netflix',
-  'https://cdn.simpleicons.org/openai',
-  'https://cdn.simpleicons.org/notion',
+  'https://cdn.simpleicons.org/netflix/E50914',
+  'https://cdn.simpleicons.org/spotify/1DB954',
+  'https://cdn.simpleicons.org/openai/412991',
+  'https://cdn.simpleicons.org/notion/000000',
+  'https://cdn.simpleicons.org/youtube/FF0000',
+  'https://cdn.simpleicons.org/github/181717',
+  'https://cdn.simpleicons.org/figma/F24E1E',
+  'https://cdn.simpleicons.org/icloud/3693F9',
+  'https://cdn.simpleicons.org/anthropic/191919',
+  'https://cdn.simpleicons.org/disneyplus/113CCF',
 ];
