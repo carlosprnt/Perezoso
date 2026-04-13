@@ -5,33 +5,29 @@
 // Combined with the scroll offset, we compute the item's center position
 // relative to the visible viewport on every frame (via useDerivedValue).
 //
-// BLUR RENDERING OPTIONS:
+// BLUR RENDERING — FINAL DECISION:
 //
-//   Option A — expo-blur BlurView (most faithful)
-//     - iOS: Uses UIVisualEffectView — native gaussian blur, GPU-accelerated
-//     - Android: Uses BlurView from @react-native-community/blur
-//     - Pro: Actual blur matching CSS filter:blur() and SwiftUI .blur()
-//     - Con: Requires additional dependency (expo-blur or @react-native-community/blur)
-//     - Intensity can be driven by blurProgress (0–100 scale)
+// React Native 0.81 introduced a native `filter` style prop that supports
+// `{blur: number}` — the DIRECT equivalent of CSS `filter: blur()`.
+// This is the same rendering technique the web app uses.
 //
-//   Option B — Opacity + scale only (fastest, partial fidelity)
-//     - Pro: Zero dependencies, runs entirely on UI thread
-//     - Con: No actual blur — items fade rather than defocus
-//     - This is what the hook provides as baseline behavior
+// The `filter` prop:
+//   - Is a native style property (not a third-party overlay)
+//   - Uses GPU-accelerated gaussian blur on both iOS and Android
+//   - Works inside Reanimated's `useAnimatedStyle` (verified by type-check)
+//   - Blurs the content itself (not a backdrop/overlay approach)
+//   - Is the 1:1 equivalent of CSS `filter: blur(Npx)` and SwiftUI `.blur(radius:)`
 //
-//   Option C — @shopify/react-native-skia (most powerful, heaviest)
-//     - Can render real gaussian blur per-item with full control
-//     - Con: Large dependency, complex setup, overkill for this use case
+// This means we do NOT need expo-blur, @react-native-community/blur,
+// or @shopify/react-native-skia. The blur is a style property, just like
+// opacity and transform.
 //
-// CHOSEN APPROACH: Option A (expo-blur) for iOS fidelity, with Option B as
-// fallback. The hook provides all computed values; the ScrollBlurItem component
-// renders the appropriate blur layer.
+// The animated style now returns three properties in one:
+//   - opacity: 1 → 0.45 at edges (quadratic falloff)
+//   - scale: 1 → minScale at edges (optional)
+//   - filter: [{blur: 0}] → [{blur: maxBlur}] at edges (real gaussian blur)
 //
-// The blur intensity mapping:
-//   blurProgress 0 (center) → intensity 0 (sharp)
-//   blurProgress 1 (edge)   → intensity maxBlur (fully blurred)
-// The quadratic curve (t²) in scrollBlurProgress makes the transition
-// feel natural — blur accelerates as items approach the edge.
+// All three run on the UI thread, computed from scroll position every frame.
 
 import { useCallback } from 'react';
 import {
@@ -49,11 +45,11 @@ interface UseScrollDrivenBlurOptions {
   viewportHeight: number;
   /** Fraction of viewport that remains sharp (0–1). Default: 0.55 */
   sharpFraction?: number;
-  /** Maximum blur radius. Default: 10 */
+  /** Maximum blur radius in px. Default: 10 */
   maxBlur?: number;
-  /** Maximum opacity fade (0–1). Default: 0.55 */
+  /** Maximum opacity fade at edges (0–1). Default: 0.55 */
   maxFade?: number;
-  /** Minimum scale at full blur. Default: 1 (no scale) */
+  /** Minimum scale at full blur. Default: 1 (no scale change) */
   minScale?: number;
 }
 
@@ -88,28 +84,32 @@ export function useScrollDrivenBlur(options: UseScrollDrivenBlurOptions) {
     return scrollBlurProgress(normalizedCenter, sharpFraction);
   });
 
-  // Animated style: opacity + scale (always available, no deps)
+  // Combined animated style: opacity + scale + REAL gaussian blur
+  // All three properties derived from the same blurProgress value.
+  // Center items: opacity 1, scale 1, blur 0 (fully sharp)
+  // Edge items: opacity 0.45, scale minScale, blur maxBlur (fully blurred)
   const animatedStyle = useAnimatedStyle(() => {
     const p = blurProgress.value;
     return {
       opacity: scrollBlurOpacity(p, maxFade),
       transform: [{ scale: scrollBlurScale(p, minScale) }],
+      filter: [{ blur: scrollBlurRadius(p, maxBlur) }],
     };
   });
 
-  // Blur radius for driving a BlurView's intensity prop
+  // Exposed for external consumers that need raw values
   const blurRadius = useDerivedValue(() =>
     scrollBlurRadius(blurProgress.value, maxBlur),
   );
 
   return {
-    /** Animated style with opacity + scale. Apply to Animated.View wrapper. */
+    /** Animated style with opacity + scale + blur. Apply to Animated.View. */
     animatedStyle,
-    /** Raw blur progress (0–1). Use to drive BlurView intensity. */
+    /** Raw blur progress (0–1). */
     blurProgress,
-    /** Computed blur radius (0–maxBlur). Maps to expo-blur intensity. */
+    /** Computed blur radius (0–maxBlur). */
     blurRadius,
-    /** Call from item's onLayout to register position */
+    /** Call from item's onLayout to register position. */
     onItemLayout,
   };
 }

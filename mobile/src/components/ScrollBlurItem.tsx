@@ -1,34 +1,32 @@
 // Phase 4 — Motion-dependent primitive: ScrollBlurItem
 // Wraps a list item with scroll-driven blur/opacity/scale behavior.
 //
-// This component replicates the iOS SwiftUI .scrollDrivenBlur() modifier
-// and the web app's scroll-linked item exit behavior.
+// Replicates the iOS SwiftUI .scrollDrivenBlur() modifier
+// and the web app's CSS filter:blur() scroll-linked behavior.
 //
-// BLUR RENDERING:
-// React Native has no CSS `filter: blur()`. There are two paths:
+// BLUR RENDERING — RESOLVED:
 //
-//   1. expo-blur (BlurView) — real gaussian blur on iOS via UIVisualEffectView.
-//      We overlay a BlurView on top of the content and drive its intensity
-//      from 0 (sharp) to the blur progress value.
-//      On Android, expo-blur uses a bitmap-based approach which is heavier.
+// React Native 0.81 introduced a native `filter` style prop that accepts
+// `{blur: number}`. This is the DIRECT equivalent of CSS `filter: blur()`.
+// No third-party dependency needed. No overlay. No approximation.
 //
-//   2. Opacity + scale only — no actual blur, but preserves the edge-exit
-//      feeling through fading and slight shrink.
+// The animated style applied to this wrapper includes three properties:
+//   1. opacity — fades from 1 to 0.45 at edges (quadratic falloff)
+//   2. scale — optional shrink at edges (e.g., 0.9 for quick-add platforms)
+//   3. filter: [{blur}] — real gaussian blur from 0px to maxBlur at edges
 //
-// This component uses BOTH: opacity+scale from the animated style (always),
-// plus a blur overlay when `useBlur={true}` and expo-blur is available.
+// All three are computed on the UI thread every frame from scroll position.
+// The blur is GPU-accelerated on both iOS and Android.
 //
-// For the first integration pass, we default to opacity+scale only.
-// The blur overlay can be enabled once expo-blur is added to dependencies.
-// The visual behavior is still faithful because:
-//   - The quadratic opacity curve (t²) matches the web's blur perception
-//   - The scale reduction (when enabled) adds depth
-//   - The sharp center zone (55% of viewport) is preserved exactly
+// USAGE:
+//   const scrollY = useSharedValue(0);
+//   const onScroll = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 //
-// When blur IS enabled:
-//   - A BlurView is positioned absolutely over the content
-//   - Its intensity is driven by blurRadius (0 to maxBlur)
-//   - The content beneath is NOT changed (no duplicate rendering)
+//   <Animated.ScrollView onScroll={onScroll}>
+//     <ScrollBlurItem scrollY={scrollY} viewportHeight={screenHeight}>
+//       <SubscriptionCard ... />
+//     </ScrollBlurItem>
+//   </Animated.ScrollView>
 
 import React, { useCallback, type ReactNode } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
@@ -37,17 +35,17 @@ import { useScrollDrivenBlur } from '../motion/useScrollDrivenBlur';
 
 interface ScrollBlurItemProps {
   children: ReactNode;
-  /** Scroll offset shared value */
+  /** Scroll offset shared value from useAnimatedScrollHandler */
   scrollY: SharedValue<number>;
-  /** Visible viewport height */
+  /** Visible viewport height in px */
   viewportHeight: number;
   /** Fraction of viewport that stays sharp. Default: 0.55 */
   sharpFraction?: number;
-  /** Maximum blur radius. Default: 10 */
+  /** Maximum blur radius in px. Default: 10 */
   maxBlur?: number;
-  /** Maximum opacity fade at edges. Default: 0.55 */
+  /** Maximum opacity fade at edges (0–1). Default: 0.55 */
   maxFade?: number;
-  /** Minimum scale at full blur. Default: 1 (no scale) */
+  /** Minimum scale at full blur. Default: 1 (no scale change) */
   minScale?: number;
 }
 
