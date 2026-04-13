@@ -1,6 +1,6 @@
 // Phase 9 — Login screen with carousel + floating logos + OAuth
 import { View, Text, StyleSheet } from 'react-native';
-import { palette } from '../../src/design/colors';
+import { light } from '../../src/design/colors';
 
 export default function LoginScreen() {
   return (
@@ -15,11 +15,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: palette.background.light,
+    backgroundColor: light.background,
   },
   text: {
     fontSize: 32,
     fontFamily: 'Nunito_900Black',
-    color: palette.textPrimary.light,
+    color: light.textPrimary,
   },
 });
