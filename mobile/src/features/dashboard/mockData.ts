@@ -86,18 +86,17 @@ export const MOCK_TOP_CATEGORY = {
 };
 
 // Logo URLs for the inline LogoStack in SummaryHero
-// Uses Simple Icons CDN — same source as web app
-// PNG logos — RN Image can't render SVGs from Simple Icons CDN.
-// Using logo.clearbit.com (returns PNG) as primary source.
+// Google Favicons API returns PNGs at requested size — works with RN Image.
+// sz=128 gives crisp icons for 32-48px display.
 export const MOCK_LOGO_URLS: string[] = [
-  'https://logo.clearbit.com/netflix.com',
-  'https://logo.clearbit.com/spotify.com',
-  'https://logo.clearbit.com/openai.com',
-  'https://logo.clearbit.com/notion.so',
-  'https://logo.clearbit.com/youtube.com',
-  'https://logo.clearbit.com/github.com',
-  'https://logo.clearbit.com/figma.com',
-  'https://logo.clearbit.com/apple.com',
-  'https://logo.clearbit.com/anthropic.com',
-  'https://logo.clearbit.com/disneyplus.com',
+  'https://www.google.com/s2/favicons?domain=netflix.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=spotify.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=openai.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=notion.so&sz=128',
+  'https://www.google.com/s2/favicons?domain=youtube.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=github.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=figma.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=apple.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=anthropic.com&sz=128',
+  'https://www.google.com/s2/favicons?domain=disneyplus.com&sz=128',
 ];

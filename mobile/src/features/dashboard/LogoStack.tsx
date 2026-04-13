@@ -8,7 +8,7 @@
 //   Background: #F0F0F0 (light) / #2C2C2E (dark)
 //   "..." dot: bg #E5E5EA/#3A3A3C, text 11px bold #737373/#AEAEB2
 //
-// Logo URLs must be PNG/JPEG (not SVG) — use logo.clearbit.com
+// Logo URLs must be PNG/JPEG (not SVG) — use Google Favicons API
 
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';

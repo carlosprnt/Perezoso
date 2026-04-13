@@ -9,7 +9,7 @@
 //   With logo: border border-gray-100 shadow-sm bg-white
 //   Initials: deterministic pastel bg/fg via getAvatarPastel
 //
-// Logo URLs must be PNG/JPEG (not SVG) — use logo.clearbit.com
+// Logo URLs must be PNG/JPEG (not SVG) — use Google Favicons API
 
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
