@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   cardStack: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     gap: 8, // base gap (overridden by elastic pull animated style)
   },
   sectionTitle: {

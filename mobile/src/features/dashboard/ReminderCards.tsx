@@ -299,20 +299,18 @@ const styles = StyleSheet.create({
   shell: {
     borderRadius: radius.card, // 32px
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    // Fixed height ensures both cards (reminder + savings) are identical
-    // regardless of body copy length. Tuned to fit 2 lines of 16px body
-    // + icon + buttons without excess whitespace.
-    minHeight: 152,
+    paddingTop: 14,
+    paddingBottom: 10,
+    // No minHeight — each card sizes to its own content so there's no
+    // dead space below short copy. The absolute peek sits behind the
+    // front card so differing heights still stack cleanly.
     justifyContent: 'space-between',
   },
   body: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 12,
-    flex: 1,
+    marginBottom: 8,
   },
   iconWrap: {
     width: 44,

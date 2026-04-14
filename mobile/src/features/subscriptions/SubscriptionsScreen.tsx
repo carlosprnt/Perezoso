@@ -20,6 +20,7 @@ import {
   Platform,
   ActionSheetIOS,
   Modal,
+  Dimensions,
   type LayoutChangeEvent,
 } from 'react-native';
 import Animated, {
@@ -39,6 +40,8 @@ import { WalletCard } from './WalletCard';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Slightly looser than web (-76) so the
@@ -89,15 +92,22 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 }
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
-// Per-card: as it scrolls off the top of the viewport, it shrinks
-// (1 → 0.85) and tilts (0° → 20°). The animation is gated on the
-// first onLayout pass so cards don't render mid-animation on mount.
+// Mirrors the web's framer-motion wallet animation 1:1:
 //
-// Progress axis:
-//   progress = 0 → card top at top of viewport (fully visible)
-//   progress = 1 → card bottom at top of viewport (fully gone)
-// i.e. the animation only runs while the card is actively leaving
-// the screen — never while it's still inside the viewport.
+//   useScroll({ target: cardRef, offset: ['start 0.35', 'end start'] })
+//   exitScale    = useTransform(p, [0, 1],   [1, 0.85])
+//   exitRotation = useTransform(p, [0.5, 1], [0, 20])
+//
+// framer offsets → scrollY thresholds:
+//   'start 0.35' → progress = 0 when card top sits 35% down viewport
+//                  (scrollY = cardY - 0.35 * viewportHeight)
+//   'end start'  → progress = 1 when card bottom reaches viewport top
+//                  (scrollY = cardY + cardHeight)
+//
+// The `measured` gate is a Reanimated-specific safeguard: until onLayout
+// fires, cardY=cardHeight=0 so progress would read > 0 and cards would
+// render tilted on mount. While the gate is 0 we short-circuit to
+// identity transforms. Once measured, we run the web formula verbatim.
 function ScrollCard({
   scrollY,
   children,
@@ -107,8 +117,6 @@ function ScrollCard({
 }) {
   const cardY = useSharedValue(0);
   const cardHeight = useSharedValue(0);
-  // Gate: stays 0 until the first onLayout pass has measured the card.
-  // Before that we return identity styles so nothing renders skewed.
   const measured = useSharedValue(0);
 
   const onLayout = useCallback(
@@ -126,11 +134,7 @@ function ScrollCard({
         transform: [{ scale: 1 }, { rotate: '0deg' }],
       };
     }
-    // startY = scrollY when the card top reaches the top of the viewport
-    // endY   = scrollY when the card bottom reaches the top of the viewport
-    // → progress is 0 while the card is still on-screen, ramps to 1 as
-    //   it fully exits off the top.
-    const startY = cardY.value;
+    const startY = cardY.value - 0.35 * SCREEN_HEIGHT;
     const endY = cardY.value + cardHeight.value;
     const progress = interpolate(
       scrollY.value,
@@ -438,7 +442,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   list: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   empty: {
     alignItems: 'center',
