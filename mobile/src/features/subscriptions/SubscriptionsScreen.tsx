@@ -1,35 +1,77 @@
 // Phase 6 — Subscriptions: SubscriptionsScreen
-// Replicates the web app's subscription list:
-//   Header with title + count (fades in on scroll)
-//   Sort mode selector
-//   Filter chips (status)
-//   WalletCard list with staggered entrance
-//   Total monthly cost summary at bottom
+// Replicates the web app's subscription list (SubscriptionsView.tsx):
+//   Title + bold paragraph: "Pagas XX al mes en N suscripciones activas."
+//   Controls row: "Ordenar por:" (native iOS ActionSheet) on left,
+//                 "Filtrar" (native iOS ActionSheet) on right
+//   WalletCard list with NEGATIVE margin so cards overlap (stack).
+//   Scroll-driven exit animation per card: scale 1 → 0.85 and
+//                                          rotate 0° → 20° as cards
+//                                          scroll off the top.
 //
-// Uses mock data for now (Phase 5 will connect to Supabase/Zustand)
+// iOS native dropdowns via ActionSheetIOS; Android falls back to
+// a simple Modal list with the same options (still looks good).
 
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import Animated from 'react-native-reanimated';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Platform,
+  ActionSheetIOS,
+  Modal,
+  Dimensions,
+  type LayoutChangeEvent,
+} from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SlidersHorizontal, ChevronDown } from 'lucide-react-native';
+import { ChevronDown } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
-import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 
 import { WalletCard } from './WalletCard';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
 
-// Staggered entrance wrapper
-function StaggeredItem({ index, children }: { index: number; children: React.ReactNode }) {
-  const { animatedStyle } = useStaggeredEntrance({ index });
-  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
-}
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Sort functions
+// Wallet-style overlap: each card's visible header (logo + name + price)
+// peeks above the card below it. Matches web's STACK_MARGIN_PX = -76.
+const STACK_MARGIN_PX = -76;
+
+// ─── Sort + filter config (labels taken from web) ─────────────────
+const SORT_LABELS: Record<SortMode, string> = {
+  alphabetical: 'Nombre (A\u2013Z)',
+  recently_added: 'Más recientes',
+  price_high: 'Más caras',
+  price_low: 'Más baratas',
+};
+const SORT_OPTIONS: SortMode[] = [
+  'alphabetical',
+  'recently_added',
+  'price_high',
+  'price_low',
+];
+
+type FilterValue = SubscriptionStatus | 'all';
+const FILTER_LABELS: Record<FilterValue, string> = {
+  all: 'Todas',
+  active: 'Activas',
+  trial: 'En prueba',
+  paused: 'Pausadas',
+  cancelled: 'Canceladas',
+};
+const FILTER_OPTIONS: FilterValue[] = ['all', 'active', 'trial', 'paused', 'cancelled'];
+
+// ─── Sort function ────────────────────────────────────────────────
 function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[] {
   const sorted = [...subs];
   switch (mode) {
@@ -48,128 +90,200 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
   }
 }
 
-const SORT_LABELS: Record<SortMode, string> = {
-  alphabetical: 'A-Z',
-  price_high: 'Mayor precio',
-  price_low: 'Menor precio',
-  recently_added: 'Recientes',
-};
+// ─── Scroll-driven animated card wrapper ──────────────────────────
+// Per-card: as it scrolls up past the viewport, it shrinks (1 → 0.85)
+// and tilts (0° → 20°). Mirrors framer-motion's useScroll on web:
+//   offset: ['start 0.35', 'end start']
+//   exitScale = [1, 0.85], exitRotation = [0 at 0.5, 20 at 1]
+function ScrollCard({
+  scrollY,
+  children,
+}: {
+  scrollY: Animated.SharedValue<number>;
+  children: React.ReactNode;
+}) {
+  const cardY = useSharedValue(0);
+  const cardHeight = useSharedValue(200);
 
-const SORT_OPTIONS: SortMode[] = ['alphabetical', 'price_high', 'price_low', 'recently_added'];
+  const onLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      cardY.value = e.nativeEvent.layout.y;
+      cardHeight.value = e.nativeEvent.layout.height;
+    },
+    [cardY, cardHeight],
+  );
 
-const STATUS_FILTERS: SubscriptionStatus[] = ['active', 'trial', 'paused', 'cancelled'];
+  const animatedStyle = useAnimatedStyle(() => {
+    // Web: offset ['start 0.35', 'end start']
+    // progress = 0 when card top reaches 35% of viewport
+    // progress = 1 when card bottom reaches top of viewport
+    const startY = cardY.value - 0.35 * SCREEN_HEIGHT;
+    const endY = cardY.value + cardHeight.value;
+    const progress = interpolate(
+      scrollY.value,
+      [startY, endY],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    const scale = interpolate(progress, [0, 1], [1, 0.85], Extrapolation.CLAMP);
+    const rotate = interpolate(progress, [0.5, 1], [0, 20], Extrapolation.CLAMP);
+    return {
+      transform: [
+        { scale },
+        { rotate: `${rotate}deg` },
+      ],
+    };
+  });
 
+  return (
+    <Animated.View
+      onLayout={onLayout}
+      style={[animatedStyle, { transformOrigin: 'center bottom' } as any]}
+    >
+      {children}
+    </Animated.View>
+  );
+}
+
+// ─── Screen ───────────────────────────────────────────────────────
 export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
 
   const [sortMode, setSortMode] = useState<SortMode>('alphabetical');
-  const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | null>(null);
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [filter, setFilter] = useState<FilterValue>('all');
+  const [androidSheet, setAndroidSheet] = useState<null | 'sort' | 'filter'>(null);
 
-  // Filter + sort
   const filtered = useMemo(() => {
     let subs = MOCK_SUBSCRIPTIONS;
-    if (statusFilter) {
-      subs = subs.filter((s) => s.status === statusFilter);
+    if (filter !== 'all') {
+      subs = subs.filter((s) => s.status === filter);
     }
     return sortSubscriptions(subs, sortMode);
-  }, [sortMode, statusFilter]);
+  }, [sortMode, filter]);
 
-  // Stats
-  const totalMonthly = filtered.reduce((sum, s) => sum + s.my_monthly_cost, 0);
+  // Stats for the subtitle paragraph.
+  // Active subs define the headline number; we always sum their
+  // monthly-equivalent cost in EUR (my_monthly_cost is pre-converted).
+  const activeSubs = useMemo(
+    () => MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active'),
+    [],
+  );
+  const activeCount = activeSubs.length;
+  const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
+  const totalFormatted = totalMonthly
+    .toFixed(2)
+    .replace('.', ',');
 
-  const chipBg = isDark ? '#2C2C2E' : '#F0F0F0';
-  const chipActiveBg = isDark ? '#FFFFFF' : '#000000';
-  const chipActiveFg = isDark ? '#000000' : '#FFFFFF';
-  const chipFg = isDark ? '#AEAEB2' : '#616161';
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Native iOS sheet / Android modal handlers --------------------
+  const openSortSheet = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      const options = SORT_OPTIONS.map((m) => SORT_LABELS[m]);
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Ordenar por',
+          options: [...options, 'Cancelar'],
+          cancelButtonIndex: options.length,
+          userInterfaceStyle: isDark ? 'dark' : 'light',
+        },
+        (index) => {
+          if (index < SORT_OPTIONS.length) setSortMode(SORT_OPTIONS[index]);
+        },
+      );
+    } else {
+      setAndroidSheet('sort');
+    }
+  }, [isDark]);
+
+  const openFilterSheet = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      const options = FILTER_OPTIONS.map((v) => FILTER_LABELS[v]);
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Filtrar',
+          options: [...options, 'Cancelar'],
+          cancelButtonIndex: options.length,
+          userInterfaceStyle: isDark ? 'dark' : 'light',
+        },
+        (index) => {
+          if (index < FILTER_OPTIONS.length) setFilter(FILTER_OPTIONS[index]);
+        },
+      );
+    } else {
+      setAndroidSheet('filter');
+    }
+  }, [isDark]);
+
+  const dropdownTextColor = colors.textPrimary;
+  const dropdownMutedColor = colors.textMuted;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
           {
             paddingTop: insets.top + 12,
-            paddingBottom: insets.bottom + 100, // FloatingNav space
+            paddingBottom: insets.bottom + 140, // FloatingNav + stack tail
           },
         ]}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Mis suscripciones
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-              {filtered.length} suscripciones · {totalMonthly.toFixed(2).replace('.', ',')}
-              {'\u20AC'}/mes
-            </Text>
-          </View>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Mis suscripciones
+          </Text>
+
+          {/* Paragraph matches the web:
+             "Pagas XX,XX€ al mes en N suscripciones activas." */}
+          <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+            Pagas {totalFormatted}
+            {'\u20AC'} al mes en {activeCount}{' '}
+            {activeCount === 1 ? 'suscripción activa' : 'suscripciones activas'}.
+          </Text>
         </View>
 
-        {/* Sort + Filters row */}
+        {/* Sort (left) + Filter (right) */}
         <View style={styles.controlsRow}>
-          {/* Sort selector */}
-          <Pressable
-            style={[styles.sortChip, { backgroundColor: chipBg }]}
-            onPress={() => {
-              // Cycle through sort modes
-              const idx = SORT_OPTIONS.indexOf(sortMode);
-              setSortMode(SORT_OPTIONS[(idx + 1) % SORT_OPTIONS.length]);
-            }}
-          >
-            <SlidersHorizontal size={14} strokeWidth={2} color={chipFg} />
-            <Text style={[styles.sortLabel, { color: chipFg }]}>
+          <Pressable onPress={openSortSheet} style={styles.dropdownLeft}>
+            <Text style={[styles.dropdownMuted, { color: dropdownMutedColor }]}>
+              Ordenar por:{' '}
+            </Text>
+            <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
               {SORT_LABELS[sortMode]}
             </Text>
-            <ChevronDown size={12} strokeWidth={2} color={chipFg} />
+            <ChevronDown size={14} strokeWidth={2} color={dropdownTextColor} />
           </Pressable>
 
-          {/* Status filter chips */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterChips}
-          >
-            {STATUS_FILTERS.map((status) => {
-              const isActive = statusFilter === status;
-              return (
-                <Pressable
-                  key={status}
-                  style={[
-                    styles.filterChip,
-                    {
-                      backgroundColor: isActive ? chipActiveBg : chipBg,
-                    },
-                  ]}
-                  onPress={() =>
-                    setStatusFilter(isActive ? null : status)
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      {
-                        color: isActive ? chipActiveFg : chipFg,
-                      },
-                    ]}
-                  >
-                    {STATUS_LABELS[status]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <Pressable onPress={openFilterSheet} style={styles.dropdownRight}>
+            <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
+              {filter === 'all' ? 'Filtrar' : FILTER_LABELS[filter]}
+            </Text>
+            <ChevronDown size={14} strokeWidth={2} color={dropdownTextColor} />
+          </Pressable>
         </View>
 
-        {/* Subscription list */}
+        {/* Subscription list — cards overlap via negative margin */}
         <View style={styles.list}>
           {filtered.map((sub, index) => (
-            <StaggeredItem key={sub.id} index={index}>
-              <WalletCard subscription={sub} />
-            </StaggeredItem>
+            <View
+              key={sub.id}
+              style={{ marginTop: index === 0 ? 0 : STACK_MARGIN_PX }}
+            >
+              <ScrollCard scrollY={scrollY}>
+                <WalletCard subscription={sub} />
+              </ScrollCard>
+            </View>
           ))}
 
           {filtered.length === 0 && (
@@ -178,8 +292,11 @@ export function SubscriptionsScreen() {
                 No hay suscripciones con este filtro
               </Text>
               <Pressable
-                onPress={() => setStatusFilter(null)}
-                style={[styles.clearBtn, { backgroundColor: chipBg }]}
+                onPress={() => setFilter('all')}
+                style={[
+                  styles.clearBtn,
+                  { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' },
+                ]}
               >
                 <Text style={[styles.clearBtnText, { color: colors.textPrimary }]}>
                   Limpiar filtros
@@ -188,8 +305,72 @@ export function SubscriptionsScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Android fallback sheet */}
+      {Platform.OS !== 'ios' && androidSheet && (
+        <AndroidSheet
+          title={androidSheet === 'sort' ? 'Ordenar por' : 'Filtrar'}
+          options={
+            androidSheet === 'sort'
+              ? SORT_OPTIONS.map((m) => ({ label: SORT_LABELS[m], value: m }))
+              : FILTER_OPTIONS.map((v) => ({ label: FILTER_LABELS[v], value: v }))
+          }
+          selected={androidSheet === 'sort' ? sortMode : filter}
+          onSelect={(value) => {
+            if (androidSheet === 'sort') setSortMode(value as SortMode);
+            else setFilter(value as FilterValue);
+            setAndroidSheet(null);
+          }}
+          onClose={() => setAndroidSheet(null)}
+        />
+      )}
     </View>
+  );
+}
+
+// ─── Android fallback sheet (simple modal list) ───────────────────
+function AndroidSheet<T extends string>({
+  title,
+  options,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  title: string;
+  options: { label: string; value: T }[];
+  selected: T;
+  onSelect: (value: T) => void;
+  onClose: () => void;
+}) {
+  const { colors, isDark } = useTheme();
+  return (
+    <Modal transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.sheetBackdrop} onPress={onClose}>
+        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sheetTitle, { color: colors.textMuted }]}>{title}</Text>
+          {options.map((opt) => {
+            const isSelected = selected === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => onSelect(opt.value)}
+                style={[
+                  styles.sheetItem,
+                  isSelected && {
+                    backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0',
+                  },
+                ]}
+              >
+                <Text style={[styles.sheetItemText, { color: colors.textPrimary }]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -206,51 +387,45 @@ const styles = StyleSheet.create({
   },
   title: {
     ...fontFamily.extrabold,
-    fontSize: 34,
-    lineHeight: 34 * lineHeight.tight,
+    fontSize: 30,
+    lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
-  subtitle: {
-    ...fontFamily.medium,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+  // Matches web: 18px bold, primary text color (NOT muted), tight leading.
+  paragraph: {
+    ...fontFamily.bold,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
     marginTop: 4,
   },
   controlsRow: {
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  sortChip: {
+  dropdownLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.full,
+    gap: 2,
   },
-  sortLabel: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[13],
-  },
-  filterChips: {
+  dropdownRight: {
     flexDirection: 'row',
-    gap: 6,
+    alignItems: 'center',
+    gap: 4,
   },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.full,
+  dropdownMuted: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
   },
-  filterChipText: {
+  dropdownValue: {
     ...fontFamily.semibold,
     fontSize: fontSize[13],
+    marginRight: 4,
   },
   list: {
     paddingHorizontal: 20,
-    gap: 10,
   },
   empty: {
     alignItems: 'center',
@@ -269,5 +444,34 @@ const styles = StyleSheet.create({
   clearBtnText: {
     ...fontFamily.semibold,
     fontSize: fontSize[14],
+  },
+  // Android fallback sheet
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    gap: 4,
+  },
+  sheetTitle: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    textAlign: 'center',
+    paddingVertical: 8,
+    textTransform: 'uppercase',
+    letterSpacing: letterSpacing.wide,
+  },
+  sheetItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: radius.xl,
+  },
+  sheetItemText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[15],
   },
 });
