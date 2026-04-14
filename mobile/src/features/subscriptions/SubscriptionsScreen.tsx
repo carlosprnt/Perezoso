@@ -89,10 +89,11 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 }
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
-// Per-card exit animation: each card shrinks (1 → 0.85) and tilts
-// (0° → 20°) only as ITS OWN top crosses the page-title line. Because
-// each card has its own measured `cardY`, animations fire one-by-one
-// as cards reach the top — the list as a whole never tilts.
+// Per-card exit animation: each card shrinks (1 → 0.85), tilts
+// (0° → 20°), fades (1 → 0) and blurs (0 → 20px) only as ITS OWN top
+// crosses the page-title line. Because each card has its own measured
+// `cardY`, animations fire one-by-one as cards reach the top — the
+// list as a whole never tilts.
 //
 // Coordinate math:
 //   cardY         — card's y within the list container (includes the
@@ -102,15 +103,20 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 //   cardScreenY   — where the card's top currently sits on-screen
 //                 = listY + cardY − scrollY
 //
-// Trigger window (screen-space):
-//   progress = 0  when cardScreenY = triggerY       (top meets title)
-//   progress = 1  when cardScreenY = triggerY − 70  (top is 70px above)
+// Trigger window (screen-space, 100px wide):
+//   progress = 0  when cardScreenY = triggerY         (top meets title)
+//   progress = 1  when cardScreenY = triggerY − 100   (card fully gone)
 //
-// The `measured` gate guards against tilt-on-mount: if we applied the
-// transform before onLayout fired, cardY would be 0 and the card would
-// render pre-animated. Until onLayout populates cardY, we return the
-// identity transform.
-const TRIGGER_RANGE_PX = 70;
+// Within that window:
+//   scale   / rotate  animate over progress [0 → 1]   (immediate tilt)
+//   opacity / blur    animate over progress [0.3 → 1] (cascade behind)
+//
+// The `measured` + `listY > 0` gate guards against a one-frame tilt
+// flash on mount: if we applied the transform before both onLayouts
+// fired, the card would render pre-animated. Until both are populated
+// we return the identity transform.
+const TRIGGER_RANGE_PX = 100;
+const MAX_BLUR_PX = 20;
 
 function ScrollCard({
   scrollY,
@@ -144,7 +150,9 @@ function ScrollCard({
     // conditions to avoid a one-frame tilt flash on mount.
     if (measured.value === 0 || listY.value === 0) {
       return {
+        opacity: 1,
         transform: [{ scale: 1 }, { rotate: '0deg' }],
+        filter: [{ blur: 0 }],
       };
     }
     const screenY = listY.value + cardY.value - scrollY.value;
@@ -158,11 +166,17 @@ function ScrollCard({
     );
     const scale = interpolate(progress, [0, 1], [1, 0.85], Extrapolation.CLAMP);
     const rotate = interpolate(progress, [0, 1], [0, 20], Extrapolation.CLAMP);
+    // Opacity + blur cascade slightly behind the tilt so the fade kicks
+    // in just as the card crosses the header line, not immediately.
+    const opacity = interpolate(progress, [0.3, 1], [1, 0], Extrapolation.CLAMP);
+    const blur = interpolate(progress, [0.3, 1], [0, MAX_BLUR_PX], Extrapolation.CLAMP);
     return {
+      opacity,
       transform: [
         { scale },
         { rotate: `${rotate}deg` },
       ],
+      filter: [{ blur }],
     };
   });
 
@@ -228,6 +242,23 @@ export function SubscriptionsScreen() {
     },
   });
 
+  // Header fade+blur: as the user scrolls, the "Mis suscripciones"
+  // title and its paragraph dissolve into the background with the same
+  // gaussian-blur vocabulary used on each card's exit. 0–120px of
+  // scroll takes us from fully visible to fully gone.
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      scrollY.value,
+      [0, 120],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      opacity: 1 - progress,
+      filter: [{ blur: progress * MAX_BLUR_PX }],
+    };
+  });
+
   // Native iOS sheet / Android modal handlers --------------------
   const openSortSheet = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -284,8 +315,8 @@ export function SubscriptionsScreen() {
           },
         ]}
       >
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Header — fades + blurs out as the user scrolls past it. */}
+        <Animated.View style={[styles.header, headerAnimatedStyle]}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             Mis suscripciones
           </Text>
@@ -297,7 +328,7 @@ export function SubscriptionsScreen() {
             {'\u20AC'} al mes en {activeCount}{' '}
             {activeCount === 1 ? 'suscripción activa' : 'suscripciones activas'}.
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Sort (left) + Filter (right) */}
         <View style={styles.controlsRow}>
