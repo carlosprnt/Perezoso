@@ -1,59 +1,90 @@
-// Dashboard: ReminderCards
-// Replicates web's SavingsOpportunityCard (reminder variant).
+// Dashboard: ReminderCards (Savings Carousel)
+// Replicates web's SavingsCarousel with stacked peek cards.
 //
-// Shell: rounded-[32px] bg-white px-4 pt-4 pb-3, shadow subtle
-//   [Icon 44x44 rounded-xl gradient bg (135deg #DBEAFE -> #BFDBFE)]
-//   [Body text 14px, lineHeight 1.45]
-//   [Dismiss button 36px] [CTA button 36px rounded-full]
+// Two cards:
+//   1. Notification reminder (Bell icon, gradient bg, "activate 7-day alert")
+//   2. Savings opportunity (Sparkles icon, gradient bg, "shared plans save €X")
 //
-// Icon: Bell from lucide-react (20px, strokeWidth 2, color #1E3A5F)
-// The reminder card tells users about annual renewals.
-// Key text bolding pattern: specific words are bold (<strong> in web).
+// Interaction: swipe the front card horizontally to dismiss and reveal the
+// one behind it. The peek card sits slightly behind (y +4px, scale 0.975,
+// opacity 0.9). When the front is swiped away, the peek card springs forward.
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell } from 'lucide-react-native';
+import { Bell, Sparkles } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
-import { fontFamily, fontSize, lineHeight } from '../../design/typography';
+import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { shadows } from '../../design/shadows';
 import { Pressable } from '../../components/Pressable';
 
-interface ReminderCardsProps {
-  annualCount: number;
-  onActivate?: () => void;
-  onDismiss?: () => void;
+const PEEK_OFFSET = 4;
+const PEEK_SCALE = 0.025;
+const PEEK_DIM = 0.10;
+const SWIPE_THRESHOLD = 60;
+const VELOCITY_THRESHOLD = 400;
+const CARD_FLY_X = 420;
+
+interface ReminderItem {
+  id: string;
+  icon: 'bell' | 'sparkles';
+  gradient: readonly [string, string];
+  iconColor: string;
+  body: React.ReactNode;
+  ctaLabel: string;
+  onCta?: () => void;
 }
 
-export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCardsProps) {
+interface ReminderCardsProps {
+  annualCount: number;
+  sharedSavings?: string; // e.g. "18,86€"
+  onActivateReminder?: () => void;
+  onViewSavings?: () => void;
+}
+
+// ─── Shell card ─────────────────────────────────────────────────────
+
+function CardShell({
+  item,
+  onCta,
+  onDismiss,
+}: {
+  item: ReminderItem;
+  onCta?: () => void;
+  onDismiss?: () => void;
+}) {
   const { colors, isDark } = useTheme();
 
-  if (annualCount <= 0) return null;
+  const Icon = item.icon === 'bell' ? Bell : Sparkles;
 
   return (
     <View style={[styles.shell, { backgroundColor: colors.surface }, shadows.cardSm]}>
-      {/* Body row */}
       <View style={styles.body}>
-        {/* Bell icon with gradient bg */}
         <LinearGradient
-          colors={['#DBEAFE', '#BFDBFE']}
+          colors={item.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.iconWrap}
         >
-          <Bell size={20} strokeWidth={2} color="#1E3A5F" />
+          <Icon size={20} strokeWidth={2} color={item.iconColor} />
         </LinearGradient>
 
-        {/* Text */}
-        <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
-          Podr{'\u00ED'}as evitar una{' '}
-          <Text style={styles.bodyBold}>renovaci{'\u00F3'}n anual</Text>
-          {' '}por sorpresa si activas un aviso 7 d{'\u00ED'}as antes.
-        </Text>
+        <View style={styles.textWrap}>
+          {item.body}
+        </View>
       </View>
 
-      {/* Buttons */}
       <View style={styles.buttons}>
         <Pressable onPress={onDismiss} activeScale={0.97}>
           <View style={styles.dismissBtn}>
@@ -62,12 +93,12 @@ export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCa
             }]}>No me interesa</Text>
           </View>
         </Pressable>
-        <Pressable onPress={onActivate} activeScale={0.97} style={{ flex: 1 }}>
+        <Pressable onPress={onCta} activeScale={0.97} style={{ flex: 1 }}>
           <View style={[styles.ctaBtn, {
             backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7',
           }]}>
             <Text style={[styles.ctaText, { color: colors.textPrimary }]}>
-              Avisarme 7 d{'\u00ED'}as antes
+              {item.ctaLabel}
             </Text>
           </View>
         </Pressable>
@@ -76,7 +107,193 @@ export function ReminderCards({ annualCount, onActivate, onDismiss }: ReminderCa
   );
 }
 
+// ─── Carousel ───────────────────────────────────────────────────────
+
+export function ReminderCards({
+  annualCount,
+  sharedSavings = '18,86\u20AC',
+  onActivateReminder,
+  onViewSavings,
+}: ReminderCardsProps) {
+  const { colors } = useTheme();
+
+  // Build the initial item list
+  const initialItems: ReminderItem[] = [];
+
+  if (annualCount > 0) {
+    initialItems.push({
+      id: 'reminder',
+      icon: 'bell',
+      gradient: ['#DBEAFE', '#BFDBFE'] as const,
+      iconColor: '#1E3A5F',
+      body: (
+        <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
+          Podr{'\u00ED'}as evitar una{' '}
+          <Text style={styles.bodyBold}>renovaci{'\u00F3'}n anual</Text>
+          {' '}por sorpresa si activas un aviso 7 d{'\u00ED'}as antes.
+        </Text>
+      ),
+      ctaLabel: 'Avisarme 7 d\u00EDas antes',
+      onCta: onActivateReminder,
+    });
+  }
+
+  initialItems.push({
+    id: 'savings',
+    icon: 'sparkles',
+    gradient: ['#FEF3C7', '#FDE68A'] as const,
+    iconColor: '#92400E',
+    body: (
+      <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
+        Compartir planes te est{'\u00E1'} ahorrando{' '}
+        <Text style={styles.bodyBold}>{sharedSavings}</Text>
+        {' '}al mes. Mira qu{'\u00E9'} m{'\u00E1'}s puedes compartir.
+      </Text>
+    ),
+    ctaLabel: 'Ver oportunidades',
+    onCta: onViewSavings,
+  });
+
+  const [items, setItems] = useState<ReminderItem[]>(initialItems);
+  const [frontIdx, setFrontIdx] = useState(0);
+
+  const dragX = useSharedValue(0);
+  const dragProgress = useSharedValue(0); // 0..1 during drag
+  const isAnimating = useSharedValue(false);
+
+  const advanceFront = useCallback(() => {
+    setFrontIdx((i) => (i + 1) % items.length);
+  }, [items.length]);
+
+  const resetDrag = useCallback(() => {
+    dragX.value = 0;
+    dragProgress.value = 0;
+  }, [dragX, dragProgress]);
+
+  const gesture = Gesture.Pan()
+    .activeOffsetX([-8, 8])
+    .failOffsetY([-16, 16])
+    .onUpdate((e) => {
+      if (isAnimating.value || items.length < 2) return;
+      dragX.value = e.translationX;
+      dragProgress.value = Math.min(1, Math.abs(e.translationX) / SWIPE_THRESHOLD);
+    })
+    .onEnd((e) => {
+      if (isAnimating.value || items.length < 2) return;
+      const shouldSwipe =
+        Math.abs(e.translationX) > SWIPE_THRESHOLD ||
+        Math.abs(e.velocityX) > VELOCITY_THRESHOLD;
+
+      if (shouldSwipe) {
+        isAnimating.value = true;
+        const dir = e.translationX > 0 ? 1 : -1;
+        dragX.value = withTiming(
+          dir * CARD_FLY_X,
+          { duration: 240 },
+          (finished) => {
+            if (finished) {
+              runOnJS(advanceFront)();
+              runOnJS(resetDrag)();
+              isAnimating.value = false;
+            }
+          },
+        );
+      } else {
+        dragX.value = withSpring(0, { damping: 22, stiffness: 320 });
+        dragProgress.value = withSpring(0, { damping: 22, stiffness: 320 });
+      }
+    });
+
+  const frontStyle = useAnimatedStyle(() => {
+    const rotate = interpolate(
+      dragX.value,
+      [-CARD_FLY_X, 0, CARD_FLY_X],
+      [-7, 0, 7],
+      Extrapolation.CLAMP,
+    );
+    const opacity = interpolate(
+      Math.abs(dragX.value),
+      [0, CARD_FLY_X],
+      [1, 0],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [
+        { translateX: dragX.value },
+        { rotate: `${rotate}deg` },
+      ],
+      opacity,
+    };
+  });
+
+  const peekStyle = useAnimatedStyle(() => {
+    // As the front card is dragged, the peek rises to depth 0
+    const depth = 1 - dragProgress.value;
+    return {
+      transform: [
+        { translateY: depth * PEEK_OFFSET },
+        { scale: 1 - depth * PEEK_SCALE },
+      ],
+      opacity: 1 - depth * PEEK_DIM,
+    };
+  });
+
+  if (items.length === 0) return null;
+
+  const frontItem = items[frontIdx];
+  const peekItem = items[(frontIdx + 1) % items.length];
+  const hasPeek = items.length > 1;
+
+  const handleDismissFront = useCallback(() => {
+    if (isAnimating.value || items.length < 2) return;
+    isAnimating.value = true;
+    dragX.value = withTiming(-CARD_FLY_X, { duration: 240 }, (finished) => {
+      if (finished) {
+        runOnJS(advanceFront)();
+        runOnJS(resetDrag)();
+        isAnimating.value = false;
+      }
+    });
+  }, [advanceFront, resetDrag, dragX, isAnimating, items.length]);
+
+  return (
+    <View style={styles.container}>
+      {/* Peek card behind */}
+      {hasPeek && (
+        <Animated.View style={[styles.peek, peekStyle]}>
+          <CardShell item={peekItem} />
+        </Animated.View>
+      )}
+
+      {/* Front card with gesture */}
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={[styles.front, frontStyle]}>
+          <CardShell
+            item={frontItem}
+            onCta={frontItem.onCta}
+            onDismiss={handleDismissFront}
+          />
+        </Animated.View>
+      </GestureDetector>
+    </View>
+  );
+}
+
+// ─── Styles ─────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+  },
+  peek: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  front: {
+    position: 'relative',
+  },
   shell: {
     borderRadius: radius.card, // 32px
     paddingHorizontal: 16,
@@ -86,19 +303,22 @@ const styles = StyleSheet.create({
   body: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12, // gap-3
-    marginBottom: 12, // mb-3
+    gap: 12,
+    marginBottom: 12,
   },
   iconWrap: {
-    width: 44, // w-11
-    height: 44, // h-11
-    borderRadius: radius.xl, // 12px
+    width: 44,
+    height: 44,
+    borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  bodyText: {
+  textWrap: {
     flex: 1,
+    paddingTop: 2,
+  },
+  bodyText: {
     fontFamily: fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * 1.45,
@@ -108,11 +328,11 @@ const styles = StyleSheet.create({
   },
   buttons: {
     flexDirection: 'row',
-    gap: 8, // gap-2
+    gap: 8,
   },
   dismissBtn: {
-    height: 36, // h-9
-    paddingHorizontal: 16, // px-4
+    height: 36,
+    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -107,3 +107,10 @@ export const MOCK_LOGO_URLS: string[] = [
   logoUrlFromDomain('anthropic.com'),
   logoUrlFromDomain('disneyplus.com'),
 ];
+
+// Logos for the "Compartes X suscripciones" line — only shared subs
+// (From subscriptions mock: Netflix and Figma are marked is_shared=true)
+export const MOCK_SHARED_LOGO_URLS: string[] = [
+  logoUrlFromDomain('netflix.com'),
+  logoUrlFromDomain('figma.com'),
+];

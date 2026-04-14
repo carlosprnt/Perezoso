@@ -6,10 +6,13 @@
 // The primary (top) category is always yellow (#FEF08A).
 // Other segments use their category color from the design tokens.
 //
+// Interactive: tap a segment or bullet to highlight. Others dim to 0.35.
+// Tap the same one again (or outside) to clear selection.
+//
 // Mount animation: bar scales in from left (scaleX 0->1, 0.5s standard curve)
 
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -42,9 +45,24 @@ const CATEGORY_NAMES: Record<string, string> = {
   other: 'Resto',
 };
 
-function getCategoryColor(category: string, isPrimary: boolean): string {
-  if (isPrimary) return '#FEF08A'; // Primary always yellow
+/** Color used on bar segment (primary is always yellow #FEF08A) */
+function getBarColor(category: string, isPrimary: boolean): string {
+  if (isPrimary) return '#FEF08A';
   return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
+}
+
+/** Color used on the legend bullet (dot uses actual category color, not primary override) */
+function getBulletColor(category: string): string {
+  return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
+}
+
+/** 50% alpha version of a hex color — for active bullet row background */
+function withAlpha(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function formatAmount(amount: number, currency: string): string {
@@ -56,6 +74,7 @@ function formatAmount(amount: number, currency: string): string {
 
 export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesProps) {
   const { colors } = useTheme();
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   // Bar mount animation: scaleX 0 -> 1, 500ms, standard easing
   const barScale = useSharedValue(0);
@@ -70,57 +89,77 @@ export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesPro
 
   if (categories.length === 0) return null;
 
+  const toggleActive = (i: number) => {
+    setActiveIndex((prev) => (prev === i ? null : i));
+  };
+
   return (
     <View>
       {/* Segmented bar with scale-in animation */}
       <Animated.View style={[styles.bar, styles.barOriginLeft, barAnimatedStyle]}>
-        {categories.map((cat, i) => (
-          <View
-            key={cat.category}
-            style={[
-              styles.segment,
-              {
-                flexGrow: cat.pct,
-                backgroundColor: getCategoryColor(cat.category, i === 0),
-              },
-            ]}
-          />
-        ))}
+        {categories.map((cat, i) => {
+          const dimmed = activeIndex !== null && activeIndex !== i;
+          return (
+            <Pressable
+              key={cat.category}
+              onPress={() => toggleActive(i)}
+              style={[
+                styles.segment,
+                {
+                  flexGrow: cat.pct,
+                  backgroundColor: getBarColor(cat.category, i === 0),
+                  opacity: dimmed ? 0.35 : 1,
+                },
+              ]}
+            />
+          );
+        })}
       </Animated.View>
 
       {/* Legend */}
       <View style={styles.legend}>
-        {categories.map((cat) => (
-          <View key={cat.category} style={styles.legendRow}>
-            {/* Color dot */}
-            <View
+        {categories.map((cat, i) => {
+          const active = activeIndex === i;
+          const dimmed = activeIndex !== null && !active;
+          const bulletColor = getBulletColor(cat.category);
+          return (
+            <Pressable
+              key={cat.category}
+              onPress={() => toggleActive(i)}
               style={[
-                styles.dot,
+                styles.legendRow,
                 {
-                  backgroundColor:
-                    (categoryColors as Record<string, string>)[cat.category] ??
-                    categoryColors.other,
+                  backgroundColor: active ? withAlpha(bulletColor, 0.5) : 'transparent',
+                  opacity: dimmed ? 0.45 : 1,
                 },
               ]}
-            />
-
-            {/* Name */}
-            <Text
-              style={[styles.catName, { color: colors.textPrimary }]}
-              numberOfLines={1}
             >
-              {CATEGORY_NAMES[cat.category] ?? cat.category}
-            </Text>
+              {/* Color dot */}
+              <View
+                style={[
+                  styles.dot,
+                  { backgroundColor: bulletColor },
+                ]}
+              />
 
-            {/* Percentage */}
-            <Text style={styles.catPct}>{Math.round(cat.pct)}%</Text>
+              {/* Name */}
+              <Text
+                style={[styles.catName, { color: colors.textPrimary }]}
+                numberOfLines={1}
+              >
+                {CATEGORY_NAMES[cat.category] ?? cat.category}
+              </Text>
 
-            {/* Amount */}
-            <Text style={[styles.catAmount, { color: colors.textPrimary }]}>
-              {formatAmount(cat.monthlyCost, currency)}
-            </Text>
-          </View>
-        ))}
+              {/* Percentage */}
+              <Text style={styles.catPct}>{Math.round(cat.pct)}%</Text>
+
+              {/* Amount */}
+              <Text style={[styles.catAmount, { color: colors.textPrimary }]}>
+                {formatAmount(cat.monthlyCost, currency)}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -134,10 +173,6 @@ const styles = StyleSheet.create({
     marginBottom: 16, // mb-4
   },
   barOriginLeft: {
-    // transformOrigin 'left' equivalent — anchor transform from left edge
-    // In RN, transform-origin defaults to center; we shift it via translate trick
-    // scaleX from left: translate to left edge, scale, translate back
-    // Actually, RN 0.81 supports transformOrigin directly
     transformOrigin: 'left center',
   },
   segment: {

@@ -55,6 +55,7 @@ import {
   MOCK_HIGHEST_COST,
   MOCK_TOP_CATEGORY,
   MOCK_LOGO_URLS,
+  MOCK_SHARED_LOGO_URLS,
 } from './mockData';
 
 // Staggered entrance wrapper
@@ -136,6 +137,7 @@ export function DashboardScreen() {
               firstName={MOCK_FIRST_NAME}
               stats={MOCK_STATS}
               logoUrls={MOCK_LOGO_URLS}
+              sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
               onAmountTap={handleAmountTap}
               onLogosTap={handleLogosTap}
             />
@@ -145,7 +147,7 @@ export function DashboardScreen() {
           <Animated.View style={[styles.cardStack, animatedCardStackStyle]}>
             {/* Reminder card */}
             <StaggeredItem index={0}>
-              <ReminderCards annualCount={1} />
+              <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
             </StaggeredItem>
 
             {/* Insight cards */}

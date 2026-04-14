@@ -10,7 +10,7 @@
 // gray labels, black 50px amounts, 18px bold supporting text -- defines
 // the product's visual confidence. Do not normalize these sizes.
 
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, type GestureResponderEvent } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
@@ -25,8 +25,10 @@ interface SummaryHeroProps {
   fullName?: string;
   /** User's avatar URL from profile/Gmail metadata */
   avatarUrl?: string | null;
-  /** Logo URLs for the inline LogoStack */
+  /** Logo URLs for the inline LogoStack (all subscriptions) */
   logoUrls?: string[];
+  /** Logo URLs for the "Compartes X suscripciones" line — shared subs only */
+  sharedLogoUrls?: string[];
   /** Called when user taps the amount numbers — for money confetti */
   onAmountTap?: (x: number, y: number) => void;
   /** Called when user taps "Tienes X suscripciones" — for logo confetti */
@@ -48,12 +50,23 @@ export function SummaryHero({
   fullName,
   avatarUrl,
   logoUrls = [],
+  sharedLogoUrls = [],
   onAmountTap,
   onLogosTap,
 }: SummaryHeroProps) {
   const { colors, isDark } = useTheme();
   const labelColor = isDark ? '#8E8E93' : '#616161';
   const amountColor = colors.textPrimary;
+
+  // Toggle "Reduces X al mes" <-> "Reduces X al año"
+  const [savingsPeriod, setSavingsPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const toggleSavingsPeriod = () => {
+    setSavingsPeriod((p) => (p === 'monthly' ? 'annual' : 'monthly'));
+  };
+  const savingsAmount = savingsPeriod === 'monthly'
+    ? stats.savingsMonthly
+    : stats.savingsMonthly * 12;
+  const savingsLabel = savingsPeriod === 'monthly' ? 'tu gasto al mes' : 'tu gasto al a\u00F1o';
 
   // Avatar: real image or deterministic pastel initials
   const displayName = fullName || firstName;
@@ -153,23 +166,32 @@ export function SummaryHero({
             <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
               {stats.sharedCount}
             </Text>
+            {sharedLogoUrls.length > 0 ? (
+              <LogoStack
+                logoUrls={sharedLogoUrls}
+                totalCount={stats.sharedCount}
+              />
+            ) : null}
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
               {' '}suscripciones.
             </Text>
           </View>
         ) : null}
         {stats.savingsMonthly > 0 ? (
-          <View style={styles.supportLine}>
+          <Pressable
+            style={styles.supportLine}
+            onPress={toggleSavingsPeriod}
+          >
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
               Reduces{' '}
             </Text>
             <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
-              {formatAmount(stats.savingsMonthly, stats.currency)}
+              {formatAmount(savingsAmount, stats.currency)}
             </Text>
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              {' '}tu gasto al mes.
+              {' '}{savingsLabel}.
             </Text>
-          </View>
+          </Pressable>
         ) : null}
       </View>
     </View>
