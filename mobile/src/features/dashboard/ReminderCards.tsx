@@ -300,8 +300,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     // Fixed height ensures both cards (reminder + savings) are identical
-    // regardless of body copy length. Large enough to fit 3 lines of body.
-    minHeight: 172,
+    // regardless of body copy length. Tuned to fit 2 lines of 16px body
+    // + icon + buttons without excess whitespace.
+    minHeight: 152,
     justifyContent: 'space-between',
   },
   body: {
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 44,
     height: 44,
-    borderRadius: radius.xl,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -325,8 +326,8 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     ...fontFamily.regular,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * 1.45,
+    fontSize: fontSize[16],
+    lineHeight: fontSize[16] * 1.4,
   },
   bodyBold: {
     ...fontFamily.bold,
