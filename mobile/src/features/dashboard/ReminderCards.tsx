@@ -326,8 +326,8 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     ...fontFamily.regular,
-    fontSize: fontSize[16],
-    lineHeight: fontSize[16] * 1.4,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * 1.4,
   },
   bodyBold: {
     ...fontFamily.bold,

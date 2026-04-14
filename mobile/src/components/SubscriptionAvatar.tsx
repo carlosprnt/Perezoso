@@ -28,7 +28,7 @@ const SIZE_CONFIG: Record<AvatarSize, {
   sm40: { dimension: 40, fontSize: fontSize[14], ...fontFamily.semibold },
   md:   { dimension: 44, fontSize: fontSize[14], ...fontFamily.semibold },
   md48: { dimension: 48, fontSize: fontSize[14], ...fontFamily.semibold },
-  lg:   { dimension: 56, fontSize: fontSize[16], ...fontFamily.bold },
+  lg:   { dimension: 56, fontSize: fontSize[15], ...fontFamily.bold },
   xl:   { dimension: 72, fontSize: fontSize[20], ...fontFamily.bold },
 };
 

@@ -134,8 +134,8 @@ export const textPreset = {
   // Body
   bodyLg: {
     ...fontFamily.regular,
-    fontSize: fontSize[16],
-    lineHeight: fontSize[16] * lineHeight.normal,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.normal,
   },
   bodyMd: {
     ...fontFamily.regular,
@@ -172,11 +172,11 @@ export const textPreset = {
     letterSpacing: letterSpacing.wide,
   },
 
-  // Input (16px min to prevent iOS zoom)
+  // Input (TextInput body copy)
   input: {
     ...fontFamily.regular,
-    fontSize: fontSize[16],
-    lineHeight: fontSize[16] * lineHeight.normal,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.normal,
   },
 
   // Button text

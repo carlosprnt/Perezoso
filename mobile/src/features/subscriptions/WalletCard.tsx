@@ -175,8 +175,8 @@ const styles = StyleSheet.create({
   },
   name: {
     ...fontFamily.bold,
-    fontSize: fontSize[16],
-    lineHeight: fontSize[16] * lineHeight.tight,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.tight,
   },
   metaRow: {
     flexDirection: 'row',
@@ -197,8 +197,8 @@ const styles = StyleSheet.create({
   },
   price: {
     ...fontFamily.bold,
-    fontSize: fontSize[16],
-    lineHeight: fontSize[16] * lineHeight.tight,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.tight,
   },
   period: {
     ...fontFamily.medium,
