@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: 12, // mb-3
   },
   greeting: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   avatarText: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[14],
   },
   statementBlock: {
@@ -237,19 +237,19 @@ const styles = StyleSheet.create({
     // Amount + period on same line
   },
   label: {
-    fontFamily: fontFamily.extrabold,
+    ...fontFamily.extrabold,
     fontSize: 25,
     lineHeight: 25 * 1.15,
     letterSpacing: letterSpacing.tight,
   },
   heroAmount: {
-    fontFamily: fontFamily.extrabold,
+    ...fontFamily.extrabold,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
-    fontFamily: fontFamily.extrabold,
+    ...fontFamily.extrabold,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
   },
@@ -262,12 +262,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   supportText: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: 18,
     lineHeight: 18 * 1.6, // leading-relaxed
   },
   supportBold: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: 18,
     lineHeight: 18 * 1.6,
   },

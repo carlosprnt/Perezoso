@@ -176,13 +176,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   label: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginBottom: 2, // mb-0.5
   },
   title: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -191,12 +191,12 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   rightTop: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
   rightBottom: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,

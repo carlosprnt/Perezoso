@@ -121,13 +121,13 @@ const headerStyles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   subtitle: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,

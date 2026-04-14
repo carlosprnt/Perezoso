@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 16, // p-4
   },
   rank: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[11],
     color: '#B0B0B0',
     textTransform: 'uppercase',
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     marginBottom: 12, // mb-3
   },
   name: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[20],
     lineHeight: fontSize[20] * lineHeight.snug,
   },
@@ -114,12 +114,12 @@ const styles = StyleSheet.create({
     marginTop: 6, // mt-1.5
   },
   price: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[15],
     fontVariant: ['tabular-nums'],
   },
   period: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
   },
 });

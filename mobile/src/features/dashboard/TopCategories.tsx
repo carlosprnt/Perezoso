@@ -200,18 +200,18 @@ const styles = StyleSheet.create({
   },
   catName: {
     flex: 1,
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },
   catPct: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[11],
     color: '#8E8E93',
     flexShrink: 0,
   },
   catAmount: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
     flexShrink: 0,

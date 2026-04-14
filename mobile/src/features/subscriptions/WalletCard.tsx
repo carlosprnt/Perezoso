@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[16],
     lineHeight: fontSize[16] * lineHeight.tight,
   },
@@ -183,12 +183,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   category: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },
   shared: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },
@@ -196,12 +196,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[16],
     lineHeight: fontSize[16] * lineHeight.tight,
   },
   period: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   renewalText: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusLabel: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },

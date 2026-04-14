@@ -299,12 +299,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
+    // Fixed height ensures both cards (reminder + savings) are identical
+    // regardless of body copy length. Large enough to fit 3 lines of body.
+    minHeight: 172,
+    justifyContent: 'space-between',
   },
   body: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 12,
+    flex: 1,
   },
   iconWrap: {
     width: 44,
@@ -319,12 +324,12 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   bodyText: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * 1.45,
   },
   bodyBold: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
   },
   buttons: {
     flexDirection: 'row',
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dismissText: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[13],
   },
   ctaBtn: {
@@ -348,7 +353,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   ctaText: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[13],
   },
 });

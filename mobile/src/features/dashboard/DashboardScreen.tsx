@@ -145,9 +145,11 @@ export function DashboardScreen() {
 
           {/* Card stack -- elastic gap + staggered entrance */}
           <Animated.View style={[styles.cardStack, animatedCardStackStyle]}>
-            {/* Reminder card */}
+            {/* Reminder card — extra 10px separation from the module below */}
             <StaggeredItem index={0}>
-              <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
+              <View style={{ marginBottom: 10 }}>
+                <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
+              </View>
             </StaggeredItem>
 
             {/* Insight cards */}
@@ -237,7 +239,7 @@ const styles = StyleSheet.create({
     gap: 8, // base gap (overridden by elastic pull animated style)
   },
   sectionTitle: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,

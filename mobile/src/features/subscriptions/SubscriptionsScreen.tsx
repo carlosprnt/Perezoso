@@ -205,13 +205,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: fontFamily.extrabold,
+    ...fontFamily.extrabold,
     fontSize: 34,
     lineHeight: 34 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   subtitle: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 4,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   sortLabel: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[13],
   },
   filterChips: {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   filterChipText: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[13],
   },
   list: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyText: {
-    fontFamily: fontFamily.medium,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   clearBtn: {
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   clearBtnText: {
-    fontFamily: fontFamily.semibold,
+    ...fontFamily.semibold,
     fontSize: fontSize[14],
   },
 });

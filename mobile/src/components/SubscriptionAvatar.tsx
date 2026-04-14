@@ -24,12 +24,12 @@ const SIZE_CONFIG: Record<AvatarSize, {
   fontSize: number;
   fontFamily: string;
 }> = {
-  sm:   { dimension: 36, fontSize: fontSize[14], fontFamily: fontFamily.semibold },
-  sm40: { dimension: 40, fontSize: fontSize[14], fontFamily: fontFamily.semibold },
-  md:   { dimension: 44, fontSize: fontSize[14], fontFamily: fontFamily.semibold },
-  md48: { dimension: 48, fontSize: fontSize[14], fontFamily: fontFamily.semibold },
-  lg:   { dimension: 56, fontSize: fontSize[16], fontFamily: fontFamily.bold },
-  xl:   { dimension: 72, fontSize: fontSize[20], fontFamily: fontFamily.bold },
+  sm:   { dimension: 36, fontSize: fontSize[14], ...fontFamily.semibold },
+  sm40: { dimension: 40, fontSize: fontSize[14], ...fontFamily.semibold },
+  md:   { dimension: 44, fontSize: fontSize[14], ...fontFamily.semibold },
+  md48: { dimension: 48, fontSize: fontSize[14], ...fontFamily.semibold },
+  lg:   { dimension: 56, fontSize: fontSize[16], ...fontFamily.bold },
+  xl:   { dimension: 72, fontSize: fontSize[20], ...fontFamily.bold },
 };
 
 interface SubscriptionAvatarProps {

@@ -97,25 +97,25 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
-    fontFamily: fontFamily.bold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
   price: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2, // mt-0.5
   },
   days: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     flexShrink: 0,
     textAlign: 'right',
   },
   empty: {
-    fontFamily: fontFamily.regular,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     paddingVertical: 8,
   },

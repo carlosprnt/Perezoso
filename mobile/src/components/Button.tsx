@@ -158,7 +158,7 @@ function getSizeStyle(size: Size): {
       return {
         container: { paddingHorizontal: 16 },
         text: {
-          fontFamily: fontFamily.semibold,
+          ...fontFamily.semibold,
           fontSize: fontSize[14],
           lineHeight: fontSize[14] * lineHeight.none,
         },
@@ -168,7 +168,7 @@ function getSizeStyle(size: Size): {
       return {
         container: { paddingHorizontal: 16 },
         text: {
-          fontFamily: fontFamily.semibold,
+          ...fontFamily.semibold,
           fontSize: fontSize[14],
           lineHeight: fontSize[14] * lineHeight.none,
         },
@@ -178,7 +178,7 @@ function getSizeStyle(size: Size): {
       return {
         container: { paddingHorizontal: 24 },
         text: {
-          fontFamily: fontFamily.semibold,
+          ...fontFamily.semibold,
           fontSize: fontSize[14],
           lineHeight: fontSize[14] * lineHeight.none,
         },

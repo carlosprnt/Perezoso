@@ -122,7 +122,7 @@ export function LogoAvatar({
     <View style={[containerBase, { backgroundColor: pastel.bg }, style]}>
       <Text
         style={{
-          fontFamily: fontFamily.semibold,
+          ...fontFamily.semibold,
           fontSize: config.fontSize,
           color: pastel.fg,
         }}
