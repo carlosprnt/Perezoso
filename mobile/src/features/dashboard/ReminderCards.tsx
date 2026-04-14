@@ -159,6 +159,9 @@ export function ReminderCards({
 
   const dragX = useSharedValue(0);
   const dragProgress = useSharedValue(0); // 0..1 during drag
+  // Opacity is 1 during drag. It only fades once the user releases
+  // a card that will fly off (exit). A cancelled drag keeps it at 1.
+  const exitOpacity = useSharedValue(1);
   const isAnimating = useSharedValue(false);
 
   const advanceFront = useCallback(() => {
@@ -168,7 +171,8 @@ export function ReminderCards({
   const resetDrag = useCallback(() => {
     dragX.value = 0;
     dragProgress.value = 0;
-  }, [dragX, dragProgress]);
+    exitOpacity.value = 1;
+  }, [dragX, dragProgress, exitOpacity]);
 
   const gesture = Gesture.Pan()
     .activeOffsetX([-8, 8])
@@ -198,6 +202,8 @@ export function ReminderCards({
             }
           },
         );
+        // Fade only during the exit flight, not during the drag.
+        exitOpacity.value = withTiming(0, { duration: 240 });
       } else {
         dragX.value = withSpring(0, { damping: 22, stiffness: 320 });
         dragProgress.value = withSpring(0, { damping: 22, stiffness: 320 });
@@ -211,18 +217,12 @@ export function ReminderCards({
       [-7, 0, 7],
       Extrapolation.CLAMP,
     );
-    const opacity = interpolate(
-      Math.abs(dragX.value),
-      [0, CARD_FLY_X],
-      [1, 0],
-      Extrapolation.CLAMP,
-    );
     return {
       transform: [
         { translateX: dragX.value },
         { rotate: `${rotate}deg` },
       ],
-      opacity,
+      opacity: exitOpacity.value,
     };
   });
 
@@ -254,7 +254,9 @@ export function ReminderCards({
         isAnimating.value = false;
       }
     });
-  }, [advanceFront, resetDrag, dragX, isAnimating, items.length]);
+    // Fade during button-triggered exit, same as swipe exit.
+    exitOpacity.value = withTiming(0, { duration: 240 });
+  }, [advanceFront, resetDrag, dragX, exitOpacity, isAnimating, items.length]);
 
   return (
     <View style={styles.container}>
