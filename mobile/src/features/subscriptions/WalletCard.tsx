@@ -184,13 +184,13 @@ const styles = StyleSheet.create({
   },
   category: {
     ...fontFamily.medium,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   shared: {
     ...fontFamily.medium,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   priceBlock: {
     alignItems: 'flex-end',
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
   },
   period: {
     ...fontFamily.medium,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
   },
   renewalText: {
     ...fontFamily.medium,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   statusRow: {
     flexDirection: 'row',
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
 });

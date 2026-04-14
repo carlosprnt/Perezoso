@@ -11,7 +11,7 @@
 // iOS native dropdowns via ActionSheetIOS; Android falls back to
 // a simple Modal list with the same options (still looks good).
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,6 @@ import {
   Platform,
   ActionSheetIOS,
   Modal,
-  Dimensions,
   type LayoutChangeEvent,
 } from 'react-native';
 import Animated, {
@@ -41,11 +40,10 @@ import { MOCK_SUBSCRIPTIONS } from './mockData';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 // Wallet-style overlap: each card's visible header (logo + name + price)
-// peeks above the card below it. Matches web's STACK_MARGIN_PX = -76.
-const STACK_MARGIN_PX = -76;
+// peeks above the card below it. Slightly looser than web (-76) so the
+// price + status row underneath remain readable between stacked cards.
+const STACK_MARGIN_PX = -60;
 
 // ─── Sort + filter config (labels taken from web) ─────────────────
 const SORT_LABELS: Record<SortMode, string> = {
@@ -91,10 +89,15 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 }
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
-// Per-card: as it scrolls up past the viewport, it shrinks (1 → 0.85)
-// and tilts (0° → 20°). Mirrors framer-motion's useScroll on web:
-//   offset: ['start 0.35', 'end start']
-//   exitScale = [1, 0.85], exitRotation = [0 at 0.5, 20 at 1]
+// Per-card: as it scrolls off the top of the viewport, it shrinks
+// (1 → 0.85) and tilts (0° → 20°). The animation is gated on the
+// first onLayout pass so cards don't render mid-animation on mount.
+//
+// Progress axis:
+//   progress = 0 → card top at top of viewport (fully visible)
+//   progress = 1 → card bottom at top of viewport (fully gone)
+// i.e. the animation only runs while the card is actively leaving
+// the screen — never while it's still inside the viewport.
 function ScrollCard({
   scrollY,
   children,
@@ -103,21 +106,31 @@ function ScrollCard({
   children: React.ReactNode;
 }) {
   const cardY = useSharedValue(0);
-  const cardHeight = useSharedValue(200);
+  const cardHeight = useSharedValue(0);
+  // Gate: stays 0 until the first onLayout pass has measured the card.
+  // Before that we return identity styles so nothing renders skewed.
+  const measured = useSharedValue(0);
 
   const onLayout = useCallback(
     (e: LayoutChangeEvent) => {
       cardY.value = e.nativeEvent.layout.y;
       cardHeight.value = e.nativeEvent.layout.height;
+      measured.value = 1;
     },
-    [cardY, cardHeight],
+    [cardY, cardHeight, measured],
   );
 
   const animatedStyle = useAnimatedStyle(() => {
-    // Web: offset ['start 0.35', 'end start']
-    // progress = 0 when card top reaches 35% of viewport
-    // progress = 1 when card bottom reaches top of viewport
-    const startY = cardY.value - 0.35 * SCREEN_HEIGHT;
+    if (measured.value === 0) {
+      return {
+        transform: [{ scale: 1 }, { rotate: '0deg' }],
+      };
+    }
+    // startY = scrollY when the card top reaches the top of the viewport
+    // endY   = scrollY when the card bottom reaches the top of the viewport
+    // → progress is 0 while the card is still on-screen, ramps to 1 as
+    //   it fully exits off the top.
+    const startY = cardY.value;
     const endY = cardY.value + cardHeight.value;
     const progress = interpolate(
       scrollY.value,
@@ -417,11 +430,11 @@ const styles = StyleSheet.create({
   },
   dropdownMuted: {
     ...fontFamily.medium,
-    fontSize: fontSize[13],
+    fontSize: fontSize[15],
   },
   dropdownValue: {
     ...fontFamily.semibold,
-    fontSize: fontSize[13],
+    fontSize: fontSize[15],
     marginRight: 4,
   },
   list: {
@@ -443,7 +456,7 @@ const styles = StyleSheet.create({
   },
   clearBtnText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
+    fontSize: fontSize[15],
   },
   // Android fallback sheet
   sheetBackdrop: {
@@ -459,7 +472,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     ...fontFamily.medium,
-    fontSize: fontSize[13],
+    fontSize: fontSize[15],
     textAlign: 'center',
     paddingVertical: 8,
     textTransform: 'uppercase',
