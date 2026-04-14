@@ -11,7 +11,7 @@
 // iOS native dropdowns via ActionSheetIOS; Android falls back to
 // a simple Modal list with the same options (still looks good).
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronDown } from 'lucide-react-native';
@@ -36,6 +37,7 @@ import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/ty
 import { radius } from '../../design/radius';
 
 import { WalletCard } from './WalletCard';
+import { Skeleton } from '../../components/Skeleton';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
@@ -116,7 +118,11 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 // fired, the card would render pre-animated. Until both are populated
 // we return the identity transform.
 const TRIGGER_RANGE_PX = 100;
-const MAX_BLUR_PX = 20;
+const MAX_BLUR_PX = 40;
+
+// Period-toggle skeleton duration (ms). Long enough that the shimmer
+// reads as an intentional transition rather than a tap glitch.
+const PERIOD_TOGGLE_MS = 1500;
 
 function ScrollCard({
   scrollY,
@@ -125,8 +131,8 @@ function ScrollCard({
   stackMargin,
   children,
 }: {
-  scrollY: Animated.SharedValue<number>;
-  listY: Animated.SharedValue<number>;
+  scrollY: SharedValue<number>;
+  listY: SharedValue<number>;
   triggerY: number;
   stackMargin: number;
   children: React.ReactNode;
@@ -215,6 +221,27 @@ export function SubscriptionsScreen() {
   const [filter, setFilter] = useState<FilterValue>('all');
   const [androidSheet, setAndroidSheet] = useState<null | 'sort' | 'filter'>(null);
 
+  // Monthly <-> annual toggle for the "Pagas X al mes" line.
+  // Tapping the amount triggers a 1.5s shimmer skeleton and then
+  // switches the shown period. The skeleton covers the amount AND
+  // the "al mes" / "al año" label so the whole value refreshes.
+  const [period, setPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [periodLoading, setPeriodLoading] = useState(false);
+  const periodTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (periodTimeoutRef.current) clearTimeout(periodTimeoutRef.current);
+    };
+  }, []);
+  const handleTogglePeriod = useCallback(() => {
+    if (periodLoading) return;
+    setPeriodLoading(true);
+    periodTimeoutRef.current = setTimeout(() => {
+      setPeriod((p) => (p === 'monthly' ? 'annual' : 'monthly'));
+      setPeriodLoading(false);
+    }, PERIOD_TOGGLE_MS);
+  }, [periodLoading]);
+
   const filtered = useMemo(() => {
     let subs = MOCK_SUBSCRIPTIONS;
     if (filter !== 'all') {
@@ -232,9 +259,9 @@ export function SubscriptionsScreen() {
   );
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
-  const totalFormatted = totalMonthly
-    .toFixed(2)
-    .replace('.', ',');
+  const totalForPeriod = period === 'monthly' ? totalMonthly : totalMonthly * 12;
+  const periodLabel = period === 'monthly' ? 'al mes' : 'al a\u00F1o';
+  const amountFormatted = totalForPeriod.toFixed(2).replace('.', ',');
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -302,7 +329,7 @@ export function SubscriptionsScreen() {
   const dropdownMutedColor = colors.textMuted;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View style={[styles.root, { backgroundColor: 'transparent' }]}>
       <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -315,18 +342,64 @@ export function SubscriptionsScreen() {
           },
         ]}
       >
-        {/* Header — fades + blurs out as the user scrolls past it. */}
+        {/* Header — fades + blurs out as the user scrolls past it.
+            Transparent background so the FloatingNav glass blur and the
+            list behind both show through the fade. */}
         <Animated.View style={[styles.header, headerAnimatedStyle]}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             Mis suscripciones
           </Text>
 
-          {/* Paragraph matches the web:
-             "Pagas XX,XX€ al mes en N suscripciones activas." */}
-          <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
-            Pagas {totalFormatted}
-            {'\u20AC'} al mes en {activeCount}{' '}
-            {activeCount === 1 ? 'suscripción activa' : 'suscripciones activas'}.
+          {/* Two paragraphs stacked:
+             1. "Pagas X al mes." — amount + period are tap-toggleable
+                (monthly ↔ annual). A 1.5s shimmer skeleton covers both
+                the number and the "al mes"/"al año" label during the
+                transition.
+             2. "Tienes X suscripciones activas." — the word "activas"
+                (active = healthy) is highlighted in the status-green
+                color to match how status is encoded elsewhere. */}
+          <Pressable
+            onPress={handleTogglePeriod}
+            style={styles.paragraphLine}
+            accessibilityRole="button"
+            accessibilityLabel={
+              period === 'monthly'
+                ? 'Mostrar total anual'
+                : 'Mostrar total mensual'
+            }
+          >
+            <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+              Pagas{' '}
+            </Text>
+            {periodLoading ? (
+              <Skeleton
+                style={{ width: 150, height: 22, marginVertical: 2 }}
+                borderRadius={6}
+              />
+            ) : (
+              <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+                {amountFormatted}
+                {'\u20AC'} {periodLabel}
+              </Text>
+            )}
+            <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+              .
+            </Text>
+          </Pressable>
+
+          <Text
+            style={[
+              styles.paragraph,
+              styles.paragraphSecond,
+              { color: colors.textPrimary },
+            ]}
+          >
+            Tienes {activeCount}{' '}
+            {activeCount === 1 ? 'suscripción ' : 'suscripciones '}
+            <Text style={{ color: colors.statusActive }}>
+              {activeCount === 1 ? 'activa' : 'activas'}
+            </Text>
+            .
           </Text>
         </Animated.View>
 
@@ -481,7 +554,20 @@ const styles = StyleSheet.create({
     ...fontFamily.bold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
+  },
+  // Row that holds the "Pagas X al mes." line. flexWrap lets the
+  // inline Skeleton sit alongside the surrounding text without
+  // breaking when the amount grows (annual totals are wider). The
+  // top margin separates the title from the first paragraph; the
+  // second paragraph sits right under this one with its own margin.
+  paragraphLine: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     marginTop: 4,
+  },
+  paragraphSecond: {
+    marginTop: 2,
   },
   controlsRow: {
     paddingHorizontal: 20,

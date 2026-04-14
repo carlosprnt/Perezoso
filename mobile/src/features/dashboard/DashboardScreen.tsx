@@ -92,14 +92,14 @@ export function DashboardScreen() {
   // Hero scroll fade+blur: as the user scrolls, the whole hero block
   // (greeting, big "Al mes gastas / Eso al año es" amounts, and the
   // supporting "Tienes X suscripciones" line) dissolves away to
-  // opacity 0 with a 20px gaussian blur, matching the vocabulary used
-  // on the subscriptions screen. 0–220px of scroll takes us from fully
-  // visible to fully gone.
+  // opacity 0 with a 40px gaussian blur, matching the heavier "layer
+  // blur" vocabulary used on the subscriptions screen. 0–220px of
+  // scroll takes us from fully visible to fully gone.
   const heroAnimatedStyle = useAnimatedStyle(() => {
     const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
     return {
       opacity: 1 - progress,
-      filter: [{ blur: progress * 20 }],
+      filter: [{ blur: progress * 40 }],
     };
   });
 

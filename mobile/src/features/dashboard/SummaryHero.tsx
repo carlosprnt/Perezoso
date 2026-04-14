@@ -10,13 +10,18 @@
 // gray labels, black 50px amounts, 18px bold supporting text -- defines
 // the product's visual confidence. Do not normalize these sizes.
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, type GestureResponderEvent } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
+import { Skeleton } from '../../components/Skeleton';
 import { LogoStack } from './LogoStack';
 import type { DashboardStats } from './types';
+
+// Shimmer duration for the "Reduces X al mes" <-> "al año" transition.
+// Matches the subscriptions screen total-period toggle for consistency.
+const PERIOD_TOGGLE_MS = 1500;
 
 interface SummaryHeroProps {
   firstName: string;
@@ -58,11 +63,27 @@ export function SummaryHero({
   const labelColor = isDark ? '#8E8E93' : '#616161';
   const amountColor = colors.textPrimary;
 
-  // Toggle "Reduces X al mes" <-> "Reduces X al año"
+  // Toggle "Reduces X al mes" <-> "Reduces X al año". Tap shows a 1.5s
+  // shimmer skeleton over both the amount and the "tu gasto al mes"/
+  // "al año" label, then swaps the values. The skeleton prevents the
+  // number from flashing to the new value before the label has caught
+  // up — the whole unit updates together.
   const [savingsPeriod, setSavingsPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const toggleSavingsPeriod = () => {
-    setSavingsPeriod((p) => (p === 'monthly' ? 'annual' : 'monthly'));
-  };
+  const [savingsLoading, setSavingsLoading] = useState(false);
+  const savingsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (savingsTimeoutRef.current) clearTimeout(savingsTimeoutRef.current);
+    };
+  }, []);
+  const toggleSavingsPeriod = useCallback(() => {
+    if (savingsLoading) return;
+    setSavingsLoading(true);
+    savingsTimeoutRef.current = setTimeout(() => {
+      setSavingsPeriod((p) => (p === 'monthly' ? 'annual' : 'monthly'));
+      setSavingsLoading(false);
+    }, PERIOD_TOGGLE_MS);
+  }, [savingsLoading]);
   const savingsAmount = savingsPeriod === 'monthly'
     ? stats.savingsMonthly
     : stats.savingsMonthly * 12;
@@ -181,15 +202,36 @@ export function SummaryHero({
           <Pressable
             style={styles.supportLine}
             onPress={toggleSavingsPeriod}
+            accessibilityRole="button"
+            accessibilityLabel={
+              savingsPeriod === 'monthly'
+                ? 'Mostrar ahorro anual'
+                : 'Mostrar ahorro mensual'
+            }
           >
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
               Reduces{' '}
             </Text>
-            <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
-              {formatAmount(savingsAmount, stats.currency)}
-            </Text>
+            {savingsLoading ? (
+              // Skeleton covers amount + "tu gasto al mes/año" label.
+              // Width is sized for the longest expected string so the
+              // paragraph doesn't reflow between states.
+              <Skeleton
+                style={{ width: 210, height: 22, marginVertical: 3 }}
+                borderRadius={6}
+              />
+            ) : (
+              <>
+                <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
+                  {formatAmount(savingsAmount, stats.currency)}
+                </Text>
+                <Text style={[styles.supportText, { color: colors.textPrimary }]}>
+                  {' '}{savingsLabel}
+                </Text>
+              </>
+            )}
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              {' '}{savingsLabel}.
+              .
             </Text>
           </Pressable>
         ) : null}
