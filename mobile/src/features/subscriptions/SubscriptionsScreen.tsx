@@ -89,31 +89,40 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 }
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
-// Per-card exit animation: each card (individually, via its own cardY
-// reference) shrinks (1 → 0.85) and tilts (0° → 20°) in a tight 70px
-// scroll window near the top of the viewport.
+// Per-card exit animation: each card shrinks (1 → 0.85) and tilts
+// (0° → 20°) only as ITS OWN top crosses the page-title line. Because
+// each card has its own measured `cardY`, animations fire one-by-one
+// as cards reach the top — the list as a whole never tilts.
 //
-// Trigger window, in absolute scrollY:
-//   startY = cardY - TRIGGER_OFFSET_PX   (card top is ~70px below top)
-//   endY   = cardY                       (card top at the viewport top)
+// Coordinate math:
+//   cardY         — card's y within the list container (includes the
+//                   cumulative -60px stack margins from siblings above)
+//   listY         — list container's y within the ScrollView content
+//                   (≈ paddingTop + header + controls height)
+//   cardScreenY   — where the card's top currently sits on-screen
+//                 = listY + cardY − scrollY
 //
-// Why a tight window (instead of the web's 0.35 * viewportHeight)?
-// RN's stacked wallet puts cards ~90px apart on the scroll axis
-// (cardHeight + STACK_MARGIN_PX). A 70px animation window therefore
-// spans roughly one card at a time — the rotation fires card-by-card
-// as each one reaches the top, rather than animating several at once.
+// Trigger window (screen-space):
+//   progress = 0  when cardScreenY = triggerY       (top meets title)
+//   progress = 1  when cardScreenY = triggerY − 70  (top is 70px above)
 //
-// The `measured` gate is a Reanimated-specific safeguard: until the
-// first onLayout fires, cardY=0 so progress would be > 0 and cards
-// would render tilted on mount. While the gate is 0 we return identity
-// transforms.
-const TRIGGER_OFFSET_PX = 70;
+// The `measured` gate guards against tilt-on-mount: if we applied the
+// transform before onLayout fired, cardY would be 0 and the card would
+// render pre-animated. Until onLayout populates cardY, we return the
+// identity transform.
+const TRIGGER_RANGE_PX = 70;
 
 function ScrollCard({
   scrollY,
+  listY,
+  triggerY,
+  stackMargin,
   children,
 }: {
   scrollY: Animated.SharedValue<number>;
+  listY: Animated.SharedValue<number>;
+  triggerY: number;
+  stackMargin: number;
   children: React.ReactNode;
 }) {
   const cardY = useSharedValue(0);
@@ -130,16 +139,20 @@ function ScrollCard({
   );
 
   const animatedStyle = useAnimatedStyle(() => {
-    if (measured.value === 0) {
+    // Children's onLayout fires before the parent's, so cardY can be
+    // populated one frame before listY. Skip the transform on both
+    // conditions to avoid a one-frame tilt flash on mount.
+    if (measured.value === 0 || listY.value === 0) {
       return {
         transform: [{ scale: 1 }, { rotate: '0deg' }],
       };
     }
-    const startY = cardY.value - TRIGGER_OFFSET_PX;
-    const endY = cardY.value;
+    const screenY = listY.value + cardY.value - scrollY.value;
+    // screenY decreases as the card scrolls up. interpolate accepts a
+    // descending input range (CLAMP handles both ends).
     const progress = interpolate(
-      scrollY.value,
-      [startY, endY],
+      screenY,
+      [triggerY, triggerY - TRIGGER_RANGE_PX],
       [0, 1],
       Extrapolation.CLAMP,
     );
@@ -154,12 +167,18 @@ function ScrollCard({
   });
 
   return (
-    <Animated.View
-      onLayout={onLayout}
-      style={[animatedStyle, { transformOrigin: 'center bottom' } as any]}
-    >
-      {children}
-    </Animated.View>
+    // Outer wrapper OWNS onLayout + marginTop. Its layout.y — measured
+    // relative to the list container — reflects the cumulative stack
+    // offset (including the negative stack margins above it). This is
+    // the value we need for cardY; putting onLayout on the inner
+    // Animated.View would always yield 0 because it has no siblings.
+    <View onLayout={onLayout} style={{ marginTop: stackMargin }}>
+      <Animated.View
+        style={[animatedStyle, { transformOrigin: 'center bottom' } as any]}
+      >
+        {children}
+      </Animated.View>
+    </View>
   );
 }
 
@@ -168,6 +187,15 @@ export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  // listY is the Y offset of the list container within the scroll
+  // content. Filled in by the list's own onLayout. Animations stay at
+  // identity (transform none) while this is 0.
+  const listY = useSharedValue(0);
+  // Screen-Y where a card "hits" the title and starts to tilt. Anchored
+  // below the safe-area top so it's correct on devices with bigger
+  // notches/dynamic islands. Empirically the "Mis suscripciones" title
+  // baseline lands around insets.top + ~40–50px.
+  const triggerY = insets.top + 50;
 
   const [sortMode, setSortMode] = useState<SortMode>('alphabetical');
   const [filter, setFilter] = useState<FilterValue>('all');
@@ -291,17 +319,25 @@ export function SubscriptionsScreen() {
           </Pressable>
         </View>
 
-        {/* Subscription list — cards overlap via negative margin */}
-        <View style={styles.list}>
+        {/* Subscription list — cards overlap via negative margin.
+            onLayout here captures the list's Y within the scroll
+            content so each ScrollCard can compute its screen position. */}
+        <View
+          style={styles.list}
+          onLayout={(e) => {
+            listY.value = e.nativeEvent.layout.y;
+          }}
+        >
           {filtered.map((sub, index) => (
-            <View
+            <ScrollCard
               key={sub.id}
-              style={{ marginTop: index === 0 ? 0 : STACK_MARGIN_PX }}
+              scrollY={scrollY}
+              listY={listY}
+              triggerY={triggerY}
+              stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
             >
-              <ScrollCard scrollY={scrollY}>
-                <WalletCard subscription={sub} />
-              </ScrollCard>
-            </View>
+              <WalletCard subscription={sub} />
+            </ScrollCard>
           ))}
 
           {filtered.length === 0 && (
