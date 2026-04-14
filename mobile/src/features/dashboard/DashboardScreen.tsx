@@ -27,7 +27,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { CalendarDays } from 'lucide-react-native';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -91,16 +94,23 @@ export function DashboardScreen() {
 
   // Hero scroll fade+blur: as the user scrolls, the whole hero block
   // (greeting, big "Al mes gastas / Eso al año es" amounts, and the
-  // supporting "Tienes X suscripciones" line) dissolves away to
-  // opacity 0 with a 40px gaussian blur, matching the heavier "layer
-  // blur" vocabulary used on the subscriptions screen. 0–220px of
-  // scroll takes us from fully visible to fully gone.
-  const heroAnimatedStyle = useAnimatedStyle(() => {
+  // supporting "Tienes X suscripciones" line) dissolves away — the
+  // content fades to opacity 0 while a gaussian blur veil (expo-blur
+  // BlurView) simultaneously fades in on top. 0–220px of scroll
+  // takes us from fully visible to fully gone.
+  //
+  // The BlurView-overlay approach is used instead of the RN 0.81
+  // `filter: [{blur}]` style prop because `filter` only renders on
+  // the New Architecture (Fabric). This app runs on Paper in Expo Go,
+  // where `filter` would be silently dropped — see SubscriptionsScreen
+  // ScrollCard for the full rationale.
+  const heroFadeStyle = useAnimatedStyle(() => {
     const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
-    return {
-      opacity: 1 - progress,
-      filter: [{ blur: progress * 40 }],
-    };
+    return { opacity: 1 - progress };
+  });
+  const heroBlurStyle = useAnimatedStyle(() => {
+    const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
+    return { opacity: progress };
   });
 
   const onScroll = useAnimatedScrollHandler({
@@ -137,17 +147,27 @@ export function DashboardScreen() {
             },
           ]}
         >
-          {/* Hero -- scroll fade applied, opaque background */}
-          <Animated.View style={[heroAnimatedStyle, { backgroundColor: colors.background }]}>
-            <SummaryHero
-              firstName={MOCK_FIRST_NAME}
-              stats={MOCK_STATS}
-              logoUrls={MOCK_LOGO_URLS}
-              sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
-              onAmountTap={handleAmountTap}
-              onLogosTap={handleLogosTap}
+          {/* Hero — content fades out while a blur veil fades in on top.
+              Outer View owns position: relative so the absoluteFill
+              BlurView sizes to the hero. */}
+          <View style={styles.heroWrapper}>
+            <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
+              <SummaryHero
+                firstName={MOCK_FIRST_NAME}
+                stats={MOCK_STATS}
+                logoUrls={MOCK_LOGO_URLS}
+                sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
+                onAmountTap={handleAmountTap}
+                onLogosTap={handleLogosTap}
+              />
+            </Animated.View>
+            <AnimatedBlurView
+              tint={isDark ? 'dark' : 'light'}
+              intensity={80}
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFill, heroBlurStyle]}
             />
-          </Animated.View>
+          </View>
 
           {/* Card stack -- elastic gap + staggered entrance */}
           <Animated.View style={[styles.cardStack, animatedCardStackStyle]}>
@@ -239,6 +259,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+  },
+  heroWrapper: {
+    // Anchor for the absoluteFill BlurView overlay.
+    position: 'relative',
   },
   cardStack: {
     paddingHorizontal: 10,

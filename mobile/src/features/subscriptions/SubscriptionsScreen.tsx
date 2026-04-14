@@ -26,12 +26,16 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useDerivedValue,
   interpolate,
   Extrapolation,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { ChevronDown } from 'lucide-react-native';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -92,33 +96,43 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
 // Per-card exit animation: each card shrinks (1 → 0.85), tilts
-// (0° → 20°), fades (1 → 0) and blurs (0 → 20px) only as ITS OWN top
-// crosses the page-title line. Because each card has its own measured
-// `cardY`, animations fire one-by-one as cards reach the top — the
-// list as a whole never tilts.
+// (0° → 20°), fades (1 → 0) and a native gaussian blur veil fades IN
+// over it as ITS OWN top crosses the page-title line. Because each
+// card has its own measured `cardY`, animations fire one-by-one —
+// the list as a whole never tilts.
 //
-// Coordinate math:
-//   cardY         — card's y within the list container (includes the
-//                   cumulative -60px stack margins from siblings above)
+// Why a BlurView overlay instead of the RN 0.81 `filter: [{blur}]`
+// style prop:
+//   - `filter` is a React Native core prop but only renders on the
+//     New Architecture (Fabric). This app runs on the old arch
+//     (Paper) in Expo Go, where `filter` is silently dropped and
+//     only `opacity` would animate.
+//   - expo-blur's BlurView wraps UIVisualEffectView on iOS
+//     (gaussian blur) and works on BOTH architectures.
+//   - Placed *on top of* the card content with an animated opacity,
+//     the BlurView samples everything behind it (including the card
+//     content) and displays a blurred version — which, as the
+//     underlying content fades to 0, reads exactly as "the card
+//     dissolves into a blurry veil".
+//
+// Coordinate math (unchanged):
+//   cardY         — card's y within the list container
 //   listY         — list container's y within the ScrollView content
-//                   (≈ paddingTop + header + controls height)
-//   cardScreenY   — where the card's top currently sits on-screen
-//                 = listY + cardY − scrollY
+//   cardScreenY   = listY + cardY − scrollY     (screen-space Y)
 //
 // Trigger window (screen-space, 100px wide):
 //   progress = 0  when cardScreenY = triggerY         (top meets title)
 //   progress = 1  when cardScreenY = triggerY − 100   (card fully gone)
 //
 // Within that window:
-//   scale   / rotate  animate over progress [0 → 1]   (immediate tilt)
-//   opacity / blur    animate over progress [0.3 → 1] (cascade behind)
+//   scale / rotate   animate over progress [0 → 1]   (immediate tilt)
+//   opacity          animates over progress [0.3 → 1] (cascade behind)
+//   blur veil opacity animates over progress [0.3 → 1]
 //
 // The `measured` + `listY > 0` gate guards against a one-frame tilt
-// flash on mount: if we applied the transform before both onLayouts
-// fired, the card would render pre-animated. Until both are populated
-// we return the identity transform.
+// flash on mount.
 const TRIGGER_RANGE_PX = 100;
-const MAX_BLUR_PX = 40;
+const BLUR_INTENSITY = 80;
 
 // Period-toggle skeleton duration (ms). Long enough that the shimmer
 // reads as an intentional transition rather than a tap glitch.
@@ -137,6 +151,7 @@ function ScrollCard({
   stackMargin: number;
   children: React.ReactNode;
 }) {
+  const { isDark } = useTheme();
   const cardY = useSharedValue(0);
   const cardHeight = useSharedValue(0);
   const measured = useSharedValue(0);
@@ -150,6 +165,19 @@ function ScrollCard({
     [cardY, cardHeight, measured],
   );
 
+  // Shared progress drives BOTH the transform/opacity AND the blur
+  // overlay opacity, keeping them perfectly in sync.
+  const progress = useDerivedValue(() => {
+    if (measured.value === 0 || listY.value === 0) return 0;
+    const screenY = listY.value + cardY.value - scrollY.value;
+    return interpolate(
+      screenY,
+      [triggerY, triggerY - TRIGGER_RANGE_PX],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+  });
+
   const animatedStyle = useAnimatedStyle(() => {
     // Children's onLayout fires before the parent's, so cardY can be
     // populated one frame before listY. Skip the transform on both
@@ -158,45 +186,56 @@ function ScrollCard({
       return {
         opacity: 1,
         transform: [{ scale: 1 }, { rotate: '0deg' }],
-        filter: [{ blur: 0 }],
       };
     }
-    const screenY = listY.value + cardY.value - scrollY.value;
-    // screenY decreases as the card scrolls up. interpolate accepts a
-    // descending input range (CLAMP handles both ends).
-    const progress = interpolate(
-      screenY,
-      [triggerY, triggerY - TRIGGER_RANGE_PX],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const scale = interpolate(progress, [0, 1], [1, 0.85], Extrapolation.CLAMP);
-    const rotate = interpolate(progress, [0, 1], [0, 20], Extrapolation.CLAMP);
-    // Opacity + blur cascade slightly behind the tilt so the fade kicks
-    // in just as the card crosses the header line, not immediately.
-    const opacity = interpolate(progress, [0.3, 1], [1, 0], Extrapolation.CLAMP);
-    const blur = interpolate(progress, [0.3, 1], [0, MAX_BLUR_PX], Extrapolation.CLAMP);
+    const p = progress.value;
+    const scale = interpolate(p, [0, 1], [1, 0.85], Extrapolation.CLAMP);
+    const rotate = interpolate(p, [0, 1], [0, 20], Extrapolation.CLAMP);
+    const opacity = interpolate(p, [0.3, 1], [1, 0], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [
         { scale },
         { rotate: `${rotate}deg` },
       ],
-      filter: [{ blur }],
+    };
+  });
+
+  // Blur veil fade-in. Placed inside the same transform wrapper so it
+  // tilts with the card (blur stays "on" the card as it rotates).
+  const blurOverlayStyle = useAnimatedStyle(() => {
+    if (measured.value === 0 || listY.value === 0) return { opacity: 0 };
+    return {
+      opacity: interpolate(
+        progress.value,
+        [0.3, 1],
+        [0, 1],
+        Extrapolation.CLAMP,
+      ),
     };
   });
 
   return (
     // Outer wrapper OWNS onLayout + marginTop. Its layout.y — measured
     // relative to the list container — reflects the cumulative stack
-    // offset (including the negative stack margins above it). This is
-    // the value we need for cardY; putting onLayout on the inner
-    // Animated.View would always yield 0 because it has no siblings.
+    // offset (including the negative stack margins above it).
     <View onLayout={onLayout} style={{ marginTop: stackMargin }}>
       <Animated.View
         style={[animatedStyle, { transformOrigin: 'center bottom' } as any]}
       >
-        {children}
+        <View style={styles.cardWithBlur}>
+          {children}
+          <AnimatedBlurView
+            tint={isDark ? 'dark' : 'light'}
+            intensity={BLUR_INTENSITY}
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill,
+              blurOverlayStyle,
+              { borderRadius: radius.card },
+            ]}
+          />
+        </View>
       </Animated.View>
     </View>
   );
@@ -270,20 +309,17 @@ export function SubscriptionsScreen() {
   });
 
   // Header fade+blur: as the user scrolls, the "Mis suscripciones"
-  // title and its paragraph dissolve into the background with the same
-  // gaussian-blur vocabulary used on each card's exit. 0–120px of
-  // scroll takes us from fully visible to fully gone.
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    const progress = interpolate(
-      scrollY.value,
-      [0, 120],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    return {
-      opacity: 1 - progress,
-      filter: [{ blur: progress * MAX_BLUR_PX }],
-    };
+  // title and its paragraphs dissolve behind a gaussian blur veil
+  // that fades in on top. 0–120px of scroll = fully visible → fully
+  // gone. Same BlurView-overlay technique as ScrollCard — see the
+  // comment there for the rationale (filter prop requires Fabric).
+  const headerFadeStyle = useAnimatedStyle(() => {
+    const progress = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
+    return { opacity: 1 - progress };
+  });
+  const headerBlurStyle = useAnimatedStyle(() => {
+    const progress = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
+    return { opacity: progress };
   });
 
   // Native iOS sheet / Android modal handlers --------------------
@@ -342,13 +378,13 @@ export function SubscriptionsScreen() {
           },
         ]}
       >
-        {/* Header — fades + blurs out as the user scrolls past it.
-            Transparent background so the FloatingNav glass blur and the
-            list behind both show through the fade. */}
-        <Animated.View style={[styles.header, headerAnimatedStyle]}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>
-            Mis suscripciones
-          </Text>
+        {/* Header — content fades out while a blur veil fades in on top.
+            The outer View holds both so the veil sits above the text. */}
+        <View style={styles.header}>
+          <Animated.View style={headerFadeStyle}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              Mis suscripciones
+            </Text>
 
           {/* Two paragraphs stacked:
              1. "Pagas X al mes." — amount + period are tap-toggleable
@@ -401,7 +437,14 @@ export function SubscriptionsScreen() {
             </Text>
             .
           </Text>
-        </Animated.View>
+          </Animated.View>
+          <AnimatedBlurView
+            tint={isDark ? 'dark' : 'light'}
+            intensity={BLUR_INTENSITY}
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, headerBlurStyle]}
+          />
+        </View>
 
         {/* Sort (left) + Filter (right) */}
         <View style={styles.controlsRow}>
@@ -542,6 +585,17 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     marginBottom: 16,
+    // Anchor for the absoluteFill BlurView that overlays the title
+    // + paragraphs during the scroll-driven fade-out.
+    position: 'relative',
+  },
+  // Wraps each card + its BlurView veil. Needs position: relative so
+  // the absoluteFill BlurView sizes to the card; borderRadius +
+  // overflow: hidden clip the blur to the card's rounded shape.
+  cardWithBlur: {
+    position: 'relative',
+    borderRadius: radius.card,
+    overflow: 'hidden',
   },
   title: {
     ...fontFamily.extrabold,
