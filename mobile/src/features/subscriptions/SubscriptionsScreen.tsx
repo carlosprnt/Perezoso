@@ -20,7 +20,6 @@ import {
   Platform,
   ActionSheetIOS,
   Modal,
-  Dimensions,
   type LayoutChangeEvent,
 } from 'react-native';
 import Animated, {
@@ -40,8 +39,6 @@ import { WalletCard } from './WalletCard';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Slightly looser than web (-76) so the
@@ -92,22 +89,26 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 }
 
 // ─── Scroll-driven animated card wrapper ──────────────────────────
-// Mirrors the web's framer-motion wallet animation 1:1:
+// Per-card exit animation: each card (individually, via its own cardY
+// reference) shrinks (1 → 0.85) and tilts (0° → 20°) in a tight 70px
+// scroll window near the top of the viewport.
 //
-//   useScroll({ target: cardRef, offset: ['start 0.35', 'end start'] })
-//   exitScale    = useTransform(p, [0, 1],   [1, 0.85])
-//   exitRotation = useTransform(p, [0.5, 1], [0, 20])
+// Trigger window, in absolute scrollY:
+//   startY = cardY - TRIGGER_OFFSET_PX   (card top is ~70px below top)
+//   endY   = cardY                       (card top at the viewport top)
 //
-// framer offsets → scrollY thresholds:
-//   'start 0.35' → progress = 0 when card top sits 35% down viewport
-//                  (scrollY = cardY - 0.35 * viewportHeight)
-//   'end start'  → progress = 1 when card bottom reaches viewport top
-//                  (scrollY = cardY + cardHeight)
+// Why a tight window (instead of the web's 0.35 * viewportHeight)?
+// RN's stacked wallet puts cards ~90px apart on the scroll axis
+// (cardHeight + STACK_MARGIN_PX). A 70px animation window therefore
+// spans roughly one card at a time — the rotation fires card-by-card
+// as each one reaches the top, rather than animating several at once.
 //
-// The `measured` gate is a Reanimated-specific safeguard: until onLayout
-// fires, cardY=cardHeight=0 so progress would read > 0 and cards would
-// render tilted on mount. While the gate is 0 we short-circuit to
-// identity transforms. Once measured, we run the web formula verbatim.
+// The `measured` gate is a Reanimated-specific safeguard: until the
+// first onLayout fires, cardY=0 so progress would be > 0 and cards
+// would render tilted on mount. While the gate is 0 we return identity
+// transforms.
+const TRIGGER_OFFSET_PX = 70;
+
 function ScrollCard({
   scrollY,
   children,
@@ -134,8 +135,8 @@ function ScrollCard({
         transform: [{ scale: 1 }, { rotate: '0deg' }],
       };
     }
-    const startY = cardY.value - 0.35 * SCREEN_HEIGHT;
-    const endY = cardY.value + cardHeight.value;
+    const startY = cardY.value - TRIGGER_OFFSET_PX;
+    const endY = cardY.value;
     const progress = interpolate(
       scrollY.value,
       [startY, endY],
@@ -143,7 +144,7 @@ function ScrollCard({
       Extrapolation.CLAMP,
     );
     const scale = interpolate(progress, [0, 1], [1, 0.85], Extrapolation.CLAMP);
-    const rotate = interpolate(progress, [0.5, 1], [0, 20], Extrapolation.CLAMP);
+    const rotate = interpolate(progress, [0, 1], [0, 20], Extrapolation.CLAMP);
     return {
       transform: [
         { scale },
