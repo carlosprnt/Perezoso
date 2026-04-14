@@ -445,8 +445,8 @@ const sheetStyles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.semibold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.snug,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
     flex: 1,
   },
   closeButton: {

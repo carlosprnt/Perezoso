@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
   },
   period: {
     fontFamily: fontFamily.medium,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
   },
   renewalText: {
     fontFamily: fontFamily.medium,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   statusRow: {
     flexDirection: 'row',
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontFamily: fontFamily.semibold,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
 });

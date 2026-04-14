@@ -1,31 +1,53 @@
 // Phase 1 — Design tokens: typography
-// Derived from Perezoso web app font stack + component inline styles
-// Web uses: ui-rounded, "SF Pro Rounded", Nunito as fallback
-// RN uses: Nunito directly (SF Pro Rounded not available cross-platform)
+// iOS: SF Pro Rounded (system) — matches web's `ui-rounded` CSS generic
+// Android: Nunito (loaded via expo-google-fonts) — rounded fallback
 
-/** Font family names as loaded by expo-google-fonts/nunito */
+import { Platform } from 'react-native';
+
+/**
+ * Font family names.
+ * iOS uses SF Pro Rounded PostScript names (system font, no loading needed).
+ * Android uses Nunito loaded through expo-google-fonts.
+ */
 export const fontFamily = {
-  regular:   'Nunito_400Regular',
-  medium:    'Nunito_500Medium',
-  semibold:  'Nunito_600SemiBold',
-  bold:      'Nunito_700Bold',
-  extrabold: 'Nunito_800ExtraBold',
-  black:     'Nunito_900Black',
+  regular: Platform.select({
+    ios: 'SFProRounded-Regular',
+    default: 'Nunito_400Regular',
+  }),
+  medium: Platform.select({
+    ios: 'SFProRounded-Medium',
+    default: 'Nunito_500Medium',
+  }),
+  semibold: Platform.select({
+    ios: 'SFProRounded-Semibold',
+    default: 'Nunito_600SemiBold',
+  }),
+  bold: Platform.select({
+    ios: 'SFProRounded-Bold',
+    default: 'Nunito_700Bold',
+  }),
+  extrabold: Platform.select({
+    ios: 'SFProRounded-Heavy',
+    default: 'Nunito_800ExtraBold',
+  }),
+  black: Platform.select({
+    ios: 'SFProRounded-Black',
+    default: 'Nunito_900Black',
+  }),
 } as const;
 
 /**
- * Font sizes — every value used in the web app.
+ * Font sizes — every value used in the app.
  * Named after their px value for zero ambiguity.
  */
 export const fontSize = {
   10: 10,
   11: 11,
-  12: 12,
   13: 13,
   14: 14,
   15: 15,
   16: 16,
-  17: 17,
+  18: 18,
   20: 20,
   24: 24,
   32: 32,
@@ -91,8 +113,8 @@ export const textPreset = {
   // Titles (card titles, section headers)
   titleLg: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.snug,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   titleMd: {
     fontFamily: fontFamily.semibold,
@@ -125,8 +147,8 @@ export const textPreset = {
   // Captions / labels
   caption: {
     fontFamily: fontFamily.medium,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   captionSm: {
     fontFamily: fontFamily.medium,
@@ -135,8 +157,8 @@ export const textPreset = {
   },
   label: {
     fontFamily: fontFamily.semibold,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     letterSpacing: letterSpacing.widest,
   },
   labelSm: {
@@ -156,8 +178,8 @@ export const textPreset = {
   // Button text
   buttonSm: {
     fontFamily: fontFamily.semibold,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.none,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.none,
   },
   buttonMd: {
     fontFamily: fontFamily.semibold,

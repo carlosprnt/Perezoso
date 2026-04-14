@@ -47,14 +47,14 @@ export function TopExpensive({ subscriptions }: TopExpensiveProps) {
             {/* Rank */}
             <Text style={styles.rank}>#{i + 1}</Text>
 
-            {/* Avatar */}
+            {/* Avatar — 56x56 rounded 24px for a more prominent card */}
             <View style={styles.avatarWrap}>
               <SubscriptionAvatar
                 name={sub.name}
                 simpleIconSlug={sub.simpleIconSlug}
                 logoUrl={sub.logoUrl}
-                size="md"
-                cornerRadius={8}
+                size="lg"
+                cornerRadius={24}
               />
             </View>
 
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[20],
+    lineHeight: fontSize[20] * lineHeight.snug,
   },
   priceRow: {
     flexDirection: 'row',
@@ -120,6 +120,6 @@ const styles = StyleSheet.create({
   },
   period: {
     fontFamily: fontFamily.regular,
-    fontSize: fontSize[12],
+    fontSize: fontSize[14],
   },
 });

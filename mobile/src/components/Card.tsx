@@ -122,14 +122,14 @@ const headerStyles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.tight,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   subtitle: {
     fontFamily: fontFamily.regular,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,
   },
 });

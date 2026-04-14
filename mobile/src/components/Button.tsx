@@ -159,8 +159,8 @@ function getSizeStyle(size: Size): {
         container: { paddingHorizontal: 16 },
         text: {
           fontFamily: fontFamily.semibold,
-          fontSize: fontSize[12],
-          lineHeight: fontSize[12] * lineHeight.none,
+          fontSize: fontSize[14],
+          lineHeight: fontSize[14] * lineHeight.none,
         },
         iconGap: { marginRight: 6 },
       };

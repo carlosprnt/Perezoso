@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.tight,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
     marginBottom: 12,
   },

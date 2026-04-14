@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fontFamily.medium,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   categoryIcon: {
     marginRight: 4, // gap-1

@@ -164,8 +164,8 @@ const styles = StyleSheet.create({
     gap: 12, // gap-3
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius['3xl'], // 16px = rounded-2xl
     alignItems: 'center',
     justifyContent: 'center',
@@ -177,14 +177,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fontFamily.regular,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     marginBottom: 2, // mb-0.5
   },
   title: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.snug,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   right: {
     alignItems: 'flex-end',
@@ -192,13 +192,13 @@ const styles = StyleSheet.create({
   },
   rightTop: {
     fontFamily: fontFamily.semibold,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   rightBottom: {
     fontFamily: fontFamily.regular,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,
   },
 });

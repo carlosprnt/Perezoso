@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.snug,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   avatar: {
     width: 40,

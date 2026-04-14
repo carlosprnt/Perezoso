@@ -50,13 +50,13 @@ export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
       {renewals.map((renewal, index) => (
         <Pressable key={renewal.id} accessibilityLabel={renewal.name}>
           <View style={styles.row}>
-            {/* Avatar */}
+            {/* Avatar — 44x44 rounded-2xl (16px), matches InsightCards icon */}
             <SubscriptionAvatar
               name={renewal.name}
               simpleIconSlug={renewal.simpleIconSlug}
               logoUrl={renewal.logoUrl}
-              size="sm40"
-              cornerRadius={8}
+              size="md"
+              cornerRadius={16}
             />
 
             {/* Info */}
@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSize[17],
-    lineHeight: fontSize[17] * lineHeight.snug,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   price: {
     fontFamily: fontFamily.regular,
-    fontSize: fontSize[12],
-    lineHeight: fontSize[12] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2, // mt-0.5
   },
   days: {

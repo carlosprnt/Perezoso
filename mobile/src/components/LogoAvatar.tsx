@@ -23,7 +23,7 @@ import { borderWidth } from '../design/borders';
 type AvatarSize = 'sm' | 'md' | 'lg';
 
 const SIZE_CONFIG: Record<AvatarSize, { dimension: number; fontSize: number }> = {
-  sm: { dimension: 32, fontSize: fontSize[12] },
+  sm: { dimension: 32, fontSize: fontSize[14] },
   md: { dimension: 40, fontSize: fontSize[14] },
   lg: { dimension: 48, fontSize: fontSize[16] },
 };
