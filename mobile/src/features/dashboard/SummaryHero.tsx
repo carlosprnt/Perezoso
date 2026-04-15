@@ -14,7 +14,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, type GestureResponderEvent } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
-import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
 import { Skeleton } from '../../components/Skeleton';
 import { LogoStack } from './LogoStack';
 import type { DashboardStats } from './types';
@@ -24,12 +23,7 @@ import type { DashboardStats } from './types';
 const PERIOD_TOGGLE_MS = 1500;
 
 interface SummaryHeroProps {
-  firstName: string;
   stats: DashboardStats;
-  /** User's full name for avatar initials (defaults to firstName) */
-  fullName?: string;
-  /** User's avatar URL from profile/Gmail metadata */
-  avatarUrl?: string | null;
   /** Logo URLs for the inline LogoStack (all subscriptions) */
   logoUrls?: string[];
   /** Logo URLs for the "Compartes X suscripciones" line — shared subs only */
@@ -50,10 +44,7 @@ function formatAmount(amount: number, currency: string): string {
 }
 
 export function SummaryHero({
-  firstName,
   stats,
-  fullName,
-  avatarUrl,
   logoUrls = [],
   sharedLogoUrls = [],
   onAmountTap,
@@ -89,30 +80,11 @@ export function SummaryHero({
     : stats.savingsMonthly * 12;
   const savingsLabel = savingsPeriod === 'monthly' ? 'tu gasto al mes' : 'tu gasto al a\u00F1o';
 
-  // Avatar: real image or deterministic pastel initials
-  const displayName = fullName || firstName;
-  const pastel = getAvatarPastel(displayName);
-
   return (
     <View style={styles.container}>
-      {/* Greeting row */}
-      <View style={styles.greetingRow}>
-        <Text style={[styles.greeting, { color: colors.textPrimary }]}>
-          Hola, {firstName}.
-        </Text>
-        {/* UserAvatarMenu — circular, 40px, initials or image */}
-        {avatarUrl ? (
-          <View style={[styles.avatar, { borderColor: 'transparent' }]}>
-            {/* Image avatar would go here when wired to auth */}
-          </View>
-        ) : (
-          <View style={[styles.avatar, { backgroundColor: pastel.bg }]}>
-            <Text style={[styles.avatarText, { color: pastel.fg }]}>
-              {getInitials(displayName)}
-            </Text>
-          </View>
-        )}
-      </View>
+      {/* Greeting + avatar are rendered ABOVE this component by
+          SharedProfileHeader — the same element is visible in both
+          closed and open reveal states, so we don't duplicate it here. */}
 
       {/* Main statement — tap to trigger money confetti */}
       <Pressable
@@ -242,31 +214,13 @@ export function SummaryHero({
 
 const styles = StyleSheet.create({
   container: {
+    // Top padding reserves room for the SharedProfileHeader overlay
+    // (greeting + avatar) that sits above this component at a fixed
+    // screen position. Without this the "Al mes gastas" block would
+    // start flush against the safe area and collide with the header.
+    paddingTop: 44 + 8,
     paddingBottom: 20, // pb-5
     paddingHorizontal: 20,
-  },
-  greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12, // mb-3
-  },
-  greeting: {
-    ...fontFamily.bold,
-    fontSize: fontSize[18],
-    lineHeight: fontSize[18] * lineHeight.snug,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 9999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[14],
   },
   statementBlock: {
     marginBottom: 12, // mb-3

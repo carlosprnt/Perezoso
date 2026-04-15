@@ -40,6 +40,7 @@ import { LogoConfetti } from '../../components/LogoConfetti';
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
 import { useDashboardReveal } from './useDashboardReveal';
+import { SharedProfileHeader } from './SharedProfileHeader';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -140,10 +141,12 @@ export function DashboardScreen() {
     // of theme white. The UnderlyingProfileLayer's own bg is the same
     // color, so this is effectively just a safety net.
     <View style={[styles.root, { backgroundColor: '#0A0A0A' }]}>
-      {/* Underlying profile layer — always mounted, behind the dashboard. */}
+      {/* Underlying profile layer — always mounted, behind the dashboard.
+          Its greeting/avatar are NOT here — they live in the
+          SharedProfileHeader overlay below, which is the same visual
+          element in both closed and open states. */}
       <UnderlyingProfileLayer
         progress={reveal.progress}
-        firstName={MOCK_FIRST_NAME}
         onSettings={reveal.close}
         onShareData={reveal.close}
         onManagePlus={reveal.close}
@@ -184,7 +187,6 @@ export function DashboardScreen() {
             <View style={styles.heroWrapper}>
               <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
                 <SummaryHero
-                  firstName={MOCK_FIRST_NAME}
                   stats={MOCK_STATS}
                   logoUrls={MOCK_LOGO_URLS}
                   sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
@@ -264,6 +266,16 @@ export function DashboardScreen() {
           </Animated.ScrollView>
         </GestureDetector>
       </Animated.View>
+
+      {/* Shared greeting + avatar — ONE visual element that lives above
+          both the dashboard surface and the profile layer. It morphs its
+          style (fontSize + color) with reveal.progress so the same row
+          looks correct whether the white sheet or the black panel is the
+          visible context. Avatar tap toggles the reveal. */}
+      <SharedProfileHeader
+        firstName={MOCK_FIRST_NAME}
+        onAvatarPress={reveal.toggle}
+      />
 
       {/* Confetti overlays — render on top of everything */}
       {moneyConfetti && (

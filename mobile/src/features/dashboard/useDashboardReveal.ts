@@ -33,7 +33,7 @@
 //   - progress    0 .. 1  (= translateY / REVEAL_HEIGHT)
 //   - scrollY     current scroll offset of the inner ScrollView
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Dimensions } from 'react-native';
 import {
   useSharedValue,
@@ -41,6 +41,7 @@ import {
   useDerivedValue,
   withSpring,
   runOnJS,
+  makeMutable,
   type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, type ComposedGesture } from 'react-native-gesture-handler';
@@ -69,6 +70,15 @@ const screenH = Dimensions.get('window').height;
 // Lowered Y target — how far the sheet slides down when open.
 export const REVEAL_HEIGHT = Math.max(0, screenH - PEEK_HEIGHT);
 
+// ─── Module-level singletons ────────────────────────────────────────
+// Exposed so components that live OUTSIDE DashboardScreen (the tabs-level
+// FloatingNav, the SharedProfileHeader that overlays the whole app shell)
+// can read the reveal progress without prop-drilling a SharedValue
+// through the router / _layout boundary. Only useDashboardReveal writes
+// these; everyone else reads `.value` in worklets.
+export const revealProgress = makeMutable(0);
+export const revealIsOpen = makeMutable(false);
+
 export interface DashboardReveal {
   translateY: SharedValue<number>;
   progress: SharedValue<number>;
@@ -76,7 +86,9 @@ export interface DashboardReveal {
   gesture: ComposedGesture;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   isOpenJS: boolean;
+  open: () => void;
   close: () => void;
+  toggle: () => void;
   revealHeight: number;
   peekHeight: number;
 }
@@ -100,10 +112,25 @@ export function useDashboardReveal(): DashboardReveal {
   const progress = useDerivedValue(() => {
     if (REVEAL_HEIGHT <= 0) return 0;
     const t = translateY.value;
-    if (t <= 0) return 0;
-    if (t >= REVEAL_HEIGHT) return 1;
-    return t / REVEAL_HEIGHT;
+    const p = t <= 0 ? 0 : t >= REVEAL_HEIGHT ? 1 : t / REVEAL_HEIGHT;
+    // Mirror into the module singleton so siblings outside DashboardScreen
+    // (FloatingNav, SharedProfileHeader) can read it without context.
+    revealProgress.value = p;
+    return p;
   });
+
+  // Reset the module singletons when the hook mounts, in case a previous
+  // DashboardScreen lifecycle left them at 1 (e.g. navigation away while
+  // open). They're module-scoped so they persist across unmounts.
+  useEffect(() => {
+    revealProgress.value = 0;
+    revealIsOpen.value = false;
+    return () => {
+      revealProgress.value = 0;
+      revealIsOpen.value = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setOpenState = useCallback((open: boolean) => {
     setIsOpenJS(open);
@@ -203,6 +230,7 @@ export function useDashboardReveal(): DashboardReveal {
       const willBeOpen = target === REVEAL_HEIGHT;
       if (willBeOpen !== isOpenSV.value) {
         isOpenSV.value = willBeOpen;
+        revealIsOpen.value = willBeOpen;
         runOnJS(setOpenState)(willBeOpen);
       }
       translateY.value = withSpring(target, SNAP_SPRING);
@@ -210,11 +238,24 @@ export function useDashboardReveal(): DashboardReveal {
 
   const gesture = Gesture.Simultaneous(pan, nativeScroll);
 
+  const open = useCallback(() => {
+    isOpenSV.value = true;
+    revealIsOpen.value = true;
+    setIsOpenJS(true);
+    translateY.value = withSpring(REVEAL_HEIGHT, SNAP_SPRING);
+  }, [isOpenSV, translateY]);
+
   const close = useCallback(() => {
     isOpenSV.value = false;
+    revealIsOpen.value = false;
     setIsOpenJS(false);
     translateY.value = withSpring(0, SNAP_SPRING);
   }, [isOpenSV, translateY]);
+
+  const toggle = useCallback(() => {
+    if (isOpenSV.value) close();
+    else open();
+  }, [open, close, isOpenSV]);
 
   return {
     translateY,
@@ -223,7 +264,9 @@ export function useDashboardReveal(): DashboardReveal {
     gesture,
     scrollHandler,
     isOpenJS,
+    open,
     close,
+    toggle,
     revealHeight: REVEAL_HEIGHT,
     peekHeight: PEEK_HEIGHT,
   };

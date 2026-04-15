@@ -14,6 +14,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { useRouter, usePathname } from 'expo-router';
@@ -24,6 +26,7 @@ import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
 import { useAddSubscriptionStore } from '../features/add-subscription/useAddSubscriptionStore';
+import { revealProgress } from '../features/dashboard/useDashboardReveal';
 
 // ─── Custom CardIcon (matches web's CardIcon with stripe) ────────────
 function CardIcon({
@@ -127,6 +130,19 @@ export function FloatingNav() {
     transform: [{ translateX: indicatorX.value }],
   }));
 
+  // Reveal-aware wrapper animation — as the dashboard pull-down opens,
+  // the nav fades out and scales down to 0.9 so it doesn't compete with
+  // the profile panel that's becoming the focus.
+  const wrapperRevealStyle = useAnimatedStyle(() => {
+    const p = revealProgress.value;
+    return {
+      opacity: interpolate(p, [0, 1], [1, 0], Extrapolation.CLAMP),
+      transform: [
+        { scale: interpolate(p, [0, 1], [1, 0.9], Extrapolation.CLAMP) },
+      ],
+    };
+  });
+
   // Colors
   const iconColor = isDark ? '#F2F2F7' : '#000000';
   const inactiveBorder = isDark ? '#2C2C2E' : '#E5E5EA';
@@ -137,10 +153,11 @@ export function FloatingNav() {
   const cardStripeColor = isDark ? '#1C1C1E' : '#F7F8FA';
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.wrapper,
         { bottom: Math.max(insets.bottom, 8) + 4 },
+        wrapperRevealStyle,
       ]}
       pointerEvents="box-none"
     >
@@ -207,7 +224,7 @@ export function FloatingNav() {
           />
         </Pressable>
       </BlurView>
-    </View>
+    </Animated.View>
   );
 }
 

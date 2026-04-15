@@ -23,8 +23,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Image,
-  type ImageSourcePropType,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -37,15 +35,18 @@ import { Settings, Share2, LogOut, Sun } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 
-const AVATAR_SOURCE: ImageSourcePropType = require('../../../assets/logo.png');
-
 // Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
 const PEEK_HEIGHT = 120;
+
+// Vertical room reserved at the top for the SharedProfileHeader that
+// overlays the whole app shell — greeting + avatar live there, not in
+// this layer. We just leave the area clear so the grid/cards start
+// below it and line up with the header at the same Y as the hero.
+const HEADER_RESERVED = 44;
 
 interface Props {
   /** 0 (closed) → 1 (fully open). Drives the fade + parallax. */
   progress: SharedValue<number>;
-  firstName?: string;
   onSettings?: () => void;
   onShareData?: () => void;
   onManagePlus?: () => void;
@@ -55,7 +56,6 @@ interface Props {
 
 export function UnderlyingProfileLayer({
   progress,
-  firstName = 'Carlos',
   onSettings,
   onShareData,
   onManagePlus,
@@ -89,30 +89,15 @@ export function UnderlyingProfileLayer({
         style={[
           styles.content,
           {
-            // Match web: `pt-24` (96px) relative to the layer top, plus
-            // the safe-area inset so the greeting clears the notch.
-            paddingTop: insets.top + 24,
+            // Top padding clears the safe-area notch + SharedProfileHeader
+            // row (44 px) + a small gap. The header itself is rendered
+            // above us (DashboardScreen level) so the grid starts below.
+            paddingTop: insets.top + HEADER_RESERVED + 20,
             // Clear the foreground peek strip + home indicator.
             paddingBottom: PEEK_HEIGHT + insets.bottom + 24,
           },
         ]}
       >
-        {/* ─── Header: greeting + avatar ───────────────────── */}
-        <View style={styles.header}>
-          <Text style={styles.greeting} numberOfLines={1}>
-            Hola, {firstName}.
-          </Text>
-          <Pressable hitSlop={12} accessibilityLabel="Tu perfil">
-            <View style={styles.avatar}>
-              <Image
-                source={AVATAR_SOURCE}
-                style={styles.avatarImg}
-                resizeMode="cover"
-              />
-            </View>
-          </Pressable>
-        </View>
-
         {/* ─── 2-col grid of dark tiles ────────────────────── */}
         <View style={styles.cardsRow}>
           <DarkTile
@@ -221,33 +206,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-  },
-  // ── Header ──────────────────────────────────────────────
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  greeting: {
-    ...fontFamily.bold,
-    fontSize: 32,
-    color: '#FFFFFF',
-    letterSpacing: -0.6,
-    flexShrink: 1,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F2D9B8',
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarImg: {
-    width: 44,
-    height: 44,
   },
   // ── Cards row ──────────────────────────────────────────
   cardsRow: {
