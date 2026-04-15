@@ -1,28 +1,37 @@
 // useDashboardReveal — the gesture + state machine behind the
 // "pull dashboard down to reveal a layer behind" interaction.
 //
-// Direct port of the web app's DraggableSurface.tsx mechanics
-// (components/ui/DraggableSurface.tsx). Numbers, spring, damping
-// and gating logic all mirror it 1:1 for fidelity.
+// Mechanics ported from web DraggableSurface.tsx. The dashboard is a
+// foreground sheet that slides DOWN over a dark backdrop. When "lowered"
+// (open) the sheet leaves a 120px peek strip at the bottom so the user
+// can grab it back up. When "raised" (closed) the sheet covers the whole
+// screen.
 //
-// The dashboard is a foreground sheet that slides DOWN over a dark
-// backdrop. When "lowered" (open) the sheet leaves a 120px peek strip
-// at the bottom so the user can grab it back up. When "raised" (closed)
-// the sheet covers the whole screen.
+// Why manual activation
+// ─────────────────────
+// Previous iterations relied on Pan's built-in `activeOffsetY` threshold.
+// On native that threshold is measured in gesture-level translation space
+// and — crucially — the Pan STILL activates on taps that happen to drift
+// a few pixels, at which point onEnd fires with the finger's release
+// velocity. A "tap" with ~20 px of drift and ~500 px/s release velocity
+// looks identical to an intentional flick to the snap logic, so the
+// sheet opens/closes from taps on Pressables inside the surface.
+//
+// The fix: `manualActivation(true)`. We track the finger's absolute Y
+// from touchesDown and only activate the Pan when:
+//   • the user has moved vertically by PULL_ACTIVATION_PX (not a tap), AND
+//   • the direction matches what the current state allows:
+//       - closed: must be downward + scrolled to top
+//       - open:   any vertical direction
+//
+// Below that threshold the Pan stays in BEGAN and never commits
+// translateY or fires onEnd — Pressables inside the surface get their
+// taps through untouched.
 //
 // Shared values exposed
 //   - translateY  0 .. REVEAL_HEIGHT
 //   - progress    0 .. 1  (= translateY / REVEAL_HEIGHT)
 //   - scrollY     current scroll offset of the inner ScrollView
-//
-// Gesture / scroll coordination
-//   The pan is composed simultaneously with a Native gesture so the
-//   ScrollView keeps scrolling. A `manualActivation(true)` pan is
-//   NOT used — instead we gate in onUpdate:
-//     - raised + gesture started with scrollTop == 0 + dy > 0 → drag surface
-//     - raised + scrolled into content → native scroll owns the gesture
-//     - lowered → any drag moves the surface
-//   This mirrors the web touch-handler's `mode = 'drag' | 'scroll'` state.
 
 import { useCallback, useState } from 'react';
 import { Dimensions } from 'react-native';
@@ -36,16 +45,15 @@ import {
 } from 'react-native-reanimated';
 import { Gesture, type ComposedGesture } from 'react-native-gesture-handler';
 
-// ─── Tunables — match DraggableSurface.tsx ──────────────────────────
+// ─── Tunables ───────────────────────────────────────────────────────
 const PEEK_HEIGHT = 120;            // px of foreground visible when lowered
 const SNAP_THRESHOLD = 0.12;        // fraction of loweredY to trigger snap
 const VEL_THRESHOLD = 400;          // px/s flick velocity
-// Pan activation threshold. Set higher than the web's 6px because on
-// native, a tap naturally produces a few px of finger drift at release —
-// at 6px the Pan would activate on taps and the velocity-based snap in
-// onEnd would pop the sheet open. 14px is comfortably past tap jitter
-// without making an intentional drag feel sluggish.
-const DRAG_START_THRESHOLD = 14;
+// Finger MUST move this many px from touch-down before the Pan activates.
+// Set high enough that natural tap drift (press+lift motion) never crosses
+// it. iOS's own tap slop is ~10pt; we go well past that so Pressables
+// inside the surface work reliably.
+const PULL_ACTIVATION_PX = 24;
 const OVER_DAMP = 0.15;             // rubber-band resistance beyond bounds
 
 const SNAP_SPRING = {
@@ -81,6 +89,10 @@ export function useDashboardReveal(): DashboardReveal {
   // begin to reveal while scroll is the dominant gesture).
   const startScrollY = useSharedValue(0);
   const startTranslateY = useSharedValue(0);
+  // Absolute Y of the finger at touch-down — used by manualActivation
+  // to measure finger displacement independently of the gesture's own
+  // translation state (which only exists after activation).
+  const startFingerY = useSharedValue(0);
   // Snapped state — matches raisedRef in the web app.
   const isOpenSV = useSharedValue(false);
   const [isOpenJS, setIsOpenJS] = useState(false);
@@ -109,22 +121,45 @@ export function useDashboardReveal(): DashboardReveal {
   const nativeScroll = Gesture.Native();
 
   const pan = Gesture.Pan()
-    // Only activate on downward drag past DRAG_START_THRESHOLD. Upward
-    // drags never activate this pan (scroll handles them). This mirrors
-    // the web's `mode = 'scroll'` branch for upward/scrolled gestures.
-    .activeOffsetY([-9999, DRAG_START_THRESHOLD])
-    .onBegin(() => {
+    // We control activation explicitly via onTouchesMove so that taps
+    // never trigger the reveal (see the header comment).
+    .manualActivation(true)
+    .onTouchesDown((e) => {
       'worklet';
+      const touch = e.allTouches[0];
+      if (!touch) return;
+      startFingerY.value = touch.absoluteY;
       startScrollY.value = scrollY.value;
       startTranslateY.value = translateY.value;
+    })
+    .onTouchesMove((e, state) => {
+      'worklet';
+      const touch = e.allTouches[0];
+      if (!touch) return;
+      const dy = touch.absoluteY - startFingerY.value;
+
+      if (isOpenSV.value) {
+        // Open: activate on any vertical drag past the threshold. User
+        // may want to close (drag up) or just jostle (drag down a bit).
+        if (Math.abs(dy) >= PULL_ACTIVATION_PX) {
+          state.activate();
+        }
+      } else {
+        // Closed: ONLY activate for a deliberate downward pull from
+        // scroll-top. Anything else (upward drag, scrolled content,
+        // sub-threshold motion) lets the native scroll keep ownership.
+        if (startScrollY.value <= 0 && dy >= PULL_ACTIVATION_PX) {
+          state.activate();
+        }
+      }
     })
     .onUpdate((e) => {
       'worklet';
       const dy = e.translationY;
 
       if (isOpenSV.value) {
-        // Lowered → any drag moves the surface. Position is base + dy,
-        // rubber-banded past the bounds.
+        // Open → user is closing (or jostling). Position is base + dy,
+        // rubber-banded past both bounds.
         const raw = startTranslateY.value + dy;
         let clamped = raw;
         if (raw < 0) clamped = raw * OVER_DAMP;
@@ -132,15 +167,13 @@ export function useDashboardReveal(): DashboardReveal {
           clamped = REVEAL_HEIGHT + (raw - REVEAL_HEIGHT) * OVER_DAMP;
         translateY.value = clamped;
       } else {
-        // Raised → only move the sheet if the user started at scroll
-        // top AND is dragging down. Otherwise leave translateY alone —
-        // native scroll is the active gesture.
-        if (startScrollY.value <= 0 && dy > 0) {
-          let clamped = dy;
-          if (dy > REVEAL_HEIGHT)
-            clamped = REVEAL_HEIGHT + (dy - REVEAL_HEIGHT) * OVER_DAMP;
-          translateY.value = clamped;
-        }
+        // Closed → we only reach here after manualActivation approved
+        // the gesture (downward from scroll-top). Track dy directly.
+        let clamped = dy;
+        if (dy > REVEAL_HEIGHT)
+          clamped = REVEAL_HEIGHT + (dy - REVEAL_HEIGHT) * OVER_DAMP;
+        else if (dy < 0) clamped = 0;
+        translateY.value = clamped;
       }
     })
     .onEnd((e) => {
@@ -148,11 +181,9 @@ export function useDashboardReveal(): DashboardReveal {
       const v = e.velocityY;
       const cur = translateY.value;
 
-      // Decide target (0 or REVEAL_HEIGHT) mirroring the web logic.
       let target: number;
       if (isOpenSV.value) {
-        // Was lowered; if still lowered and not flicked up, stay lowered.
-        // If dragged/flicked up past thresholds, go back to 0.
+        // Open → close: velocity OR position commits the close.
         if (Math.abs(v) > VEL_THRESHOLD) {
           target = v > 0 ? REVEAL_HEIGHT : 0;
         } else {
@@ -161,30 +192,11 @@ export function useDashboardReveal(): DashboardReveal {
             : REVEAL_HEIGHT;
         }
       } else {
-        // Closed → open logic. Two guards against false positives:
-        //
-        //  1. `cur <= 0` — the surface never actually moved (gate in
-        //     onUpdate refused, e.g. user wasn't at scroll-top, or dragging
-        //     up). A fast scroll flick would hit this path with high v but
-        //     cur still 0.
-        //
-        //  2. cur moved but stayed under half the snap threshold — the
-        //     Pan activated from tap jitter (~14 px) but the user didn't
-        //     actually pull the sheet. Velocity at finger release is
-        //     easily > 400 px/s for a normal tap, so we CANNOT let
-        //     velocity alone open the sheet from such a small offset.
-        //
-        // Only once the drag crossed ~6% of the reveal distance (half the
-        // snap threshold) does velocity get to commit the snap early.
-        const minOpenDistance = REVEAL_HEIGHT * SNAP_THRESHOLD * 0.5;
-        if (cur <= 0) {
-          target = 0;
-        } else if (cur > REVEAL_HEIGHT * SNAP_THRESHOLD) {
-          target = REVEAL_HEIGHT;
-        } else if (cur > minOpenDistance && v > VEL_THRESHOLD) {
-          target = REVEAL_HEIGHT;
+        // Closed → open: velocity OR position commits the open.
+        if (Math.abs(v) > VEL_THRESHOLD) {
+          target = v > 0 ? REVEAL_HEIGHT : 0;
         } else {
-          target = 0;
+          target = cur > REVEAL_HEIGHT * SNAP_THRESHOLD ? REVEAL_HEIGHT : 0;
         }
       }
 
