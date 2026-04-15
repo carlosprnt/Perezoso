@@ -1,22 +1,26 @@
-// CreateSubscriptionSheet — white form sheet rendered via a native <Modal>.
+// CreateSubscriptionSheet — white iOS-style form sheet.
 //
-// Using React Native's built-in Modal is the most reliable way to render
-// content above everything else on iOS: on iOS it spawns a separate
-// UIViewController that sits on top of the root app window, so nothing
-// in the React tree (Expo Router Slot, Tabs, FloatingNav, status bar,
-// etc.) can cover it.
-//
-// All selectors (currency, billing period, category, share count) open
-// their own inline OptionPickerSheet. Dates open the custom DatePickerSheet.
-// These stack above the parent Modal — on iOS each Modal is its own
-// presentation layer so stacking Just Works.
+// Behaviour:
+//  · Opens via a native <Modal> (guaranteed above all in-tree UI)
+//  · Slide-in animation: timing, no bounce
+//  · Drag handle → drag-to-dismiss (with dirty-form confirmation)
+//  · Dropdowns via ActionSheetIOS (native pull-down feel on iOS)
+//  · Date fields via NativeDatePickerSheet (iOS inline calendar)
+//  · Dirty-form protection: Alert on Cancel / backdrop / swipe-close
+//  · Validation: name + price required; inline error banner above scroll
+//  · Submit: spinner → success toast (fired 320ms after Modal closes)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
+  Easing,
   KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -27,16 +31,17 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
+import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { OptionPickerSheet } from './pickers/OptionPickerSheet';
-import { DatePickerSheet } from './pickers/DatePickerSheet';
+import { useToastStore } from '../../components/useToastStore';
 import { fontFamily, fontSize } from '../../design/typography';
 
-const SHEET_RADIUS_TOP = 32;
 const { height: SCREEN_H } = Dimensions.get('window');
 
+// ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'Monthly' | 'Yearly' | 'Weekly';
 type Category =
   | 'Streaming'
@@ -46,6 +51,8 @@ type Category =
   | 'IA'
   | 'Gaming'
   | 'Otros';
+type DateKey = 'start' | 'next' | 'end' | null;
+type PickerKey = 'currency' | 'billing' | 'category' | null;
 
 interface FormState {
   name: string;
@@ -59,49 +66,28 @@ interface FormState {
   category: Category;
   shared: boolean;
   sharedCount: number;
+  paymentMethod: string;
   logoUrl: string;
   notes: string;
 }
 
-type PickerKey =
-  | 'currency'
-  | 'billing'
-  | 'category'
-  | 'sharedCount'
-  | null;
-type DateKey = 'start' | 'next' | 'end' | null;
-
-const CURRENCIES = ['€', '$', '£', 'US$'];
+// ─── Constants ───────────────────────────────────────────────────────
+const CURRENCIES = ['€', '$', '£', 'US$'] as const;
 const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Weekly'];
 const CATEGORIES: Category[] = [
-  'Streaming',
-  'Música',
-  'Productividad',
-  'Cloud',
-  'IA',
-  'Gaming',
-  'Otros',
+  'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
 ];
-// Up to 10 people — covers every reasonable family/friends split.
-const SHARED_COUNTS: string[] = Array.from({ length: 9 }, (_, i) => String(i + 2));
-const MONTHS_ES = [
-  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
-];
+const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 function formatDate(d: Date): string {
   return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
 }
-
 function nextMonth(d: Date): Date {
   const n = new Date(d);
   n.setMonth(n.getMonth() + 1);
   return n;
 }
-
-function initialForm(
-  prefill: { name?: string; logoUrl?: string; category?: string } | null,
-): FormState {
+function initialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
   const today = new Date();
   return {
     name: prefill?.name ?? '',
@@ -115,22 +101,34 @@ function initialForm(
     category: (prefill?.category as Category) ?? 'Streaming',
     shared: false,
     sharedCount: 2,
+    paymentMethod: '',
     logoUrl: prefill?.logoUrl ?? '',
     notes: '',
   };
 }
-
-function FormDivider() {
-  return <View style={styles.divider} />;
+function formIsEqual(a: FormState, b: FormState): boolean {
+  return (
+    a.name === b.name &&
+    a.currency === b.currency &&
+    a.price === b.price &&
+    a.startDate.getTime() === b.startDate.getTime() &&
+    a.nextPaymentDate.getTime() === b.nextPaymentDate.getTime() &&
+    a.billingPeriod === b.billingPeriod &&
+    a.endEnabled === b.endEnabled &&
+    a.endDate.getTime() === b.endDate.getTime() &&
+    a.category === b.category &&
+    a.shared === b.shared &&
+    a.sharedCount === b.sharedCount &&
+    a.paymentMethod === b.paymentMethod &&
+    a.logoUrl === b.logoUrl &&
+    a.notes === b.notes
+  );
 }
 
-function DatePillBtn({
-  date,
-  onPress,
-}: {
-  date: Date;
-  onPress: () => void;
-}) {
+// ─── Sub-components ──────────────────────────────────────────────────
+function FormDivider() { return <View style={styles.divider} />; }
+
+function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
   return (
     <Pressable style={styles.datePill} onPress={onPress} hitSlop={8}>
       <Text style={styles.datePillText}>{formatDate(date)}</Text>
@@ -138,13 +136,7 @@ function DatePillBtn({
   );
 }
 
-function DropdownValue({
-  value,
-  onPress,
-}: {
-  value: string;
-  onPress: () => void;
-}) {
+function DropdownBtn({ value, onPress }: { value: string; onPress: () => void }) {
   return (
     <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
       <Text style={styles.dropdownText}>{value}</Text>
@@ -153,65 +145,201 @@ function DropdownValue({
   );
 }
 
+// ─── Main component ──────────────────────────────────────────────────
 export function CreateSubscriptionSheet() {
   const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
-  const close = useCreateSubscriptionStore((s) => s.close);
+  const closeStore = useCreateSubscriptionStore((s) => s.close);
   const insets = useSafeAreaInsets();
 
-  // v6-dropdowns marker — lets us verify fresh JS is running.
-  console.log('[CreateSubscriptionSheet v6-dropdowns] render, isOpen=', isOpen);
-
   const [form, setForm] = useState<FormState>(() => initialForm(null));
-  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
+  const initialFormRef = useRef<FormState>(initialForm(null));
+
   const [openDate, setOpenDate] = useState<DateKey>(null);
+  // Android fallback picker state (iOS uses ActionSheetIOS)
+  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
 
-  // Slide-up animation for the sheet contents.
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
+  const isDirty = useCallback(
+    () => !formIsEqual(form, initialFormRef.current),
+    [form],
+  );
 
+  // ── Open / close animations ────────────────────────────────────────
   useEffect(() => {
     if (isOpen) {
-      setForm(initialForm(prefill));
-      setOpenPicker(null);
+      const fresh = initialForm(prefill);
+      initialFormRef.current = fresh;
+      setForm(fresh);
+      setError(null);
+      setIsSubmitting(false);
       setOpenDate(null);
-      Animated.spring(translateY, {
+      setOpenPicker(null);
+      // Slide up — timing, no bounce
+      Animated.timing(translateY, {
         toValue: 0,
+        duration: 320,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-        damping: 20,
-        stiffness: 240,
-        mass: 0.9,
       }).start();
     } else {
       translateY.setValue(SCREEN_H);
     }
   }, [isOpen, prefill, translateY]);
 
-  const decShared = useCallback(() => {
-    setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) }));
-  }, []);
-  const incShared = useCallback(() => {
-    setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) }));
+  // ── Confirm + close ───────────────────────────────────────────────
+  const requestClose = useCallback(() => {
+    if (isDirty()) {
+      Alert.alert(
+        'Descartar cambios',
+        '¿Seguro que quieres salir? Perderás los datos introducidos.',
+        [
+          { text: 'Seguir editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: closeStore },
+        ],
+      );
+    } else {
+      closeStore();
+    }
+  }, [isDirty, closeStore]);
+
+  // ── Drag-to-dismiss (pan on handle area) ─────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 100 || g.vy > 1.2) {
+          // Animate down then trigger close logic
+          Animated.timing(translateY, {
+            toValue: SCREEN_H,
+            duration: 200,
+            easing: Easing.in(Easing.cubic),
+            useNativeDriver: true,
+          }).start(() => {
+            translateY.setValue(SCREEN_H);
+            // requestClose needs current form — access via ref trick
+            requestCloseRef.current();
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 18,
+            stiffness: 200,
+          }).start();
+        }
+      },
+    }),
+  ).current;
+
+  // Keep a ref so panResponder callback can always call latest requestClose
+  const requestCloseRef = useRef(requestClose);
+  useEffect(() => { requestCloseRef.current = requestClose; }, [requestClose]);
+
+  // ── ActionSheet helpers ───────────────────────────────────────────
+  const openCurrencySheet = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Moneda',
+          options: [...CURRENCIES, 'Cancelar'],
+          cancelButtonIndex: CURRENCIES.length,
+          userInterfaceStyle: 'light',
+        },
+        (i) => { if (i < CURRENCIES.length) setForm((f) => ({ ...f, currency: CURRENCIES[i] })); },
+      );
+    } else {
+      setOpenPicker('currency');
+    }
   }, []);
 
+  const openBillingSheet = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Periodo de cobro',
+          options: [...BILLING_PERIODS, 'Cancelar'],
+          cancelButtonIndex: BILLING_PERIODS.length,
+          userInterfaceStyle: 'light',
+        },
+        (i) => { if (i < BILLING_PERIODS.length) setForm((f) => ({ ...f, billingPeriod: BILLING_PERIODS[i] })); },
+      );
+    } else {
+      setOpenPicker('billing');
+    }
+  }, []);
+
+  const openCategorySheet = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Categoría',
+          options: [...CATEGORIES, 'Cancelar'],
+          cancelButtonIndex: CATEGORIES.length,
+          userInterfaceStyle: 'light',
+        },
+        (i) => { if (i < CATEGORIES.length) setForm((f) => ({ ...f, category: CATEGORIES[i] })); },
+      );
+    } else {
+      setOpenPicker('category');
+    }
+  }, []);
+
+  // ── Steppers ─────────────────────────────────────────────────────
+  const decShared = useCallback(() => setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), []);
+  const incShared = useCallback(() => setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) })), []);
+
+  // ── Submit ────────────────────────────────────────────────────────
+  const handleSubmit = useCallback(async () => {
+    if (!form.name.trim()) {
+      setError('El nombre de la suscripción es obligatorio.');
+      return;
+    }
+    const priceNum = parseFloat(form.price.replace(',', '.'));
+    if (!form.price.trim() || isNaN(priceNum) || priceNum <= 0) {
+      setError('Introduce un precio válido.');
+      return;
+    }
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      // TODO: replace with real API call
+      await new Promise<void>((r) => setTimeout(r, 900));
+      setIsSubmitting(false);
+      closeStore();
+      // Wait for Modal fade-out (~300ms) before showing toast at root
+      setTimeout(() => {
+        useToastStore.getState().show('success', 'Suscripción creada correctamente');
+      }, 320);
+    } catch {
+      setIsSubmitting(false);
+      setError('No se pudo crear la suscripción. Inténtalo de nuevo.');
+    }
+  }, [form, closeStore]);
+
+  // ─────────────────────────────────────────────────────────────────
   return (
     <Modal
       visible={isOpen}
       transparent
       animationType="fade"
-      onRequestClose={close}
+      onRequestClose={requestClose}
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
       <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={close} />
+        <Pressable style={styles.backdrop} onPress={requestClose} />
 
         <Animated.View
           style={[
             styles.sheet,
             {
-              // Clamped to a tight value so buttons don't float far above
-              // the home indicator. Devices without an indicator fall back
-              // to 10px, matching iOS form-sheet spacing.
               paddingBottom: insets.bottom > 0 ? 14 : 10,
               transform: [{ translateY }],
             },
@@ -220,24 +348,29 @@ export function CreateSubscriptionSheet() {
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={0}
           >
-            <View style={styles.handleZone}>
+            {/* ── Handle — drag target ── */}
+            <View style={styles.handleZone} {...panResponder.panHandlers}>
               <View style={styles.handle} />
             </View>
 
+            {/* ── Header ── */}
             <View style={styles.header}>
               <Text style={styles.title}>Crear nueva suscripción</Text>
-              <Pressable
-                style={styles.closeBtn}
-                onPress={close}
-                hitSlop={10}
-                accessibilityLabel="Cerrar"
-              >
+              <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
                 <X size={15} color="#3C3C43" strokeWidth={2.5} />
               </Pressable>
             </View>
 
+            {/* ── Error banner ── */}
+            {error && (
+              <View style={styles.errorBanner}>
+                <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            {/* ── Form ── */}
             <ScrollView
               style={styles.scroll}
               contentContainerStyle={styles.scrollContent}
@@ -245,6 +378,7 @@ export function CreateSubscriptionSheet() {
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
             >
+              {/* Platform card */}
               <View style={styles.platformCard}>
                 <TextInput
                   style={styles.platformName}
@@ -256,11 +390,7 @@ export function CreateSubscriptionSheet() {
                   autoCorrect={false}
                 />
                 <View style={styles.priceRow}>
-                  <Pressable
-                    style={styles.currencyPill}
-                    onPress={() => setOpenPicker('currency')}
-                    hitSlop={8}
-                  >
+                  <Pressable style={styles.currencyPill} onPress={openCurrencySheet} hitSlop={8}>
                     <Text style={styles.currencyText}>{form.currency}</Text>
                     <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
                   </Pressable>
@@ -276,38 +406,28 @@ export function CreateSubscriptionSheet() {
                 </View>
               </View>
 
+              {/* Dates + billing */}
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Inicio de suscripción</Text>
-                  <DatePillBtn
-                    date={form.startDate}
-                    onPress={() => setOpenDate('start')}
-                  />
+                  <DatePillBtn date={form.startDate} onPress={() => setOpenDate('start')} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
-                  <DatePillBtn
-                    date={form.nextPaymentDate}
-                    onPress={() => setOpenDate('next')}
-                  />
+                  <DatePillBtn date={form.nextPaymentDate} onPress={() => setOpenDate('next')} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Importe</Text>
-                  <DropdownValue
-                    value={form.billingPeriod}
-                    onPress={() => setOpenPicker('billing')}
-                  />
+                  <Text style={styles.rowLabel}>Periodo de cobro</Text>
+                  <DropdownBtn value={form.billingPeriod} onPress={openBillingSheet} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Fin de la suscripción</Text>
                   <Switch
                     value={form.endEnabled}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, endEnabled: v }))
-                    }
+                    onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                     thumbColor="#FFFFFF"
                   />
@@ -316,36 +436,28 @@ export function CreateSubscriptionSheet() {
                   <>
                     <FormDivider />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
-                        Fecha de fin
-                      </Text>
-                      <DatePillBtn
-                        date={form.endDate}
-                        onPress={() => setOpenDate('end')}
-                      />
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Fecha de fin</Text>
+                      <DatePillBtn date={form.endDate} onPress={() => setOpenDate('end')} />
                     </View>
                   </>
                 )}
               </View>
 
+              {/* Category */}
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Categoría</Text>
-                  <DropdownValue
-                    value={form.category}
-                    onPress={() => setOpenPicker('category')}
-                  />
+                  <DropdownBtn value={form.category} onPress={openCategorySheet} />
                 </View>
               </View>
 
+              {/* Shared */}
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Suscripción compartida</Text>
                   <Switch
                     value={form.shared}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, shared: v }))
-                    }
+                    onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                     thumbColor="#FFFFFF"
                   />
@@ -354,34 +466,30 @@ export function CreateSubscriptionSheet() {
                   <>
                     <FormDivider />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
-                        Entre cuántas personas
-                      </Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Total personas</Text>
                       <View style={styles.stepper}>
                         <Pressable
                           onPress={decShared}
                           hitSlop={6}
+                          disabled={form.sharedCount <= 2}
                           style={({ pressed }) => [
                             styles.stepperBtn,
                             form.sharedCount <= 2 && styles.stepperBtnDisabled,
                             pressed && { opacity: 0.6 },
                           ]}
-                          disabled={form.sharedCount <= 2}
                         >
                           <Minus size={14} color="#000000" strokeWidth={2.5} />
                         </Pressable>
-                        <Text style={styles.stepperValue}>
-                          {form.sharedCount}
-                        </Text>
+                        <Text style={styles.stepperValue}>{form.sharedCount}</Text>
                         <Pressable
                           onPress={incShared}
                           hitSlop={6}
+                          disabled={form.sharedCount >= 10}
                           style={({ pressed }) => [
                             styles.stepperBtn,
                             form.sharedCount >= 10 && styles.stepperBtnDisabled,
                             pressed && { opacity: 0.6 },
                           ]}
-                          disabled={form.sharedCount >= 10}
                         >
                           <Plus size={14} color="#000000" strokeWidth={2.5} />
                         </Pressable>
@@ -391,6 +499,24 @@ export function CreateSubscriptionSheet() {
                 )}
               </View>
 
+              {/* Payment method */}
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Método de pago</Text>
+                  <TextInput
+                    style={styles.inlineInput}
+                    value={form.paymentMethod}
+                    onChangeText={(t) => setForm((f) => ({ ...f, paymentMethod: t }))}
+                    placeholder="Visa, PayPal..."
+                    placeholderTextColor="#C7C7CC"
+                    returnKeyType="done"
+                    autoCorrect={false}
+                    textAlign="right"
+                  />
+                </View>
+              </View>
+
+              {/* Logo URL + Notes */}
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>URL del logo</Text>
@@ -398,25 +524,16 @@ export function CreateSubscriptionSheet() {
                     <TextInput
                       style={styles.urlInput}
                       value={form.logoUrl}
-                      onChangeText={(t) =>
-                        setForm((f) => ({ ...f, logoUrl: t }))
-                      }
+                      onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
                       placeholder="https://..."
                       placeholderTextColor="#C7C7CC"
                       keyboardType="url"
                       autoCapitalize="none"
                       autoCorrect={false}
                       returnKeyType="done"
-                      numberOfLines={1}
                     />
                     {form.logoUrl.length > 0 && (
-                      <Pressable
-                        onPress={() =>
-                          setForm((f) => ({ ...f, logoUrl: '' }))
-                        }
-                        hitSlop={8}
-                        style={styles.urlClear}
-                      >
+                      <Pressable onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))} hitSlop={8} style={styles.urlClear}>
                         <X size={12} color="#8E8E93" strokeWidth={2.5} />
                       </Pressable>
                     )}
@@ -428,48 +545,65 @@ export function CreateSubscriptionSheet() {
                   <TextInput
                     style={styles.notesInput}
                     value={form.notes}
-                    onChangeText={(t) =>
-                      setForm((f) => ({ ...f, notes: t }))
-                    }
+                    onChangeText={(t) => setForm((f) => ({ ...f, notes: t }))}
                     placeholder="Añade una nota..."
                     placeholderTextColor="#C7C7CC"
                     multiline
                     textAlignVertical="top"
-                    returnKeyType="default"
                   />
                 </View>
               </View>
             </ScrollView>
 
+            {/* ── Footer ── */}
             <View style={styles.footer}>
               <Pressable
-                style={({ pressed }) => [
-                  styles.cancelBtn,
-                  pressed && { opacity: 0.7 },
-                ]}
-                onPress={close}
+                style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
+                onPress={requestClose}
+                disabled={isSubmitting}
               >
                 <Text style={styles.cancelBtnText}>Cancelar</Text>
               </Pressable>
               <Pressable
-                style={({ pressed }) => [
-                  styles.createBtn,
-                  pressed && { opacity: 0.85 },
-                ]}
-                onPress={close}
+                style={({ pressed }) => [styles.createBtn, pressed && !isSubmitting && { opacity: 0.85 }]}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
               >
-                <Text style={styles.createBtnText}>Crear suscripción</Text>
+                {isSubmitting
+                  ? <ActivityIndicator color="#FFFFFF" size="small" />
+                  : <Text style={styles.createBtnText}>Crear suscripción</Text>
+                }
               </Pressable>
             </View>
           </KeyboardAvoidingView>
         </Animated.View>
       </View>
 
-      {/* ─── Nested pickers ─────────────────────────────────────────
-          Each is its own native Modal so it stacks above the parent
-          sheet cleanly. We render them unconditionally here (inside
-          the parent Modal) because their own `visible` prop gates
-          whether anything shows on screen. */}
+      {/* ── Nested pickers ── */}
+      <NativeDatePickerSheet
+        visible={openDate === 'start'}
+        value={form.startDate}
+        title="Inicio de suscripción"
+        onChange={(d) => setForm((f) => ({ ...f, startDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      <NativeDatePickerSheet
+        visible={openDate === 'next'}
+        value={form.nextPaymentDate}
+        title="Próxima fecha de pago"
+        minimumDate={form.startDate}
+        onChange={(d) => setForm((f) => ({ ...f, nextPaymentDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      <NativeDatePickerSheet
+        visible={openDate === 'end'}
+        value={form.endDate}
+        title="Fecha de fin"
+        minimumDate={form.startDate}
+        onChange={(d) => setForm((f) => ({ ...f, endDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      {/* Android fallbacks */}
       <OptionPickerSheet
         visible={openPicker === 'currency'}
         title="Moneda"
@@ -480,12 +614,10 @@ export function CreateSubscriptionSheet() {
       />
       <OptionPickerSheet
         visible={openPicker === 'billing'}
-        title="Ciclo de pago"
+        title="Periodo de cobro"
         options={BILLING_PERIODS}
         selected={form.billingPeriod}
-        onSelect={(v) =>
-          setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))
-        }
+        onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
         onClose={() => setOpenPicker(null)}
       />
       <OptionPickerSheet
@@ -493,46 +625,14 @@ export function CreateSubscriptionSheet() {
         title="Categoría"
         options={CATEGORIES}
         selected={form.category}
-        onSelect={(v) =>
-          setForm((f) => ({ ...f, category: v as Category }))
-        }
+        onSelect={(v) => setForm((f) => ({ ...f, category: v as Category }))}
         onClose={() => setOpenPicker(null)}
-      />
-      <OptionPickerSheet
-        visible={openPicker === 'sharedCount'}
-        title="Número de personas"
-        options={SHARED_COUNTS}
-        selected={String(form.sharedCount)}
-        onSelect={(v) =>
-          setForm((f) => ({ ...f, sharedCount: Number(v) }))
-        }
-        onClose={() => setOpenPicker(null)}
-      />
-      <DatePickerSheet
-        visible={openDate === 'start'}
-        value={form.startDate}
-        title="Inicio de suscripción"
-        onChange={(d) => setForm((f) => ({ ...f, startDate: d }))}
-        onClose={() => setOpenDate(null)}
-      />
-      <DatePickerSheet
-        visible={openDate === 'next'}
-        value={form.nextPaymentDate}
-        title="Próxima fecha de pago"
-        onChange={(d) => setForm((f) => ({ ...f, nextPaymentDate: d }))}
-        onClose={() => setOpenDate(null)}
-      />
-      <DatePickerSheet
-        visible={openDate === 'end'}
-        value={form.endDate}
-        title="Fecha de fin"
-        onChange={(d) => setForm((f) => ({ ...f, endDate: d }))}
-        onClose={() => setOpenDate(null)}
       />
     </Modal>
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -540,15 +640,13 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: SHEET_RADIUS_TOP,
-    borderTopRightRadius: SHEET_RADIUS_TOP,
-    // Near-fullscreen: keeps a small gap at the top so the backdrop is
-    // still visible and the sheet feels like a sheet (not a full screen).
-    height: '94%',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    height: '86%',
     overflow: 'hidden',
   },
 
@@ -556,6 +654,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     paddingBottom: 6,
+    // Increase tap target height so the drag feels natural
+    paddingHorizontal: 100,
   },
   handle: {
     width: 36,
@@ -588,9 +688,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  scroll: {
-    flex: 1,
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#FECACA',
   },
+  errorText: {
+    ...fontFamily.regular,
+    fontSize: fontSize[14],
+    color: '#B91C1C',
+    flex: 1,
+    letterSpacing: -0.1,
+  },
+
+  scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -669,7 +788,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     paddingRight: 12,
   },
-  rowLabelIndented: {
+  rowLabelMuted: {
     color: '#8E8E93',
     fontSize: fontSize[15],
   },
@@ -712,9 +831,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepperBtnDisabled: {
-    opacity: 0.35,
-  },
+  stepperBtnDisabled: { opacity: 0.35 },
   stepperValue: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
@@ -722,6 +839,16 @@ const styles = StyleSheet.create({
     minWidth: 22,
     textAlign: 'center',
     letterSpacing: -0.2,
+  },
+
+  inlineInput: {
+    ...fontFamily.regular,
+    fontSize: fontSize[16],
+    color: '#8E8E93',
+    letterSpacing: -0.1,
+    flex: 1,
+    textAlign: 'right',
+    padding: 0,
   },
 
   urlRow: {

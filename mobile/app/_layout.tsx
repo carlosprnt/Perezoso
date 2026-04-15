@@ -14,6 +14,7 @@ import {
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
 import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
+import { Toast } from '../src/components/Toast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -52,6 +53,7 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <Slot />
         <CreateSubscriptionSheet />
+        <Toast />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
