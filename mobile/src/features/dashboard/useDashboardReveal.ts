@@ -1,52 +1,28 @@
 // useDashboardReveal — the gesture + state machine behind the
 // "pull dashboard down to reveal a layer behind" interaction.
 //
-// Shape of the system
-// ───────────────────
-// We treat the dashboard as a single physical sheet that slides down
-// over a fixed underlying profile layer. A SharedValue `translateY`
-// controls the sheet's vertical offset:
-//    0          → closed   (covers everything)
-//    REVEAL_HEIGHT → open  (underlying layer fully visible)
+// Direct port of the web app's DraggableSurface.tsx mechanics
+// (components/ui/DraggableSurface.tsx). Numbers, spring, damping
+// and gating logic all mirror it 1:1 for fidelity.
 //
-// Two animated values feed every consumer:
-//   - `translateY` — raw offset for the sheet's transform
-//   - `progress`   — derived 0→1 (translateY / REVEAL_HEIGHT). UI uses
-//     this for synchronized fades / scales / parallax.
+// The dashboard is a foreground sheet that slides DOWN over a dark
+// backdrop. When "lowered" (open) the sheet leaves a 120px peek strip
+// at the bottom so the user can grab it back up. When "raised" (closed)
+// the sheet covers the whole screen.
 //
-// Gesture / scroll coordination — this is the hard part
-// ─────────────────────────────────────────────────────
-// The dashboard body is a ScrollView. We only want the reveal to take
-// over vertical input when the user is at the very top AND drags down.
-// Otherwise the ScrollView's native pan owns the input.
+// Shared values exposed
+//   - translateY  0 .. REVEAL_HEIGHT
+//   - progress    0 .. 1  (= translateY / REVEAL_HEIGHT)
+//   - scrollY     current scroll offset of the inner ScrollView
 //
-// Strategy:
-//   1. Track scrollY via `useAnimatedScrollHandler`.
-//   2. Use a `Gesture.Pan()` composed `simultaneousWith` a
-//      `Gesture.Native()` that wraps the ScrollView. Both can be
-//      active at the same time without one cancelling the other.
-//   3. Inside `onUpdate`, gate the action by the current state:
-//        - If closed: only translate when scrollY (at gesture start)
-//          was <= 0 AND the user is dragging down. Otherwise let
-//          scroll consume.
-//        - If open: translate freely on drag — the user is closing it.
-//          Dragging up moves toward 0; dragging down does nothing.
-//   4. `activeOffsetY([-15, 15])` makes the pan require a real gesture
-//      before activating (taps, tiny twitches don't move the sheet).
-//
-// Snap behavior
-// ─────────────
-//   - On release, decide target by combining position + velocity:
-//     position past SNAP_THRESHOLD OR velocity past VELOCITY_THRESHOLD
-//     in the appropriate direction snaps to that side.
-//   - Spring to the target — same spring on open and close so the
-//     interaction feels symmetrical.
-//
-// Scroll lock when open
-// ─────────────────────
-// We expose `isOpenJS` so the consumer can disable the ScrollView's
-// own scrolling while open — at that point the only valid input on
-// the dashboard surface is "drag back up to close".
+// Gesture / scroll coordination
+//   The pan is composed simultaneously with a Native gesture so the
+//   ScrollView keeps scrolling. A `manualActivation(true)` pan is
+//   NOT used — instead we gate in onUpdate:
+//     - raised + gesture started with scrollTop == 0 + dy > 0 → drag surface
+//     - raised + scrolled into content → native scroll owns the gesture
+//     - lowered → any drag moves the surface
+//   This mirrors the web touch-handler's `mode = 'drag' | 'scroll'` state.
 
 import { useCallback, useState } from 'react';
 import { Dimensions } from 'react-native';
@@ -60,74 +36,52 @@ import {
 } from 'react-native-reanimated';
 import { Gesture, type ComposedGesture } from 'react-native-gesture-handler';
 
-// ─── Tunables ────────────────────────────────────────────────────────
-// REVEAL_HEIGHT is the distance the dashboard slides down. Capped at
-// 78% of the screen height so a sliver of the dashboard always peeks
-// at the bottom — that sliver is what the user grabs to close.
-const screenH = Dimensions.get('window').height;
-export const REVEAL_HEIGHT = Math.min(screenH * 0.78, 620);
+// ─── Tunables — match DraggableSurface.tsx ──────────────────────────
+const PEEK_HEIGHT = 120;            // px of foreground visible when lowered
+const SNAP_THRESHOLD = 0.12;        // fraction of loweredY to trigger snap
+const VEL_THRESHOLD = 400;          // px/s flick velocity
+const DRAG_START_THRESHOLD = 6;     // px before we activate the pan
+const OVER_DAMP = 0.15;             // rubber-band resistance beyond bounds
 
-// Drag must cross this many pixels before snapping (when velocity is low).
-const SNAP_THRESHOLD = REVEAL_HEIGHT * 0.28;
-// Velocity in px/s above which we always snap in the direction of motion.
-const VELOCITY_THRESHOLD = 700;
-// Pan won't activate until the user moves at least this much vertically.
-// Keeps taps + small jitters from triggering the reveal.
-const PAN_ACTIVATION = 12;
-// Spring config — symmetric for open & close, fast iOS-y settle.
-const SPRING = {
-  damping: 30,
-  stiffness: 260,
-  mass: 0.9,
+const SNAP_SPRING = {
+  damping: 36,
+  stiffness: 340,
+  mass: 0.95,
   overshootClamping: false,
-  restDisplacementThreshold: 0.001,
-  restSpeedThreshold: 0.01,
+  restDisplacementThreshold: 0.5,
+  restSpeedThreshold: 0.5,
 } as const;
-// When open and the user keeps dragging down, we let the sheet rubber-band
-// a tiny bit beyond REVEAL_HEIGHT so it doesn't feel hard-stopped.
-const OVERDRAG = 30;
-// When closed and the user pulls down past REVEAL_HEIGHT we apply
-// diminishing returns so the sheet doesn't fly off.
-function rubberBand(value: number, max: number): number {
-  'worklet';
-  if (value <= max) return value;
-  const excess = value - max;
-  return max + excess * 0.18;
-}
+
+const screenH = Dimensions.get('window').height;
+// Lowered Y target — how far the sheet slides down when open.
+export const REVEAL_HEIGHT = Math.max(0, screenH - PEEK_HEIGHT);
 
 export interface DashboardReveal {
-  /** translateY of the dashboard surface (0 = closed). Bind to transform. */
   translateY: SharedValue<number>;
-  /** 0..1 progress, useful for synchronized fades / scales. */
   progress: SharedValue<number>;
-  /** Current scroll offset of the dashboard (driven by `scrollHandler`). */
   scrollY: SharedValue<number>;
-  /** Composed gesture: attach to GestureDetector around the ScrollView. */
   gesture: ComposedGesture;
-  /** Animated scroll handler — pass to the ScrollView's onScroll prop. */
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
-  /** True once snapped to open (JS state — use to disable scroll, etc.). */
   isOpenJS: boolean;
-  /** Force-close from JS (e.g. after a button press inside the layer). */
   close: () => void;
-  /** Total distance the sheet slides down. */
   revealHeight: number;
+  peekHeight: number;
 }
 
 export function useDashboardReveal(): DashboardReveal {
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
-  // Captured on gesture start so onUpdate can decide whether the user
-  // started "from the top" (which is the only condition that lets a
-  // closed sheet begin to reveal).
+  // Captured at gesture start so onUpdate can decide whether the user
+  // started "from the top" (the only condition that lets a closed sheet
+  // begin to reveal while scroll is the dominant gesture).
   const startScrollY = useSharedValue(0);
   const startTranslateY = useSharedValue(0);
-  // Tracks the snapped state — separate from translateY because the
-  // value itself is mid-animation often. SharedValue<boolean>.
+  // Snapped state — matches raisedRef in the web app.
   const isOpenSV = useSharedValue(false);
   const [isOpenJS, setIsOpenJS] = useState(false);
 
   const progress = useDerivedValue(() => {
+    if (REVEAL_HEIGHT <= 0) return 0;
     const t = translateY.value;
     if (t <= 0) return 0;
     if (t >= REVEAL_HEIGHT) return 1;
@@ -144,13 +98,16 @@ export function useDashboardReveal(): DashboardReveal {
     },
   });
 
-  // Native gesture that represents the ScrollView's own pan. Composing
-  // simultaneously lets the ScrollView keep scrolling normally; our pan
-  // only takes meaningful action when the gating conditions are met.
+  // Native gesture representing the ScrollView's own pan. Composing
+  // simultaneously lets native scroll keep working; our pan only
+  // commits a translateY when the gating conditions match.
   const nativeScroll = Gesture.Native();
 
   const pan = Gesture.Pan()
-    .activeOffsetY([-PAN_ACTIVATION, PAN_ACTIVATION])
+    // Only activate on downward drag past DRAG_START_THRESHOLD. Upward
+    // drags never activate this pan (scroll handles them). This mirrors
+    // the web's `mode = 'scroll'` branch for upward/scrolled gestures.
+    .activeOffsetY([-9999, DRAG_START_THRESHOLD])
     .onBegin(() => {
       'worklet';
       startScrollY.value = scrollY.value;
@@ -161,56 +118,57 @@ export function useDashboardReveal(): DashboardReveal {
       const dy = e.translationY;
 
       if (isOpenSV.value) {
-        // Open → user can only close by dragging up.
-        // Dragging down rubber-bands a tiny amount.
-        const next = startTranslateY.value + dy;
-        if (next >= REVEAL_HEIGHT) {
-          translateY.value = Math.min(
-            REVEAL_HEIGHT + OVERDRAG,
-            REVEAL_HEIGHT + (next - REVEAL_HEIGHT) * 0.2,
-          );
-        } else {
-          translateY.value = Math.max(0, next);
-        }
+        // Lowered → any drag moves the surface. Position is base + dy,
+        // rubber-banded past the bounds.
+        const raw = startTranslateY.value + dy;
+        let clamped = raw;
+        if (raw < 0) clamped = raw * OVER_DAMP;
+        else if (raw > REVEAL_HEIGHT)
+          clamped = REVEAL_HEIGHT + (raw - REVEAL_HEIGHT) * OVER_DAMP;
+        translateY.value = clamped;
       } else {
-        // Closed → only respond if (1) gesture started at scroll top
-        // AND (2) the user is dragging downward. Otherwise the
-        // ScrollView's pan owns the gesture and we leave translateY at 0.
+        // Raised → only move the sheet if the user started at scroll
+        // top AND is dragging down. Otherwise leave translateY alone —
+        // native scroll is the active gesture.
         if (startScrollY.value <= 0 && dy > 0) {
-          translateY.value = rubberBand(dy, REVEAL_HEIGHT);
+          let clamped = dy;
+          if (dy > REVEAL_HEIGHT)
+            clamped = REVEAL_HEIGHT + (dy - REVEAL_HEIGHT) * OVER_DAMP;
+          translateY.value = clamped;
         }
       }
     })
     .onEnd((e) => {
       'worklet';
       const v = e.velocityY;
-      const t = translateY.value;
+      const cur = translateY.value;
 
-      let toOpen: boolean;
+      // Decide target (0 or REVEAL_HEIGHT) mirroring the web logic.
+      let target: number;
       if (isOpenSV.value) {
-        // Close if dragged up past threshold OR flicked up.
-        const draggedUp = REVEAL_HEIGHT - t;
-        if (draggedUp > SNAP_THRESHOLD || v < -VELOCITY_THRESHOLD) {
-          toOpen = false;
+        // Was lowered; if still lowered and not flicked up, stay lowered.
+        // If dragged/flicked up past thresholds, go back to 0.
+        if (Math.abs(v) > VEL_THRESHOLD) {
+          target = v > 0 ? REVEAL_HEIGHT : 0;
         } else {
-          toOpen = true;
+          target = cur < REVEAL_HEIGHT - REVEAL_HEIGHT * SNAP_THRESHOLD
+            ? 0
+            : REVEAL_HEIGHT;
         }
       } else {
-        // Open if dragged down past threshold OR flicked down.
-        if (t > SNAP_THRESHOLD || v > VELOCITY_THRESHOLD) {
-          toOpen = true;
+        if (Math.abs(v) > VEL_THRESHOLD) {
+          target = v > 0 ? REVEAL_HEIGHT : 0;
         } else {
-          toOpen = false;
+          target = cur > REVEAL_HEIGHT * SNAP_THRESHOLD ? REVEAL_HEIGHT : 0;
         }
       }
 
-      // Only reflect to JS state if it actually changed — avoids
-      // useless re-renders on every minor wobble.
-      if (toOpen !== isOpenSV.value) {
-        isOpenSV.value = toOpen;
-        runOnJS(setOpenState)(toOpen);
+      const willBeOpen = target === REVEAL_HEIGHT;
+      if (willBeOpen !== isOpenSV.value) {
+        isOpenSV.value = willBeOpen;
+        runOnJS(setOpenState)(willBeOpen);
       }
-      translateY.value = withSpring(toOpen ? REVEAL_HEIGHT : 0, SPRING);
+      translateY.value = withSpring(target, SNAP_SPRING);
     });
 
   const gesture = Gesture.Simultaneous(pan, nativeScroll);
@@ -218,7 +176,7 @@ export function useDashboardReveal(): DashboardReveal {
   const close = useCallback(() => {
     isOpenSV.value = false;
     setIsOpenJS(false);
-    translateY.value = withSpring(0, SPRING);
+    translateY.value = withSpring(0, SNAP_SPRING);
   }, [isOpenSV, translateY]);
 
   return {
@@ -230,5 +188,6 @@ export function useDashboardReveal(): DashboardReveal {
     isOpenJS,
     close,
     revealHeight: REVEAL_HEIGHT,
+    peekHeight: PEEK_HEIGHT,
   };
 }

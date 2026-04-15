@@ -23,8 +23,6 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -93,23 +91,14 @@ export function DashboardScreen() {
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
 
-  // The dashboard surface gets a subtle scale + radius treatment when
-  // open so it visibly "lifts" off the layer behind. Stays fully square
-  // and 1.0 when closed so nothing changes in the resting state.
-  const surfaceStyle = useAnimatedStyle(() => {
-    const p = reveal.progress.value;
-    return {
-      transform: [
-        { translateY: reveal.translateY.value },
-        {
-          scale: interpolate(p, [0, 1], [1, 0.94], Extrapolation.CLAMP),
-        },
-      ],
-      borderRadius: interpolate(p, [0, 1], [0, 28], Extrapolation.CLAMP),
-      // A faint shadow on iOS adds depth as the surface lifts.
-      shadowOpacity: interpolate(p, [0, 1], [0, 0.35], Extrapolation.CLAMP),
-    };
-  });
+  // The dashboard surface only animates translateY — the top-corner
+  // radius and drop shadow are ALWAYS applied (matches the web's
+  // `rounded-t-[32px]` + boxShadow on DraggableSurface's foreground).
+  // Keeping the chrome static means the sheet reads as a discrete
+  // surface even at rest, and pulling down doesn't morph its shape.
+  const surfaceStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: reveal.translateY.value }],
+  }));
 
   // Hero scroll fade+blur: as the user scrolls, the whole hero block
   // (greeting, big "Al mes gastas / Eso al año es" amounts, and the
@@ -146,8 +135,11 @@ export function DashboardScreen() {
   );
 
   return (
-    // Root host: black so the underlying layer's color shows during open.
-    <View style={[styles.root, { backgroundColor: '#000000' }]}>
+    // Root host: `#0A0A0A` so any hairline gap between the layers
+    // during the animation reads as part of the backdrop, not a flash
+    // of theme white. The UnderlyingProfileLayer's own bg is the same
+    // color, so this is effectively just a safety net.
+    <View style={[styles.root, { backgroundColor: '#0A0A0A' }]}>
       {/* Underlying profile layer — always mounted, behind the dashboard. */}
       <UnderlyingProfileLayer
         progress={reveal.progress}
@@ -298,14 +290,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // The dashboard surface — slides over the underlying profile layer.
-  // overflow: hidden so the animated borderRadius actually clips the
-  // ScrollView content. Shadow shows when the surface lifts (translateY).
+  // Top corners are always rounded (32px) and a soft upward shadow is
+  // always drawn along the top edge. This mirrors the web:
+  //   borderTopLeftRadius / borderTopRightRadius: 32
+  //   boxShadow: 0 -12px 40px rgba(0,0,0,0.22)
+  // overflow: hidden clips the ScrollView to the rounded top corners.
   surface: {
     flex: 1,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: -8 },
-    shadowRadius: 24,
-    // shadowOpacity is animated by surfaceStyle; iOS-only.
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    shadowOffset: { width: 0, height: -12 },
+    shadowRadius: 40,
+    shadowOpacity: 0.22,
   },
   content: {
     flexGrow: 1,

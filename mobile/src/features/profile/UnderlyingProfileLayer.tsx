@@ -1,22 +1,21 @@
-// UnderlyingProfileLayer — the "behind" layer that's revealed when the
-// user pulls down on the Dashboard. Lives behind the dashboard surface
-// (zIndex below) so the dashboard physically slides off it, exposing
-// this layer like a drawer. Designed to feel like part of the natural
-// app surface, not a modal that animates in.
+// UnderlyingProfileLayer — the dark panel revealed behind the Dashboard
+// when the user pulls down. Direct port of AccountMenuPanel.tsx:
 //
-// Visual structure (from the reference screenshot):
-//   - Dark background filling the full screen
-//   - Header: "Hola, {name}." big bold + circular sloth avatar right
-//   - Two square stat cards: Ajustes / Compartir datos
-//   - Perezoso Plus block: title + subtitle + "Gestionar" pill
-//   - Bottom row separated: Cerrar sesión (left, red) / Light mode (right)
+//   - Deep dark background (#0a0a0a) — matches web's bg-[#0a0a0a]
+//   - 2-col grid of dark tiles (#151517) with icon-top / label-bottom
+//   - "Perezoso Plus" card — bordered only, no fill, with a muted pill
+//     button ("Gestionar" — bg-white/10)
+//   - Footer row: red "Cerrar sesión" left, "Light mode" + Sun right
 //
-// All actions are stubs — wire them up when the underlying flows exist.
+// Reveal animation
+//   Opacity 0→1 AND translateY -30→0 are applied to the layer's ROOT
+//   (not the content). When the dashboard is closed, the whole black
+//   layer is invisible; as the user drags the dashboard down, the
+//   layer fades in behind it simultaneously. This matches the
+//   web's `bgOpacity` + `bgTranslate` pair on the backdrop motion.div.
 //
-// The layer accepts a SharedValue<number> `progress` (0 = closed → 1 = open)
-// so it can apply subtle parallax / fade-in motion synchronized with the
-// dashboard's translateY. The content stays mostly still; only opacity
-// and a small translateY parallax animate to add depth.
+// Bottom padding clears the 120px peek of the dashboard that's still
+// visible at the bottom when the layer is fully revealed.
 
 import React from 'react';
 import {
@@ -38,15 +37,15 @@ import { Settings, Share2, LogOut, Sun } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 
-// Use the bundled sloth logo as the user avatar placeholder.
 const AVATAR_SOURCE: ImageSourcePropType = require('../../../assets/logo.png');
 
+// Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
+const PEEK_HEIGHT = 120;
+
 interface Props {
-  /** 0 (closed) → 1 (fully open). Drives the layer's reveal animation. */
+  /** 0 (closed) → 1 (fully open). Drives the fade + parallax. */
   progress: SharedValue<number>;
-  /** Display name used in the greeting. */
   firstName?: string;
-  // Action callbacks — stubbed for now.
   onSettings?: () => void;
   onShareData?: () => void;
   onManagePlus?: () => void;
@@ -65,39 +64,40 @@ export function UnderlyingProfileLayer({
 }: Props) {
   const insets = useSafeAreaInsets();
 
-  // Gentle parallax + fade for the content. Stays mostly still — the
-  // perceived motion comes from the dashboard sliding off, not from
-  // the underlying layer entering.
-  const contentStyle = useAnimatedStyle(() => {
+  // Root-level animation — mirrors `opacity: bgOpacity` + `y: bgTranslate`
+  // on the web's backdrop layer. The entire panel fades in from -30px.
+  const rootStyle = useAnimatedStyle(() => {
     const p = progress.value;
     return {
-      opacity: interpolate(p, [0, 0.35, 1], [0, 0.4, 1], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0, 1], [0, 1], Extrapolation.CLAMP),
       transform: [
         {
-          translateY: interpolate(
-            p,
-            [0, 1],
-            [-12, 0],
-            Extrapolation.CLAMP,
-          ),
+          translateY: interpolate(p, [0, 1], [-30, 0], Extrapolation.CLAMP),
         },
       ],
     };
   });
 
   return (
-    <View style={styles.root} pointerEvents="box-none">
-      <Animated.View
+    <Animated.View
+      style={[styles.root, rootStyle]}
+      // box-none so children can still receive presses even though the
+      // container itself is positioned absolute + fills the screen.
+      pointerEvents="box-none"
+    >
+      <View
         style={[
           styles.content,
-          contentStyle,
           {
+            // Match web: `pt-24` (96px) relative to the layer top, plus
+            // the safe-area inset so the greeting clears the notch.
             paddingTop: insets.top + 24,
-            paddingBottom: insets.bottom + 24,
+            // Clear the foreground peek strip + home indicator.
+            paddingBottom: PEEK_HEIGHT + insets.bottom + 24,
           },
         ]}
       >
-        {/* ─── Header ────────────────────────────────────────── */}
+        {/* ─── Header: greeting + avatar ───────────────────── */}
         <View style={styles.header}>
           <Text style={styles.greeting} numberOfLines={1}>
             Hola, {firstName}.
@@ -113,33 +113,21 @@ export function UnderlyingProfileLayer({
           </Pressable>
         </View>
 
-        {/* ─── Two square cards ──────────────────────────────── */}
+        {/* ─── 2-col grid of dark tiles ────────────────────── */}
         <View style={styles.cardsRow}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.squareCard,
-              pressed && styles.squareCardPressed,
-            ]}
+          <DarkTile
+            icon={<Settings size={22} color="#FFFFFF" strokeWidth={2} />}
+            label="Ajustes"
             onPress={onSettings}
-            accessibilityLabel="Ajustes"
-          >
-            <Settings size={22} color="#FFFFFF" strokeWidth={1.8} />
-            <Text style={styles.squareCardLabel}>Ajustes</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.squareCard,
-              pressed && styles.squareCardPressed,
-            ]}
+          />
+          <DarkTile
+            icon={<Share2 size={22} color="#FFFFFF" strokeWidth={2} />}
+            label="Compartir datos"
             onPress={onShareData}
-            accessibilityLabel="Compartir datos"
-          >
-            <Share2 size={22} color="#FFFFFF" strokeWidth={1.8} />
-            <Text style={styles.squareCardLabel}>Compartir datos</Text>
-          </Pressable>
+          />
         </View>
 
-        {/* ─── Perezoso Plus block ──────────────────────────── */}
+        {/* ─── Perezoso Plus block — border-only, no fill ──── */}
         <View style={styles.plusBlock}>
           <View style={styles.plusTextCol}>
             <Text style={styles.plusTitle}>Perezoso Plus</Text>
@@ -148,7 +136,7 @@ export function UnderlyingProfileLayer({
           <Pressable
             style={({ pressed }) => [
               styles.plusBtn,
-              pressed && { opacity: 0.85 },
+              pressed && styles.plusBtnPressed,
             ]}
             onPress={onManagePlus}
             accessibilityLabel="Gestionar suscripción Perezoso Plus"
@@ -157,10 +145,10 @@ export function UnderlyingProfileLayer({
           </Pressable>
         </View>
 
-        {/* ─── Spacer pushes the bottom row to the safe-area edge ── */}
+        {/* Spacer — pushes the footer row down to the peek boundary. */}
         <View style={{ flex: 1 }} />
 
-        {/* ─── Bottom row: logout / theme ───────────────────── */}
+        {/* ─── Footer: logout / theme ──────────────────────── */}
         <View style={styles.bottomRow}>
           <Pressable
             style={({ pressed }) => [
@@ -171,8 +159,8 @@ export function UnderlyingProfileLayer({
             hitSlop={8}
             accessibilityLabel="Cerrar sesión"
           >
-            <LogOut size={18} color="#F87171" strokeWidth={2} />
-            <Text style={[styles.bottomBtnText, { color: '#F87171' }]}>
+            <LogOut size={18} color="#FCA5A5" strokeWidth={2} />
+            <Text style={[styles.bottomBtnText, { color: '#FCA5A5' }]}>
               Cerrar sesión
             </Text>
           </Pressable>
@@ -191,15 +179,44 @@ export function UnderlyingProfileLayer({
             <Sun size={18} color="#FFFFFF" strokeWidth={2} />
           </Pressable>
         </View>
-      </Animated.View>
-    </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Dark tile — icon top, label bottom ───────────────────────────────
+// Matches web's DarkTile: flex-col items-start gap-6 px-5 py-5
+// rounded-[20px] bg-[#151517] active:bg-[#1F1F22] min-h-[120px]
+function DarkTile({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tile,
+        pressed && styles.tilePressed,
+      ]}
+      accessibilityLabel={label}
+    >
+      <View style={styles.tileIconWrap}>{icon}</View>
+      <Text style={styles.tileLabel} numberOfLines={2}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0A0A',
   },
   content: {
     flex: 1,
@@ -210,7 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   greeting: {
     ...fontFamily.bold,
@@ -232,38 +249,43 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
   },
-  // ── Square cards ────────────────────────────────────────
+  // ── Cards row ──────────────────────────────────────────
   cardsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 16,
   },
-  squareCard: {
+  tile: {
     flex: 1,
-    aspectRatio: 1.05,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 22,
-    padding: 18,
+    minHeight: 120,
+    backgroundColor: '#151517',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    // icon pinned to top, label pinned to bottom via the spacer / margins.
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  squareCardPressed: {
-    backgroundColor: '#26262A',
+  tilePressed: {
+    backgroundColor: '#1F1F22',
   },
-  squareCardLabel: {
+  tileIconWrap: {
+    opacity: 0.95,
+  },
+  tileLabel: {
     ...fontFamily.semibold,
-    fontSize: fontSize[18],
+    fontSize: fontSize[15],
     color: '#FFFFFF',
-    letterSpacing: -0.3,
+    letterSpacing: -0.1,
   },
-  // ── Plus block ─────────────────────────────────────────
+  // ── Perezoso Plus block ────────────────────────────────
   plusBlock: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#2C2C2E',
-    borderRadius: 22,
-    paddingVertical: 18,
+    borderColor: 'rgba(255,255,255,0.20)',
+    borderRadius: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   plusTextCol: {
@@ -275,22 +297,27 @@ const styles = StyleSheet.create({
     fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.3,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   plusSubtitle: {
     ...fontFamily.regular,
-    fontSize: fontSize[14],
-    color: '#737373',
+    fontSize: fontSize[13],
+    color: 'rgba(255,255,255,0.50)',
   },
   plusBtn: {
-    backgroundColor: '#2C2C2E',
+    height: 40,
+    paddingHorizontal: 20,
     borderRadius: 9999,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plusBtnPressed: {
+    backgroundColor: 'rgba(255,255,255,0.20)',
   },
   plusBtnText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[15],
+    fontSize: fontSize[14],
     color: '#FFFFFF',
     letterSpacing: -0.1,
   },
@@ -309,8 +336,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   bottomBtnText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
+    ...fontFamily.medium,
+    fontSize: fontSize[14],
     letterSpacing: -0.1,
   },
 });
