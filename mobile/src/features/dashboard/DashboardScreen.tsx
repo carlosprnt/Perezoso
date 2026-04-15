@@ -3,7 +3,7 @@
 //
 // Web composition order:
 //   SummaryHero
-//   DashboardCardStack (elastic gap 8->24px on pull)
+//   DashboardCardStack
 //     ReminderCards (savings opportunity)
 //     InsightCards (3 quick stat cards)
 //     Card: UpcomingRenewals
@@ -11,7 +11,8 @@
 //     TopExpensive (horizontal scroll, outside card)
 //
 // Mobile adaptation:
-//   - Elastic pull-down gap (8->24px) via useElasticPullDown + cardStackGap()
+//   - Pull-down reveal: dragging the dashboard down from scroll-top
+//     slides it off the UnderlyingProfileLayer behind (`useDashboardReveal`)
 //   - Staggered entrance animation (55ms/item, 400ms cardEntrance curve)
 //   - Hero scroll fade (opacity as user scrolls)
 //   - Hero has opaque background (matches theme)
@@ -21,9 +22,9 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
   useAnimatedStyle,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,8 +40,8 @@ import { MoneyConfetti } from '../../components/MoneyConfetti';
 import { LogoConfetti } from '../../components/LogoConfetti';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
-import { useElasticPullDown } from '../../motion/useElasticPullDown';
-import { cardStackGap } from '../../motion/interpolate';
+import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
+import { useDashboardReveal } from './useDashboardReveal';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -70,7 +71,6 @@ function StaggeredItem({ index, children }: { index: number; children: React.Rea
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const scrollY = useSharedValue(0);
 
   // Confetti state
   const [moneyConfetti, setMoneyConfetti] = useState<{ x: number; y: number } | null>(null);
@@ -84,13 +84,32 @@ export function DashboardScreen() {
     setLogoConfetti({ x, y });
   }, []);
 
-  // Elastic pull-down for card stack gap
-  const { pullY, gesture } = useElasticPullDown();
+  // Pull-down reveal: dashboard slides off, exposing UnderlyingProfileLayer.
+  // The hook owns the gesture (composed simultaneously with the scroll's
+  // native pan), the snap state machine, scroll tracking and the
+  // translateY shared value.
+  const reveal = useDashboardReveal();
+  // Reuse the reveal hook's scroll tracking for the hero fade — single
+  // source of truth for "where is the user in the scroll view".
+  const scrollY = reveal.scrollY;
 
-  // Dynamic card stack gap: 8px -> 24px during pull
-  const animatedCardStackStyle = useAnimatedStyle(() => ({
-    gap: cardStackGap(pullY.value),
-  }));
+  // The dashboard surface gets a subtle scale + radius treatment when
+  // open so it visibly "lifts" off the layer behind. Stays fully square
+  // and 1.0 when closed so nothing changes in the resting state.
+  const surfaceStyle = useAnimatedStyle(() => {
+    const p = reveal.progress.value;
+    return {
+      transform: [
+        { translateY: reveal.translateY.value },
+        {
+          scale: interpolate(p, [0, 1], [1, 0.94], Extrapolation.CLAMP),
+        },
+      ],
+      borderRadius: interpolate(p, [0, 1], [0, 28], Extrapolation.CLAMP),
+      // A faint shadow on iOS adds depth as the surface lifts.
+      shadowOpacity: interpolate(p, [0, 1], [0, 0.35], Extrapolation.CLAMP),
+    };
+  });
 
   // Hero scroll fade+blur: as the user scrolls, the whole hero block
   // (greeting, big "Al mes gastas / Eso al año es" amounts, and the
@@ -113,12 +132,6 @@ export function DashboardScreen() {
     return { opacity: progress };
   });
 
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
-
   // Calendar icon button for upcoming renewals header
   const calendarAction = (
     <View style={[styles.calendarBtn, {
@@ -133,105 +146,132 @@ export function DashboardScreen() {
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <GestureDetector gesture={gesture}>
-        <Animated.ScrollView
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.content,
-            {
-              paddingTop: insets.top + 12,
-              paddingBottom: insets.bottom + 80, // space for FloatingNav
-            },
-          ]}
-        >
-          {/* Hero — content fades out while a blur veil fades in on top.
-              Outer View owns position: relative so the absoluteFill
-              BlurView sizes to the hero. */}
-          <View style={styles.heroWrapper}>
-            <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
-              <SummaryHero
-                firstName={MOCK_FIRST_NAME}
-                stats={MOCK_STATS}
-                logoUrls={MOCK_LOGO_URLS}
-                sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
-                onAmountTap={handleAmountTap}
-                onLogosTap={handleLogosTap}
-              />
-            </Animated.View>
-            <AnimatedBlurView
-              tint={isDark ? 'dark' : 'light'}
-              intensity={80}
-              pointerEvents="none"
-              style={[StyleSheet.absoluteFill, heroBlurStyle]}
-            />
-          </View>
+    // Root host: black so the underlying layer's color shows during open.
+    <View style={[styles.root, { backgroundColor: '#000000' }]}>
+      {/* Underlying profile layer — always mounted, behind the dashboard. */}
+      <UnderlyingProfileLayer
+        progress={reveal.progress}
+        firstName={MOCK_FIRST_NAME}
+        onSettings={reveal.close}
+        onShareData={reveal.close}
+        onManagePlus={reveal.close}
+        onLogout={reveal.close}
+        onToggleTheme={reveal.close}
+      />
 
-          {/* Card stack -- elastic gap + staggered entrance */}
-          <Animated.View style={[styles.cardStack, animatedCardStackStyle]}>
-            {/* Reminder card — extra 10px separation from the module below */}
-            <StaggeredItem index={0}>
-              <View style={{ marginBottom: 10 }}>
-                <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
-              </View>
-            </StaggeredItem>
-
-            {/* Insight cards */}
-            <StaggeredItem index={1}>
-              <InsightCards
-                highestCost={{
-                  name: MOCK_HIGHEST_COST.name,
-                  amount: `20,00US$ /mes`,
-                  category: 'IA',
-                }}
-                topCategory={{
-                  name: MOCK_TOP_CATEGORY.name,
-                  amount: `40,00\u20AC /mes`,
-                  count: MOCK_TOP_CATEGORY.count,
-                }}
-                sharedPlans={{
-                  count: MOCK_STATS.sharedCount,
-                  savings: '18,86\u20AC',
-                }}
-              />
-            </StaggeredItem>
-
-            {/* Upcoming Renewals */}
-            <StaggeredItem index={2}>
-              <Card>
-                <CardHeader
-                  title="Próximas renovaciones"
-                  action={calendarAction}
+      {/* Dashboard surface — slides down to expose the layer behind. */}
+      <Animated.View
+        style={[
+          styles.surface,
+          { backgroundColor: colors.background, shadowColor: '#000' },
+          surfaceStyle,
+        ]}
+      >
+        <GestureDetector gesture={reveal.gesture}>
+          <Animated.ScrollView
+            onScroll={reveal.scrollHandler}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            // Lock scroll once the surface is open so the only valid input
+            // on the dashboard becomes "drag back up to close".
+            scrollEnabled={!reveal.isOpenJS}
+            // Disable iOS top-bounce — our reveal IS the top overscroll
+            // affordance now, and the bounce would compete visually with it.
+            bounces={false}
+            contentContainerStyle={[
+              styles.content,
+              {
+                paddingTop: insets.top + 12,
+                paddingBottom: insets.bottom + 80, // space for FloatingNav
+              },
+            ]}
+          >
+            {/* Hero — content fades out while a blur veil fades in on top.
+                Outer View owns position: relative so the absoluteFill
+                BlurView sizes to the hero. */}
+            <View style={styles.heroWrapper}>
+              <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
+                <SummaryHero
+                  firstName={MOCK_FIRST_NAME}
+                  stats={MOCK_STATS}
+                  logoUrls={MOCK_LOGO_URLS}
+                  sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
+                  onAmountTap={handleAmountTap}
+                  onLogosTap={handleLogosTap}
                 />
-                <UpcomingRenewals renewals={MOCK_RENEWALS} />
-              </Card>
-            </StaggeredItem>
+              </Animated.View>
+              <AnimatedBlurView
+                tint={isDark ? 'dark' : 'light'}
+                intensity={80}
+                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, heroBlurStyle]}
+              />
+            </View>
 
-            {/* Top Categories */}
-            <StaggeredItem index={3}>
-              <Card>
-                <CardHeader title="Categorías con más gasto" />
-                <TopCategories
-                  categories={MOCK_CATEGORIES}
-                  currency={MOCK_STATS.currency}
+            {/* Card stack -- staggered entrance */}
+            <View style={styles.cardStack}>
+              {/* Reminder card — extra 10px separation from the module below */}
+              <StaggeredItem index={0}>
+                <View style={{ marginBottom: 10 }}>
+                  <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
+                </View>
+              </StaggeredItem>
+
+              {/* Insight cards */}
+              <StaggeredItem index={1}>
+                <InsightCards
+                  highestCost={{
+                    name: MOCK_HIGHEST_COST.name,
+                    amount: `20,00US$ /mes`,
+                    category: 'IA',
+                  }}
+                  topCategory={{
+                    name: MOCK_TOP_CATEGORY.name,
+                    amount: `40,00\u20AC /mes`,
+                    count: MOCK_TOP_CATEGORY.count,
+                  }}
+                  sharedPlans={{
+                    count: MOCK_STATS.sharedCount,
+                    savings: '18,86\u20AC',
+                  }}
                 />
-              </Card>
-            </StaggeredItem>
+              </StaggeredItem>
 
-            {/* Most Expensive */}
-            <StaggeredItem index={4}>
-              <View>
-                <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                  Suscripciones más caras
-                </Text>
-                <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
-              </View>
-            </StaggeredItem>
-          </Animated.View>
-        </Animated.ScrollView>
-      </GestureDetector>
+              {/* Upcoming Renewals */}
+              <StaggeredItem index={2}>
+                <Card>
+                  <CardHeader
+                    title="Próximas renovaciones"
+                    action={calendarAction}
+                  />
+                  <UpcomingRenewals renewals={MOCK_RENEWALS} />
+                </Card>
+              </StaggeredItem>
+
+              {/* Top Categories */}
+              <StaggeredItem index={3}>
+                <Card>
+                  <CardHeader title="Categorías con más gasto" />
+                  <TopCategories
+                    categories={MOCK_CATEGORIES}
+                    currency={MOCK_STATS.currency}
+                  />
+                </Card>
+              </StaggeredItem>
+
+              {/* Most Expensive */}
+              <StaggeredItem index={4}>
+                <View>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                    Suscripciones más caras
+                  </Text>
+                  <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
+                </View>
+              </StaggeredItem>
+            </View>
+          </Animated.ScrollView>
+        </GestureDetector>
+      </Animated.View>
 
       {/* Confetti overlays — render on top of everything */}
       {moneyConfetti && (
@@ -257,6 +297,16 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  // The dashboard surface — slides over the underlying profile layer.
+  // overflow: hidden so the animated borderRadius actually clips the
+  // ScrollView content. Shadow shows when the surface lifts (translateY).
+  surface: {
+    flex: 1,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: -8 },
+    shadowRadius: 24,
+    // shadowOpacity is animated by surfaceStyle; iOS-only.
+  },
   content: {
     flexGrow: 1,
   },
@@ -266,7 +316,7 @@ const styles = StyleSheet.create({
   },
   cardStack: {
     paddingHorizontal: 10,
-    gap: 8, // base gap (overridden by elastic pull animated style)
+    gap: 8,
   },
   sectionTitle: {
     ...fontFamily.bold,
