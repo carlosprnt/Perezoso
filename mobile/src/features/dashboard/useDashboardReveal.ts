@@ -40,7 +40,12 @@ import { Gesture, type ComposedGesture } from 'react-native-gesture-handler';
 const PEEK_HEIGHT = 120;            // px of foreground visible when lowered
 const SNAP_THRESHOLD = 0.12;        // fraction of loweredY to trigger snap
 const VEL_THRESHOLD = 400;          // px/s flick velocity
-const DRAG_START_THRESHOLD = 6;     // px before we activate the pan
+// Pan activation threshold. Set higher than the web's 6px because on
+// native, a tap naturally produces a few px of finger drift at release —
+// at 6px the Pan would activate on taps and the velocity-based snap in
+// onEnd would pop the sheet open. 14px is comfortably past tap jitter
+// without making an intentional drag feel sluggish.
+const DRAG_START_THRESHOLD = 14;
 const OVER_DAMP = 0.15;             // rubber-band resistance beyond bounds
 
 const SNAP_SPRING = {
@@ -156,10 +161,30 @@ export function useDashboardReveal(): DashboardReveal {
             : REVEAL_HEIGHT;
         }
       } else {
-        if (Math.abs(v) > VEL_THRESHOLD) {
-          target = v > 0 ? REVEAL_HEIGHT : 0;
+        // Closed → open logic. Two guards against false positives:
+        //
+        //  1. `cur <= 0` — the surface never actually moved (gate in
+        //     onUpdate refused, e.g. user wasn't at scroll-top, or dragging
+        //     up). A fast scroll flick would hit this path with high v but
+        //     cur still 0.
+        //
+        //  2. cur moved but stayed under half the snap threshold — the
+        //     Pan activated from tap jitter (~14 px) but the user didn't
+        //     actually pull the sheet. Velocity at finger release is
+        //     easily > 400 px/s for a normal tap, so we CANNOT let
+        //     velocity alone open the sheet from such a small offset.
+        //
+        // Only once the drag crossed ~6% of the reveal distance (half the
+        // snap threshold) does velocity get to commit the snap early.
+        const minOpenDistance = REVEAL_HEIGHT * SNAP_THRESHOLD * 0.5;
+        if (cur <= 0) {
+          target = 0;
+        } else if (cur > REVEAL_HEIGHT * SNAP_THRESHOLD) {
+          target = REVEAL_HEIGHT;
+        } else if (cur > minOpenDistance && v > VEL_THRESHOLD) {
+          target = REVEAL_HEIGHT;
         } else {
-          target = cur > REVEAL_HEIGHT * SNAP_THRESHOLD ? REVEAL_HEIGHT : 0;
+          target = 0;
         }
       }
 
