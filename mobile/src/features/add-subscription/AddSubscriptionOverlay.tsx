@@ -307,19 +307,17 @@ export function AddSubscriptionOverlay() {
                   ]}
                   android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
                   onPress={() => {
-                    // Step 2 of add-subscription flow: close this dark
-                    // picker and open the white form with the selected
-                    // platform pre-filled. The open() is deferred to the
-                    // next tick so the close()'s state updates commit
-                    // first — prevents any render-batching interference.
+                    // Step 2: open white form with prefill, then close
+                    // the dark picker. Order matters — opening first
+                    // guarantees the white sheet is requested to render
+                    // even if close() has any side-effect that would
+                    // suppress later state updates.
                     console.log('[AddSubscriptionOverlay] row tap →', p.name);
+                    useCreateSubscriptionStore.getState().open({
+                      name: p.name,
+                      logoUrl: logoUrlFromDomain(p.domain),
+                    });
                     close();
-                    setTimeout(() => {
-                      useCreateSubscriptionStore.getState().open({
-                        name: p.name,
-                        logoUrl: logoUrlFromDomain(p.domain),
-                      });
-                    }, 0);
                   }}
                 >
                   <View style={styles.logoBox}>
@@ -360,14 +358,9 @@ export function AddSubscriptionOverlay() {
                   pressed && { opacity: 0.85 },
                 ]}
                 onPress={() => {
-                  // Step 2: close the dark picker and open the white
-                  // form empty (manual entry). Defer open() by one tick
-                  // so close()'s state commits first.
                   console.log('[AddSubscriptionOverlay] manual tap');
+                  useCreateSubscriptionStore.getState().open();
                   close();
-                  setTimeout(() => {
-                    useCreateSubscriptionStore.getState().open();
-                  }, 0);
                 }}
               >
                 <Text style={styles.footerBtnPrimaryText}>

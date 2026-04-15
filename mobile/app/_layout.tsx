@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -18,19 +19,72 @@ import { useCreateSubscriptionStore } from '../src/features/add-subscription/use
 
 SplashScreen.preventAutoHideAsync();
 
+// ─── Live debug indicator ─────────────────────────────────────────
+// Shows current isOpen state of the white form sheet in a pill on top
+// of every screen. Proves whether Metro is serving fresh code AND
+// whether the store is updating when buttons are tapped.
+function DebugIndicator() {
+  const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        top: 55,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        zIndex: 999999,
+        elevation: 999999,
+      }}
+      pointerEvents="box-none"
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          gap: 8,
+          alignItems: 'center',
+          backgroundColor: isOpen ? '#22C55E' : '#EF4444',
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 9999,
+          borderWidth: 3,
+          borderColor: '#FFFF00',
+        }}
+      >
+        <Text style={{ color: 'white', fontWeight: '800', fontSize: 13 }}>
+          isOpen={String(isOpen)}
+        </Text>
+        <Pressable
+          onPress={() => {
+            console.log('[DEBUG] test button tapped');
+            useCreateSubscriptionStore
+              .getState()
+              .open({ name: 'DEBUG TEST' });
+          }}
+          style={{
+            backgroundColor: 'white',
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 9999,
+          }}
+        >
+          <Text style={{ color: 'black', fontWeight: '800', fontSize: 12 }}>
+            TAP TO OPEN
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    // Nunito — Android fallback (rounded-looking Google font)
     Nunito_400Regular,
     Nunito_500Medium,
     Nunito_600SemiBold,
     Nunito_700Bold,
     Nunito_800ExtraBold,
     Nunito_900Black,
-    // SF Pro Rounded — iOS primary.
-    // OTF files live under assets/fonts/ (sourced from Apple's SF-Pro.dmg).
-    // Each weight gets its own PostScript name registration so the
-    // typography tokens can reference them by name.
     'SFProRounded-Regular':  require('../assets/fonts/SF-Pro-Rounded-Regular.otf'),
     'SFProRounded-Medium':   require('../assets/fonts/SF-Pro-Rounded-Medium.otf'),
     'SFProRounded-Semibold': require('../assets/fonts/SF-Pro-Rounded-Semibold.otf'),
@@ -49,47 +103,16 @@ export default function RootLayout() {
     return null;
   }
 
+  console.log('[RootLayout] render v3-absolute-pos-no-modal');
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" />
-      <Slot />
-      {/* Mounted at the root so the form sheet is always in the tree,
-          independent of the active tab / route. The native Modal
-          renders above every other view regardless. */}
-      <CreateSubscriptionSheet />
-
-      {/* ────────── DEBUG BUTTON — REMOVE AFTER CONFIRMING ──────────
-          Floating red test button that directly calls the modal's
-          open() action. If THIS opens the modal but the dark picker
-          doesn't → the bug is in AddSubscriptionOverlay's handlers.
-          If this doesn't open the modal → the bug is in the Modal
-          component / store / mount itself. */}
-      <View
-        style={{
-          position: 'absolute',
-          top: 60,
-          right: 16,
-          zIndex: 99999,
-        }}
-        pointerEvents="box-none"
-      >
-        <Pressable
-          onPress={() => {
-            console.log('[DEBUG] test button tapped');
-            useCreateSubscriptionStore.getState().open({ name: 'DEBUG TEST' });
-          }}
-          style={{
-            backgroundColor: 'red',
-            paddingHorizontal: 14,
-            paddingVertical: 10,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: 'white', fontWeight: '700', fontSize: 13 }}>
-            OPEN MODAL
-          </Text>
-        </Pressable>
-      </View>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <Slot />
+        <CreateSubscriptionSheet />
+        <DebugIndicator />
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
