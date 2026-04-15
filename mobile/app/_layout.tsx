@@ -4,7 +4,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { Pressable, Text, View } from 'react-native';
 import {
   useFonts,
   Nunito_400Regular,
@@ -15,67 +14,8 @@ import {
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
 import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
-import { useCreateSubscriptionStore } from '../src/features/add-subscription/useCreateSubscriptionStore';
 
 SplashScreen.preventAutoHideAsync();
-
-// ─── Live debug indicator ─────────────────────────────────────────
-// Shows current isOpen state of the white form sheet in a pill on top
-// of every screen. Proves whether Metro is serving fresh code AND
-// whether the store is updating when buttons are tapped.
-function DebugIndicator() {
-  const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        top: 55,
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-        zIndex: 999999,
-        elevation: 999999,
-      }}
-      pointerEvents="box-none"
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          gap: 8,
-          alignItems: 'center',
-          backgroundColor: isOpen ? '#22C55E' : '#EF4444',
-          paddingHorizontal: 14,
-          paddingVertical: 8,
-          borderRadius: 9999,
-          borderWidth: 3,
-          borderColor: '#FFFF00',
-        }}
-      >
-        <Text style={{ color: 'white', fontWeight: '800', fontSize: 13 }}>
-          isOpen={String(isOpen)}
-        </Text>
-        <Pressable
-          onPress={() => {
-            console.log('[DEBUG] test button tapped');
-            useCreateSubscriptionStore
-              .getState()
-              .open({ name: 'DEBUG TEST' });
-          }}
-          style={{
-            backgroundColor: 'white',
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: 9999,
-          }}
-        >
-          <Text style={{ color: 'black', fontWeight: '800', fontSize: 12 }}>
-            TAP TO OPEN
-          </Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -103,7 +43,8 @@ export default function RootLayout() {
     return null;
   }
 
-  console.log('[RootLayout] render v3-absolute-pos-no-modal');
+  // Version marker so we can tell from Metro logs which build is running.
+  console.log('[RootLayout] render v5-native-modal');
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -111,7 +52,6 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <Slot />
         <CreateSubscriptionSheet />
-        <DebugIndicator />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

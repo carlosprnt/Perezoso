@@ -1,31 +1,49 @@
-// CreateSubscriptionSheet — white form sheet (minimal defensive version).
+// CreateSubscriptionSheet — white form sheet rendered via a native <Modal>.
 //
-// Rendered as an absolute-positioned fullscreen View at the app root.
-// No Modal, no safe-area, no Reanimated, no gesture — zero external deps
-// that could crash or fail silently. The sheet is unconditionally mounted
-// but only visible when `isOpen` is true.
+// Using React Native's built-in Modal is the most reliable way to render
+// content above everything else on iOS: on iOS it spawns a separate
+// UIViewController that sits on top of the root app window, so nothing
+// in the React tree (Expo Router Slot, Tabs, FloatingNav, status bar,
+// etc.) can cover it.
+//
+// The sheet itself is a rounded white card anchored to the bottom of the
+// screen with safe-area padding, slid up via a simple opacity+translate
+// animation (LayoutAnimation-free for maximum compatibility with SDK 54
+// + Expo Go's new architecture).
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
-  TextInput,
+  StyleSheet,
   Switch,
-  KeyboardAvoidingView,
-  Platform,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { X, ChevronUp, ChevronDown } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronDown, ChevronUp, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { fontFamily, fontSize } from '../../design/typography';
 
 const SHEET_RADIUS_TOP = 32;
+const { height: SCREEN_H } = Dimensions.get('window');
 
 type BillingPeriod = 'Monthly' | 'Yearly' | 'Weekly';
-type Category = 'Streaming' | 'Música' | 'Productividad' | 'Cloud' | 'IA' | 'Gaming' | 'Otros';
+type Category =
+  | 'Streaming'
+  | 'Música'
+  | 'Productividad'
+  | 'Cloud'
+  | 'IA'
+  | 'Gaming'
+  | 'Otros';
 
 interface FormState {
   name: string;
@@ -44,8 +62,19 @@ interface FormState {
 
 const CURRENCIES = ['€', '$', '£', 'US$'];
 const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Weekly'];
-const CATEGORIES: Category[] = ['Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros'];
-const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const CATEGORIES: Category[] = [
+  'Streaming',
+  'Música',
+  'Productividad',
+  'Cloud',
+  'IA',
+  'Gaming',
+  'Otros',
+];
+const MONTHS_ES = [
+  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+];
 
 function formatDate(d: Date): string {
   return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
@@ -57,7 +86,9 @@ function nextMonth(d: Date): Date {
   return n;
 }
 
-function initialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
+function initialForm(
+  prefill: { name?: string; logoUrl?: string; category?: string } | null,
+): FormState {
   const today = new Date();
   return {
     name: prefill?.name ?? '',
@@ -87,7 +118,13 @@ function DatePill({ date }: { date: Date }) {
   );
 }
 
-function SelectorValue({ value, onCycle }: { value: string; onCycle: () => void }) {
+function SelectorValue({
+  value,
+  onCycle,
+}: {
+  value: string;
+  onCycle: () => void;
+}) {
   return (
     <Pressable style={styles.selectorRow} onPress={onCycle} hitSlop={8}>
       <Text style={styles.selectorText}>{value}</Text>
@@ -103,14 +140,31 @@ export function CreateSubscriptionSheet() {
   const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
   const close = useCreateSubscriptionStore((s) => s.close);
+  const insets = useSafeAreaInsets();
 
-  console.log('[CreateSubscriptionSheet] render, isOpen=', isOpen);
+  // v5-native-modal marker — lets us verify fresh JS is running.
+  console.log('[CreateSubscriptionSheet v5-native-modal] render, isOpen=', isOpen);
 
   const [form, setForm] = useState<FormState>(() => initialForm(null));
 
+  // Slide-up animation for the sheet contents. Modal itself fades in;
+  // we overlay a translateY for the iOS-style rise.
+  const translateY = useRef(new Animated.Value(SCREEN_H)).current;
+
   useEffect(() => {
-    if (isOpen) setForm(initialForm(prefill));
-  }, [isOpen, prefill]);
+    if (isOpen) {
+      setForm(initialForm(prefill));
+      Animated.spring(translateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        damping: 20,
+        stiffness: 240,
+        mass: 0.9,
+      }).start();
+    } else {
+      translateY.setValue(SCREEN_H);
+    }
+  }, [isOpen, prefill, translateY]);
 
   const cycleCurrency = useCallback(() => {
     setForm((f) => {
@@ -121,7 +175,10 @@ export function CreateSubscriptionSheet() {
   const cycleBilling = useCallback(() => {
     setForm((f) => {
       const idx = BILLING_PERIODS.indexOf(f.billingPeriod);
-      return { ...f, billingPeriod: BILLING_PERIODS[(idx + 1) % BILLING_PERIODS.length] };
+      return {
+        ...f,
+        billingPeriod: BILLING_PERIODS[(idx + 1) % BILLING_PERIODS.length],
+      };
     });
   }, []);
   const cycleCategory = useCallback(() => {
@@ -131,216 +188,248 @@ export function CreateSubscriptionSheet() {
     });
   }, []);
 
-  // Unconditional render. Off-screen + pointer-events-none when closed.
   return (
-    <View
-      style={[
-        styles.root,
-        !isOpen && { opacity: 0 },
-      ]}
-      pointerEvents={isOpen ? 'auto' : 'none'}
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={close}
+      statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
-      <Pressable style={styles.backdrop} onPress={close} />
+      <View style={styles.root}>
+        <Pressable style={styles.backdrop} onPress={close} />
 
-      <View style={styles.sheet}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              paddingBottom: Math.max(insets.bottom, 16),
+              transform: [{ translateY }],
+            },
+          ]}
         >
-          <View style={styles.handleZone}>
-            <View style={styles.handle} />
-          </View>
-
-          <View style={styles.header}>
-            <Text style={styles.title}>Crear nueva suscripción</Text>
-            <Pressable
-              style={styles.closeBtn}
-              onPress={close}
-              hitSlop={10}
-              accessibilityLabel="Cerrar"
-            >
-              <X size={15} color="#3C3C43" strokeWidth={2.5} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={0}
           >
-            <View style={styles.platformCard}>
-              <TextInput
-                style={styles.platformName}
-                value={form.name}
-                onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
-                placeholder="Nombre de la suscripción"
-                placeholderTextColor="#C7C7CC"
-                returnKeyType="done"
-                autoCorrect={false}
-              />
-              <View style={styles.priceRow}>
-                <Pressable style={styles.currencyPill} onPress={cycleCurrency} hitSlop={8}>
-                  <Text style={styles.currencyText}>{form.currency}</Text>
-                  <View style={styles.currencyChevrons}>
-                    <ChevronUp size={9} color="#8E8E93" strokeWidth={2.5} />
-                    <ChevronDown size={9} color="#8E8E93" strokeWidth={2.5} />
-                  </View>
-                </Pressable>
+            <View style={styles.handleZone}>
+              <View style={styles.handle} />
+            </View>
+
+            <View style={styles.header}>
+              <Text style={styles.title}>Crear nueva suscripción</Text>
+              <Pressable
+                style={styles.closeBtn}
+                onPress={close}
+                hitSlop={10}
+                accessibilityLabel="Cerrar"
+              >
+                <X size={15} color="#3C3C43" strokeWidth={2.5} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
+              <View style={styles.platformCard}>
                 <TextInput
-                  style={styles.priceInput}
-                  value={form.price}
-                  onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
-                  placeholder="0.00"
+                  style={styles.platformName}
+                  value={form.name}
+                  onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
+                  placeholder="Nombre de la suscripción"
                   placeholderTextColor="#C7C7CC"
-                  keyboardType="decimal-pad"
                   returnKeyType="done"
+                  autoCorrect={false}
                 />
-              </View>
-            </View>
-
-            <View style={styles.group}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Inicio de suscripción</Text>
-                <DatePill date={form.startDate} />
-              </View>
-              <FormDivider />
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
-                <DatePill date={form.nextPaymentDate} />
-              </View>
-              <FormDivider />
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Importe</Text>
-                <SelectorValue value={form.billingPeriod} onCycle={cycleBilling} />
-              </View>
-              <FormDivider />
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Fin de la suscripción</Text>
-                <Switch
-                  value={form.endEnabled}
-                  onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
-                  trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                  thumbColor="#FFFFFF"
-                />
-              </View>
-              {form.endEnabled && (
-                <>
-                  <FormDivider />
-                  <View style={styles.row}>
-                    <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
-                      Fecha de fin
-                    </Text>
-                    <DatePill date={form.endDate} />
-                  </View>
-                </>
-              )}
-            </View>
-
-            <View style={styles.group}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Categoría</Text>
-                <SelectorValue value={form.category} onCycle={cycleCategory} />
-              </View>
-            </View>
-
-            <View style={styles.group}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Suscripción compartida</Text>
-                <Switch
-                  value={form.shared}
-                  onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
-                  trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                  thumbColor="#FFFFFF"
-                />
-              </View>
-            </View>
-
-            <View style={styles.group}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>URL del logo</Text>
-                <View style={styles.urlRow}>
+                <View style={styles.priceRow}>
+                  <Pressable
+                    style={styles.currencyPill}
+                    onPress={cycleCurrency}
+                    hitSlop={8}
+                  >
+                    <Text style={styles.currencyText}>{form.currency}</Text>
+                    <View style={styles.currencyChevrons}>
+                      <ChevronUp size={9} color="#8E8E93" strokeWidth={2.5} />
+                      <ChevronDown size={9} color="#8E8E93" strokeWidth={2.5} />
+                    </View>
+                  </Pressable>
                   <TextInput
-                    style={styles.urlInput}
-                    value={form.logoUrl}
-                    onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
-                    placeholder="https://..."
+                    style={styles.priceInput}
+                    value={form.price}
+                    onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
+                    placeholder="0.00"
                     placeholderTextColor="#C7C7CC"
-                    keyboardType="url"
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                    keyboardType="decimal-pad"
                     returnKeyType="done"
-                    numberOfLines={1}
                   />
-                  {form.logoUrl.length > 0 && (
-                    <Pressable
-                      onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))}
-                      hitSlop={8}
-                      style={styles.urlClear}
-                    >
-                      <X size={12} color="#8E8E93" strokeWidth={2.5} />
-                    </Pressable>
-                  )}
                 </View>
               </View>
-              <FormDivider />
-              <View style={styles.notesRow}>
-                <Text style={styles.rowLabel}>Notas</Text>
-                <TextInput
-                  style={styles.notesInput}
-                  value={form.notes}
-                  onChangeText={(t) => setForm((f) => ({ ...f, notes: t }))}
-                  placeholder="Añade una nota..."
-                  placeholderTextColor="#C7C7CC"
-                  multiline
-                  textAlignVertical="top"
-                  returnKeyType="default"
-                />
-              </View>
-            </View>
-          </ScrollView>
 
-          <View style={styles.footer}>
-            <Pressable
-              style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
-              onPress={close}
-            >
-              <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.createBtn, pressed && { opacity: 0.85 }]}
-              onPress={close}
-            >
-              <Text style={styles.createBtnText}>Crear suscripción</Text>
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Inicio de suscripción</Text>
+                  <DatePill date={form.startDate} />
+                </View>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
+                  <DatePill date={form.nextPaymentDate} />
+                </View>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Importe</Text>
+                  <SelectorValue
+                    value={form.billingPeriod}
+                    onCycle={cycleBilling}
+                  />
+                </View>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Fin de la suscripción</Text>
+                  <Switch
+                    value={form.endEnabled}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, endEnabled: v }))
+                    }
+                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+                {form.endEnabled && (
+                  <>
+                    <FormDivider />
+                    <View style={styles.row}>
+                      <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
+                        Fecha de fin
+                      </Text>
+                      <DatePill date={form.endDate} />
+                    </View>
+                  </>
+                )}
+              </View>
+
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Categoría</Text>
+                  <SelectorValue
+                    value={form.category}
+                    onCycle={cycleCategory}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Suscripción compartida</Text>
+                  <Switch
+                    value={form.shared}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, shared: v }))
+                    }
+                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>URL del logo</Text>
+                  <View style={styles.urlRow}>
+                    <TextInput
+                      style={styles.urlInput}
+                      value={form.logoUrl}
+                      onChangeText={(t) =>
+                        setForm((f) => ({ ...f, logoUrl: t }))
+                      }
+                      placeholder="https://..."
+                      placeholderTextColor="#C7C7CC"
+                      keyboardType="url"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      returnKeyType="done"
+                      numberOfLines={1}
+                    />
+                    {form.logoUrl.length > 0 && (
+                      <Pressable
+                        onPress={() =>
+                          setForm((f) => ({ ...f, logoUrl: '' }))
+                        }
+                        hitSlop={8}
+                        style={styles.urlClear}
+                      >
+                        <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+                <FormDivider />
+                <View style={styles.notesRow}>
+                  <Text style={styles.rowLabel}>Notas</Text>
+                  <TextInput
+                    style={styles.notesInput}
+                    value={form.notes}
+                    onChangeText={(t) =>
+                      setForm((f) => ({ ...f, notes: t }))
+                    }
+                    placeholder="Añade una nota..."
+                    placeholderTextColor="#C7C7CC"
+                    multiline
+                    textAlignVertical="top"
+                    returnKeyType="default"
+                  />
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={styles.footer}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.cancelBtn,
+                  pressed && { opacity: 0.7 },
+                ]}
+                onPress={close}
+              >
+                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.createBtn,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={close}
+              >
+                <Text style={styles.createBtnText}>Crear suscripción</Text>
+              </Pressable>
+            </View>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </View>
-    </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 99998,
-    elevation: 99998,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    top: 60,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: SHEET_RADIUS_TOP,
     borderTopRightRadius: SHEET_RADIUS_TOP,
+    maxHeight: '92%',
+    minHeight: '70%',
     overflow: 'hidden',
   },
 
@@ -385,7 +474,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 24,
     gap: 10,
   },
 
@@ -542,7 +631,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: 8,
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E5EA',
