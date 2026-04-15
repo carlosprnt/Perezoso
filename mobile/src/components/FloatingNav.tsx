@@ -8,8 +8,8 @@
 // Container: white glass ~85% opacity
 // Card icon: custom SVG (not lucide CreditCard) with visible stripe when filled
 
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Pressable, Platform } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,6 +23,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
+import { useAddSubscriptionStore } from '../features/add-subscription/useAddSubscriptionStore';
 
 // ─── Custom CardIcon (matches web's CardIcon with stripe) ────────────
 function CardIcon({
@@ -81,6 +82,31 @@ export function FloatingNav() {
 
   const isSubscriptions = pathname.includes('/subscriptions');
   const activeIndex = isSubscriptions ? 1 : 0;
+
+  // Ref for the `+` Pressable — used to measure its window-space rect
+  // at tap time so the AddSubscriptionOverlay can morph the sheet out
+  // of the exact button position. Pressable forwards its ref to the
+  // underlying View, so `measureInWindow` is available.
+  const plusRef = useRef<View>(null);
+
+  const openAddSubscription = useCallback(() => {
+    // Guard against double-open: if the overlay is already mounting /
+    // animating in, ignore additional taps.
+    if (useAddSubscriptionStore.getState().isOpen) return;
+
+    plusRef.current?.measureInWindow((x, y, width, height) => {
+      // `+` button is a fully-pill Pressable (borderRadius: 9999),
+      // which iOS/Android clamp to half of the shortest side.
+      const br = Math.min(width, height) / 2;
+      useAddSubscriptionStore.getState().open({
+        x,
+        y,
+        width,
+        height,
+        borderRadius: br,
+      });
+    });
+  }, []);
 
   const indicatorX = useSharedValue(
     isSubscriptions ? INDICATOR_X_RIGHT : INDICATOR_X_LEFT,
@@ -147,10 +173,14 @@ export function FloatingNav() {
           />
         </Pressable>
 
-        {/* Plus — filled circle */}
+        {/* Plus — filled pill. Measures its own rect in window coords and
+            hands it to the AddSubscriptionOverlay so the sheet can morph
+            from this exact position (shared-element transition). */}
         <Pressable
+          ref={plusRef}
           style={[styles.plusButton, { backgroundColor: plusBg }]}
-          onPress={() => router.push('/(tabs)/subscriptions/new')}
+          onPress={openAddSubscription}
+          accessibilityLabel="Crear nueva suscripción"
         >
           <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
         </Pressable>

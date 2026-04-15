@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FloatingNav } from '../../src/components/FloatingNav';
+import { AddSubscriptionOverlay } from '../../src/features/add-subscription/AddSubscriptionOverlay';
 import { useTheme } from '../../src/design/useTheme';
 
 // Tab layout: native tab bar hidden, FloatingNav overlays at bottom.
@@ -30,6 +31,10 @@ export default function TabLayout() {
         <Tabs.Screen name="settings" />
       </Tabs>
       <FloatingNav />
+      {/* AddSubscriptionOverlay is mounted above FloatingNav so its
+          morph animation can grow out of the `+` button rect measured
+          by FloatingNav and cover the nav while open. */}
+      <AddSubscriptionOverlay />
     </View>
   );
 }
