@@ -6,10 +6,10 @@
 // in the React tree (Expo Router Slot, Tabs, FloatingNav, status bar,
 // etc.) can cover it.
 //
-// The sheet itself is a rounded white card anchored to the bottom of the
-// screen with safe-area padding, slid up via a simple opacity+translate
-// animation (LayoutAnimation-free for maximum compatibility with SDK 54
-// + Expo Go's new architecture).
+// All selectors (currency, billing period, category, share count) open
+// their own inline OptionPickerSheet. Dates open the custom DatePickerSheet.
+// These stack above the parent Modal — on iOS each Modal is its own
+// presentation layer so stacking Just Works.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -27,9 +27,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ChevronUp, X } from 'lucide-react-native';
+import { ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
+import { OptionPickerSheet } from './pickers/OptionPickerSheet';
+import { DatePickerSheet } from './pickers/DatePickerSheet';
 import { fontFamily, fontSize } from '../../design/typography';
 
 const SHEET_RADIUS_TOP = 32;
@@ -56,9 +58,18 @@ interface FormState {
   endDate: Date;
   category: Category;
   shared: boolean;
+  sharedCount: number;
   logoUrl: string;
   notes: string;
 }
+
+type PickerKey =
+  | 'currency'
+  | 'billing'
+  | 'category'
+  | 'sharedCount'
+  | null;
+type DateKey = 'start' | 'next' | 'end' | null;
 
 const CURRENCIES = ['€', '$', '£', 'US$'];
 const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Weekly'];
@@ -71,6 +82,8 @@ const CATEGORIES: Category[] = [
   'Gaming',
   'Otros',
 ];
+// Up to 10 people — covers every reasonable family/friends split.
+const SHARED_COUNTS: string[] = Array.from({ length: 9 }, (_, i) => String(i + 2));
 const MONTHS_ES = [
   'ene', 'feb', 'mar', 'abr', 'may', 'jun',
   'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
@@ -101,6 +114,7 @@ function initialForm(
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
     category: (prefill?.category as Category) ?? 'Streaming',
     shared: false,
+    sharedCount: 2,
     logoUrl: prefill?.logoUrl ?? '',
     notes: '',
   };
@@ -110,28 +124,31 @@ function FormDivider() {
   return <View style={styles.divider} />;
 }
 
-function DatePill({ date }: { date: Date }) {
+function DatePillBtn({
+  date,
+  onPress,
+}: {
+  date: Date;
+  onPress: () => void;
+}) {
   return (
-    <View style={styles.datePill}>
+    <Pressable style={styles.datePill} onPress={onPress} hitSlop={8}>
       <Text style={styles.datePillText}>{formatDate(date)}</Text>
-    </View>
+    </Pressable>
   );
 }
 
-function SelectorValue({
+function DropdownValue({
   value,
-  onCycle,
+  onPress,
 }: {
   value: string;
-  onCycle: () => void;
+  onPress: () => void;
 }) {
   return (
-    <Pressable style={styles.selectorRow} onPress={onCycle} hitSlop={8}>
-      <Text style={styles.selectorText}>{value}</Text>
-      <View style={styles.selectorChevrons}>
-        <ChevronUp size={10} color="#8E8E93" strokeWidth={2.5} />
-        <ChevronDown size={10} color="#8E8E93" strokeWidth={2.5} />
-      </View>
+    <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
+      <Text style={styles.dropdownText}>{value}</Text>
+      <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
     </Pressable>
   );
 }
@@ -142,18 +159,21 @@ export function CreateSubscriptionSheet() {
   const close = useCreateSubscriptionStore((s) => s.close);
   const insets = useSafeAreaInsets();
 
-  // v5-native-modal marker — lets us verify fresh JS is running.
-  console.log('[CreateSubscriptionSheet v5-native-modal] render, isOpen=', isOpen);
+  // v6-dropdowns marker — lets us verify fresh JS is running.
+  console.log('[CreateSubscriptionSheet v6-dropdowns] render, isOpen=', isOpen);
 
   const [form, setForm] = useState<FormState>(() => initialForm(null));
+  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
+  const [openDate, setOpenDate] = useState<DateKey>(null);
 
-  // Slide-up animation for the sheet contents. Modal itself fades in;
-  // we overlay a translateY for the iOS-style rise.
+  // Slide-up animation for the sheet contents.
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
 
   useEffect(() => {
     if (isOpen) {
       setForm(initialForm(prefill));
+      setOpenPicker(null);
+      setOpenDate(null);
       Animated.spring(translateY, {
         toValue: 0,
         useNativeDriver: true,
@@ -166,26 +186,11 @@ export function CreateSubscriptionSheet() {
     }
   }, [isOpen, prefill, translateY]);
 
-  const cycleCurrency = useCallback(() => {
-    setForm((f) => {
-      const idx = CURRENCIES.indexOf(f.currency);
-      return { ...f, currency: CURRENCIES[(idx + 1) % CURRENCIES.length] };
-    });
+  const decShared = useCallback(() => {
+    setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) }));
   }, []);
-  const cycleBilling = useCallback(() => {
-    setForm((f) => {
-      const idx = BILLING_PERIODS.indexOf(f.billingPeriod);
-      return {
-        ...f,
-        billingPeriod: BILLING_PERIODS[(idx + 1) % BILLING_PERIODS.length],
-      };
-    });
-  }, []);
-  const cycleCategory = useCallback(() => {
-    setForm((f) => {
-      const idx = CATEGORIES.indexOf(f.category);
-      return { ...f, category: CATEGORIES[(idx + 1) % CATEGORIES.length] };
-    });
+  const incShared = useCallback(() => {
+    setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) }));
   }, []);
 
   return (
@@ -204,7 +209,10 @@ export function CreateSubscriptionSheet() {
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              // Clamped to a tight value so buttons don't float far above
+              // the home indicator. Devices without an indicator fall back
+              // to 10px, matching iOS form-sheet spacing.
+              paddingBottom: insets.bottom > 0 ? 14 : 10,
               transform: [{ translateY }],
             },
           ]}
@@ -250,14 +258,11 @@ export function CreateSubscriptionSheet() {
                 <View style={styles.priceRow}>
                   <Pressable
                     style={styles.currencyPill}
-                    onPress={cycleCurrency}
+                    onPress={() => setOpenPicker('currency')}
                     hitSlop={8}
                   >
                     <Text style={styles.currencyText}>{form.currency}</Text>
-                    <View style={styles.currencyChevrons}>
-                      <ChevronUp size={9} color="#8E8E93" strokeWidth={2.5} />
-                      <ChevronDown size={9} color="#8E8E93" strokeWidth={2.5} />
-                    </View>
+                    <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
                   </Pressable>
                   <TextInput
                     style={styles.priceInput}
@@ -274,19 +279,25 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Inicio de suscripción</Text>
-                  <DatePill date={form.startDate} />
+                  <DatePillBtn
+                    date={form.startDate}
+                    onPress={() => setOpenDate('start')}
+                  />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
-                  <DatePill date={form.nextPaymentDate} />
+                  <DatePillBtn
+                    date={form.nextPaymentDate}
+                    onPress={() => setOpenDate('next')}
+                  />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Importe</Text>
-                  <SelectorValue
+                  <DropdownValue
                     value={form.billingPeriod}
-                    onCycle={cycleBilling}
+                    onPress={() => setOpenPicker('billing')}
                   />
                 </View>
                 <FormDivider />
@@ -308,7 +319,10 @@ export function CreateSubscriptionSheet() {
                       <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
                         Fecha de fin
                       </Text>
-                      <DatePill date={form.endDate} />
+                      <DatePillBtn
+                        date={form.endDate}
+                        onPress={() => setOpenDate('end')}
+                      />
                     </View>
                   </>
                 )}
@@ -317,9 +331,9 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Categoría</Text>
-                  <SelectorValue
+                  <DropdownValue
                     value={form.category}
-                    onCycle={cycleCategory}
+                    onPress={() => setOpenPicker('category')}
                   />
                 </View>
               </View>
@@ -336,6 +350,45 @@ export function CreateSubscriptionSheet() {
                     thumbColor="#FFFFFF"
                   />
                 </View>
+                {form.shared && (
+                  <>
+                    <FormDivider />
+                    <View style={styles.row}>
+                      <Text style={[styles.rowLabel, styles.rowLabelIndented]}>
+                        Entre cuántas personas
+                      </Text>
+                      <View style={styles.stepper}>
+                        <Pressable
+                          onPress={decShared}
+                          hitSlop={6}
+                          style={({ pressed }) => [
+                            styles.stepperBtn,
+                            form.sharedCount <= 2 && styles.stepperBtnDisabled,
+                            pressed && { opacity: 0.6 },
+                          ]}
+                          disabled={form.sharedCount <= 2}
+                        >
+                          <Minus size={14} color="#000000" strokeWidth={2.5} />
+                        </Pressable>
+                        <Text style={styles.stepperValue}>
+                          {form.sharedCount}
+                        </Text>
+                        <Pressable
+                          onPress={incShared}
+                          hitSlop={6}
+                          style={({ pressed }) => [
+                            styles.stepperBtn,
+                            form.sharedCount >= 10 && styles.stepperBtnDisabled,
+                            pressed && { opacity: 0.6 },
+                          ]}
+                          disabled={form.sharedCount >= 10}
+                        >
+                          <Plus size={14} color="#000000" strokeWidth={2.5} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  </>
+                )}
               </View>
 
               <View style={styles.group}>
@@ -411,6 +464,71 @@ export function CreateSubscriptionSheet() {
           </KeyboardAvoidingView>
         </Animated.View>
       </View>
+
+      {/* ─── Nested pickers ─────────────────────────────────────────
+          Each is its own native Modal so it stacks above the parent
+          sheet cleanly. We render them unconditionally here (inside
+          the parent Modal) because their own `visible` prop gates
+          whether anything shows on screen. */}
+      <OptionPickerSheet
+        visible={openPicker === 'currency'}
+        title="Moneda"
+        options={CURRENCIES}
+        selected={form.currency}
+        onSelect={(v) => setForm((f) => ({ ...f, currency: v }))}
+        onClose={() => setOpenPicker(null)}
+      />
+      <OptionPickerSheet
+        visible={openPicker === 'billing'}
+        title="Ciclo de pago"
+        options={BILLING_PERIODS}
+        selected={form.billingPeriod}
+        onSelect={(v) =>
+          setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))
+        }
+        onClose={() => setOpenPicker(null)}
+      />
+      <OptionPickerSheet
+        visible={openPicker === 'category'}
+        title="Categoría"
+        options={CATEGORIES}
+        selected={form.category}
+        onSelect={(v) =>
+          setForm((f) => ({ ...f, category: v as Category }))
+        }
+        onClose={() => setOpenPicker(null)}
+      />
+      <OptionPickerSheet
+        visible={openPicker === 'sharedCount'}
+        title="Número de personas"
+        options={SHARED_COUNTS}
+        selected={String(form.sharedCount)}
+        onSelect={(v) =>
+          setForm((f) => ({ ...f, sharedCount: Number(v) }))
+        }
+        onClose={() => setOpenPicker(null)}
+      />
+      <DatePickerSheet
+        visible={openDate === 'start'}
+        value={form.startDate}
+        title="Inicio de suscripción"
+        onChange={(d) => setForm((f) => ({ ...f, startDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      <DatePickerSheet
+        visible={openDate === 'next'}
+        value={form.nextPaymentDate}
+        title="Próxima fecha de pago"
+        onChange={(d) => setForm((f) => ({ ...f, nextPaymentDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      <DatePickerSheet
+        visible={openDate === 'end'}
+        value={form.endDate}
+        title="Fecha de fin"
+        onChange={(d) => setForm((f) => ({ ...f, endDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
     </Modal>
   );
 }
@@ -428,14 +546,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: SHEET_RADIUS_TOP,
     borderTopRightRadius: SHEET_RADIUS_TOP,
-    maxHeight: '92%',
-    minHeight: '70%',
+    // Near-fullscreen: keeps a small gap at the top so the backdrop is
+    // still visible and the sheet feels like a sheet (not a full screen).
+    height: '94%',
     overflow: 'hidden',
   },
 
   handleZone: {
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 6,
   },
   handle: {
@@ -450,7 +569,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   title: {
     ...fontFamily.bold,
@@ -474,7 +593,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 16,
     gap: 10,
   },
 
@@ -501,10 +620,10 @@ const styles = StyleSheet.create({
   currencyPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     backgroundColor: '#E5E5EA',
     borderRadius: 8,
-    paddingHorizontal: 9,
+    paddingHorizontal: 10,
     paddingVertical: 6,
   },
   currencyText: {
@@ -512,10 +631,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
-  },
-  currencyChevrons: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   priceInput: {
     ...fontFamily.regular,
@@ -543,8 +658,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    minHeight: 52,
+    paddingVertical: 12,
+    minHeight: 48,
   },
   rowLabel: {
     ...fontFamily.regular,
@@ -572,20 +687,41 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
-  selectorRow: {
+  dropdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
-  selectorText: {
+  dropdownText: {
     ...fontFamily.regular,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.1,
   },
-  selectorChevrons: {
+
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  stepperBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  stepperBtnDisabled: {
+    opacity: 0.35,
+  },
+  stepperValue: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#000000',
+    minWidth: 22,
+    textAlign: 'center',
+    letterSpacing: -0.2,
   },
 
   urlRow: {
@@ -613,7 +749,7 @@ const styles = StyleSheet.create({
   },
   notesRow: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 12,
   },
   notesInput: {
@@ -630,8 +766,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 10,
+    paddingBottom: 2,
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E5EA',
