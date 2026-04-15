@@ -309,12 +309,17 @@ export function AddSubscriptionOverlay() {
                   onPress={() => {
                     // Step 2 of add-subscription flow: close this dark
                     // picker and open the white form with the selected
-                    // platform pre-filled.
+                    // platform pre-filled. The open() is deferred to the
+                    // next tick so the close()'s state updates commit
+                    // first — prevents any render-batching interference.
+                    console.log('[AddSubscriptionOverlay] row tap →', p.name);
                     close();
-                    useCreateSubscriptionStore.getState().open({
-                      name: p.name,
-                      logoUrl: logoUrlFromDomain(p.domain),
-                    });
+                    setTimeout(() => {
+                      useCreateSubscriptionStore.getState().open({
+                        name: p.name,
+                        logoUrl: logoUrlFromDomain(p.domain),
+                      });
+                    }, 0);
                   }}
                 >
                   <View style={styles.logoBox}>
@@ -356,9 +361,13 @@ export function AddSubscriptionOverlay() {
                 ]}
                 onPress={() => {
                   // Step 2: close the dark picker and open the white
-                  // form empty (manual entry).
+                  // form empty (manual entry). Defer open() by one tick
+                  // so close()'s state commits first.
+                  console.log('[AddSubscriptionOverlay] manual tap');
                   close();
-                  useCreateSubscriptionStore.getState().open();
+                  setTimeout(() => {
+                    useCreateSubscriptionStore.getState().open();
+                  }, 0);
                 }}
               >
                 <Text style={styles.footerBtnPrimaryText}>

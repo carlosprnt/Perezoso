@@ -12,6 +12,7 @@ import {
   Nunito_800ExtraBold,
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
+import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,6 +51,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Slot />
+      {/* Mounted at the root so the form sheet is always in the tree,
+          independent of the active tab / route. The native Modal
+          renders above every other view regardless. */}
+      <CreateSubscriptionSheet />
     </GestureHandlerRootView>
   );
 }

@@ -125,6 +125,8 @@ export function CreateSubscriptionSheet() {
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
   const close = useCreateSubscriptionStore((s) => s.close);
 
+  console.log('[CreateSubscriptionSheet] render, isOpen=', isOpen);
+
   const [form, setForm] = useState<FormState>(() => initialForm(null));
 
   // Re-seed the form each time the sheet opens with a (possibly new) prefill.

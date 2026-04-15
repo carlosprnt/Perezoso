@@ -2,7 +2,6 @@ import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FloatingNav } from '../../src/components/FloatingNav';
 import { AddSubscriptionOverlay } from '../../src/features/add-subscription/AddSubscriptionOverlay';
-import { CreateSubscriptionSheet } from '../../src/features/add-subscription/CreateSubscriptionSheet';
 import { useTheme } from '../../src/design/useTheme';
 
 // Tab layout: native tab bar hidden, FloatingNav overlays at bottom.
@@ -33,12 +32,12 @@ export default function TabLayout() {
       </Tabs>
       <FloatingNav />
       {/* Step 1 of add-subscription flow: dark service picker. Morphs
-          out of the `+` button rect measured by FloatingNav. */}
+          out of the `+` button rect measured by FloatingNav.
+          Step 2 (white form) lives in app/_layout.tsx so it sits above
+          the Tabs navigator entirely — the native Modal renders at the
+          app root regardless, but keeping the mount high in the tree
+          guarantees it's never accidentally unmounted on nav changes. */}
       <AddSubscriptionOverlay />
-      {/* Step 2: white form sheet. Opens after a service is selected
-          or "Añadir manualmente" is tapped in the dark picker. Slides
-          up over both the nav and the picker (higher zIndex). */}
-      <CreateSubscriptionSheet />
     </View>
   );
 }

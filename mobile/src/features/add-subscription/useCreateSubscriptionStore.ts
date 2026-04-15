@@ -31,6 +31,12 @@ interface CreateSubscriptionStore {
 export const useCreateSubscriptionStore = create<CreateSubscriptionStore>((set) => ({
   isOpen: false,
   prefill: null,
-  open: (prefill) => set({ isOpen: true, prefill: prefill ?? null }),
-  close: () => set({ isOpen: false }),
+  open: (prefill) => {
+    console.log('[CreateSubscriptionStore] open()', prefill);
+    set({ isOpen: true, prefill: prefill ?? null });
+  },
+  close: () => {
+    console.log('[CreateSubscriptionStore] close()');
+    set({ isOpen: false });
+  },
 }));
