@@ -2,13 +2,13 @@
 //
 // Behaviour:
 //  · Opens via a native <Modal> (guaranteed above all in-tree UI)
-//  · Slide-in animation: timing, no bounce
+//  · Slide-in with native iOS sheet curve (cubic-bezier 0.32,0.72,0,1)
 //  · Drag handle → drag-to-dismiss (with dirty-form confirmation)
-//  · Dropdowns via FloatingOptionMenu (centered dark card, iOS-style)
+//  · Dropdowns via FloatingOptionMenu (anchored light pull-down, iOS UIMenu)
 //  · Date fields via NativeDatePickerSheet (iOS inline calendar, floating)
 //  · Dirty-form protection: Alert on Cancel / backdrop / swipe-close
 //  · Validation: name + price required; inline error banner above scroll
-//  · Submit: spinner → celebration card (fired 320ms after Modal closes)
+//  · Submit: spinner → celebration card (fired 380ms after Modal closes)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -34,7 +34,7 @@ import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
-import { FloatingOptionMenu } from '../../components/FloatingOptionMenu';
+import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
 
@@ -51,8 +51,9 @@ type Category =
   | 'Gaming'
   | 'Otros';
 type Status = 'Activa' | 'Pausada' | 'Cancelada';
+type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
-type PickerKey = 'currency' | 'billing' | 'category' | 'status' | null;
+type PickerKey = 'currency' | 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface FormState {
   name: string;
@@ -66,6 +67,7 @@ interface FormState {
   category: Category;
   status: Status;
   reminderEnabled: boolean;
+  reminderDays: ReminderDays;
   shared: boolean;
   sharedCount: number;
   paymentMethod: string;
@@ -80,6 +82,7 @@ const CATEGORIES: Category[] = [
   'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
 ];
 const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada'];
+const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
 const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 function formatDate(d: Date): string {
@@ -90,7 +93,7 @@ function nextMonth(d: Date): Date {
   n.setMonth(n.getMonth() + 1);
   return n;
 }
-function initialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
+function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
   const today = new Date();
   return {
     name: prefill?.name ?? '',
@@ -104,6 +107,7 @@ function initialForm(prefill: { name?: string; logoUrl?: string; category?: stri
     category: (prefill?.category as Category) ?? 'Streaming',
     status: 'Activa',
     reminderEnabled: false,
+    reminderDays: '1 día antes',
     shared: false,
     sharedCount: 2,
     paymentMethod: '',
@@ -124,6 +128,7 @@ function formIsEqual(a: FormState, b: FormState): boolean {
     a.category === b.category &&
     a.status === b.status &&
     a.reminderEnabled === b.reminderEnabled &&
+    a.reminderDays === b.reminderDays &&
     a.shared === b.shared &&
     a.sharedCount === b.sharedCount &&
     a.paymentMethod === b.paymentMethod &&
@@ -159,14 +164,22 @@ export function CreateSubscriptionSheet() {
   const closeStore = useCreateSubscriptionStore((s) => s.close);
   const insets = useSafeAreaInsets();
 
-  const [form, setForm] = useState<FormState>(() => initialForm(null));
-  const initialFormRef = useRef<FormState>(initialForm(null));
+  const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
+  const initialFormRef = useRef<FormState>(makeInitialForm(null));
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
+  const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
+  const currencyRef = useRef<View>(null);
+  const billingRef = useRef<View>(null);
+  const categoryRef = useRef<View>(null);
+  const statusRef = useRef<View>(null);
+  const reminderRef = useRef<View>(null);
 
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const isDirty = useCallback(
@@ -177,18 +190,18 @@ export function CreateSubscriptionSheet() {
   // ── Open / close animations ────────────────────────────────────────
   useEffect(() => {
     if (isOpen) {
-      const fresh = initialForm(prefill);
+      const fresh = makeInitialForm(prefill);
       initialFormRef.current = fresh;
       setForm(fresh);
       setError(null);
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
-      // Slide up — timing, no bounce
+      // Native iOS sheet curve: cubic-bezier(0.32, 0.72, 0, 1)
       Animated.timing(translateY, {
         toValue: 0,
-        duration: 320,
-        easing: Easing.out(Easing.cubic),
+        duration: 380,
+        easing: Easing.bezier(0.32, 0.72, 0, 1),
         useNativeDriver: true,
       }).start();
     } else {
@@ -223,32 +236,48 @@ export function CreateSubscriptionSheet() {
         if (g.dy > 100 || g.vy > 1.2) {
           Animated.timing(translateY, {
             toValue: SCREEN_H,
-            duration: 200,
-            easing: Easing.in(Easing.cubic),
+            duration: 260,
+            easing: Easing.bezier(0.32, 0.72, 0.2, 1),
             useNativeDriver: true,
           }).start(() => {
             translateY.setValue(SCREEN_H);
             requestCloseRef.current();
           });
         } else {
+          // Snap back — iOS spring feel
           Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
-            damping: 18,
-            stiffness: 200,
+            damping: 28,
+            stiffness: 260,
           }).start();
         }
       },
     }),
   ).current;
 
-  // Keep a ref so panResponder callback can always call latest requestClose
   const requestCloseRef = useRef(requestClose);
   useEffect(() => { requestCloseRef.current = requestClose; }, [requestClose]);
 
+  // ── Anchor measurement helpers ────────────────────────────────────
+  const openPickerAt = useCallback(
+    (ref: React.RefObject<View | null>, key: Exclude<PickerKey, null>) => {
+      const node = ref.current;
+      if (node) {
+        node.measureInWindow((x, y, width, height) => {
+          setPickerAnchor({ x, y, width, height });
+          setOpenPicker(key);
+        });
+      }
+    },
+    [],
+  );
+
   // ── Steppers ─────────────────────────────────────────────────────
-  const decShared = useCallback(() => setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), []);
-  const incShared = useCallback(() => setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) })), []);
+  const decShared = useCallback(() =>
+    setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), []);
+  const incShared = useCallback(() =>
+    setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) })), []);
 
   // ── Submit ────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
@@ -268,7 +297,7 @@ export function CreateSubscriptionSheet() {
       await new Promise<void>((r) => setTimeout(r, 900));
       setIsSubmitting(false);
       closeStore();
-      // Wait for Modal fade-out (~300ms) before showing celebration at root
+      // Wait for Modal slide-out (~380ms) before showing celebration
       setTimeout(() => {
         useSubscriptionCelebrationStore.getState().show({
           name: form.name,
@@ -277,7 +306,7 @@ export function CreateSubscriptionSheet() {
           billingPeriod: form.billingPeriod,
           logoUrl: form.logoUrl || undefined,
         });
-      }, 320);
+      }, 380);
     } catch {
       setIsSubmitting(false);
       setError('No se pudo crear la suscripción. Inténtalo de nuevo.');
@@ -323,7 +352,7 @@ export function CreateSubscriptionSheet() {
               </Pressable>
             </View>
 
-            {/* ── Error banner ── */}
+            {/* ── Error banner (no stroke) ── */}
             {error && (
               <View style={styles.errorBanner}>
                 <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
@@ -351,14 +380,17 @@ export function CreateSubscriptionSheet() {
                   autoCorrect={false}
                 />
                 <View style={styles.priceRow}>
-                  <Pressable
-                    style={styles.currencyPill}
-                    onPress={() => setOpenPicker('currency')}
-                    hitSlop={8}
-                  >
-                    <Text style={styles.currencyText}>{form.currency}</Text>
-                    <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
-                  </Pressable>
+                  {/* Currency pill — wrapper View for anchor measurement */}
+                  <View ref={currencyRef} collapsable={false}>
+                    <Pressable
+                      style={styles.currencyPill}
+                      onPress={() => openPickerAt(currencyRef, 'currency')}
+                      hitSlop={8}
+                    >
+                      <Text style={styles.currencyText}>{form.currency}</Text>
+                      <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
+                    </Pressable>
+                  </View>
                   <TextInput
                     style={styles.priceInput}
                     value={form.price}
@@ -385,7 +417,12 @@ export function CreateSubscriptionSheet() {
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Periodo de cobro</Text>
-                  <DropdownBtn value={form.billingPeriod} onPress={() => setOpenPicker('billing')} />
+                  <View ref={billingRef} collapsable={false}>
+                    <DropdownBtn
+                      value={form.billingPeriod}
+                      onPress={() => openPickerAt(billingRef, 'billing')}
+                    />
+                  </View>
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
@@ -412,7 +449,12 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Categoría</Text>
-                  <DropdownBtn value={form.category} onPress={() => setOpenPicker('category')} />
+                  <View ref={categoryRef} collapsable={false}>
+                    <DropdownBtn
+                      value={form.category}
+                      onPress={() => openPickerAt(categoryRef, 'category')}
+                    />
+                  </View>
                 </View>
               </View>
 
@@ -420,7 +462,12 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Estado</Text>
-                  <DropdownBtn value={form.status} onPress={() => setOpenPicker('status')} />
+                  <View ref={statusRef} collapsable={false}>
+                    <DropdownBtn
+                      value={form.status}
+                      onPress={() => openPickerAt(statusRef, 'status')}
+                    />
+                  </View>
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
@@ -432,6 +479,20 @@ export function CreateSubscriptionSheet() {
                     thumbColor="#FFFFFF"
                   />
                 </View>
+                {form.reminderEnabled && (
+                  <>
+                    <FormDivider />
+                    <View style={styles.row}>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
+                      <View ref={reminderRef} collapsable={false}>
+                        <DropdownBtn
+                          value={form.reminderDays}
+                          onPress={() => openPickerAt(reminderRef, 'reminder')}
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
               </View>
 
               {/* Shared */}
@@ -516,7 +577,11 @@ export function CreateSubscriptionSheet() {
                       returnKeyType="done"
                     />
                     {form.logoUrl.length > 0 && (
-                      <Pressable onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))} hitSlop={8} style={styles.urlClear}>
+                      <Pressable
+                        onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))}
+                        hitSlop={8}
+                        style={styles.urlClear}
+                      >
                         <X size={12} color="#8E8E93" strokeWidth={2.5} />
                       </Pressable>
                     )}
@@ -548,7 +613,10 @@ export function CreateSubscriptionSheet() {
                 <Text style={styles.cancelBtnText}>Cancelar</Text>
               </Pressable>
               <Pressable
-                style={({ pressed }) => [styles.createBtn, pressed && !isSubmitting && { opacity: 0.85 }]}
+                style={({ pressed }) => [
+                  styles.createBtn,
+                  pressed && !isSubmitting && { opacity: 0.85 },
+                ]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -587,9 +655,10 @@ export function CreateSubscriptionSheet() {
         onClose={() => setOpenDate(null)}
       />
 
-      {/* ── Floating option menus ── */}
+      {/* ── Anchored pull-down menus ── */}
       <FloatingOptionMenu
         visible={openPicker === 'currency'}
+        anchor={pickerAnchor}
         options={[...CURRENCIES]}
         selected={form.currency}
         onSelect={(v) => setForm((f) => ({ ...f, currency: v }))}
@@ -597,6 +666,7 @@ export function CreateSubscriptionSheet() {
       />
       <FloatingOptionMenu
         visible={openPicker === 'billing'}
+        anchor={pickerAnchor}
         options={BILLING_PERIODS}
         selected={form.billingPeriod}
         onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
@@ -604,6 +674,7 @@ export function CreateSubscriptionSheet() {
       />
       <FloatingOptionMenu
         visible={openPicker === 'category'}
+        anchor={pickerAnchor}
         options={CATEGORIES}
         selected={form.category}
         onSelect={(v) => setForm((f) => ({ ...f, category: v as Category }))}
@@ -611,9 +682,18 @@ export function CreateSubscriptionSheet() {
       />
       <FloatingOptionMenu
         visible={openPicker === 'status'}
+        anchor={pickerAnchor}
         options={STATUSES}
         selected={form.status}
         onSelect={(v) => setForm((f) => ({ ...f, status: v as Status }))}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'reminder'}
+        anchor={pickerAnchor}
+        options={REMINDER_OPTIONS}
+        selected={form.reminderDays}
+        onSelect={(v) => setForm((f) => ({ ...f, reminderDays: v as ReminderDays }))}
         onClose={() => setOpenPicker(null)}
       />
     </Modal>
@@ -748,13 +828,13 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
+    borderWidth: 1,
+    borderColor: '#C6C6C8',
     overflow: 'hidden',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#C6C6C8',
     marginLeft: 16,
   },
   row: {
