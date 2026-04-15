@@ -8,8 +8,8 @@
 // Container: white glass ~85% opacity
 // Card icon: custom SVG (not lucide CreditCard) with visible stripe when filled
 
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -83,30 +83,34 @@ export function FloatingNav() {
   const isSubscriptions = pathname.includes('/subscriptions');
   const activeIndex = isSubscriptions ? 1 : 0;
 
-  // Ref for the `+` Pressable — used to measure its window-space rect
-  // at tap time so the AddSubscriptionOverlay can morph the sheet out
-  // of the exact button position. Pressable forwards its ref to the
-  // underlying View, so `measureInWindow` is available.
-  const plusRef = useRef<View>(null);
-
+  // Compute the `+` button's window rect deterministically from the
+  // FloatingNav layout constants + current safe-area insets. This is
+  // more reliable than `measureInWindow` on a Pressable inside a
+  // BlurView (which can return 0,0,0,0 on iOS Paper), and matches the
+  // styles below exactly:
+  //   - wrapper has bottom: Math.max(insets.bottom, 8) + 4
+  //   - pill is centered horizontally, NAV_W wide
+  //   - + button is the middle child, at pill.left + PAD + BTN_W + GAP
+  //   - + button top offset inside pill is PAD
   const openAddSubscription = useCallback(() => {
     // Guard against double-open: if the overlay is already mounting /
     // animating in, ignore additional taps.
     if (useAddSubscriptionStore.getState().isOpen) return;
 
-    plusRef.current?.measureInWindow((x, y, width, height) => {
-      // `+` button is a fully-pill Pressable (borderRadius: 9999),
-      // which iOS/Android clamp to half of the shortest side.
-      const br = Math.min(width, height) / 2;
-      useAddSubscriptionStore.getState().open({
-        x,
-        y,
-        width,
-        height,
-        borderRadius: br,
-      });
+    const { width: screenW, height: screenH } = Dimensions.get('window');
+    const navBottomOffset = Math.max(insets.bottom, 8) + 4;
+    const pillLeft = (screenW - NAV_W) / 2;
+    const plusX = pillLeft + PAD + BTN_W + GAP;
+    const plusY = screenH - navBottomOffset - NAV_H + PAD;
+
+    useAddSubscriptionStore.getState().open({
+      x: plusX,
+      y: plusY,
+      width: BTN_W,
+      height: BTN_H,
+      borderRadius: BTN_H / 2, // fully-pill (radius 9999 clamps to h/2)
     });
-  }, []);
+  }, [insets.bottom]);
 
   const indicatorX = useSharedValue(
     isSubscriptions ? INDICATOR_X_RIGHT : INDICATOR_X_LEFT,
@@ -173,11 +177,10 @@ export function FloatingNav() {
           />
         </Pressable>
 
-        {/* Plus — filled pill. Measures its own rect in window coords and
-            hands it to the AddSubscriptionOverlay so the sheet can morph
-            from this exact position (shared-element transition). */}
+        {/* Plus — filled pill. Position is computed deterministically in
+            openAddSubscription() so the AddSubscriptionOverlay can morph
+            the sheet out of this exact rect (shared-element transition). */}
         <Pressable
-          ref={plusRef}
           style={[styles.plusButton, { backgroundColor: plusBg }]}
           onPress={openAddSubscription}
           accessibilityLabel="Crear nueva suscripción"

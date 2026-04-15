@@ -155,22 +155,30 @@ export function AddSubscriptionOverlay() {
   }, [mounted, isOpen, progress]);
 
   // ─── Animated styles ──────────────────────────────────────────────
+  // triggerRect is guaranteed non-null here because the component returns
+  // null when `triggerRect` is falsy. We pre-snapshot the rect values into
+  // plain numbers so the worklet's closure captures stable primitives
+  // (keeps Reanimated happy on the old architecture).
+  const rx = triggerRect?.x ?? 0;
+  const ry = triggerRect?.y ?? 0;
+  const rw = triggerRect?.width ?? 0;
+  const rh = triggerRect?.height ?? 0;
+  const rr = triggerRect?.borderRadius ?? 0;
+
   const morphStyle = useAnimatedStyle(() => {
-    if (!triggerRect) {
-      return { opacity: 0 };
-    }
     const p = progress.value;
     return {
-      left: interpolate(p, [0, 1], [triggerRect.x, sheetX], Extrapolation.CLAMP),
-      top: interpolate(p, [0, 1], [triggerRect.y, sheetY], Extrapolation.CLAMP),
-      width: interpolate(p, [0, 1], [triggerRect.width, sheetW], Extrapolation.CLAMP),
-      height: interpolate(p, [0, 1], [triggerRect.height, sheetH], Extrapolation.CLAMP),
+      left: interpolate(p, [0, 1], [rx, sheetX], Extrapolation.CLAMP),
+      top: interpolate(p, [0, 1], [ry, sheetY], Extrapolation.CLAMP),
+      width: interpolate(p, [0, 1], [rw, sheetW], Extrapolation.CLAMP),
+      height: interpolate(p, [0, 1], [rh, sheetH], Extrapolation.CLAMP),
       borderRadius: interpolate(
         p,
         [0, 1],
-        [triggerRect.borderRadius, SHEET_RADIUS],
+        [rr, SHEET_RADIUS],
         Extrapolation.CLAMP,
       ),
+      opacity: 1,
     };
   });
 
