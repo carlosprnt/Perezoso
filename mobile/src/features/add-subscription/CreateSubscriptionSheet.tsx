@@ -4,15 +4,14 @@
 //  · Opens via a native <Modal> (guaranteed above all in-tree UI)
 //  · Slide-in animation: timing, no bounce
 //  · Drag handle → drag-to-dismiss (with dirty-form confirmation)
-//  · Dropdowns via ActionSheetIOS (native pull-down feel on iOS)
-//  · Date fields via NativeDatePickerSheet (iOS inline calendar)
+//  · Dropdowns via FloatingOptionMenu (centered dark card, iOS-style)
+//  · Date fields via NativeDatePickerSheet (iOS inline calendar, floating)
 //  · Dirty-form protection: Alert on Cancel / backdrop / swipe-close
 //  · Validation: name + price required; inline error banner above scroll
-//  · Submit: spinner → success toast (fired 320ms after Modal closes)
+//  · Submit: spinner → celebration card (fired 320ms after Modal closes)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Animated,
@@ -35,14 +34,14 @@ import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
-import { OptionPickerSheet } from './pickers/OptionPickerSheet';
-import { useToastStore } from '../../components/useToastStore';
+import { FloatingOptionMenu } from '../../components/FloatingOptionMenu';
+import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
 // ─── Types ───────────────────────────────────────────────────────────
-type BillingPeriod = 'Monthly' | 'Yearly' | 'Weekly';
+type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
 type Category =
   | 'Streaming'
   | 'Música'
@@ -51,8 +50,9 @@ type Category =
   | 'IA'
   | 'Gaming'
   | 'Otros';
+type Status = 'Activa' | 'Pausada' | 'Cancelada';
 type DateKey = 'start' | 'next' | 'end' | null;
-type PickerKey = 'currency' | 'billing' | 'category' | null;
+type PickerKey = 'currency' | 'billing' | 'category' | 'status' | null;
 
 interface FormState {
   name: string;
@@ -64,6 +64,8 @@ interface FormState {
   endEnabled: boolean;
   endDate: Date;
   category: Category;
+  status: Status;
+  reminderEnabled: boolean;
   shared: boolean;
   sharedCount: number;
   paymentMethod: string;
@@ -73,10 +75,11 @@ interface FormState {
 
 // ─── Constants ───────────────────────────────────────────────────────
 const CURRENCIES = ['€', '$', '£', 'US$'] as const;
-const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Weekly'];
+const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Quarterly', 'Weekly', 'Custom'];
 const CATEGORIES: Category[] = [
   'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
 ];
+const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada'];
 const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 function formatDate(d: Date): string {
@@ -99,6 +102,8 @@ function initialForm(prefill: { name?: string; logoUrl?: string; category?: stri
     endEnabled: false,
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
     category: (prefill?.category as Category) ?? 'Streaming',
+    status: 'Activa',
+    reminderEnabled: false,
     shared: false,
     sharedCount: 2,
     paymentMethod: '',
@@ -117,6 +122,8 @@ function formIsEqual(a: FormState, b: FormState): boolean {
     a.endEnabled === b.endEnabled &&
     a.endDate.getTime() === b.endDate.getTime() &&
     a.category === b.category &&
+    a.status === b.status &&
+    a.reminderEnabled === b.reminderEnabled &&
     a.shared === b.shared &&
     a.sharedCount === b.sharedCount &&
     a.paymentMethod === b.paymentMethod &&
@@ -156,7 +163,6 @@ export function CreateSubscriptionSheet() {
   const initialFormRef = useRef<FormState>(initialForm(null));
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
-  // Android fallback picker state (iOS uses ActionSheetIOS)
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
 
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +221,6 @@ export function CreateSubscriptionSheet() {
       },
       onPanResponderRelease: (_, g) => {
         if (g.dy > 100 || g.vy > 1.2) {
-          // Animate down then trigger close logic
           Animated.timing(translateY, {
             toValue: SCREEN_H,
             duration: 200,
@@ -223,7 +228,6 @@ export function CreateSubscriptionSheet() {
             useNativeDriver: true,
           }).start(() => {
             translateY.setValue(SCREEN_H);
-            // requestClose needs current form — access via ref trick
             requestCloseRef.current();
           });
         } else {
@@ -241,55 +245,6 @@ export function CreateSubscriptionSheet() {
   // Keep a ref so panResponder callback can always call latest requestClose
   const requestCloseRef = useRef(requestClose);
   useEffect(() => { requestCloseRef.current = requestClose; }, [requestClose]);
-
-  // ── ActionSheet helpers ───────────────────────────────────────────
-  const openCurrencySheet = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Moneda',
-          options: [...CURRENCIES, 'Cancelar'],
-          cancelButtonIndex: CURRENCIES.length,
-          userInterfaceStyle: 'light',
-        },
-        (i) => { if (i < CURRENCIES.length) setForm((f) => ({ ...f, currency: CURRENCIES[i] })); },
-      );
-    } else {
-      setOpenPicker('currency');
-    }
-  }, []);
-
-  const openBillingSheet = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Periodo de cobro',
-          options: [...BILLING_PERIODS, 'Cancelar'],
-          cancelButtonIndex: BILLING_PERIODS.length,
-          userInterfaceStyle: 'light',
-        },
-        (i) => { if (i < BILLING_PERIODS.length) setForm((f) => ({ ...f, billingPeriod: BILLING_PERIODS[i] })); },
-      );
-    } else {
-      setOpenPicker('billing');
-    }
-  }, []);
-
-  const openCategorySheet = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Categoría',
-          options: [...CATEGORIES, 'Cancelar'],
-          cancelButtonIndex: CATEGORIES.length,
-          userInterfaceStyle: 'light',
-        },
-        (i) => { if (i < CATEGORIES.length) setForm((f) => ({ ...f, category: CATEGORIES[i] })); },
-      );
-    } else {
-      setOpenPicker('category');
-    }
-  }, []);
 
   // ── Steppers ─────────────────────────────────────────────────────
   const decShared = useCallback(() => setForm((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), []);
@@ -313,9 +268,15 @@ export function CreateSubscriptionSheet() {
       await new Promise<void>((r) => setTimeout(r, 900));
       setIsSubmitting(false);
       closeStore();
-      // Wait for Modal fade-out (~300ms) before showing toast at root
+      // Wait for Modal fade-out (~300ms) before showing celebration at root
       setTimeout(() => {
-        useToastStore.getState().show('success', 'Suscripción creada correctamente');
+        useSubscriptionCelebrationStore.getState().show({
+          name: form.name,
+          price: form.price,
+          currency: form.currency,
+          billingPeriod: form.billingPeriod,
+          logoUrl: form.logoUrl || undefined,
+        });
       }, 320);
     } catch {
       setIsSubmitting(false);
@@ -390,7 +351,11 @@ export function CreateSubscriptionSheet() {
                   autoCorrect={false}
                 />
                 <View style={styles.priceRow}>
-                  <Pressable style={styles.currencyPill} onPress={openCurrencySheet} hitSlop={8}>
+                  <Pressable
+                    style={styles.currencyPill}
+                    onPress={() => setOpenPicker('currency')}
+                    hitSlop={8}
+                  >
                     <Text style={styles.currencyText}>{form.currency}</Text>
                     <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
                   </Pressable>
@@ -420,7 +385,7 @@ export function CreateSubscriptionSheet() {
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Periodo de cobro</Text>
-                  <DropdownBtn value={form.billingPeriod} onPress={openBillingSheet} />
+                  <DropdownBtn value={form.billingPeriod} onPress={() => setOpenPicker('billing')} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
@@ -447,7 +412,25 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Categoría</Text>
-                  <DropdownBtn value={form.category} onPress={openCategorySheet} />
+                  <DropdownBtn value={form.category} onPress={() => setOpenPicker('category')} />
+                </View>
+              </View>
+
+              {/* Status + Reminder */}
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Estado</Text>
+                  <DropdownBtn value={form.status} onPress={() => setOpenPicker('status')} />
+                </View>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
+                  <Switch
+                    value={form.reminderEnabled}
+                    onValueChange={(v) => setForm((f) => ({ ...f, reminderEnabled: v }))}
+                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    thumbColor="#FFFFFF"
+                  />
                 </View>
               </View>
 
@@ -579,7 +562,7 @@ export function CreateSubscriptionSheet() {
         </Animated.View>
       </View>
 
-      {/* ── Nested pickers ── */}
+      {/* ── Nested date pickers ── */}
       <NativeDatePickerSheet
         visible={openDate === 'start'}
         value={form.startDate}
@@ -603,29 +586,34 @@ export function CreateSubscriptionSheet() {
         onChange={(d) => setForm((f) => ({ ...f, endDate: d }))}
         onClose={() => setOpenDate(null)}
       />
-      {/* Android fallbacks */}
-      <OptionPickerSheet
+
+      {/* ── Floating option menus ── */}
+      <FloatingOptionMenu
         visible={openPicker === 'currency'}
-        title="Moneda"
-        options={CURRENCIES}
+        options={[...CURRENCIES]}
         selected={form.currency}
         onSelect={(v) => setForm((f) => ({ ...f, currency: v }))}
         onClose={() => setOpenPicker(null)}
       />
-      <OptionPickerSheet
+      <FloatingOptionMenu
         visible={openPicker === 'billing'}
-        title="Periodo de cobro"
         options={BILLING_PERIODS}
         selected={form.billingPeriod}
         onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
         onClose={() => setOpenPicker(null)}
       />
-      <OptionPickerSheet
+      <FloatingOptionMenu
         visible={openPicker === 'category'}
-        title="Categoría"
         options={CATEGORIES}
         selected={form.category}
         onSelect={(v) => setForm((f) => ({ ...f, category: v as Category }))}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'status'}
+        options={STATUSES}
+        selected={form.status}
+        onSelect={(v) => setForm((f) => ({ ...f, status: v as Status }))}
         onClose={() => setOpenPicker(null)}
       />
     </Modal>
@@ -654,7 +642,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     paddingBottom: 6,
-    // Increase tap target height so the drag feels natural
     paddingHorizontal: 100,
   },
   handle: {
@@ -698,8 +685,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#FECACA',
   },
   errorText: {
     ...fontFamily.regular,

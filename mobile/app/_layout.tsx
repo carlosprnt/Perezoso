@@ -15,6 +15,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
 import { Toast } from '../src/components/Toast';
+import { SubscriptionCreatedCelebration } from '../src/features/add-subscription/SubscriptionCreatedCelebration';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -54,6 +55,7 @@ export default function RootLayout() {
         <Slot />
         <CreateSubscriptionSheet />
         <Toast />
+        <SubscriptionCreatedCelebration />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

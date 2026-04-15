@@ -56,7 +56,7 @@ export function Toast() {
 
   if (!visible) return null;
 
-  const bg = kind === 'success' ? '#4FD175' : '#EF4444';
+  const bg = kind === 'success' ? '#22C55E' : '#EF4444';
   const Icon = kind === 'success' ? Check : X;
 
   return (
@@ -72,7 +72,7 @@ export function Toast() {
       ]}
     >
       <View style={styles.inner}>
-        <Icon size={22} color="#0B1B10" strokeWidth={3} />
+        <Icon size={22} color="#FFFFFF" strokeWidth={3} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>
@@ -87,8 +87,6 @@ const styles = StyleSheet.create({
     right: 0,
     paddingBottom: 22,
     paddingHorizontal: 18,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
     zIndex: 9999,
     elevation: 9999,
   },
@@ -100,7 +98,7 @@ const styles = StyleSheet.create({
   text: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
-    color: '#0B1B10',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
     flex: 1,
   },

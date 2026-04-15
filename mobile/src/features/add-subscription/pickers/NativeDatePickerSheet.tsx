@@ -1,12 +1,9 @@
-// NativeDatePickerSheet — thin wrapper around @react-native-community/
-// datetimepicker, presented as a bottom sheet with Cancelar / Aceptar.
+// NativeDatePickerSheet — centered floating date picker.
 //
-// On iOS we use the inline calendar (display="inline"), which is the
-// native month-grid picker that ships in iOS 14+. The user taps a day,
-// then confirms with "Aceptar" — no double-modal, no extra bounce.
-//
-// We commit the selection on "Aceptar" (not on each onChange) so the
-// parent form only sees the final value.
+// Presents the native DateTimePicker (inline calendar on iOS 14+)
+// inside a compact card that floats in the middle of the screen,
+// backed by a dim/blur backdrop. No slide-up, no sheet — just a
+// floating card with Cancelar / Aceptar at the bottom.
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -17,7 +14,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -41,7 +38,6 @@ export function NativeDatePickerSheet({
   title = 'Seleccionar fecha',
   minimumDate,
 }: Props) {
-  const insets = useSafeAreaInsets();
   const [tempValue, setTempValue] = useState<Date>(value);
 
   useEffect(() => {
@@ -61,32 +57,23 @@ export function NativeDatePickerSheet({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
-      <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View
-          style={[
-            styles.sheet,
-            { paddingBottom: Math.max(insets.bottom, 10) },
-          ]}
-        >
-          <View style={styles.handleZone}>
-            <View style={styles.handle} />
-          </View>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <BlurView
+          intensity={20}
+          tint="dark"
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Pressable>
 
-          <View style={styles.header}>
-            <Pressable onPress={onClose} hitSlop={8}>
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </Pressable>
-            <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={handleAccept} hitSlop={8}>
-              <Text style={styles.acceptText}>Aceptar</Text>
-            </Pressable>
-          </View>
+      <View style={styles.centerWrap} pointerEvents="box-none">
+        {/* Stop propagation so taps inside the card don't dismiss. */}
+        <Pressable onPress={() => {}} style={styles.card}>
+          <Text style={styles.title}>{title}</Text>
 
           <View style={styles.pickerWrap}>
             <DateTimePicker
@@ -101,50 +88,78 @@ export function NativeDatePickerSheet({
               textColor="#000000"
             />
           </View>
-        </View>
+
+          <View style={styles.actions}>
+            <Pressable
+              onPress={onClose}
+              hitSlop={8}
+              style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </Pressable>
+            <Pressable
+              onPress={handleAccept}
+              hitSlop={8}
+              style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.acceptText}>Aceptar</Text>
+            </Pressable>
+          </View>
+        </Pressable>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
-  sheet: {
+  centerWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  card: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 20,
+    paddingTop: 16,
     paddingHorizontal: 12,
-  },
-  handleZone: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D1D6',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    paddingBottom: 8,
+    width: '100%',
+    maxWidth: 360,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   title: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    paddingBottom: 4,
+  },
+  pickerWrap: {
+    paddingBottom: 4,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E5EA',
+  },
+  actionBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   cancelText: {
     ...fontFamily.regular,
@@ -157,8 +172,5 @@ const styles = StyleSheet.create({
     fontSize: fontSize[16],
     color: '#007AFF',
     letterSpacing: -0.1,
-  },
-  pickerWrap: {
-    paddingBottom: 4,
   },
 });
