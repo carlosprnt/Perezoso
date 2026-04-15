@@ -27,7 +27,7 @@
 //   - Grouped:      URL del logo (clearable) + Notas (multiline)
 //   - Sticky footer: Cancelar + Crear suscripción
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -165,32 +165,21 @@ export function CreateSubscriptionSheet() {
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
   const close = useCreateSubscriptionStore((s) => s.close);
 
-  // Single visibility flag: toggles on open, toggles off only when the
-  // close animation completes. This guarantees we always render the
-  // sheet in the tree during open/close transitions.
-  const [visible, setVisible] = useState(false);
   const [form, setForm] = useState<FormState>(() => initialForm(null));
 
   const progress = useSharedValue(0);
   const swipeY = useSharedValue(0);
 
-  // Track previous isOpen to detect rising/falling edges.
-  const prevOpenRef = useRef(false);
-
+  // Single effect: animate purely off `isOpen`. No intermediate mount state,
+  // no prev-ref edge detection — the sheet is ALWAYS in the tree, only
+  // visible when the spring has driven progress up. Prevents every class of
+  // render-ordering race between the dark picker's close and our open.
   useEffect(() => {
-    const prev = prevOpenRef.current;
-    prevOpenRef.current = isOpen;
-
-    if (isOpen && !prev) {
-      // Opening: reset form with new prefill, mark visible, spring up.
+    if (isOpen) {
       setForm(initialForm(prefill));
-      setVisible(true);
       progress.value = withSpring(1, OPEN_SPRING);
-    } else if (!isOpen && prev) {
-      // Closing: animate down, then unmount.
-      progress.value = withTiming(0, CLOSE_TIMING, (finished) => {
-        if (finished) runOnJS(setVisible)(false);
-      });
+    } else {
+      progress.value = withTiming(0, CLOSE_TIMING);
     }
   }, [isOpen, prefill, progress]);
 
@@ -249,16 +238,18 @@ export function CreateSubscriptionSheet() {
     });
   }, []);
 
-  if (!visible) return null;
-
   const footerPb = Math.max(insets.bottom, 20);
 
   return (
-    <View style={styles.root} pointerEvents="box-none">
-      {/* Backdrop */}
+    <View
+      style={styles.root}
+      pointerEvents={isOpen ? 'box-none' : 'none'}
+    >
+      {/* Backdrop — only interactive (and visible via anim) when open */}
       <AnimatedPressable
         style={[styles.backdrop, backdropStyle]}
         onPress={handleBackdropPress}
+        pointerEvents={isOpen ? 'auto' : 'none'}
       />
 
       {/* Sheet — slides up from below */}
