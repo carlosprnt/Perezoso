@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { Pressable, Text, View } from 'react-native';
 import {
   useFonts,
   Nunito_400Regular,
@@ -13,6 +14,7 @@ import {
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
 import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
+import { useCreateSubscriptionStore } from '../src/features/add-subscription/useCreateSubscriptionStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,6 +57,39 @@ export default function RootLayout() {
           independent of the active tab / route. The native Modal
           renders above every other view regardless. */}
       <CreateSubscriptionSheet />
+
+      {/* ────────── DEBUG BUTTON — REMOVE AFTER CONFIRMING ──────────
+          Floating red test button that directly calls the modal's
+          open() action. If THIS opens the modal but the dark picker
+          doesn't → the bug is in AddSubscriptionOverlay's handlers.
+          If this doesn't open the modal → the bug is in the Modal
+          component / store / mount itself. */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 60,
+          right: 16,
+          zIndex: 99999,
+        }}
+        pointerEvents="box-none"
+      >
+        <Pressable
+          onPress={() => {
+            console.log('[DEBUG] test button tapped');
+            useCreateSubscriptionStore.getState().open({ name: 'DEBUG TEST' });
+          }}
+          style={{
+            backgroundColor: 'red',
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: 10,
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: '700', fontSize: 13 }}>
+            OPEN MODAL
+          </Text>
+        </Pressable>
+      </View>
     </GestureHandlerRootView>
   );
 }
