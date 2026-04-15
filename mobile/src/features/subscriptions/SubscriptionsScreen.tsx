@@ -17,9 +17,8 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Platform,
-  ActionSheetIOS,
   Modal,
+  Dimensions,
   type LayoutChangeEvent,
 } from 'react-native';
 import Animated, {
@@ -33,7 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { ChevronDown } from 'lucide-react-native';
+import { Check, ChevronsUpDown } from 'lucide-react-native';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
@@ -258,7 +257,26 @@ export function SubscriptionsScreen() {
 
   const [sortMode, setSortMode] = useState<SortMode>('alphabetical');
   const [filter, setFilter] = useState<FilterValue>('all');
-  const [androidSheet, setAndroidSheet] = useState<null | 'sort' | 'filter'>(null);
+
+  // Which dropdown is open, and where the trigger currently sits
+  // in window coordinates (captured via measureInWindow on press so
+  // we can position the dropdown directly below the trigger, matching
+  // the web's absolute-positioned menu).
+  const [openMenu, setOpenMenu] = useState<null | 'sort' | 'filter'>(null);
+  const [triggerLayout, setTriggerLayout] = useState<
+    { x: number; y: number; width: number; height: number } | null
+  >(null);
+  const sortTriggerRef = useRef<View>(null);
+  const filterTriggerRef = useRef<View>(null);
+
+  const openDropdown = useCallback((which: 'sort' | 'filter') => {
+    const ref = which === 'sort' ? sortTriggerRef : filterTriggerRef;
+    ref.current?.measureInWindow((x, y, width, height) => {
+      setTriggerLayout({ x, y, width, height });
+      setOpenMenu(which);
+    });
+  }, []);
+  const closeDropdown = useCallback(() => setOpenMenu(null), []);
 
   // Monthly <-> annual toggle for the "Pagas X al mes" line.
   // Tapping the amount triggers a 1.5s shimmer skeleton and then
@@ -321,45 +339,6 @@ export function SubscriptionsScreen() {
     const progress = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
     return { opacity: progress };
   });
-
-  // Native iOS sheet / Android modal handlers --------------------
-  const openSortSheet = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      const options = SORT_OPTIONS.map((m) => SORT_LABELS[m]);
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Ordenar por',
-          options: [...options, 'Cancelar'],
-          cancelButtonIndex: options.length,
-          userInterfaceStyle: isDark ? 'dark' : 'light',
-        },
-        (index) => {
-          if (index < SORT_OPTIONS.length) setSortMode(SORT_OPTIONS[index]);
-        },
-      );
-    } else {
-      setAndroidSheet('sort');
-    }
-  }, [isDark]);
-
-  const openFilterSheet = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      const options = FILTER_OPTIONS.map((v) => FILTER_LABELS[v]);
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Filtrar',
-          options: [...options, 'Cancelar'],
-          cancelButtonIndex: options.length,
-          userInterfaceStyle: isDark ? 'dark' : 'light',
-        },
-        (index) => {
-          if (index < FILTER_OPTIONS.length) setFilter(FILTER_OPTIONS[index]);
-        },
-      );
-    } else {
-      setAndroidSheet('filter');
-    }
-  }, [isDark]);
 
   const dropdownTextColor = colors.textPrimary;
   const dropdownMutedColor = colors.textMuted;
@@ -448,21 +427,34 @@ export function SubscriptionsScreen() {
 
         {/* Sort (left) + Filter (right) */}
         <View style={styles.controlsRow}>
-          <Pressable onPress={openSortSheet} style={styles.dropdownLeft}>
+          {/* Sort trigger — tap to reveal a custom dropdown anchored
+              directly below the trigger (matches the web app; the
+              native iOS ActionSheet was replaced on user request). */}
+          <Pressable
+            ref={sortTriggerRef}
+            onPress={() => openDropdown('sort')}
+            style={styles.dropdownLeft}
+            hitSlop={8}
+          >
             <Text style={[styles.dropdownMuted, { color: dropdownMutedColor }]}>
               Ordenar por:{' '}
             </Text>
             <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
               {SORT_LABELS[sortMode]}
             </Text>
-            <ChevronDown size={14} strokeWidth={2} color={dropdownTextColor} />
+            <ChevronsUpDown size={14} strokeWidth={2} color={dropdownMutedColor} />
           </Pressable>
 
-          <Pressable onPress={openFilterSheet} style={styles.dropdownRight}>
+          <Pressable
+            ref={filterTriggerRef}
+            onPress={() => openDropdown('filter')}
+            style={styles.dropdownRight}
+            hitSlop={8}
+          >
             <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
               {filter === 'all' ? 'Filtrar' : FILTER_LABELS[filter]}
             </Text>
-            <ChevronDown size={14} strokeWidth={2} color={dropdownTextColor} />
+            <ChevronsUpDown size={14} strokeWidth={2} color={dropdownMutedColor} />
           </Pressable>
         </View>
 
@@ -508,69 +500,130 @@ export function SubscriptionsScreen() {
         </View>
       </Animated.ScrollView>
 
-      {/* Android fallback sheet */}
-      {Platform.OS !== 'ios' && androidSheet && (
-        <AndroidSheet
-          title={androidSheet === 'sort' ? 'Ordenar por' : 'Filtrar'}
+      {/* Custom dropdown (sort or filter) — same component for both,
+          anchored to the captured trigger window coordinates. */}
+      {openMenu && triggerLayout && (
+        <DropdownMenu
+          triggerLayout={triggerLayout}
           options={
-            androidSheet === 'sort'
-              ? SORT_OPTIONS.map((m) => ({ label: SORT_LABELS[m], value: m }))
-              : FILTER_OPTIONS.map((v) => ({ label: FILTER_LABELS[v], value: v }))
+            openMenu === 'sort'
+              ? SORT_OPTIONS.map((m) => ({ value: m, label: SORT_LABELS[m] }))
+              : FILTER_OPTIONS.map((v) => ({ value: v, label: FILTER_LABELS[v] }))
           }
-          selected={androidSheet === 'sort' ? sortMode : filter}
+          selected={openMenu === 'sort' ? sortMode : filter}
+          align={openMenu === 'sort' ? 'left' : 'right'}
+          width={openMenu === 'sort' ? 200 : 176}
           onSelect={(value) => {
-            if (androidSheet === 'sort') setSortMode(value as SortMode);
+            if (openMenu === 'sort') setSortMode(value as SortMode);
             else setFilter(value as FilterValue);
-            setAndroidSheet(null);
           }}
-          onClose={() => setAndroidSheet(null)}
+          onClose={closeDropdown}
         />
       )}
     </View>
   );
 }
 
-// ─── Android fallback sheet (simple modal list) ───────────────────
-function AndroidSheet<T extends string>({
-  title,
+// ─── Custom dropdown menu (matches web SortDropdown/FilterDropdown) ─
+// Replaces the native iOS ActionSheet on user request. Positioned as
+// an absolute pop-over directly below the trigger, mirroring the
+// web's `absolute top-full` + `mt-2` layout. Tap outside or select
+// an option to dismiss.
+//
+// We measure the trigger with `measureInWindow` on press (see the
+// parent's `openDropdown` callback), which gives us window-space
+// coordinates. The Modal overlays the whole app, so window coords
+// are exactly what we need for positioning — no extra adjustment
+// for safe-area insets or scroll.
+function DropdownMenu<T extends string>({
+  triggerLayout,
   options,
   selected,
   onSelect,
   onClose,
+  align = 'left',
+  width,
 }: {
-  title: string;
-  options: { label: string; value: T }[];
+  triggerLayout: { x: number; y: number; width: number; height: number };
+  options: { value: T; label: string }[];
   selected: T;
   onSelect: (value: T) => void;
   onClose: () => void;
+  align?: 'left' | 'right';
+  width: number;
 }) {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
+  const screenWidth = Dimensions.get('window').width;
+
+  // Position relative to the trigger (window coords). `mt-2` in web.
+  const top = triggerLayout.y + triggerLayout.height + 8;
+  const posStyle =
+    align === 'left'
+      ? { left: triggerLayout.x }
+      : { right: screenWidth - (triggerLayout.x + triggerLayout.width) };
+
+  const surface = isDark ? '#1C1C1E' : '#FFFFFF';
+  const border = isDark ? '#2C2C2E' : '#E8E8E8';
+  const activeBg = isDark ? '#2C2C2E' : '#F5F5F5';
+  const itemColor = isDark ? '#F2F2F7' : '#000000';
+  const itemMuted = isDark ? '#AEAEB2' : '#000000';
+  const checkColor = isDark ? '#F2F2F7' : '#000000';
+
   return (
-    <Modal transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.sheetBackdrop} onPress={onClose}>
-        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.sheetTitle, { color: colors.textMuted }]}>{title}</Text>
-          {options.map((opt) => {
-            const isSelected = selected === opt.value;
-            return (
-              <Pressable
-                key={opt.value}
-                onPress={() => onSelect(opt.value)}
+    <Modal
+      transparent
+      visible
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      {/* Backdrop — transparent, dismisses on tap. Matches the web's
+          outside-click-to-close behavior. */}
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      <View
+        style={[
+          styles.dropdownMenu,
+          {
+            top,
+            width,
+            backgroundColor: surface,
+            borderColor: border,
+          },
+          posStyle,
+        ]}
+      >
+        {options.map(({ value, label }) => {
+          const active = value === selected;
+          return (
+            <Pressable
+              key={value}
+              onPress={() => {
+                onSelect(value);
+                onClose();
+              }}
+              style={({ pressed }) => [
+                styles.dropdownItem,
+                {
+                  backgroundColor:
+                    active || pressed ? activeBg : 'transparent',
+                },
+              ]}
+            >
+              <Text
                 style={[
-                  styles.sheetItem,
-                  isSelected && {
-                    backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0',
-                  },
+                  styles.dropdownItemText,
+                  { color: active ? itemColor : itemMuted },
                 ]}
               >
-                <Text style={[styles.sheetItemText, { color: colors.textPrimary }]}>
-                  {opt.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Pressable>
+                {label}
+              </Text>
+              {active && (
+                <Check size={15} strokeWidth={2.5} color={checkColor} />
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
     </Modal>
   );
 }
@@ -670,33 +723,34 @@ const styles = StyleSheet.create({
     ...fontFamily.semibold,
     fontSize: fontSize[15],
   },
-  // Android fallback sheet
-  sheetBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+  // Custom dropdown menu — matches web SortDropdown/FilterDropdown.
+  // Surface is absolutely positioned in window coords set by the
+  // caller; `top` + align-driven `left`/`right` override these.
+  dropdownMenu: {
+    position: 'absolute',
+    borderRadius: 16, // rounded-2xl
+    borderWidth: 1,
+    padding: 8, // p-2
+    // Web shadow: 0 4px 24px rgba(0,0,0,0.12)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 6,
   },
-  sheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 16,
-    gap: 4,
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 16,
   },
-  sheetTitle: {
-    ...fontFamily.medium,
-    fontSize: fontSize[15],
-    textAlign: 'center',
-    paddingVertical: 8,
-    textTransform: 'uppercase',
-    letterSpacing: letterSpacing.wide,
-  },
-  sheetItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: radius.xl,
-  },
-  sheetItemText: {
+  // 16px typography — explicit size on user's request.
+  dropdownItemText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[15],
+    fontSize: 16,
+    lineHeight: 16 * 1.3,
   },
 });
