@@ -45,8 +45,12 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Search, Plus } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { fontFamily, fontSize } from '../../design/typography';
@@ -100,8 +104,15 @@ const CLOSE_TIMING = {
 } as const;
 
 // ─── Sheet geometry ─────────────────────────────────────────────────
+// Radius chosen to harmonize with the iPhone bezel corners (~47–55px
+// on modern devices). 48 works across the full lineup and gives the
+// "soft premium" feel iOS system sheets have.
 const SHEET_SIDE_MARGIN = 8;
-const SHEET_RADIUS = 32;
+const SHEET_RADIUS = 48;
+
+// ─── Swipe-to-dismiss config ────────────────────────────────────────
+const DISMISS_DISTANCE = 100;
+const DISMISS_VELOCITY = 600;
 
 export function AddSubscriptionOverlay() {
   const insets = useSafeAreaInsets();
@@ -112,6 +123,11 @@ export function AddSubscriptionOverlay() {
   const [mounted, setMounted] = useState(false);
   const [interactive, setInteractive] = useState(false);
   const progress = useSharedValue(0);
+  // swipeY tracks the user's vertical drag distance during a pull-to-dismiss
+  // gesture. It adds to the morph's `top` so the sheet follows the finger.
+  // On release it either animates back to 0 (if below threshold) or animates
+  // to 0 alongside the close morph-shrink (if dismissed).
+  const swipeY = useSharedValue(0);
 
   // Recompute sheet rect on every render (cheap, values are primitive).
   // Using Dimensions directly matches the window measurement coord space
@@ -169,7 +185,13 @@ export function AddSubscriptionOverlay() {
     const p = progress.value;
     return {
       left: interpolate(p, [0, 1], [rx, sheetX], Extrapolation.CLAMP),
-      top: interpolate(p, [0, 1], [ry, sheetY], Extrapolation.CLAMP),
+      // Add swipeY so the sheet follows the finger during a pull-to-dismiss.
+      // At progress < 1 the morph is shrinking back anyway, but adding
+      // swipeY keeps the transition smooth if the user releases past
+      // threshold while the morph-shrink is in flight.
+      top:
+        interpolate(p, [0, 1], [ry, sheetY], Extrapolation.CLAMP) +
+        swipeY.value,
       width: interpolate(p, [0, 1], [rw, sheetW], Extrapolation.CLAMP),
       height: interpolate(p, [0, 1], [rh, sheetH], Extrapolation.CLAMP),
       borderRadius: interpolate(
@@ -205,6 +227,32 @@ export function AddSubscriptionOverlay() {
     if (interactive) close();
   }, [interactive, close]);
 
+  // Swipe-to-dismiss (attached to the header area so it doesn't conflict
+  // with the ScrollView's own pan gesture). Requires 10px down before
+  // activating so taps on the close button still register; fails if the
+  // user starts by dragging up so upward flicks feel natural too.
+  const panGesture = Gesture.Pan()
+    .activeOffsetY(10)
+    .failOffsetY(-10)
+    .onUpdate((e) => {
+      'worklet';
+      if (e.translationY > 0) {
+        swipeY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      'worklet';
+      const shouldClose =
+        e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY;
+      if (shouldClose) {
+        runOnJS(close)();
+      }
+      // In both cases animate swipeY back to 0 — either because we're
+      // snapping back, or because the close morph-shrink needs the
+      // translation to settle while `top` interpolates to the trigger rect.
+      swipeY.value = withTiming(0, { duration: 260 });
+    });
+
   if (!mounted || !triggerRect) return null;
 
   return (
@@ -228,18 +276,20 @@ export function AddSubscriptionOverlay() {
             is large enough to contain it. */}
         <View style={{ width: sheetW, height: sheetH }}>
           <Animated.View style={[styles.content, contentStyle]}>
-            {/* ─── Header ──────────────────────────────────────── */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Crear nueva suscripción</Text>
-              <Pressable
-                style={styles.closeBtn}
-                onPress={close}
-                hitSlop={8}
-                accessibilityLabel="Cerrar"
-              >
-                <X size={16} color="#FFFFFF" strokeWidth={2.5} />
-              </Pressable>
-            </View>
+            {/* ─── Header (also the drag handle for swipe-to-dismiss) ── */}
+            <GestureDetector gesture={panGesture}>
+              <View style={styles.header}>
+                <Text style={styles.title}>Crear nueva suscripción</Text>
+                <Pressable
+                  style={styles.closeBtn}
+                  onPress={close}
+                  hitSlop={8}
+                  accessibilityLabel="Cerrar"
+                >
+                  <X size={16} color="#FFFFFF" strokeWidth={2.5} />
+                </Pressable>
+              </View>
+            </GestureDetector>
 
             {/* ─── Scrollable service list ─────────────────────── */}
             <ScrollView
@@ -288,7 +338,6 @@ export function AddSubscriptionOverlay() {
                   // TODO: Gmail import flow
                 }}
               >
-                <Search size={16} color="#FFFFFF" strokeWidth={2} />
                 <Text style={styles.footerBtnSecondaryText}>
                   Buscar en Gmail
                 </Text>
@@ -303,7 +352,6 @@ export function AddSubscriptionOverlay() {
                   close();
                 }}
               >
-                <Plus size={16} color="#000000" strokeWidth={2.5} />
                 <Text style={styles.footerBtnPrimaryText}>
                   Añadir manualmente
                 </Text>
@@ -379,7 +427,7 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
