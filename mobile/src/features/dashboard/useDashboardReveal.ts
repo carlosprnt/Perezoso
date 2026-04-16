@@ -40,6 +40,9 @@ import {
   useAnimatedScrollHandler,
   useDerivedValue,
   withSpring,
+  withTiming,
+  withDelay,
+  Easing,
   runOnJS,
   makeMutable,
   type SharedValue,
@@ -79,12 +82,18 @@ export const REVEAL_HEIGHT = Math.max(0, screenH - PEEK_HEIGHT);
 export const revealProgress = makeMutable(0);
 export const revealIsOpen = makeMutable(false);
 
-// Scroll-driven nav-bar compaction (0 → 1 over the first
-// NAV_COMPACT_RANGE px of scroll). Both DashboardScreen and
-// SubscriptionsScreen write this from their own scroll handlers so the
+// Scroll-driven nav-bar compaction. Both DashboardScreen and
+// SubscriptionsScreen write these from their own scroll handlers so the
 // FloatingNav stays in sync regardless of which tab is visible.
-export const navCompactProgress = makeMutable(0);
-export const NAV_COMPACT_RANGE = 80;
+//
+// Behaviour: once scrollY exceeds COMPACT_SCROLL_THRESHOLD, wait 1 s
+// (withDelay) then animate to compact over 300 ms. Scrolling back resets
+// immediately (no delay) over 200 ms. The two shared values implement a
+// tiny state machine that prevents re-triggering the delay animation on
+// every scroll event while a transition is already queued or running.
+export const navCompactProgress = makeMutable(0); // 0=expanded … 1=compact (animated)
+export const navCompactState = makeMutable(0);    // 0=expanded, 1=compacting/compact
+export const COMPACT_SCROLL_THRESHOLD = 60;       // px of scroll before trigger
 
 export interface DashboardReveal {
   translateY: SharedValue<number>;
@@ -133,10 +142,12 @@ export function useDashboardReveal(): DashboardReveal {
     revealProgress.value = 0;
     revealIsOpen.value = false;
     navCompactProgress.value = 0;
+    navCompactState.value = 0;
     return () => {
       revealProgress.value = 0;
       revealIsOpen.value = false;
       navCompactProgress.value = 0;
+      navCompactState.value = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -149,11 +160,29 @@ export function useDashboardReveal(): DashboardReveal {
     onScroll: (event) => {
       const y = event.contentOffset.y;
       scrollY.value = y;
-      // Compact the nav as the dashboard scrolls. Clamp to [0,1] over
-      // the first NAV_COMPACT_RANGE px so the pill transitions from
-      // elongated pills → tight circles fluidly with the finger.
-      const p = y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
-      navCompactProgress.value = p;
+      // State machine: crossing COMPACT_SCROLL_THRESHOLD triggers a
+      // 1 s delay then a 300 ms compact animation. Crossing back cancels
+      // any pending/running animation and reverses in 200 ms immediately.
+      // Assigning a new animation to a shared value always replaces (and
+      // therefore cancels) any pending one — including a withDelay that
+      // hasn't fired yet — so no explicit cancelAnimation() is needed.
+      if (y > COMPACT_SCROLL_THRESHOLD) {
+        if (navCompactState.value === 0) {
+          navCompactState.value = 1;
+          navCompactProgress.value = withDelay(
+            1000,
+            withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
+          );
+        }
+      } else {
+        if (navCompactState.value === 1) {
+          navCompactState.value = 0;
+          navCompactProgress.value = withTiming(
+            0,
+            { duration: 200, easing: Easing.in(Easing.cubic) },
+          );
+        }
+      }
     },
   });
 

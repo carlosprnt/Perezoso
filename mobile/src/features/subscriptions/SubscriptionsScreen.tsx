@@ -28,6 +28,9 @@ import Animated, {
   useDerivedValue,
   interpolate,
   Extrapolation,
+  withTiming,
+  withDelay,
+  Easing,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,7 +49,8 @@ import { MOCK_SUBSCRIPTIONS } from './mockData';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   navCompactProgress,
-  NAV_COMPACT_RANGE,
+  navCompactState,
+  COMPACT_SCROLL_THRESHOLD,
 } from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
@@ -330,22 +334,37 @@ export function SubscriptionsScreen() {
     onScroll: (event) => {
       const y = event.contentOffset.y;
       scrollY.value = y;
-      // Drive the FloatingNav's compaction (shared with DashboardScreen
-      // via the module-scoped `navCompactProgress`).
-      const p =
-        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
-      navCompactProgress.value = p;
+      // Same compact state machine as DashboardScreen — see the comment
+      // in useDashboardReveal for the full rationale (1 s delay → 300 ms
+      // compact, immediate 200 ms reverse, no explicit cancelAnimation
+      // needed because assigning a new animation replaces pending ones).
+      if (y > COMPACT_SCROLL_THRESHOLD) {
+        if (navCompactState.value === 0) {
+          navCompactState.value = 1;
+          navCompactProgress.value = withDelay(
+            1000,
+            withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
+          );
+        }
+      } else {
+        if (navCompactState.value === 1) {
+          navCompactState.value = 0;
+          navCompactProgress.value = withTiming(
+            0,
+            { duration: 200, easing: Easing.in(Easing.cubic) },
+          );
+        }
+      }
     },
   });
 
-  // Sync the nav compact state on focus, since scroll events don't fire
-  // during tab switches — otherwise the pill could show the other tab's
-  // state until the user scrolls here.
+  // On focus, snap compact state to match current scroll position without
+  // a delay — the delay only applies when the user is actively scrolling.
   useFocusEffect(
     useCallback(() => {
-      const y = scrollY.value;
-      navCompactProgress.value =
-        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+      const shouldCompact = scrollY.value > COMPACT_SCROLL_THRESHOLD;
+      navCompactState.value = shouldCompact ? 1 : 0;
+      navCompactProgress.value = shouldCompact ? 1 : 0;
     }, [scrollY]),
   );
 

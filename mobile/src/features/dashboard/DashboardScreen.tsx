@@ -41,7 +41,8 @@ import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   useDashboardReveal,
   navCompactProgress,
-  NAV_COMPACT_RANGE,
+  navCompactState,
+  COMPACT_SCROLL_THRESHOLD,
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 
@@ -99,11 +100,13 @@ export function DashboardScreen() {
   // whenever this screen (re)focuses — scrolling doesn't fire during
   // tab switches so without this the nav could be stuck compact from
   // the other tab's scroll state.
+  // On focus, snap compact state to match current scroll position without
+  // a delay — the delay only applies when the user is actively scrolling.
   useFocusEffect(
     useCallback(() => {
-      const y = scrollY.value;
-      navCompactProgress.value =
-        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+      const shouldCompact = scrollY.value > COMPACT_SCROLL_THRESHOLD;
+      navCompactState.value = shouldCompact ? 1 : 0;
+      navCompactProgress.value = shouldCompact ? 1 : 0;
     }, [scrollY]),
   );
 

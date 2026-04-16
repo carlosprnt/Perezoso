@@ -10,12 +10,18 @@
 //
 // Scroll-driven compaction
 // ─────────────────────────
-// As the user scrolls the dashboard / subscriptions list, the pill
-// narrows: each elongated 72×48 button shrinks to a 48×48 circle and
-// the pill width collapses from 240 → 176. Driven by the module-scoped
-// `navCompactProgress` shared value from useDashboardReveal — which
-// every scroll handler writes into. The interpolation happens inside
-// worklets so the animation tracks the finger frame-perfect.
+// Driven by the module-scoped `navCompactProgress` (0=expanded, 1=compact).
+// After COMPACT_SCROLL_THRESHOLD px of scroll the pill waits 1 s then
+// compacts over 300 ms; scrolling back reverses in 200 ms immediately.
+// Each elongated button (72×48) morphs into a 48×48 circle, shrinking
+// the pill from 240 → 176 px wide.
+//
+// Layout structure (fixes vertical-centering on iOS):
+//   Animated.View  ← owns the animated width + overflow:hidden clip
+//     BlurView (absoluteFill)  ← blur background
+//     View     (absoluteFill)  ← tint overlay
+//     Animated.View            ← sliding indicator (absolute, below buttons)
+//     View (buttonRow)         ← flex-row with alignItems:center
 
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
@@ -40,8 +46,6 @@ import {
   revealProgress,
   navCompactProgress,
 } from '../features/dashboard/useDashboardReveal';
-
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 // ─── Custom CardIcon (matches web's CardIcon with stripe) ────────────
 function CardIcon({
@@ -79,19 +83,17 @@ function CardIcon({
 }
 
 // ─── Layout constants ────────────────────────────────────────────────
-const BTN_W_EXPANDED = floatingNav.buttonWidth; // 72
-const BTN_W_COMPACT = floatingNav.buttonHeight; // 48 — square → circle
-const BTN_H = floatingNav.buttonHeight; // 48
-const PAD = floatingNav.padding; // 8
-const GAP = floatingNav.gap; // 8
+const BTN_W_EXPANDED = floatingNav.buttonWidth;   // 72
+const BTN_W_COMPACT  = floatingNav.buttonHeight;  // 48 — square → circle
+const BTN_H          = floatingNav.buttonHeight;  // 48
+const PAD            = floatingNav.padding;       // 8
+const GAP            = floatingNav.gap;           // 8
 
-const NAV_W_EXPANDED =
-  PAD + BTN_W_EXPANDED + GAP + BTN_W_EXPANDED + GAP + BTN_W_EXPANDED + PAD; // 240
-const NAV_W_COMPACT =
-  PAD + BTN_W_COMPACT + GAP + BTN_W_COMPACT + GAP + BTN_W_COMPACT + PAD; // 176
 const NAV_H = PAD + BTN_H + PAD; // 64
 
 const SPRING = { damping: 32, stiffness: 420, mass: 0.8 };
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function FloatingNav() {
   const { colors, isDark } = useTheme();
@@ -102,17 +104,10 @@ export function FloatingNav() {
   const isSubscriptions = pathname.includes('/subscriptions');
   const activeIndex = isSubscriptions ? 1 : 0;
 
-  // Compute the `+` button's window rect deterministically from the
-  // FloatingNav layout constants + current safe-area insets. This is
-  // more reliable than `measureInWindow` on a Pressable inside a
-  // BlurView (which can return 0,0,0,0 on iOS Paper).
-  //
-  // Note: we read `navCompactProgress.value` synchronously so the
-  // morph-from-rect matches whatever visual size the button has at
-  // the moment of the tap.
+  // Compute the `+` button's window rect from layout constants + current
+  // compact state. Read navCompactProgress.value synchronously on JS
+  // thread so the morph-from-rect origin matches the visual button size.
   const openAddSubscription = useCallback(() => {
-    // Guard against double-open: if the overlay is already mounting /
-    // animating in, ignore additional taps.
     if (useAddSubscriptionStore.getState().isOpen) return;
 
     const compact = navCompactProgress.value;
@@ -130,21 +125,17 @@ export function FloatingNav() {
       y: plusY,
       width: btnW,
       height: BTN_H,
-      borderRadius: BTN_H / 2, // fully-pill (radius 9999 clamps to h/2)
+      borderRadius: BTN_H / 2,
     });
   }, [insets.bottom]);
 
-  // Tab-switch spring: 0 = left, 1 = right. Smoothly moves the
-  // indicator between left and right anchor positions.
+  // Tab-switch spring: 0 = left, 1 = right.
   const activeIndicatorPos = useSharedValue(activeIndex);
-
   useEffect(() => {
     activeIndicatorPos.value = withSpring(activeIndex, SPRING);
   }, [activeIndex, activeIndicatorPos]);
 
-  // Reveal-aware wrapper animation — as the dashboard pull-down opens,
-  // the nav fades out and scales down to 0.9 so it doesn't compete with
-  // the profile panel that's becoming the focus.
+  // Reveal-aware: fades + scales down as the profile layer reveals.
   const wrapperRevealStyle = useAnimatedStyle(() => {
     const p = revealProgress.value;
     return {
@@ -155,8 +146,7 @@ export function FloatingNav() {
     };
   });
 
-  // Derived button width — same value for all three buttons, animates
-  // continuously with scroll position.
+  // Derived button width shared value — same for all three buttons.
   const btnW = useDerivedValue(() =>
     interpolate(
       navCompactProgress.value,
@@ -166,21 +156,22 @@ export function FloatingNav() {
     ),
   );
 
-  // Pill total width follows button widths (3 buttons + 2 gaps + 2 pads).
+  // Pill total width (3 buttons + 2 gaps + 2 padding).
   const pillStyle = useAnimatedStyle(() => {
     const w = btnW.value;
     return { width: PAD + w + GAP + w + GAP + w + PAD };
   });
 
+  // Each button's width follows btnW.
   const navButtonStyle = useAnimatedStyle(() => ({
     width: btnW.value,
   }));
 
-  // Indicator slides between left/right anchors; its width and the
-  // anchor positions both depend on the current button width.
+  // Indicator slides between left/right; width and anchor positions
+  // both change with btnW so indicator tracks button edges exactly.
   const indicatorStyle = useAnimatedStyle(() => {
     const w = btnW.value;
-    const leftX = PAD;
+    const leftX  = PAD;
     const rightX = PAD + w + GAP + w + GAP;
     const x = interpolate(
       activeIndicatorPos.value,
@@ -195,13 +186,13 @@ export function FloatingNav() {
   });
 
   // Colors
-  const iconColor = isDark ? '#F2F2F7' : '#000000';
-  const inactiveBorder = isDark ? '#2C2C2E' : '#E5E5EA';
-  const strokeIndicatorColor = isDark ? '#F2F2F7' : '#000000';
-  const plusBg = isDark ? '#F2F2F7' : '#000000';
-  const plusIconColor = isDark ? '#000000' : '#FFFFFF';
-  const navTint = isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.4)';
-  const cardStripeColor = isDark ? '#1C1C1E' : '#F7F8FA';
+  const iconColor          = isDark ? '#F2F2F7' : '#000000';
+  const inactiveBorder     = isDark ? '#2C2C2E' : '#E5E5EA';
+  const strokeIndicator    = isDark ? '#F2F2F7' : '#000000';
+  const plusBg             = isDark ? '#F2F2F7' : '#000000';
+  const plusIconColor      = isDark ? '#000000' : '#FFFFFF';
+  const navTint            = isDark ? 'rgba(28,28,30,0.45)' : 'rgba(255,255,255,0.4)';
+  const cardStripeColor    = isDark ? '#1C1C1E' : '#F7F8FA';
 
   return (
     <Animated.View
@@ -212,76 +203,92 @@ export function FloatingNav() {
       ]}
       pointerEvents="box-none"
     >
-      <AnimatedBlurView
-        intensity={80}
-        tint={isDark ? 'dark' : 'light'}
-        style={[styles.pill, { backgroundColor: navTint }, pillStyle]}
-      >
-        {/* Sliding stroke indicator */}
+      {/*
+        Pill: Animated.View owns the width animation + overflow clip.
+        BlurView fills it absolutely — this separates blur rendering from
+        the flex layout so BlurView quirks on iOS don't affect centering.
+        ButtonRow is a plain flex-row that vertically centers buttons.
+      */}
+      <Animated.View style={[styles.pill, pillStyle]}>
+        {/* Background: blur + tint */}
+        <BlurView
+          intensity={80}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: navTint, borderRadius: floatingNav.borderRadius },
+          ]}
+          pointerEvents="none"
+        />
+
+        {/* Sliding stroke indicator — drawn below the buttons */}
         <Animated.View
+          pointerEvents="none"
           style={[
             styles.indicator,
             indicatorStyle,
-            { borderColor: strokeIndicatorColor },
+            { borderColor: strokeIndicator },
           ]}
         />
 
-        {/* Dashboard */}
-        <AnimatedPressable
-          style={[
-            styles.navButton,
-            activeIndex !== 0 && {
-              borderWidth: 1.5,
-              borderColor: inactiveBorder,
-            },
-            navButtonStyle,
-          ]}
-          onPress={() => router.push('/(tabs)/dashboard')}
-        >
-          <LayoutGrid
-            size={20}
-            strokeWidth={2}
-            color={iconColor}
-            fill={activeIndex === 0 ? iconColor : 'none'}
-          />
-        </AnimatedPressable>
+        {/* Buttons row — plain View so alignItems:center always works */}
+        <View style={styles.buttonRow}>
+          {/* Dashboard */}
+          <AnimatedPressable
+            style={[
+              styles.navButton,
+              activeIndex !== 0 && {
+                borderWidth: 1.5,
+                borderColor: inactiveBorder,
+              },
+              navButtonStyle,
+            ]}
+            onPress={() => router.push('/(tabs)/dashboard')}
+          >
+            <LayoutGrid
+              size={20}
+              strokeWidth={2}
+              color={iconColor}
+              fill={activeIndex === 0 ? iconColor : 'none'}
+            />
+          </AnimatedPressable>
 
-        {/* Plus — filled pill. Position is computed deterministically in
-            openAddSubscription() so the AddSubscriptionOverlay can morph
-            the sheet out of this exact rect (shared-element transition). */}
-        <AnimatedPressable
-          style={[styles.plusButton, { backgroundColor: plusBg }, navButtonStyle]}
-          onPress={openAddSubscription}
-          accessibilityLabel="Crear nueva suscripción"
-        >
-          <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
-        </AnimatedPressable>
+          {/* Plus */}
+          <AnimatedPressable
+            style={[styles.plusButton, { backgroundColor: plusBg }, navButtonStyle]}
+            onPress={openAddSubscription}
+            accessibilityLabel="Crear nueva suscripción"
+          >
+            <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
+          </AnimatedPressable>
 
-        {/* Subscriptions — custom CardIcon with stripe */}
-        <AnimatedPressable
-          style={[
-            styles.navButton,
-            activeIndex !== 1 && {
-              borderWidth: 1.5,
-              borderColor: inactiveBorder,
-            },
-            navButtonStyle,
-          ]}
-          onPress={() => router.push('/(tabs)/subscriptions')}
-        >
-          <CardIcon
-            size={20}
-            color={iconColor}
-            filled={activeIndex === 1}
-            stripeColor={cardStripeColor}
-          />
-        </AnimatedPressable>
-      </AnimatedBlurView>
+          {/* Subscriptions */}
+          <AnimatedPressable
+            style={[
+              styles.navButton,
+              activeIndex !== 1 && {
+                borderWidth: 1.5,
+                borderColor: inactiveBorder,
+              },
+              navButtonStyle,
+            ]}
+            onPress={() => router.push('/(tabs)/subscriptions')}
+          >
+            <CardIcon
+              size={20}
+              color={iconColor}
+              filled={activeIndex === 1}
+              stripeColor={cardStripeColor}
+            />
+          </AnimatedPressable>
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -292,14 +299,21 @@ const styles = StyleSheet.create({
     zIndex: zIndex.floatingNav,
   },
   pill: {
-    // width is animated via pillStyle
+    // width is animated via pillStyle.
+    // overflow:hidden clips the BlurView to the animated width boundary.
     height: NAV_H,
     borderRadius: floatingNav.borderRadius,
+    overflow: 'hidden',
+  },
+  buttonRow: {
+    // Sits on top of the absolute blur/tint layers. flex:1 fills pill
+    // height so alignItems:center actually centres the 48px buttons
+    // within the 64px NAV_H correctly on iOS.
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: PAD,
     gap: GAP,
-    overflow: 'hidden',
   },
   navButton: {
     // width is animated via navButtonStyle
