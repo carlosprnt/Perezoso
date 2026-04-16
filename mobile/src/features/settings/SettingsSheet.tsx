@@ -43,16 +43,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Bell,
-  Coins,
-  Mail,
-  Moon,
+  Check,
   Share2,
-  ShieldCheck,
   Sparkles,
-  Star,
+  Sun,
   Tag as TagIcon,
-  Trash2,
-  Twitter,
   X,
 } from 'lucide-react-native';
 
@@ -205,7 +200,7 @@ export function SettingsSheet() {
           <View style={styles.gap} />
           <SettingsSectionCard>
             <SettingsRow
-              icon={<Coins size={20} color="#0F0F10" strokeWidth={2} />}
+              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>{'\u20AC'}</Text>}
               label="Moneda"
               value={currency}
               onPress={handleCurrency}
@@ -222,7 +217,7 @@ export function SettingsSheet() {
           <View style={styles.gap} />
           <SettingsSectionCard>
             <SettingsRow
-              icon={<Moon size={20} color="#0F0F10" strokeWidth={2} />}
+              icon={<Sun size={20} color="#0F0F10" strokeWidth={2} />}
               label="Apariencia"
               value={appearance}
               onPress={handleAppearance}
@@ -233,7 +228,7 @@ export function SettingsSheet() {
           <View style={styles.gap} />
           <SettingsSectionCard>
             <SettingsRow
-              icon={<ShieldCheck size={20} color="#0F0F10" strokeWidth={2} />}
+              icon={<Check size={20} color="#0F0F10" strokeWidth={2.4} />}
               label="Admin"
               onPress={handleAdmin}
             />
@@ -259,8 +254,8 @@ export function SettingsSheet() {
           <View style={styles.gap} />
           <SettingsSectionCard>
             <SettingsRow
-              icon={<Star size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Dejar una reseña"
+              icon={<Sparkles size={20} color="#0F0F10" strokeWidth={2} />}
+              label={'Dejar una rese\u00F1a'}
               onPress={handleReview}
             />
             <SettingsRow
@@ -274,12 +269,12 @@ export function SettingsSheet() {
           <View style={styles.gap} />
           <SettingsSectionCard>
             <SettingsRow
-              icon={<Twitter size={20} color="#0F0F10" strokeWidth={2} />}
+              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>X</Text>}
               label={TWITTER_HANDLE}
               onPress={handleTwitter}
             />
             <SettingsRow
-              icon={<Mail size={20} color="#0F0F10" strokeWidth={2} />}
+              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>@</Text>}
               label={CONTACT_EMAIL}
               onPress={handleEmail}
             />
