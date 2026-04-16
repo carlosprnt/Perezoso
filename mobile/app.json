@@ -35,6 +35,19 @@
           "backgroundColor": "#F7F8FA"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7ed0ce73-b35a-49c7-90c7-8737f808e530"
+      }
+    },
+    "owner": "carlosprnt",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7ed0ce73-b35a-49c7-90c7-8737f808e530"
+    }
   }
 }
