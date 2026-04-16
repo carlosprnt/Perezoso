@@ -263,7 +263,7 @@ export function DashboardScreen() {
                 still feels anchored. */}
             {isEmpty && (
               <View style={{ paddingTop: 44 + 8 }}>
-                <DashboardEmptyState />
+                <DashboardEmptyState scrollY={scrollY} />
               </View>
             )}
 

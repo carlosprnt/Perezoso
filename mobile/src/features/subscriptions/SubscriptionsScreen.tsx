@@ -144,6 +144,12 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
 // flash on mount.
 const TRIGGER_RANGE_PX = 100;
 const BLUR_INTENSITY = 80;
+const { height: SCREEN_H } = Dimensions.get('window');
+// Entrance cascade window — a card's top crosses from (H − 40) down to
+// (H − 200) as it rises into view; progress interpolates 0 → 1 for
+// opacity + scale (0.9 → 1).
+const ENTRANCE_START_FROM_BOTTOM = 40;
+const ENTRANCE_END_FROM_BOTTOM   = 200;
 
 // Period-toggle skeleton duration (ms). Long enough that the shimmer
 // reads as an intentional transition rather than a tap glitch.
@@ -176,14 +182,31 @@ function ScrollCard({
     [cardY, cardHeight, measured],
   );
 
-  // Shared progress drives BOTH the transform/opacity AND the blur
-  // overlay opacity, keeping them perfectly in sync.
-  const progress = useDerivedValue(() => {
+  // Exit progress — 0 while the card is comfortably on screen, 1 once
+  // its top has crossed past the page title. Drives the tilt + blur veil.
+  const exitProgress = useDerivedValue(() => {
     if (measured.value === 0 || listY.value === 0) return 0;
     const screenY = listY.value + cardY.value - scrollY.value;
     return interpolate(
       screenY,
       [triggerY, triggerY - TRIGGER_RANGE_PX],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+  });
+
+  // Entrance progress — 0 while the card is below the viewport, 1 once
+  // its top has risen past the entry line. Drives the scale + opacity
+  // cascade as the card appears from the bottom.
+  const enterProgress = useDerivedValue(() => {
+    if (measured.value === 0 || listY.value === 0) return 1;
+    const screenY = listY.value + cardY.value - scrollY.value;
+    return interpolate(
+      screenY,
+      [
+        SCREEN_H - ENTRANCE_START_FROM_BOTTOM,
+        SCREEN_H - ENTRANCE_END_FROM_BOTTOM,
+      ],
       [0, 1],
       Extrapolation.CLAMP,
     );
@@ -199,10 +222,17 @@ function ScrollCard({
         transform: [{ scale: 1 }, { rotate: '0deg' }],
       };
     }
-    const p = progress.value;
-    const scale = interpolate(p, [0, 1], [1, 0.85], Extrapolation.CLAMP);
-    const rotate = interpolate(p, [0, 1], [0, 20], Extrapolation.CLAMP);
-    const opacity = interpolate(p, [0.3, 1], [1, 0], Extrapolation.CLAMP);
+    const e = enterProgress.value;
+    const x = exitProgress.value;
+    // While entering (e < 1) opacity/scale grow from the entry window.
+    // Once fully entered, the exit progress takes over and tilts/fades.
+    const scale = e < 1
+      ? interpolate(e, [0, 1], [0.9, 1], Extrapolation.CLAMP)
+      : interpolate(x, [0, 1], [1, 0.85], Extrapolation.CLAMP);
+    const opacity = e < 1
+      ? e
+      : interpolate(x, [0.3, 1], [1, 0], Extrapolation.CLAMP);
+    const rotate = interpolate(x, [0, 1], [0, 20], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [
@@ -218,7 +248,7 @@ function ScrollCard({
     if (measured.value === 0 || listY.value === 0) return { opacity: 0 };
     return {
       opacity: interpolate(
-        progress.value,
+        exitProgress.value,
         [0.3, 1],
         [0, 1],
         Extrapolation.CLAMP,
