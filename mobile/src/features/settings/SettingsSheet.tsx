@@ -154,7 +154,10 @@ export function SettingsSheet() {
       onDismiss={close}
     >
       <View style={styles.sheet}>
-        {/* ── Header ── */}
+        {/* ── iOS-style drag handle + header ── */}
+        <View style={styles.handleWrap}>
+          <View style={styles.handle} />
+        </View>
         <View style={styles.header}>
           <Text style={styles.title}>Ajustes</Text>
           <Pressable
@@ -302,7 +305,20 @@ const styles = StyleSheet.create({
   sheet: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingTop: 14,
+    paddingTop: 6,
+  },
+
+  // iOS-style drag handle at the top of the sheet.
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 9999,
+    backgroundColor: '#D4D4D4',
   },
 
   // Header mirrors the CreateSubscription / EditSubscription sheets

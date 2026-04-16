@@ -114,6 +114,10 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.surface }]}>
+      {/* iOS-style drag handle */}
+      <View style={styles.handleWrap}>
+        <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
+      </View>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -290,6 +294,17 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // iOS-style drag handle at the very top of the sheet, above the hero.
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 9999,
   },
   scroll: {
     flex: 1,

@@ -296,7 +296,10 @@ export function CreateSubscriptionSheet() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* ── Header ── */}
+          {/* ── iOS-style drag handle + header (title + X) ── */}
+            <View style={styles.handleWrap}>
+              <View style={styles.handle} />
+            </View>
             <View style={styles.header}>
               <Text style={styles.title}>Crear nueva suscripción</Text>
               <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
@@ -661,7 +664,20 @@ const styles = StyleSheet.create({
   sheet: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingTop: 14,
+    paddingTop: 6,
+  },
+
+  // iOS-style drag handle — small gray pill anchored to the top of the sheet.
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 9999,
+    backgroundColor: '#D4D4D4',
   },
 
   header: {

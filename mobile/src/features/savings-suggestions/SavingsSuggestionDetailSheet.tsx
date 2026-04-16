@@ -364,10 +364,12 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   headerTitle: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    color: C.textMuted,
-    letterSpacing: -0.1,
+    ...fontFamily.bold,
+    fontSize: fontSize[20],
+    color: '#000000',
+    letterSpacing: -0.4,
+    flex: 1,
+    paddingRight: 12,
   },
   closeBtn: {
     width: 30,
