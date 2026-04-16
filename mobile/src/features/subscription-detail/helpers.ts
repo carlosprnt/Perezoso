@@ -160,9 +160,9 @@ export function heroGradientColors(
   sheetBg: string,
 ): [string, string, string] {
   const tint = subscriptionTint(sub);
-  // Soft 65% top → 25% mid → surface. Keeps the color visible but
-  // never saturated (matches the iOS "wallet color chip" treatment).
-  return [withAlpha(tint, 0.85), withAlpha(tint, 0.35), sheetBg];
+  // Subtle wash: low-alpha tint at top → barely-there mid → surface.
+  // Gives a blurry, desaturated feel rather than a heavy color chip.
+  return [withAlpha(tint, 0.45), withAlpha(tint, 0.12), sheetBg];
 }
 
 /** Apply an alpha channel to an `#rrggbb` hex string. */

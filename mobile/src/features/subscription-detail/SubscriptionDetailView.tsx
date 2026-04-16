@@ -114,10 +114,6 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.surface }]}>
-      {/* iOS-style drag handle */}
-      <View style={styles.handleWrap}>
-        <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
-      </View>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -127,7 +123,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
         showsVerticalScrollIndicator={false}
         bounces
       >
-        {/* ── Hero header ── */}
+        {/* ── Hero header — gradient extends up behind the iOS drag
+              handle so there's no white strip above the color wash. ── */}
         <View style={styles.heroWrapper}>
           <LinearGradient
             colors={gradientColors}
@@ -136,6 +133,11 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
             end={{ x: 0.5, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
+
+          {/* iOS-style drag handle — on top of the gradient */}
+          <View style={styles.handleWrap}>
+            <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
+          </View>
 
           {/* Close button */}
           <View style={styles.heroTopBar}>
@@ -315,7 +317,7 @@ const styles = StyleSheet.create({
 
   // ── Hero ──
   heroWrapper: {
-    paddingTop: 14,
+    paddingTop: 4,
     paddingBottom: 28,
     paddingHorizontal: 20,
     alignItems: 'center',

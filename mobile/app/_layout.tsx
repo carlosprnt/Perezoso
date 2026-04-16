@@ -19,7 +19,6 @@ import { SubscriptionCreatedCelebration } from '../src/features/add-subscription
 import { SubscriptionDetailSheet } from '../src/features/subscription-detail/SubscriptionDetailSheet';
 import { SettingsSheet } from '../src/features/settings/SettingsSheet';
 import { SavingsSuggestionsListSheet } from '../src/features/savings-suggestions/SavingsSuggestionsListSheet';
-import { SavingsSuggestionDetailSheet } from '../src/features/savings-suggestions/SavingsSuggestionDetailSheet';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -61,7 +60,8 @@ export default function RootLayout() {
         <SubscriptionDetailSheet />
         <SettingsSheet />
         <SavingsSuggestionsListSheet />
-        <SavingsSuggestionDetailSheet />
+        {/* SavingsSuggestionDetailSheet is nested inside the list sheet
+            so iOS can cleanly layer it on top — see that file. */}
         <Toast />
         <SubscriptionCreatedCelebration />
       </SafeAreaProvider>

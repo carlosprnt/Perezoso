@@ -52,6 +52,7 @@ import {
   MOCK_SAVINGS_SUGGESTIONS,
   type SavingsSuggestion,
 } from './mockData';
+import { SavingsSuggestionDetailSheet } from './SavingsSuggestionDetailSheet';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -149,13 +150,7 @@ export function SavingsSuggestionsListSheet() {
       </Animated.View>
 
       <View style={styles.sheetWrap} pointerEvents="box-none">
-        <Reanimated.View
-          style={[
-            styles.sheet,
-            { paddingBottom: Math.max(insets.bottom, 16) + 12 },
-            sheetStyle,
-          ]}
-        >
+        <Reanimated.View style={[styles.sheet, sheetStyle]}>
           {/* Drag handle — only the top strip owns the pan gesture so
               taps inside the scrolling list still work normally. */}
           <GestureDetector gesture={panGesture}>
@@ -181,7 +176,10 @@ export function SavingsSuggestionsListSheet() {
 
           <ScrollView
             style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: Math.max(insets.bottom, 16) + 12 },
+            ]}
             showsVerticalScrollIndicator={false}
           >
             {MOCK_SAVINGS_SUGGESTIONS.map((s) => (
@@ -193,6 +191,12 @@ export function SavingsSuggestionsListSheet() {
             ))}
           </ScrollView>
         </Reanimated.View>
+
+        {/* Detail sheet nested inside the list Modal so iOS can layer
+            a second transparent presentation on top. Mounting it at the
+            root-level _layout caused iOS to silently drop the second
+            Modal while the list Modal was already presented. */}
+        <SavingsSuggestionDetailSheet />
       </View>
     </Modal>
   );
@@ -275,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    maxHeight: SCREEN_HEIGHT * 0.86,
+    height: SCREEN_HEIGHT * 0.86,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
@@ -324,11 +328,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Scroll list
-  scroll: { flexGrow: 0 },
+  // Scroll list — flex:1 makes the ScrollView fill the sheet's
+  // remaining space so cards scroll right to the bottom edge instead
+  // of leaving a white strip above the safe-area inset.
+  scroll: { flex: 1 },
   scrollContent: {
     paddingTop: 2,
-    paddingBottom: 8,
     gap: 12,
   },
 
