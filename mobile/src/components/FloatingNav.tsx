@@ -7,12 +7,22 @@
 // Plus button: filled circle (black light / #F2F2F7 dark)
 // Container: white glass ~85% opacity
 // Card icon: custom SVG (not lucide CreditCard) with visible stripe when filled
+//
+// Scroll-driven compaction
+// ─────────────────────────
+// As the user scrolls the dashboard / subscriptions list, the pill
+// narrows: each elongated 72×48 button shrinks to a 48×48 circle and
+// the pill width collapses from 240 → 176. Driven by the module-scoped
+// `navCompactProgress` shared value from useDashboardReveal — which
+// every scroll handler writes into. The interpolation happens inside
+// worklets so the animation tracks the finger frame-perfect.
 
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useDerivedValue,
   withSpring,
   interpolate,
   Extrapolation,
@@ -26,7 +36,12 @@ import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
 import { useAddSubscriptionStore } from '../features/add-subscription/useAddSubscriptionStore';
-import { revealProgress } from '../features/dashboard/useDashboardReveal';
+import {
+  revealProgress,
+  navCompactProgress,
+} from '../features/dashboard/useDashboardReveal';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 // ─── Custom CardIcon (matches web's CardIcon with stripe) ────────────
 function CardIcon({
@@ -64,16 +79,17 @@ function CardIcon({
 }
 
 // ─── Layout constants ────────────────────────────────────────────────
-const BTN_W = floatingNav.buttonWidth; // 72
+const BTN_W_EXPANDED = floatingNav.buttonWidth; // 72
+const BTN_W_COMPACT = floatingNav.buttonHeight; // 48 — square → circle
 const BTN_H = floatingNav.buttonHeight; // 48
 const PAD = floatingNav.padding; // 8
 const GAP = floatingNav.gap; // 8
 
-const NAV_W = PAD + BTN_W + GAP + BTN_W + GAP + BTN_W + PAD; // 240
+const NAV_W_EXPANDED =
+  PAD + BTN_W_EXPANDED + GAP + BTN_W_EXPANDED + GAP + BTN_W_EXPANDED + PAD; // 240
+const NAV_W_COMPACT =
+  PAD + BTN_W_COMPACT + GAP + BTN_W_COMPACT + GAP + BTN_W_COMPACT + PAD; // 176
 const NAV_H = PAD + BTN_H + PAD; // 64
-
-const INDICATOR_X_LEFT = PAD;
-const INDICATOR_X_RIGHT = PAD + BTN_W + GAP + BTN_W + GAP;
 
 const SPRING = { damping: 32, stiffness: 420, mass: 0.8 };
 
@@ -89,46 +105,42 @@ export function FloatingNav() {
   // Compute the `+` button's window rect deterministically from the
   // FloatingNav layout constants + current safe-area insets. This is
   // more reliable than `measureInWindow` on a Pressable inside a
-  // BlurView (which can return 0,0,0,0 on iOS Paper), and matches the
-  // styles below exactly:
-  //   - wrapper has bottom: Math.max(insets.bottom, 8) + 4
-  //   - pill is centered horizontally, NAV_W wide
-  //   - + button is the middle child, at pill.left + PAD + BTN_W + GAP
-  //   - + button top offset inside pill is PAD
+  // BlurView (which can return 0,0,0,0 on iOS Paper).
+  //
+  // Note: we read `navCompactProgress.value` synchronously so the
+  // morph-from-rect matches whatever visual size the button has at
+  // the moment of the tap.
   const openAddSubscription = useCallback(() => {
     // Guard against double-open: if the overlay is already mounting /
     // animating in, ignore additional taps.
     if (useAddSubscriptionStore.getState().isOpen) return;
 
+    const compact = navCompactProgress.value;
+    const btnW = BTN_W_EXPANDED + (BTN_W_COMPACT - BTN_W_EXPANDED) * compact;
+    const navW = PAD + btnW + GAP + btnW + GAP + btnW + PAD;
+
     const { width: screenW, height: screenH } = Dimensions.get('window');
     const navBottomOffset = Math.max(insets.bottom, 8) + 4;
-    const pillLeft = (screenW - NAV_W) / 2;
-    const plusX = pillLeft + PAD + BTN_W + GAP;
+    const pillLeft = (screenW - navW) / 2;
+    const plusX = pillLeft + PAD + btnW + GAP;
     const plusY = screenH - navBottomOffset - NAV_H + PAD;
 
     useAddSubscriptionStore.getState().open({
       x: plusX,
       y: plusY,
-      width: BTN_W,
+      width: btnW,
       height: BTN_H,
       borderRadius: BTN_H / 2, // fully-pill (radius 9999 clamps to h/2)
     });
   }, [insets.bottom]);
 
-  const indicatorX = useSharedValue(
-    isSubscriptions ? INDICATOR_X_RIGHT : INDICATOR_X_LEFT,
-  );
+  // Tab-switch spring: 0 = left, 1 = right. Smoothly moves the
+  // indicator between left and right anchor positions.
+  const activeIndicatorPos = useSharedValue(activeIndex);
 
   useEffect(() => {
-    indicatorX.value = withSpring(
-      activeIndex === 0 ? INDICATOR_X_LEFT : INDICATOR_X_RIGHT,
-      SPRING,
-    );
-  }, [activeIndex]);
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorX.value }],
-  }));
+    activeIndicatorPos.value = withSpring(activeIndex, SPRING);
+  }, [activeIndex, activeIndicatorPos]);
 
   // Reveal-aware wrapper animation — as the dashboard pull-down opens,
   // the nav fades out and scales down to 0.9 so it doesn't compete with
@@ -140,6 +152,45 @@ export function FloatingNav() {
       transform: [
         { scale: interpolate(p, [0, 1], [1, 0.9], Extrapolation.CLAMP) },
       ],
+    };
+  });
+
+  // Derived button width — same value for all three buttons, animates
+  // continuously with scroll position.
+  const btnW = useDerivedValue(() =>
+    interpolate(
+      navCompactProgress.value,
+      [0, 1],
+      [BTN_W_EXPANDED, BTN_W_COMPACT],
+      Extrapolation.CLAMP,
+    ),
+  );
+
+  // Pill total width follows button widths (3 buttons + 2 gaps + 2 pads).
+  const pillStyle = useAnimatedStyle(() => {
+    const w = btnW.value;
+    return { width: PAD + w + GAP + w + GAP + w + PAD };
+  });
+
+  const navButtonStyle = useAnimatedStyle(() => ({
+    width: btnW.value,
+  }));
+
+  // Indicator slides between left/right anchors; its width and the
+  // anchor positions both depend on the current button width.
+  const indicatorStyle = useAnimatedStyle(() => {
+    const w = btnW.value;
+    const leftX = PAD;
+    const rightX = PAD + w + GAP + w + GAP;
+    const x = interpolate(
+      activeIndicatorPos.value,
+      [0, 1],
+      [leftX, rightX],
+      Extrapolation.CLAMP,
+    );
+    return {
+      width: w,
+      transform: [{ translateX: x }],
     };
   });
 
@@ -161,10 +212,10 @@ export function FloatingNav() {
       ]}
       pointerEvents="box-none"
     >
-      <BlurView
+      <AnimatedBlurView
         intensity={80}
         tint={isDark ? 'dark' : 'light'}
-        style={[styles.pill, { backgroundColor: navTint }]}
+        style={[styles.pill, { backgroundColor: navTint }, pillStyle]}
       >
         {/* Sliding stroke indicator */}
         <Animated.View
@@ -176,13 +227,14 @@ export function FloatingNav() {
         />
 
         {/* Dashboard */}
-        <Pressable
+        <AnimatedPressable
           style={[
             styles.navButton,
             activeIndex !== 0 && {
               borderWidth: 1.5,
               borderColor: inactiveBorder,
             },
+            navButtonStyle,
           ]}
           onPress={() => router.push('/(tabs)/dashboard')}
         >
@@ -192,27 +244,28 @@ export function FloatingNav() {
             color={iconColor}
             fill={activeIndex === 0 ? iconColor : 'none'}
           />
-        </Pressable>
+        </AnimatedPressable>
 
         {/* Plus — filled pill. Position is computed deterministically in
             openAddSubscription() so the AddSubscriptionOverlay can morph
             the sheet out of this exact rect (shared-element transition). */}
-        <Pressable
-          style={[styles.plusButton, { backgroundColor: plusBg }]}
+        <AnimatedPressable
+          style={[styles.plusButton, { backgroundColor: plusBg }, navButtonStyle]}
           onPress={openAddSubscription}
           accessibilityLabel="Crear nueva suscripción"
         >
           <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
-        </Pressable>
+        </AnimatedPressable>
 
         {/* Subscriptions — custom CardIcon with stripe */}
-        <Pressable
+        <AnimatedPressable
           style={[
             styles.navButton,
             activeIndex !== 1 && {
               borderWidth: 1.5,
               borderColor: inactiveBorder,
             },
+            navButtonStyle,
           ]}
           onPress={() => router.push('/(tabs)/subscriptions')}
         >
@@ -222,11 +275,13 @@ export function FloatingNav() {
             filled={activeIndex === 1}
             stripeColor={cardStripeColor}
           />
-        </Pressable>
-      </BlurView>
+        </AnimatedPressable>
+      </AnimatedBlurView>
     </Animated.View>
   );
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -237,7 +292,7 @@ const styles = StyleSheet.create({
     zIndex: zIndex.floatingNav,
   },
   pill: {
-    width: NAV_W,
+    // width is animated via pillStyle
     height: NAV_H,
     borderRadius: floatingNav.borderRadius,
     flexDirection: 'row',
@@ -247,14 +302,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   navButton: {
-    width: BTN_W,
+    // width is animated via navButtonStyle
     height: BTN_H,
     borderRadius: floatingNav.borderRadius,
     alignItems: 'center',
     justifyContent: 'center',
   },
   plusButton: {
-    width: BTN_W,
+    // width is animated via navButtonStyle
     height: BTN_H,
     borderRadius: floatingNav.borderRadius,
     alignItems: 'center',
@@ -264,7 +319,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: PAD,
     left: 0,
-    width: BTN_W,
+    // width is animated via indicatorStyle
     height: BTN_H,
     borderRadius: floatingNav.borderRadius,
     borderWidth: 2,

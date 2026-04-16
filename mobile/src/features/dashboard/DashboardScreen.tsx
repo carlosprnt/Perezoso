@@ -20,6 +20,7 @@
 //   - FloatingNav space at bottom
 
 import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -39,7 +40,11 @@ import { LogoConfetti } from '../../components/LogoConfetti';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
-import { useDashboardReveal } from './useDashboardReveal';
+import {
+  useDashboardReveal,
+  navCompactProgress,
+  NAV_COMPACT_RANGE,
+} from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 
 import { SummaryHero } from './SummaryHero';
@@ -91,6 +96,18 @@ export function DashboardScreen() {
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
+
+  // Sync the nav-bar compact state from our current scroll position
+  // whenever this screen (re)focuses — scrolling doesn't fire during
+  // tab switches so without this the nav could be stuck compact from
+  // the other tab's scroll state.
+  useFocusEffect(
+    useCallback(() => {
+      const y = scrollY.value;
+      navCompactProgress.value =
+        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+    }, [scrollY]),
+  );
 
   // The dashboard surface only animates translateY — the top-corner
   // radius and drop shadow are ALWAYS applied (matches the web's

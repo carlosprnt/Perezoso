@@ -31,6 +31,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { Check, ChevronsUpDown } from 'lucide-react-native';
 
@@ -42,6 +43,10 @@ import { radius } from '../../design/radius';
 import { WalletCard } from './WalletCard';
 import { Skeleton } from '../../components/Skeleton';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
+import {
+  navCompactProgress,
+  NAV_COMPACT_RANGE,
+} from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
 
@@ -322,9 +327,26 @@ export function SubscriptionsScreen() {
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
+      const y = event.contentOffset.y;
+      scrollY.value = y;
+      // Drive the FloatingNav's compaction (shared with DashboardScreen
+      // via the module-scoped `navCompactProgress`).
+      const p =
+        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+      navCompactProgress.value = p;
     },
   });
+
+  // Sync the nav compact state on focus, since scroll events don't fire
+  // during tab switches — otherwise the pill could show the other tab's
+  // state until the user scrolls here.
+  useFocusEffect(
+    useCallback(() => {
+      const y = scrollY.value;
+      navCompactProgress.value =
+        y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+    }, [scrollY]),
+  );
 
   // Header fade+blur: as the user scrolls, the "Mis suscripciones"
   // title and its paragraphs dissolve behind a gaussian blur veil

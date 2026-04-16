@@ -79,6 +79,13 @@ export const REVEAL_HEIGHT = Math.max(0, screenH - PEEK_HEIGHT);
 export const revealProgress = makeMutable(0);
 export const revealIsOpen = makeMutable(false);
 
+// Scroll-driven nav-bar compaction (0 → 1 over the first
+// NAV_COMPACT_RANGE px of scroll). Both DashboardScreen and
+// SubscriptionsScreen write this from their own scroll handlers so the
+// FloatingNav stays in sync regardless of which tab is visible.
+export const navCompactProgress = makeMutable(0);
+export const NAV_COMPACT_RANGE = 80;
+
 export interface DashboardReveal {
   translateY: SharedValue<number>;
   progress: SharedValue<number>;
@@ -125,9 +132,11 @@ export function useDashboardReveal(): DashboardReveal {
   useEffect(() => {
     revealProgress.value = 0;
     revealIsOpen.value = false;
+    navCompactProgress.value = 0;
     return () => {
       revealProgress.value = 0;
       revealIsOpen.value = false;
+      navCompactProgress.value = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -138,7 +147,13 @@ export function useDashboardReveal(): DashboardReveal {
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
+      const y = event.contentOffset.y;
+      scrollY.value = y;
+      // Compact the nav as the dashboard scrolls. Clamp to [0,1] over
+      // the first NAV_COMPACT_RANGE px so the pill transitions from
+      // elongated pills → tight circles fluidly with the finger.
+      const p = y <= 0 ? 0 : y >= NAV_COMPACT_RANGE ? 1 : y / NAV_COMPACT_RANGE;
+      navCompactProgress.value = p;
     },
   });
 
