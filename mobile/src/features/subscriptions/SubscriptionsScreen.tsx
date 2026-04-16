@@ -43,6 +43,7 @@ import { radius } from '../../design/radius';
 import { WalletCard } from './WalletCard';
 import { Skeleton } from '../../components/Skeleton';
 import { MOCK_SUBSCRIPTIONS } from './mockData';
+import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   navCompactProgress,
   NAV_COMPACT_RANGE,
@@ -349,17 +350,15 @@ export function SubscriptionsScreen() {
   );
 
   // Header fade+blur: as the user scrolls, the "Mis suscripciones"
-  // title and its paragraphs dissolve behind a gaussian blur veil
+  // title and its paragraphs dissolve behind a PROGRESSIVE blur veil
   // that fades in on top. 0–120px of scroll = fully visible → fully
-  // gone. Same BlurView-overlay technique as ScrollCard — see the
-  // comment there for the rationale (filter prop requires Fabric).
+  // gone. The veil uses MaskedView + LinearGradient so the blur holds
+  // strong at the top and tapers softly toward the content below —
+  // Apple's "Settings header" look. Same rationale as ScrollCard for
+  // avoiding the RN 0.81 `filter` prop (needs Fabric).
   const headerFadeStyle = useAnimatedStyle(() => {
     const progress = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
     return { opacity: 1 - progress };
-  });
-  const headerBlurStyle = useAnimatedStyle(() => {
-    const progress = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
-    return { opacity: progress };
   });
 
   const dropdownTextColor = colors.textPrimary;
@@ -439,11 +438,13 @@ export function SubscriptionsScreen() {
             .
           </Text>
           </Animated.View>
-          <AnimatedBlurView
+          <ProgressiveBlurView
+            scrollY={scrollY}
+            range={[0, 120]}
+            maxIntensity={BLUR_INTENSITY}
+            edge="top"
             tint={isDark ? 'dark' : 'light'}
-            intensity={BLUR_INTENSITY}
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFill, headerBlurStyle]}
+            softFromFraction={0.55}
           />
         </View>
 

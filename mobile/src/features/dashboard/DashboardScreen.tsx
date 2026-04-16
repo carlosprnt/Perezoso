@@ -27,10 +27,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { CalendarDays } from 'lucide-react-native';
-
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -40,6 +37,7 @@ import { LogoConfetti } from '../../components/LogoConfetti';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
+import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   useDashboardReveal,
   navCompactProgress,
@@ -121,9 +119,12 @@ export function DashboardScreen() {
   // Hero scroll fade+blur: as the user scrolls, the whole hero block
   // (greeting, big "Al mes gastas / Eso al año es" amounts, and the
   // supporting "Tienes X suscripciones" line) dissolves away — the
-  // content fades to opacity 0 while a gaussian blur veil (expo-blur
-  // BlurView) simultaneously fades in on top. 0–220px of scroll
-  // takes us from fully visible to fully gone.
+  // content fades to opacity 0 while a PROGRESSIVE blur veil fades in
+  // on top. 0–220px of scroll takes us from fully visible to fully
+  // gone. The veil uses a MaskedView + LinearGradient so the blur
+  // stays strong at the top edge and tapers softly at the bottom —
+  // matches Apple's Settings/Wallet header glass without any private
+  // APIs (Expo Go safe, App-Store safe).
   //
   // The BlurView-overlay approach is used instead of the RN 0.81
   // `filter: [{blur}]` style prop because `filter` only renders on
@@ -133,10 +134,6 @@ export function DashboardScreen() {
   const heroFadeStyle = useAnimatedStyle(() => {
     const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
     return { opacity: 1 - progress };
-  });
-  const heroBlurStyle = useAnimatedStyle(() => {
-    const progress = Math.min(Math.max(scrollY.value / 220, 0), 1);
-    return { opacity: progress };
   });
 
   // Calendar icon button for upcoming renewals header
@@ -211,11 +208,13 @@ export function DashboardScreen() {
                   onLogosTap={handleLogosTap}
                 />
               </Animated.View>
-              <AnimatedBlurView
+              <ProgressiveBlurView
+                scrollY={scrollY}
+                range={[0, 220]}
+                maxIntensity={80}
+                edge="top"
                 tint={isDark ? 'dark' : 'light'}
-                intensity={80}
-                pointerEvents="none"
-                style={[StyleSheet.absoluteFill, heroBlurStyle]}
+                softFromFraction={0.55}
               />
             </View>
 
