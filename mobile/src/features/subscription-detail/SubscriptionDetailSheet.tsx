@@ -27,6 +27,8 @@ import {
 } from './useSubscriptionDetailStore';
 import { SubscriptionDetailView } from './SubscriptionDetailView';
 import { SubscriptionEditView } from './SubscriptionEditView';
+import { Toast } from '../../components/Toast';
+import { useToastStore } from '../../components/useToastStore';
 import type { Subscription } from '../subscriptions/types';
 
 const FADE_MS = 160;
@@ -70,6 +72,12 @@ export function SubscriptionDetailSheet() {
   const handleSave = useCallback((updated: Subscription) => {
     updateSub(updated);
     exitEdit();
+    // Green iOS-style banner confirming the save. Fired here instead
+    // of inside the edit view so the toast survives any re-render the
+    // mode transition triggers. Rendered both at the app root and
+    // inside the pageSheet Modal below — the native iOS sheet covers
+    // the root instance, so we need an in-sheet Toast to be visible.
+    useToastStore.getState().show('success', 'Suscripción actualizada');
   }, [updateSub, exitEdit]);
 
   const handleDelete = useCallback(() => {
@@ -108,6 +116,13 @@ export function SubscriptionDetailSheet() {
           onDelete={handleDelete}
         />
       </Animated.View>
+
+      {/* In-sheet Toast instance — the native iOS pageSheet sits above
+          the root layout, so the root-level <Toast /> would be hidden
+          while the sheet is open. Both instances share the same Zustand
+          store, so firing once animates both; only the top-most visible
+          one is actually seen by the user. */}
+      <Toast />
     </Modal>
   );
 }
