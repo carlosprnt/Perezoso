@@ -2,7 +2,10 @@
 // Visual design mirrors CreateSubscriptionSheet exactly:
 //   · Header: title left + X close right
 //   · Same form cards and field order as CreateSubscriptionSheet
-//   · Footer: "Eliminar" (outlined red) + "Guardar cambios" (black)
+//   · "Eliminar suscripción": destructive card at the end of the scroll
+//     (Apple Contacts / Calendar pattern) — visually integrated but
+//     clearly separated from the primary Save CTA.
+//   · Footer: single "Guardar cambios" primary button pinned at bottom.
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -275,7 +278,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       is_shared: draft.shared,
       shared_with_count: draft.shared ? draft.sharedCount : sub.shared_with_count,
       payment_method: draft.paymentMethod || undefined,
-      logo_url: draft.logoUrl || sub.logo_url,
+      // Empty string ⇒ user cleared the logo; store null so the avatar
+      // falls back to initials (same behaviour as "no logo" creation).
+      logo_url: draft.logoUrl ? draft.logoUrl : null,
       notes: draft.notes,
       monthly_equivalent_cost: priceNum,
       my_monthly_cost: draft.shared ? priceNum / draft.sharedCount : priceNum,
@@ -343,7 +348,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 style={styles.priceInput}
                 value={draft.price}
                 onChangeText={(t) => setDraft((f) => ({ ...f, price: t }))}
-                placeholder="0,00"
+                placeholder="0.00"
                 placeholderTextColor="#C7C7CC"
                 keyboardType="decimal-pad"
                 returnKeyType="done"
@@ -552,16 +557,28 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               />
             </View>
           </View>
+
+          {/* ── Destructive zone ──
+              Apple's pattern in Contacts / Calendar edit sheets: a red
+              "Delete …" card placed at the very end of the scroll,
+              visually integrated (same card chrome as the form groups)
+              but separated from the primary Save action below. */}
+          <View style={styles.destructiveSpacer} />
+          <View style={styles.destructiveCard}>
+            <Pressable
+              onPress={handleDelete}
+              style={({ pressed }) => [
+                styles.destructiveRow,
+                pressed && { opacity: 0.55 },
+              ]}
+            >
+              <Text style={styles.destructiveText}>Eliminar suscripción</Text>
+            </Pressable>
+          </View>
         </ScrollView>
 
-        {/* ── Footer ── */}
+        {/* ── Footer — Save primary CTA (single, pinned) ── */}
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <Pressable
-            style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.7 }]}
-            onPress={handleDelete}
-          >
-            <Text style={styles.deleteBtnText}>Eliminar</Text>
-          </Pressable>
           <Pressable
             style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.85 }]}
             onPress={handleSave}
@@ -894,34 +911,40 @@ const styles = StyleSheet.create({
     padding: 0,
   },
 
-  // Footer
+  // Destructive zone (end of scroll) — Apple Contacts / Calendar pattern
+  destructiveSpacer: {
+    height: 14,
+  },
+  destructiveCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DCDCE0',
+    overflow: 'hidden',
+  },
+  destructiveRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  destructiveText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#FF3B30',
+    letterSpacing: -0.1,
+  },
+
+  // Footer — single pinned Save CTA
   footer: {
-    flexDirection: 'row',
-    gap: 10,
     paddingHorizontal: 16,
     paddingTop: 10,
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#DCDCE0',
   },
-  deleteBtn: {
-    flex: 1,
-    height: 52,
-    borderRadius: 9999,
-    borderWidth: 1.5,
-    borderColor: '#FF3B30',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteBtnText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[16],
-    color: '#FF3B30',
-    letterSpacing: -0.2,
-  },
   saveBtn: {
-    flex: 2,
     height: 52,
     borderRadius: 9999,
     backgroundColor: '#000000',
