@@ -54,6 +54,7 @@ import { InsightCards } from './InsightCards';
 import { UpcomingRenewals } from './UpcomingRenewals';
 import { TopCategories } from './TopCategories';
 import { TopExpensive } from './TopExpensive';
+import { DashboardEmptyState } from './DashboardEmptyState';
 
 import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
@@ -82,6 +83,7 @@ export function DashboardScreen() {
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const isEmpty = subscriptions.length === 0;
   const stats            = React.useMemo(() => deriveStats(subscriptions),            [subscriptions]);
   const renewals         = React.useMemo(() => deriveRenewals(subscriptions),         [subscriptions]);
   const topExpensive     = React.useMemo(() => deriveTopExpensive(subscriptions),     [subscriptions]);
@@ -233,27 +235,40 @@ export function DashboardScreen() {
             {/* Hero — content fades out while a blur veil fades in on top.
                 Outer View owns position: relative so the absoluteFill
                 BlurView sizes to the hero. */}
-            <View style={styles.heroWrapper}>
-              <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
-                <SummaryHero
-                  stats={stats}
-                  logoUrls={logoUrls}
-                  sharedLogoUrls={sharedLogoUrls}
-                  onAmountTap={handleAmountTap}
-                  onLogosTap={handleLogosTap}
+            {!isEmpty && (
+              <View style={styles.heroWrapper}>
+                <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
+                  <SummaryHero
+                    stats={stats}
+                    logoUrls={logoUrls}
+                    sharedLogoUrls={sharedLogoUrls}
+                    onAmountTap={handleAmountTap}
+                    onLogosTap={handleLogosTap}
+                  />
+                </Animated.View>
+                <ProgressiveBlurView
+                  scrollY={scrollY}
+                  range={[0, 220]}
+                  maxIntensity={80}
+                  edge="top"
+                  tint={isDark ? 'dark' : 'light'}
+                  softFromFraction={0.55}
                 />
-              </Animated.View>
-              <ProgressiveBlurView
-                scrollY={scrollY}
-                range={[0, 220]}
-                maxIntensity={80}
-                edge="top"
-                tint={isDark ? 'dark' : 'light'}
-                softFromFraction={0.55}
-              />
-            </View>
+              </View>
+            )}
+
+            {/* Empty state — replaces the whole dashboard body when the
+                user has zero subscriptions (new user / Vacío demo preset).
+                Sits below the SharedProfileHeader greeting so the screen
+                still feels anchored. */}
+            {isEmpty && (
+              <View style={{ paddingTop: 44 + 8 }}>
+                <DashboardEmptyState />
+              </View>
+            )}
 
             {/* Card stack -- staggered entrance */}
+            {!isEmpty && (
             <View style={styles.cardStack}>
               {/* Reminder card — extra 10px separation from the module below */}
               <StaggeredItem index={0}>
@@ -320,6 +335,7 @@ export function DashboardScreen() {
                 </View>
               </StaggeredItem>
             </View>
+            )}
           </Animated.ScrollView>
         </GestureDetector>
       </Animated.View>

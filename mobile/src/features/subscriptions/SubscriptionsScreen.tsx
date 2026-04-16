@@ -43,6 +43,7 @@ import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/ty
 import { radius } from '../../design/radius';
 
 import { WalletCard } from './WalletCard';
+import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
@@ -385,6 +386,28 @@ export function SubscriptionsScreen() {
 
   const dropdownTextColor = colors.textPrimary;
   const dropdownMutedColor = colors.textMuted;
+
+  // First-time user / "Vacío" demo preset: no subs at all → show a
+  // dedicated empty state instead of the zeroed-out header + empty list.
+  if (subscriptions.length === 0) {
+    return (
+      <View style={[styles.root, { backgroundColor: 'transparent' }]}>
+        <Animated.ScrollView
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: insets.top + 12,
+              paddingBottom: insets.bottom + 140,
+            },
+          ]}
+        >
+          <SubscriptionsEmptyState />
+        </Animated.ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
