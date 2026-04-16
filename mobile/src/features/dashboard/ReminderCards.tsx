@@ -1,24 +1,49 @@
 // Dashboard: ReminderCards (Savings Carousel)
-// Replicates web's SavingsCarousel with stacked peek cards.
+// Stable-slot stacked carousel with seamless swipe-to-advance.
 //
 // Two cards:
 //   1. Notification reminder (Bell icon, gradient bg, "activate 7-day alert")
 //   2. Savings opportunity (Sparkles icon, gradient bg, "shared plans save €X")
 //
 // Interaction: swipe the front card horizontally to dismiss and reveal the
-// one behind it. The peek card sits slightly behind (y +4px, scale 0.975,
-// opacity 0.9). When the front is swiped away, the peek card springs forward.
+// one behind it. The peek card sits slightly behind (y +4 px, scale 0.975,
+// opacity 0.9). When the front is swiped away, the peek springs forward and
+// the dismissed card fades back in as the new peek behind it.
+//
+// Why "stable slots"
+// ──────────────────
+// Previous version kept a React `frontIdx` state and swapped which item was
+// rendered in the "front" vs "peek" slot. On a swipe we had to set
+// `frontIdx` (React re-render) AND reset the shared values (`dragX = 0`,
+// `dragProgress = 0`). Because React commits asynchronously, the reset and
+// the re-render landed in different frames — for one frame the old content
+// was laid out with reset transforms (snapping the just-swiped card back
+// to center), or the peek slot's NEW content briefly rendered at depth=0
+// (center) before depth animated back to 1. Either way: a visible flicker.
+//
+// Here, items[0] is permanently bound to slot0 and items[1] to slot1.
+// Swiping never changes which item lives in which slot — only each slot's
+// translateX / depth / opacity animate, driven entirely on the UI thread.
+// The "front" role is a shared value (`frontSlot`) so role swaps don't
+// require any React re-render, and transitions run in a single frame train.
+//
+// Bell ring animation
+// ───────────────────
+// Every 7 s the reminder card's bell icon performs a subtle 5-step ring
+// (± small rotation around the bell's top anchor). Uses withSequence on
+// a shared value + transformOrigin to pivot around the bell's yoke.
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS,
+  withSequence,
   interpolate,
   Extrapolation,
+  Easing,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,6 +60,8 @@ const PEEK_DIM = 0.10;
 const SWIPE_THRESHOLD = 60;
 const VELOCITY_THRESHOLD = 400;
 const CARD_FLY_X = 420;
+const FLY_DURATION = 240;
+const FADE_IN_DURATION = 200;
 
 interface ReminderItem {
   id: string;
@@ -53,6 +80,62 @@ interface ReminderCardsProps {
   onViewSavings?: () => void;
 }
 
+// ─── Bell icon with periodic ring animation ─────────────────────────
+
+function RingingBell({
+  size,
+  color,
+  strokeWidth = 2,
+}: {
+  size: number;
+  color: string;
+  strokeWidth?: number;
+}) {
+  // Rotate around the yoke (top center) so the "ring" reads as a pendulum
+  // swing rather than a full-body spin — matches how real bells move.
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    // Prime the loop: first ring after 7 s, then every 7 s thereafter.
+    // withSequence + withDelay chained below fires a tight 5-step shake
+    // that comes to rest at 0°.
+    let mounted = true;
+    const ring = () => {
+      if (!mounted) return;
+      rotation.value = withSequence(
+        withTiming(-14, { duration: 80, easing: Easing.out(Easing.quad) }),
+        withTiming(12, { duration: 100, easing: Easing.inOut(Easing.quad) }),
+        withTiming(-9, { duration: 100, easing: Easing.inOut(Easing.quad) }),
+        withTiming(7, { duration: 90, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 120, easing: Easing.out(Easing.cubic) }),
+      );
+    };
+    // Start the first ring after a small warm-up delay so it doesn't fire
+    // immediately on mount (users haven't looked at it yet).
+    const warmup = setTimeout(() => {
+      ring();
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      interval = setInterval(ring, 7000);
+    }, 2800);
+    let interval: ReturnType<typeof setInterval> | undefined;
+    return () => {
+      mounted = false;
+      clearTimeout(warmup);
+      if (interval) clearInterval(interval);
+    };
+  }, [rotation]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  return (
+    <Animated.View style={[{ transformOrigin: '50% 10%' }, animStyle]}>
+      <Bell size={size} strokeWidth={strokeWidth} color={color} />
+    </Animated.View>
+  );
+}
+
 // ─── Shell card ─────────────────────────────────────────────────────
 
 function CardShell({
@@ -66,8 +149,6 @@ function CardShell({
 }) {
   const { colors, isDark } = useTheme();
 
-  const Icon = item.icon === 'bell' ? Bell : Sparkles;
-
   return (
     <View style={[styles.shell, { backgroundColor: colors.surface }, shadows.cardSm]}>
       <View style={styles.body}>
@@ -77,7 +158,11 @@ function CardShell({
           end={{ x: 1, y: 1 }}
           style={styles.iconWrap}
         >
-          <Icon size={20} strokeWidth={2} color={item.iconColor} />
+          {item.icon === 'bell' ? (
+            <RingingBell size={20} color={item.iconColor} />
+          ) : (
+            <Sparkles size={20} strokeWidth={2} color={item.iconColor} />
+          )}
         </LinearGradient>
 
         <View style={styles.textWrap}>
@@ -107,7 +192,7 @@ function CardShell({
   );
 }
 
-// ─── Carousel ───────────────────────────────────────────────────────
+// ─── Top-level carousel ─────────────────────────────────────────────
 
 export function ReminderCards({
   annualCount,
@@ -117,11 +202,10 @@ export function ReminderCards({
 }: ReminderCardsProps) {
   const { colors } = useTheme();
 
-  // Build the initial item list
-  const initialItems: ReminderItem[] = [];
+  const items: ReminderItem[] = [];
 
   if (annualCount > 0) {
-    initialItems.push({
+    items.push({
       id: 'reminder',
       icon: 'bell',
       gradient: ['#DBEAFE', '#BFDBFE'] as const,
@@ -138,7 +222,7 @@ export function ReminderCards({
     });
   }
 
-  initialItems.push({
+  items.push({
     id: 'savings',
     icon: 'sparkles',
     gradient: ['#FEF3C7', '#FDE68A'] as const,
@@ -154,126 +238,190 @@ export function ReminderCards({
     onCta: onViewSavings,
   });
 
-  const [items, setItems] = useState<ReminderItem[]>(initialItems);
-  const [frontIdx, setFrontIdx] = useState(0);
+  if (items.length === 0) return null;
+  if (items.length === 1) {
+    return <CardShell item={items[0]} onCta={items[0].onCta} />;
+  }
 
-  const dragX = useSharedValue(0);
-  const dragProgress = useSharedValue(0); // 0..1 during drag
-  // Opacity is 1 during drag. It only fades once the user releases
-  // a card that will fly off (exit). A cancelled drag keeps it at 1.
-  const exitOpacity = useSharedValue(1);
+  return <TwoSlotCarousel a={items[0]} b={items[1]} />;
+}
+
+// ─── Stable 2-slot carousel ─────────────────────────────────────────
+//
+// items[0] → slot0 (in flow, anchors container height)
+// items[1] → slot1 (absolute overlay)
+//
+// Each slot has its own animated position (translateX), depth (0 front /
+// 1 peek), and opacity. The gesture attached to each slot only activates
+// for the slot that's currently front (via zIndex the non-front slot
+// isn't reachable by touch anyway, but frontSlot is checked defensively).
+// Swipe-out flies the front off-screen then, in the SAME UI-thread frame,
+// swaps roles: the other slot becomes front (depth → 0), the flown slot
+// snaps back to (translateX=0, depth=1) and fades in as the new peek.
+
+function TwoSlotCarousel({ a, b }: { a: ReminderItem; b: ReminderItem }) {
+  // Per-slot shared values.
+  const t0 = useSharedValue(0);
+  const t1 = useSharedValue(0);
+  const d0 = useSharedValue(0); // 0 = front, 1 = peek
+  const d1 = useSharedValue(1);
+  const e0 = useSharedValue(1); // opacity multiplier
+  const e1 = useSharedValue(1);
+  // Which slot currently owns the "front" role.
+  const frontSlot = useSharedValue(0);
   const isAnimating = useSharedValue(false);
 
-  const advanceFront = useCallback(() => {
-    setFrontIdx((i) => (i + 1) % items.length);
-  }, [items.length]);
+  const makeGesture = (mySlot: 0 | 1) => {
+    const myT = mySlot === 0 ? t0 : t1;
+    const myD = mySlot === 0 ? d0 : d1;
+    const myE = mySlot === 0 ? e0 : e1;
+    const otherD = mySlot === 0 ? d1 : d0;
+    const otherE = mySlot === 0 ? e1 : e0;
 
-  const resetDrag = useCallback(() => {
-    dragX.value = 0;
-    dragProgress.value = 0;
-    exitOpacity.value = 1;
-  }, [dragX, dragProgress, exitOpacity]);
+    return Gesture.Pan()
+      .activeOffsetX([-8, 8])
+      .failOffsetY([-16, 16])
+      .onUpdate((evt) => {
+        'worklet';
+        if (isAnimating.value) return;
+        if (frontSlot.value !== mySlot) return;
+        myT.value = evt.translationX;
+        const progress = Math.min(1, Math.abs(evt.translationX) / SWIPE_THRESHOLD);
+        otherD.value = 1 - progress;
+      })
+      .onEnd((evt) => {
+        'worklet';
+        if (isAnimating.value) return;
+        if (frontSlot.value !== mySlot) return;
+        const shouldSwipe =
+          Math.abs(evt.translationX) > SWIPE_THRESHOLD ||
+          Math.abs(evt.velocityX) > VELOCITY_THRESHOLD;
 
-  const gesture = Gesture.Pan()
-    .activeOffsetX([-8, 8])
-    .failOffsetY([-16, 16])
-    .onUpdate((e) => {
-      if (isAnimating.value || items.length < 2) return;
-      dragX.value = e.translationX;
-      dragProgress.value = Math.min(1, Math.abs(e.translationX) / SWIPE_THRESHOLD);
-    })
-    .onEnd((e) => {
-      if (isAnimating.value || items.length < 2) return;
-      const shouldSwipe =
-        Math.abs(e.translationX) > SWIPE_THRESHOLD ||
-        Math.abs(e.velocityX) > VELOCITY_THRESHOLD;
+        if (shouldSwipe) {
+          isAnimating.value = true;
+          const dir = evt.translationX > 0 ? 1 : -1;
+          // Fly out, fade out.
+          myT.value = withTiming(
+            dir * CARD_FLY_X,
+            { duration: FLY_DURATION, easing: Easing.out(Easing.cubic) },
+            (finished) => {
+              if (finished) {
+                // Atomic role swap on the UI thread — no React re-render.
+                myT.value = 0;
+                myD.value = 1; // now peek
+                frontSlot.value = 1 - mySlot;
+                // Fade this card back in at peek position.
+                myE.value = withTiming(1, { duration: FADE_IN_DURATION });
+                isAnimating.value = false;
+              }
+            },
+          );
+          myE.value = withTiming(0, { duration: FLY_DURATION });
+          // Raise the other slot to front.
+          otherD.value = withTiming(0, { duration: FLY_DURATION });
+          // Cancel any pending fade and settle the new front at opacity 1.
+          otherE.value = withTiming(1, { duration: FLY_DURATION });
+        } else {
+          // Cancel — spring back.
+          myT.value = withSpring(0, { damping: 22, stiffness: 320 });
+          otherD.value = withSpring(1, { damping: 22, stiffness: 320 });
+        }
+      });
+  };
 
-      if (shouldSwipe) {
-        isAnimating.value = true;
-        const dir = e.translationX > 0 ? 1 : -1;
-        dragX.value = withTiming(
-          dir * CARD_FLY_X,
-          { duration: 240 },
-          (finished) => {
-            if (finished) {
-              runOnJS(advanceFront)();
-              runOnJS(resetDrag)();
-              isAnimating.value = false;
-            }
-          },
-        );
-        // Fade only during the exit flight, not during the drag.
-        exitOpacity.value = withTiming(0, { duration: 240 });
-      } else {
-        dragX.value = withSpring(0, { damping: 22, stiffness: 320 });
-        dragProgress.value = withSpring(0, { damping: 22, stiffness: 320 });
-      }
-    });
+  const gesture0 = makeGesture(0);
+  const gesture1 = makeGesture(1);
 
-  const frontStyle = useAnimatedStyle(() => {
+  // Programmatic dismiss (triggered by "No me interesa" button). Runs on
+  // JS thread but assigns shared values directly — that's allowed.
+  const dismissSlot = useCallback((mySlot: 0 | 1) => {
+    if (isAnimating.value) return;
+    if (frontSlot.value !== mySlot) return;
+    const myT = mySlot === 0 ? t0 : t1;
+    const myD = mySlot === 0 ? d0 : d1;
+    const myE = mySlot === 0 ? e0 : e1;
+    const otherD = mySlot === 0 ? d1 : d0;
+    const otherE = mySlot === 0 ? e1 : e0;
+
+    isAnimating.value = true;
+    myT.value = withTiming(
+      -CARD_FLY_X,
+      { duration: FLY_DURATION, easing: Easing.out(Easing.cubic) },
+      (finished) => {
+        if (finished) {
+          myT.value = 0;
+          myD.value = 1;
+          frontSlot.value = 1 - mySlot;
+          myE.value = withTiming(1, { duration: FADE_IN_DURATION });
+          isAnimating.value = false;
+        }
+      },
+    );
+    myE.value = withTiming(0, { duration: FLY_DURATION });
+    otherD.value = withTiming(0, { duration: FLY_DURATION });
+    otherE.value = withTiming(1, { duration: FLY_DURATION });
+  }, [t0, t1, d0, d1, e0, e1, frontSlot, isAnimating]);
+
+  const slot0Style = useAnimatedStyle(() => {
+    const depth = d0.value;
     const rotate = interpolate(
-      dragX.value,
+      t0.value,
       [-CARD_FLY_X, 0, CARD_FLY_X],
       [-7, 0, 7],
       Extrapolation.CLAMP,
     );
     return {
       transform: [
-        { translateX: dragX.value },
+        { translateY: depth * PEEK_OFFSET },
+        { translateX: t0.value },
+        { scale: 1 - depth * PEEK_SCALE },
         { rotate: `${rotate}deg` },
       ],
-      opacity: exitOpacity.value,
+      opacity: (1 - depth * PEEK_DIM) * e0.value,
+      zIndex: depth < 0.5 ? 2 : 1,
     };
   });
 
-  const peekStyle = useAnimatedStyle(() => {
-    // As the front card is dragged, the peek rises to depth 0
-    const depth = 1 - dragProgress.value;
+  const slot1Style = useAnimatedStyle(() => {
+    const depth = d1.value;
+    const rotate = interpolate(
+      t1.value,
+      [-CARD_FLY_X, 0, CARD_FLY_X],
+      [-7, 0, 7],
+      Extrapolation.CLAMP,
+    );
     return {
       transform: [
         { translateY: depth * PEEK_OFFSET },
+        { translateX: t1.value },
         { scale: 1 - depth * PEEK_SCALE },
+        { rotate: `${rotate}deg` },
       ],
-      opacity: 1 - depth * PEEK_DIM,
+      opacity: (1 - depth * PEEK_DIM) * e1.value,
+      zIndex: depth < 0.5 ? 2 : 1,
     };
   });
 
-  if (items.length === 0) return null;
-
-  const frontItem = items[frontIdx];
-  const peekItem = items[(frontIdx + 1) % items.length];
-  const hasPeek = items.length > 1;
-
-  const handleDismissFront = useCallback(() => {
-    if (isAnimating.value || items.length < 2) return;
-    isAnimating.value = true;
-    dragX.value = withTiming(-CARD_FLY_X, { duration: 240 }, (finished) => {
-      if (finished) {
-        runOnJS(advanceFront)();
-        runOnJS(resetDrag)();
-        isAnimating.value = false;
-      }
-    });
-    // Fade during button-triggered exit, same as swipe exit.
-    exitOpacity.value = withTiming(0, { duration: 240 });
-  }, [advanceFront, resetDrag, dragX, exitOpacity, isAnimating, items.length]);
-
   return (
     <View style={styles.container}>
-      {/* Peek card behind */}
-      {hasPeek && (
-        <Animated.View style={[styles.peek, peekStyle]}>
-          <CardShell item={peekItem} />
-        </Animated.View>
-      )}
-
-      {/* Front card with gesture */}
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.front, frontStyle]}>
+      {/* Slot 0 — in flow, anchors container height */}
+      <GestureDetector gesture={gesture0}>
+        <Animated.View style={[styles.slotInFlow, slot0Style]}>
           <CardShell
-            item={frontItem}
-            onCta={frontItem.onCta}
-            onDismiss={handleDismissFront}
+            item={a}
+            onCta={a.onCta}
+            onDismiss={() => dismissSlot(0)}
+          />
+        </Animated.View>
+      </GestureDetector>
+
+      {/* Slot 1 — absolute overlay */}
+      <GestureDetector gesture={gesture1}>
+        <Animated.View style={[styles.slotAbsolute, slot1Style]}>
+          <CardShell
+            item={b}
+            onCta={b.onCta}
+            onDismiss={() => dismissSlot(1)}
           />
         </Animated.View>
       </GestureDetector>
@@ -287,23 +435,23 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
   },
-  peek: {
+  slotInFlow: {
+    position: 'relative',
+  },
+  slotAbsolute: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
   },
-  front: {
-    position: 'relative',
-  },
   shell: {
-    borderRadius: radius.card, // 32px
+    borderRadius: radius.card, // 32 px
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 10,
-    // No minHeight — each card sizes to its own content so there's no
-    // dead space below short copy. The absolute peek sits behind the
-    // front card so differing heights still stack cleanly.
+    // Equal heights across items so the peek never visually sticks
+    // below the front card when contents differ by a line.
+    minHeight: 140,
     justifyContent: 'space-between',
   },
   body: {
@@ -319,6 +467,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    // Clip the bell's ring swing so it stays inside the rounded icon chip.
+    overflow: 'hidden',
   },
   textWrap: {
     flex: 1,

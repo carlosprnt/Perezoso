@@ -29,7 +29,6 @@ import Animated, {
   interpolate,
   Extrapolation,
   withTiming,
-  withDelay,
   Easing,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -51,6 +50,7 @@ import {
   navCompactProgress,
   navCompactState,
   COMPACT_SCROLL_THRESHOLD,
+  NAV_COMPACT_DURATION,
 } from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
@@ -335,24 +335,24 @@ export function SubscriptionsScreen() {
       const y = event.contentOffset.y;
       scrollY.value = y;
       // Same compact state machine as DashboardScreen — see the comment
-      // in useDashboardReveal for the full rationale (1 s delay → 300 ms
-      // compact, immediate 200 ms reverse, no explicit cancelAnimation
-      // needed because assigning a new animation replaces pending ones).
+      // in useDashboardReveal: immediate response, 500 ms animation
+      // either direction, auto-cancelling in-flight animation via
+      // re-assignment to navCompactProgress.
       if (y > COMPACT_SCROLL_THRESHOLD) {
         if (navCompactState.value === 0) {
           navCompactState.value = 1;
-          navCompactProgress.value = withDelay(
-            1000,
-            withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
-          );
+          navCompactProgress.value = withTiming(1, {
+            duration: NAV_COMPACT_DURATION,
+            easing: Easing.out(Easing.cubic),
+          });
         }
       } else {
         if (navCompactState.value === 1) {
           navCompactState.value = 0;
-          navCompactProgress.value = withTiming(
-            0,
-            { duration: 200, easing: Easing.in(Easing.cubic) },
-          );
+          navCompactProgress.value = withTiming(0, {
+            duration: NAV_COMPACT_DURATION,
+            easing: Easing.in(Easing.cubic),
+          });
         }
       }
     },

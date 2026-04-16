@@ -10,18 +10,27 @@
 //
 // The avatar is pressable — tapping it toggles the reveal.
 //
+// Scroll-away behaviour (dashboard mode)
+// ──────────────────────────────────────
+// On the dashboard, the header is no longer "sticky". As the user scrolls
+// down it fades out (opacity 1 → 0 over 60 px of scroll) and drifts
+// slightly upward (−30 px max) so it reads like normal scrollable content.
+// The fade is GATED by the reveal progress: the moment the profile layer
+// starts revealing, the header is forced back to full opacity / centered
+// position so the greeting is always legible on the black panel.
+//
+// The actual "blur" part of the "fade out via blur" is provided by the
+// ProgressiveBlurView that already sits on the hero below — the header
+// sits above the blur veil at the top of the screen, so as the hero
+// glass hardens the header's fading silhouette reads against a softer
+// backdrop (no extra blur layer needed).
+//
 // Positioning
 // ───────────
 // Absolute at the top of the screen, above everything (zIndex high).
 // Horizontal padding matches both the SummaryHero and the
 // UnderlyingProfileLayer content padding so the element lines up with
 // whatever is behind it in either state.
-//
-// We DO NOT give it a solid background — in both states the element
-// lines up with matching padding on the layer behind, so it just sits
-// over whatever is there (dashboard surface when closed, black panel
-// when open). A subtle backdrop blur could be added later if scrolled
-// content reading through becomes an issue.
 
 import React from 'react';
 import {
@@ -37,6 +46,7 @@ import Animated, {
   interpolate,
   interpolateColor,
   Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -52,11 +62,17 @@ const AnimatedText = Animated.createAnimatedComponent(Text);
 const FONT_CLOSED = 18;
 const FONT_OPEN = 26; // +8 px per spec
 
+// Scroll fade tunables.
+const SCROLL_FADE_END = 60;   // px of scroll at which opacity reaches 0
+const SCROLL_LIFT_MAX = 30;   // px the header drifts upward at full fade
+
 interface Props {
   firstName: string;
   fullName?: string;
   avatarUrl?: string | null;
   onAvatarPress: () => void;
+  /** Dashboard scroll offset — when supplied the header fades & lifts with scroll. */
+  scrollY?: SharedValue<number>;
 }
 
 export function SharedProfileHeader({
@@ -64,6 +80,7 @@ export function SharedProfileHeader({
   fullName,
   avatarUrl,
   onAvatarPress,
+  scrollY,
 }: Props) {
   const insets = useSafeAreaInsets();
   const displayName = fullName || firstName;
@@ -86,10 +103,28 @@ export function SharedProfileHeader({
     };
   });
 
+  // Root scroll-away style — opacity fade + subtle upward drift, overridden
+  // by revealProgress so the header returns to full visibility when the
+  // profile layer reveals.
+  const rootStyle = useAnimatedStyle(() => {
+    const s = scrollY ? Math.max(0, scrollY.value) : 0;
+    const fade = Math.min(s / SCROLL_FADE_END, 1);
+    const lift = Math.min((s / SCROLL_FADE_END) * SCROLL_LIFT_MAX, SCROLL_LIFT_MAX);
+    const reveal = revealProgress.value;
+    return {
+      // max() lets revealProgress fully override the scroll fade whenever
+      // the profile layer is even partially visible.
+      opacity: Math.max(1 - fade, reveal),
+      transform: [
+        { translateY: (1 - reveal) * -lift },
+      ],
+    };
+  });
+
   return (
-    <View
+    <Animated.View
       pointerEvents="box-none"
-      style={[styles.root, { paddingTop: insets.top + 12 }]}
+      style={[styles.root, { paddingTop: insets.top + 12 }, rootStyle]}
     >
       <View style={styles.row}>
         <AnimatedText style={[styles.greetingBase, greetingStyle]} numberOfLines={1}>
@@ -119,7 +154,7 @@ export function SharedProfileHeader({
           )}
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

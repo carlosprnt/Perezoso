@@ -294,6 +294,7 @@ export function DashboardScreen() {
       <SharedProfileHeader
         firstName={MOCK_FIRST_NAME}
         onAvatarPress={reveal.toggle}
+        scrollY={scrollY}
       />
 
       {/* Confetti overlays — render on top of everything */}

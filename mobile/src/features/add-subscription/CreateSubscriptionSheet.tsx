@@ -1,12 +1,17 @@
-// CreateSubscriptionSheet — white iOS-style form sheet.
+// CreateSubscriptionSheet — native iOS pageSheet.
 //
 // Behaviour:
-//  · Opens via a native <Modal> (guaranteed above all in-tree UI)
-//  · Slide-in with native iOS sheet curve (cubic-bezier 0.32,0.72,0,1)
-//  · Drag handle → drag-to-dismiss (with dirty-form confirmation)
+//  · Opens via RN <Modal presentationStyle="pageSheet"> — UIKit owns the
+//    presentation curve, the rounded top corners, the dimmed backdrop,
+//    AND the pan-down-to-dismiss gesture. No custom PanResponder, no
+//    custom translateY animation: the sheet behaves exactly like Apple's
+//    own Mail/Calendar/Wallet modals.
 //  · Dropdowns via FloatingOptionMenu (anchored light pull-down, iOS UIMenu)
 //  · Date fields via NativeDatePickerSheet (iOS inline calendar, floating)
-//  · Dirty-form protection: Alert on Cancel / backdrop / swipe-close
+//  · Dirty-form protection: the explicit Cancel / X button fires an Alert.
+//    Swipe-to-dismiss is a native iOS gesture and can't be cancelled from
+//    JS — we sync state via `onDismiss` so the store matches the visual
+//    state, matching the convention users expect from Apple's own apps.
 //  · Validation: name + price required; inline error banner above scroll
 //  · Submit: spinner → celebration card (fired 380ms after Modal closes)
 
@@ -14,12 +19,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Animated,
-  Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
-  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -37,8 +38,6 @@ import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
-
-const { height: SCREEN_H } = Dimensions.get('window');
 
 // ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
@@ -181,13 +180,13 @@ export function CreateSubscriptionSheet() {
   const statusRef = useRef<View>(null);
   const reminderRef = useRef<View>(null);
 
-  const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const isDirty = useCallback(
     () => !formIsEqual(form, initialFormRef.current),
     [form],
   );
 
-  // ── Open / close animations ────────────────────────────────────────
+  // ── Reset form whenever the sheet re-opens ────────────────────────
+  // No custom animation — native iOS pageSheet owns the slide-up.
   useEffect(() => {
     if (isOpen) {
       const fresh = makeInitialForm(prefill);
@@ -197,17 +196,8 @@ export function CreateSubscriptionSheet() {
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
-      // Native iOS sheet curve: cubic-bezier(0.32, 0.72, 0, 1)
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 380,
-        easing: Easing.bezier(0.32, 0.72, 0, 1),
-        useNativeDriver: true,
-      }).start();
-    } else {
-      translateY.setValue(SCREEN_H);
     }
-  }, [isOpen, prefill, translateY]);
+  }, [isOpen, prefill]);
 
   // ── Confirm + close ───────────────────────────────────────────────
   const requestClose = useCallback(() => {
@@ -225,39 +215,12 @@ export function CreateSubscriptionSheet() {
     }
   }, [isDirty, closeStore]);
 
-  // ── Drag-to-dismiss (pan on handle area) ─────────────────────────
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx),
-      onPanResponderMove: (_, g) => {
-        if (g.dy > 0) translateY.setValue(g.dy);
-      },
-      onPanResponderRelease: (_, g) => {
-        if (g.dy > 100 || g.vy > 1.2) {
-          Animated.timing(translateY, {
-            toValue: SCREEN_H,
-            duration: 260,
-            easing: Easing.bezier(0.32, 0.72, 0.2, 1),
-            useNativeDriver: true,
-          }).start(() => {
-            translateY.setValue(SCREEN_H);
-            requestCloseRef.current();
-          });
-        } else {
-          // Snap back — iOS spring feel
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            damping: 28,
-            stiffness: 260,
-          }).start();
-        }
-      },
-    }),
-  ).current;
-
-  const requestCloseRef = useRef(requestClose);
-  useEffect(() => { requestCloseRef.current = requestClose; }, [requestClose]);
+  // ── Native sheet dismissal sync ───────────────────────────────────
+  // Fires after the user swipes the iOS pageSheet down. The store must
+  // be updated because React is otherwise unaware the Modal closed.
+  const handleNativeDismiss = useCallback(() => {
+    if (isOpen) closeStore();
+  }, [isOpen, closeStore]);
 
   // ── Anchor measurement helpers ────────────────────────────────────
   const openPickerAt = useCallback(
@@ -318,34 +281,22 @@ export function CreateSubscriptionSheet() {
   return (
     <Modal
       visible={isOpen}
-      transparent
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={requestClose}
-      statusBarTranslucent
-      presentationStyle="overFullScreen"
+      onDismiss={handleNativeDismiss}
     >
-      <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={requestClose} />
-
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              paddingBottom: insets.bottom > 0 ? 14 : 10,
-              transform: [{ translateY }],
-            },
-          ]}
+      <View
+        style={[
+          styles.sheet,
+          { paddingBottom: insets.bottom > 0 ? 14 : 10 },
+        ]}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            {/* ── Handle — drag target ── */}
-            <View style={styles.handleZone} {...panResponder.panHandlers}>
-              <View style={styles.handle} />
-            </View>
-
-            {/* ── Header ── */}
+          {/* ── Header ── */}
             <View style={styles.header}>
               <Text style={styles.title}>Crear nueva suscripción</Text>
               <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
@@ -630,8 +581,7 @@ export function CreateSubscriptionSheet() {
                 }
               </Pressable>
             </View>
-          </KeyboardAvoidingView>
-        </Animated.View>
+        </KeyboardAvoidingView>
       </View>
 
       {/* ── Nested date pickers ── */}
@@ -706,33 +656,12 @@ export function CreateSubscriptionSheet() {
 
 // ─── Styles ──────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
+  // Native iOS pageSheet provides: rounded top corners, dimmed backdrop,
+  // and the inset-from-top offset. We only fill the sheet's content area.
   sheet: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: '86%',
-    overflow: 'hidden',
-  },
-
-  handleZone: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-    paddingHorizontal: 100,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D1D1D6',
+    paddingTop: 14,
   },
 
   header: {

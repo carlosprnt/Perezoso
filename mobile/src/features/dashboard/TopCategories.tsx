@@ -51,8 +51,10 @@ function getBarColor(category: string, isPrimary: boolean): string {
   return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
 }
 
-/** Color used on the legend bullet (dot uses actual category color, not primary override) */
-function getBulletColor(category: string): string {
+/** Color used on the legend bullet — matches the bar color so the
+ *  primary row's dot is yellow (same as the primary bar segment). */
+function getBulletColor(category: string, isPrimary: boolean): string {
+  if (isPrimary) return '#FEF08A';
   return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
 }
 
@@ -121,7 +123,7 @@ export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesPro
         {categories.map((cat, i) => {
           const active = activeIndex === i;
           const dimmed = activeIndex !== null && !active;
-          const bulletColor = getBulletColor(cat.category);
+          const bulletColor = getBulletColor(cat.category, i === 0);
           return (
             <Pressable
               key={cat.category}
@@ -201,19 +203,19 @@ const styles = StyleSheet.create({
   catName: {
     flex: 1,
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   catPct: {
     ...fontFamily.regular,
-    fontSize: fontSize[11],
+    fontSize: fontSize[15],
     color: '#8E8E93',
     flexShrink: 0,
   },
   catAmount: {
     ...fontFamily.semibold,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
     flexShrink: 0,
     fontVariant: ['tabular-nums'],
   },

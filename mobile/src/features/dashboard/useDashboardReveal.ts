@@ -41,7 +41,6 @@ import {
   useDerivedValue,
   withSpring,
   withTiming,
-  withDelay,
   Easing,
   runOnJS,
   makeMutable,
@@ -86,14 +85,15 @@ export const revealIsOpen = makeMutable(false);
 // SubscriptionsScreen write these from their own scroll handlers so the
 // FloatingNav stays in sync regardless of which tab is visible.
 //
-// Behaviour: once scrollY exceeds COMPACT_SCROLL_THRESHOLD, wait 1 s
-// (withDelay) then animate to compact over 300 ms. Scrolling back resets
-// immediately (no delay) over 200 ms. The two shared values implement a
-// tiny state machine that prevents re-triggering the delay animation on
-// every scroll event while a transition is already queued or running.
+// Behaviour: once scrollY exceeds COMPACT_SCROLL_THRESHOLD the pill starts
+// compacting IMMEDIATELY, animated over 500 ms with a soft iOS curve.
+// Scrolling back reverses over 500 ms with a mirrored curve. The two
+// shared values implement a tiny state machine that prevents
+// re-triggering the animation on every scroll tick while one is running.
 export const navCompactProgress = makeMutable(0); // 0=expanded … 1=compact (animated)
 export const navCompactState = makeMutable(0);    // 0=expanded, 1=compacting/compact
 export const COMPACT_SCROLL_THRESHOLD = 60;       // px of scroll before trigger
+export const NAV_COMPACT_DURATION = 500;          // ms of compact/expand animation
 
 export interface DashboardReveal {
   translateY: SharedValue<number>;
@@ -160,27 +160,26 @@ export function useDashboardReveal(): DashboardReveal {
     onScroll: (event) => {
       const y = event.contentOffset.y;
       scrollY.value = y;
-      // State machine: crossing COMPACT_SCROLL_THRESHOLD triggers a
-      // 1 s delay then a 300 ms compact animation. Crossing back cancels
-      // any pending/running animation and reverses in 200 ms immediately.
-      // Assigning a new animation to a shared value always replaces (and
-      // therefore cancels) any pending one — including a withDelay that
-      // hasn't fired yet — so no explicit cancelAnimation() is needed.
+      // State machine: as soon as scrollY crosses COMPACT_SCROLL_THRESHOLD
+      // the pill starts compacting over 500 ms (no delay). Crossing back
+      // reverses over 500 ms with a mirrored curve. Assigning a new
+      // animation to a shared value replaces any in-flight one, so fast
+      // back-and-forth scrolling just seamlessly retargets.
       if (y > COMPACT_SCROLL_THRESHOLD) {
         if (navCompactState.value === 0) {
           navCompactState.value = 1;
-          navCompactProgress.value = withDelay(
-            1000,
-            withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
-          );
+          navCompactProgress.value = withTiming(1, {
+            duration: NAV_COMPACT_DURATION,
+            easing: Easing.out(Easing.cubic),
+          });
         }
       } else {
         if (navCompactState.value === 1) {
           navCompactState.value = 0;
-          navCompactProgress.value = withTiming(
-            0,
-            { duration: 200, easing: Easing.in(Easing.cubic) },
-          );
+          navCompactProgress.value = withTiming(0, {
+            duration: NAV_COMPACT_DURATION,
+            easing: Easing.in(Easing.cubic),
+          });
         }
       }
     },

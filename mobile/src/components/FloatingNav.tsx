@@ -115,7 +115,7 @@ export function FloatingNav() {
     const navW = PAD + btnW + GAP + btnW + GAP + btnW + PAD;
 
     const { width: screenW, height: screenH } = Dimensions.get('window');
-    const navBottomOffset = Math.max(insets.bottom, 8) + 4;
+    const navBottomOffset = Math.max(insets.bottom - 6, 2);
     const pillLeft = (screenW - navW) / 2;
     const plusX = pillLeft + PAD + btnW + GAP;
     const plusY = screenH - navBottomOffset - NAV_H + PAD;
@@ -198,7 +198,7 @@ export function FloatingNav() {
     <Animated.View
       style={[
         styles.wrapper,
-        { bottom: Math.max(insets.bottom, 8) + 4 },
+        { bottom: Math.max(insets.bottom - 6, 2) },
         wrapperRevealStyle,
       ]}
       pointerEvents="box-none"
