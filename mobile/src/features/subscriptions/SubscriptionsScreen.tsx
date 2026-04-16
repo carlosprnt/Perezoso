@@ -387,27 +387,7 @@ export function SubscriptionsScreen() {
   const dropdownTextColor = colors.textPrimary;
   const dropdownMutedColor = colors.textMuted;
 
-  // First-time user / "Vacío" demo preset: no subs at all → show a
-  // dedicated empty state instead of the zeroed-out header + empty list.
-  if (subscriptions.length === 0) {
-    return (
-      <View style={[styles.root, { backgroundColor: 'transparent' }]}>
-        <Animated.ScrollView
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.content,
-            {
-              paddingTop: insets.top + 12,
-              paddingBottom: insets.bottom + 140,
-            },
-          ]}
-        >
-          <SubscriptionsEmptyState />
-        </Animated.ScrollView>
-      </View>
-    );
-  }
+  const isEmpty = subscriptions.length === 0;
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
@@ -431,57 +411,61 @@ export function SubscriptionsScreen() {
               Mis suscripciones
             </Text>
 
-          {/* Two paragraphs stacked:
-             1. "Pagas X al mes." — amount + period are tap-toggleable
-                (monthly ↔ annual). A 1.5s shimmer skeleton covers both
-                the number and the "al mes"/"al año" label during the
-                transition.
-             2. "Tienes X suscripciones activas." — the word "activas"
-                (active = healthy) is highlighted in the status-green
-                color to match how status is encoded elsewhere. */}
-          <Pressable
-            onPress={handleTogglePeriod}
-            style={styles.paragraphLine}
-            accessibilityRole="button"
-            accessibilityLabel={
-              period === 'monthly'
-                ? 'Mostrar total anual'
-                : 'Mostrar total mensual'
-            }
-          >
-            <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
-              Pagas{' '}
-            </Text>
-            {periodLoading ? (
-              <Skeleton
-                style={{ width: 150, height: 22, marginVertical: 2 }}
-                borderRadius={6}
-              />
-            ) : (
-              <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
-                {amountFormatted}
-                {'\u20AC'} {periodLabel}
-              </Text>
-            )}
-            <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
-              .
-            </Text>
-          </Pressable>
+          {!isEmpty && (
+            <>
+              {/* Two paragraphs stacked:
+                 1. "Pagas X al mes." — amount + period are tap-toggleable
+                    (monthly ↔ annual). A 1.5s shimmer skeleton covers both
+                    the number and the "al mes"/"al año" label during the
+                    transition.
+                 2. "Tienes X suscripciones activas." — the word "activas"
+                    (active = healthy) is highlighted in the status-green
+                    color to match how status is encoded elsewhere. */}
+              <Pressable
+                onPress={handleTogglePeriod}
+                style={styles.paragraphLine}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  period === 'monthly'
+                    ? 'Mostrar total anual'
+                    : 'Mostrar total mensual'
+                }
+              >
+                <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+                  Pagas{' '}
+                </Text>
+                {periodLoading ? (
+                  <Skeleton
+                    style={{ width: 150, height: 22, marginVertical: 2 }}
+                    borderRadius={6}
+                  />
+                ) : (
+                  <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+                    {amountFormatted}
+                    {'\u20AC'} {periodLabel}
+                  </Text>
+                )}
+                <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
+                  .
+                </Text>
+              </Pressable>
 
-          <Text
-            style={[
-              styles.paragraph,
-              styles.paragraphSecond,
-              { color: colors.textPrimary },
-            ]}
-          >
-            Tienes {activeCount}{' '}
-            {activeCount === 1 ? 'suscripción ' : 'suscripciones '}
-            <Text style={{ color: colors.statusActive }}>
-              {activeCount === 1 ? 'activa' : 'activas'}
-            </Text>
-            .
-          </Text>
+              <Text
+                style={[
+                  styles.paragraph,
+                  styles.paragraphSecond,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                Tienes {activeCount}{' '}
+                {activeCount === 1 ? 'suscripción ' : 'suscripciones '}
+                <Text style={{ color: colors.statusActive }}>
+                  {activeCount === 1 ? 'activa' : 'activas'}
+                </Text>
+                .
+              </Text>
+            </>
+          )}
           </Animated.View>
           <ProgressiveBlurView
             scrollY={scrollY}
@@ -493,6 +477,10 @@ export function SubscriptionsScreen() {
           />
         </View>
 
+        {isEmpty && <SubscriptionsEmptyState scrollY={scrollY} />}
+
+        {!isEmpty && (
+        <>
         {/* Sort (left) + Filter (right) */}
         <View style={styles.controlsRow}>
           {/* Sort trigger — tap to reveal a custom dropdown anchored
@@ -566,6 +554,8 @@ export function SubscriptionsScreen() {
             </View>
           )}
         </View>
+        </>
+        )}
       </Animated.ScrollView>
 
       {/* Custom dropdown (sort or filter) — same component for both,

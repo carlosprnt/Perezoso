@@ -30,7 +30,12 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  cancelAnimation,
   interpolate,
+  Easing,
   Extrapolation,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -42,6 +47,7 @@ import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
 import { useAddSubscriptionStore } from '../features/add-subscription/useAddSubscriptionStore';
+import { useSubscriptionsStore } from '../stores/subscriptionsStore';
 import {
   revealProgress,
   navCompactProgress,
@@ -104,6 +110,30 @@ export function FloatingNav() {
   const isSubscriptions = pathname.includes('/subscriptions');
   const activeIndex = isSubscriptions ? 1 : 0;
 
+  // When the user has 0 subscriptions, the `+` button pulses in a soft
+  // grow/shrink loop to draw attention — the empty states above it
+  // push the user toward this button as the primary action.
+  const isEmpty = useSubscriptionsStore((s) => s.subscriptions.length === 0);
+  const pulseScale = useSharedValue(1);
+  useEffect(() => {
+    if (isEmpty) {
+      pulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.08, { duration: 800, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1.0,  { duration: 800, easing: Easing.inOut(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+    } else {
+      cancelAnimation(pulseScale);
+      pulseScale.value = withTiming(1.0, { duration: 200 });
+    }
+    return () => {
+      cancelAnimation(pulseScale);
+    };
+  }, [isEmpty, pulseScale]);
+
   // Compute the `+` button's window rect from layout constants + current
   // compact state. Read navCompactProgress.value synchronously on JS
   // thread so the morph-from-rect origin matches the visual button size.
@@ -165,6 +195,12 @@ export function FloatingNav() {
   // Each button's width follows btnW.
   const navButtonStyle = useAnimatedStyle(() => ({
     width: btnW.value,
+  }));
+
+  // Plus button combines width morph + idle pulse (only when isEmpty).
+  const plusButtonStyle = useAnimatedStyle(() => ({
+    width: btnW.value,
+    transform: [{ scale: pulseScale.value }],
   }));
 
   // Indicator slides between left/right; width and anchor positions
@@ -258,7 +294,7 @@ export function FloatingNav() {
 
           {/* Plus */}
           <AnimatedPressable
-            style={[styles.plusButton, { backgroundColor: plusBg }, navButtonStyle]}
+            style={[styles.plusButton, { backgroundColor: plusBg }, plusButtonStyle]}
             onPress={openAddSubscription}
             accessibilityLabel="Crear nueva suscripción"
           >
