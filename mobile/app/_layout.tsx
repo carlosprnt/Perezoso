@@ -16,6 +16,7 @@ import {
 import { CreateSubscriptionSheet } from '../src/features/add-subscription/CreateSubscriptionSheet';
 import { Toast } from '../src/components/Toast';
 import { SubscriptionCreatedCelebration } from '../src/features/add-subscription/SubscriptionCreatedCelebration';
+import { SubscriptionDetailSheet } from '../src/features/subscription-detail/SubscriptionDetailSheet';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -54,6 +55,7 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <Slot />
         <CreateSubscriptionSheet />
+        <SubscriptionDetailSheet />
         <Toast />
         <SubscriptionCreatedCelebration />
       </SafeAreaProvider>

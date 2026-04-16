@@ -25,6 +25,11 @@ export interface Subscription {
   // Computed
   monthly_equivalent_cost: number;
   my_monthly_cost: number;
+  // Optional reminder metadata (populated on load / after edit)
+  reminderEnabled?: boolean;
+  reminderDays?: '1 día antes' | '3 días antes' | '7 días antes';
+  // Optional notes
+  notes?: string;
 }
 
 export type SortMode =

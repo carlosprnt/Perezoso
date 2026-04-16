@@ -16,6 +16,8 @@ import { radius } from '../../design/radius';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import type { TopSubscription } from './types';
+import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
+import { MOCK_SUBSCRIPTIONS } from '../subscriptions/mockData';
 
 interface TopExpensiveProps {
   subscriptions: TopSubscription[];
@@ -30,6 +32,7 @@ function formatCost(amount: number, currency: string): string {
 
 export function TopExpensive({ subscriptions }: TopExpensiveProps) {
   const { colors } = useTheme();
+  const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
 
   if (subscriptions.length === 0) return null;
 
@@ -42,7 +45,14 @@ export function TopExpensive({ subscriptions }: TopExpensiveProps) {
       decelerationRate="fast"
     >
       {subscriptions.map((sub, i) => (
-        <Pressable key={sub.id} accessibilityLabel={sub.name}>
+        <Pressable
+          key={sub.id}
+          accessibilityLabel={sub.name}
+          onPress={() => {
+            const full = MOCK_SUBSCRIPTIONS.find((s) => s.id === sub.id);
+            if (full) openDetail(full);
+          }}
+        >
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             {/* Rank */}
             <Text style={styles.rank}>#{i + 1}</Text>

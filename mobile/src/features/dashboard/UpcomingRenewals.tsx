@@ -12,6 +12,8 @@ import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import type { UpcomingRenewal } from './types';
+import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
+import { MOCK_SUBSCRIPTIONS } from '../subscriptions/mockData';
 
 interface UpcomingRenewalsProps {
   renewals: UpcomingRenewal[];
@@ -36,6 +38,7 @@ function formatCost(amount: number, currency: string): string {
 
 export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
   const { colors } = useTheme();
+  const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
 
   if (renewals.length === 0) {
     return (
@@ -48,7 +51,14 @@ export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
   return (
     <View style={styles.list}>
       {renewals.map((renewal, index) => (
-        <Pressable key={renewal.id} accessibilityLabel={renewal.name}>
+        <Pressable
+          key={renewal.id}
+          accessibilityLabel={renewal.name}
+          onPress={() => {
+            const full = MOCK_SUBSCRIPTIONS.find((s) => s.id === renewal.id);
+            if (full) openDetail(full);
+          }}
+        >
           <View style={styles.row}>
             {/* Avatar — 44x44 rounded-2xl (16px), matches InsightCards icon */}
             <SubscriptionAvatar

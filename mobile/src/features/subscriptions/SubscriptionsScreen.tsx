@@ -54,6 +54,7 @@ import {
 } from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { STATUS_LABELS } from './types';
+import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Slightly looser than web (-76) so the
@@ -254,6 +255,7 @@ function ScrollCard({
 export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const scrollY = useSharedValue(0);
   // listY is the Y offset of the list container within the scroll
   // content. Filled in by the list's own onLayout. Animations stay at
@@ -517,7 +519,7 @@ export function SubscriptionsScreen() {
               triggerY={triggerY}
               stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
             >
-              <WalletCard subscription={sub} />
+              <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
             </ScrollCard>
           ))}
 
