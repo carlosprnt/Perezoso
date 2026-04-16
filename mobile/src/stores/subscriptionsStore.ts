@@ -28,6 +28,10 @@ interface SubscriptionsStore {
   subscriptions: Subscription[];
   isPlusActive: boolean;
   setPreset: (preset: AppPreset) => void;
+  /** Prepend a newly created subscription to the list. The preset tag
+   *  is left untouched — a future preset change still overwrites the
+   *  list wholesale, which matches the Demo flow. */
+  addSubscription: (sub: Subscription) => void;
 }
 
 // Default to "basic" — the 10-item dataset the app shipped with. Keeps
@@ -45,4 +49,9 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set) => ({
       subscriptions: PRESET_CONFIG[preset].subscriptions,
       isPlusActive: PRESET_CONFIG[preset].isPlusActive,
     }),
+
+  addSubscription: (sub) =>
+    set((state) => ({
+      subscriptions: [sub, ...state.subscriptions],
+    })),
 }));

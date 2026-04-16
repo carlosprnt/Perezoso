@@ -38,6 +38,57 @@ import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import type {
+  BillingPeriod as SubBillingPeriod,
+  Category as SubCategory,
+  Subscription,
+  SubscriptionStatus,
+} from '../subscriptions/types';
+
+// ─── Label → store-key mappings ──────────────────────────────────────
+// The form exposes localized / title-case labels for UX; the store
+// keeps normalized lowercase keys (matches what presets + web use).
+const CURRENCY_CODE: Record<string, string> = {
+  '€': 'EUR',
+  '$': 'USD',
+  'US$': 'USD',
+  '£': 'GBP',
+};
+const BILLING_KEY: Record<string, SubBillingPeriod> = {
+  Monthly: 'monthly',
+  Yearly: 'yearly',
+  Quarterly: 'quarterly',
+  Weekly: 'weekly',
+  Custom: 'monthly',
+};
+const CATEGORY_KEY: Record<string, SubCategory> = {
+  Streaming: 'streaming',
+  'Música': 'music',
+  Productividad: 'productivity',
+  Cloud: 'cloud',
+  IA: 'ai',
+  Gaming: 'gaming',
+  Otros: 'other',
+};
+const STATUS_KEY: Record<string, SubscriptionStatus> = {
+  Activa: 'active',
+  Pausada: 'paused',
+  Cancelada: 'cancelled',
+};
+
+// Convert the form price + billing period into a normalized monthly
+// equivalent (EUR/etc per month). Matches how preset-seeded subs are
+// computed — downstream dashboard math assumes this field is correct.
+function monthlyEquivalent(priceAmount: number, billingKey: SubBillingPeriod): number {
+  switch (billingKey) {
+    case 'yearly':    return priceAmount / 12;
+    case 'quarterly': return priceAmount / 3;
+    case 'weekly':    return (priceAmount * 52) / 12;
+    case 'monthly':
+    default:          return priceAmount;
+  }
+}
 
 // ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
@@ -258,6 +309,45 @@ export function CreateSubscriptionSheet() {
     try {
       // TODO: replace with real API call
       await new Promise<void>((r) => setTimeout(r, 900));
+
+      // Persist the new subscription in the global store so both the
+      // dashboard and subscriptions screens leave their empty states
+      // and render the populated layouts from the next render.
+      const billingKey = BILLING_KEY[form.billingPeriod] ?? 'monthly';
+      const monthly = monthlyEquivalent(priceNum, billingKey);
+      const myMonthly = form.shared && form.sharedCount > 1
+        ? monthly / form.sharedCount
+        : monthly;
+      const nowISO = new Date().toISOString();
+      const newSub: Subscription = {
+        id: `local-${Date.now()}`,
+        name: form.name.trim(),
+        logo_url: form.logoUrl || null,
+        category: CATEGORY_KEY[form.category] ?? 'other',
+        price_amount: priceNum,
+        currency: CURRENCY_CODE[form.currency] ?? form.currency,
+        billing_period: billingKey,
+        billing_interval_count: 1,
+        next_billing_date: form.nextPaymentDate.toISOString().split('T')[0],
+        status: STATUS_KEY[form.status] ?? 'active',
+        is_shared: form.shared,
+        shared_with_count: form.shared ? form.sharedCount : 0,
+        card_color: null,
+        created_at: nowISO,
+        updated_at: nowISO,
+        monthly_equivalent_cost: Number(monthly.toFixed(2)),
+        my_monthly_cost: Number(myMonthly.toFixed(2)),
+        reminderEnabled: form.reminderEnabled,
+        reminderDays: form.reminderDays,
+        notes: form.notes || undefined,
+        start_date: form.startDate.toISOString().split('T')[0],
+        end_date: form.endEnabled
+          ? form.endDate.toISOString().split('T')[0]
+          : undefined,
+        payment_method: form.paymentMethod || undefined,
+      };
+      useSubscriptionsStore.getState().addSubscription(newSub);
+
       setIsSubmitting(false);
       closeStore();
       // Wait for Modal slide-out (~380ms) before showing celebration
