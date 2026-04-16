@@ -22,6 +22,7 @@ import {
   PRESET_CONFIG,
   type AppPreset,
 } from '../features/subscriptions/presets';
+import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
 
 interface SubscriptionsStore {
   preset: AppPreset;
@@ -56,10 +57,18 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set) => ({
       isPlusActive: PRESET_CONFIG[preset].isPlusActive,
     }),
 
-  addSubscription: (sub) =>
+  addSubscription: (sub) => {
     set((state) => ({
       subscriptions: [sub, ...state.subscriptions],
-    })),
+    }));
+    // Bringing a new annual renewal into the list re-surfaces the
+    // "Av\u00EDsame" heads-up reminder, even if the user dismissed it
+    // earlier. Dismissals for other cards (e.g. the savings tip) are
+    // left alone on purpose.
+    if (sub.billing_period === 'yearly') {
+      useReminderDismissalsStore.getState().clear('reminder');
+    }
+  },
 
   enableRemindersOnAnnuals: () => {
     let count = 0;

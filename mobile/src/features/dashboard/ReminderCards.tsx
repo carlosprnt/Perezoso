@@ -321,6 +321,14 @@ export function ReminderCards({
   const allItems: ReminderItem[] = [];
 
   if (annualCount > 0) {
+    // Tapping "Av\u00EDsame" both wires the reminders AND dismisses the
+    // card — the same dismissal path as "No me interesa", so the card
+    // stays hidden until a new annual sub is added (see
+    // subscriptionsStore.addSubscription clearing this id).
+    const handleReminderCta = () => {
+      onActivateReminder?.();
+      dismiss('reminder');
+    };
     allItems.push({
       id: 'reminder',
       icon: 'bell',
@@ -334,7 +342,7 @@ export function ReminderCards({
         </Text>
       ),
       ctaLabel: 'Av\u00EDsame',
-      onCta: onActivateReminder,
+      onCta: handleReminderCta,
     });
   }
 
