@@ -3,7 +3,7 @@
 // Keeps date math, money formatting and gradient tint logic in one
 // place so the view + edit components stay visual.
 
-import { categoryColors } from '../../design/colors';
+import { findPlatform } from '../../lib/constants/platforms';
 import type { BillingPeriod, Category, Subscription } from '../subscriptions/types';
 export { CATEGORY_LABELS } from '../subscriptions/types';
 
@@ -115,15 +115,39 @@ export const BILLING_SUFFIX: Record<BillingPeriod, string> = {
 // ─── Tint / gradient ─────────────────────────────────────────────────
 
 /**
- * Pick the hero-zone tint for a subscription. We can't sample the
- * remote favicon's dominant color from JS in Expo Go without a native
- * module, so we lean on the category palette for a soft, consistent
- * backdrop. Combined with the logo in the foreground the effect reads
- * as "this sub's color" without any heavy extraction.
+ * Soft blue-gray fallback for subs that have no logo or no known
+ * predominant brand color. Matches the calm "system card" backdrop
+ * Apple uses for Wallet items without their own accent.
+ */
+export const FALLBACK_TINT_BLUE_GRAY = '#DCE4ED';
+
+/**
+ * Try to determine the predominant color of a subscription's logo.
+ *
+ * We can't sample pixels from a remote image in Expo Go without a
+ * native module, so instead we look the service up in the platform
+ * catalog (`mobile/src/lib/constants/platforms.ts`) which already
+ * ships hand-picked `brandColor` values for well-known services.
+ *
+ * Returns `null` when either:
+ *   · the sub has no logo at all, or
+ *   · the logo exists but we don't know a brand color for it.
+ *
+ * Callers should fall back to `FALLBACK_TINT_BLUE_GRAY` in that case.
+ */
+export function dominantLogoColor(sub: Subscription): string | null {
+  // No logo at all ⇒ no brand color to show
+  if (!sub.logo_url) return null;
+  const platform = findPlatform(sub.name);
+  return platform?.brandColor ?? null;
+}
+
+/**
+ * Pick the hero-zone tint for a subscription. Falls back to a soft
+ * blue-gray when we can't determine the logo's predominant color.
  */
 export function subscriptionTint(sub: Subscription): string {
-  const fromCategory = (categoryColors as Record<string, string>)[sub.category];
-  return fromCategory ?? categoryColors.other;
+  return dominantLogoColor(sub) ?? FALLBACK_TINT_BLUE_GRAY;
 }
 
 /**

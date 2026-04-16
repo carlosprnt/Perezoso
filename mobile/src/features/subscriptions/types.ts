@@ -30,6 +30,11 @@ export interface Subscription {
   reminderDays?: '1 día antes' | '3 días antes' | '7 días antes';
   // Optional notes
   notes?: string;
+  // Optional edit-form metadata — not yet persisted server-side but
+  // surfaced in Create / Edit sheets so the user input round-trips.
+  start_date?: string;      // YYYY-MM-DD
+  end_date?: string;        // YYYY-MM-DD (absence ⇒ "no end")
+  payment_method?: string;  // Free-text: "Visa ••9921", "PayPal"…
 }
 
 export type SortMode =

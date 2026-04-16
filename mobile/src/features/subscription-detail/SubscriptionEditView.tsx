@@ -1,12 +1,8 @@
-// SubscriptionEditView — edit mode rendered inside the native iOS
-// pageSheet. Shares the same Modal as the detail view; mode flip is
-// controlled by useSubscriptionDetailStore.
-//
-// Behaviour:
-//  · Pre-fills all fields from the current subscription.
-//  · "Guardar" commits changes to the store (view mode shows updated data).
-//  · "Cancelar" or the X button show a dirty-check Alert before dismissing.
-//  · "Eliminar suscripción" at the bottom shows a destructive Alert.
+// SubscriptionEditView — edit mode inside the native iOS pageSheet.
+// Visual design mirrors CreateSubscriptionSheet exactly:
+//   · Header: title left + X close right
+//   · Same form cards and field order as CreateSubscriptionSheet
+//   · Footer: "Eliminar" (outlined red) + "Guardar cambios" (black)
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -22,52 +18,116 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronDown, X } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
-import { useTheme } from '../../design/useTheme';
-import { fontFamily, fontSize, lineHeight } from '../../design/typography';
-import { radius } from '../../design/radius';
-import type { Subscription, BillingPeriod, Category } from '../subscriptions/types';
-import {
-  BILLING_PERIOD_PICKER,
-  CATEGORY_PICKER,
-  formatDateShort,
-  BILLING_PERIOD_LABELS,
-  CATEGORY_LABELS,
-} from './helpers';
+import { fontFamily, fontSize } from '../../design/typography';
+import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
+import { CATEGORY_PICKER } from './helpers';
 import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePickerSheet';
 
-// ─── Draft type — mirrors Subscription fields the user can edit ───────
+// ─── Types ───────────────────────────────────────────────────────────
+
+type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
+type DateKey = 'start' | 'next' | 'end' | null;
+type PickerKey = 'currency' | 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface EditDraft {
   name: string;
-  price: string;
   currency: string;
+  price: string;
+  startDate: Date;
+  nextPaymentDate: Date;
   billingPeriod: BillingPeriod;
-  nextBillingDate: Date;
+  endEnabled: boolean;
+  endDate: Date;
   category: Category;
+  status: SubscriptionStatus;
   reminderEnabled: boolean;
-  reminderDays: '1 día antes' | '3 días antes' | '7 días antes';
+  reminderDays: ReminderDays;
+  shared: boolean;
+  sharedCount: number;
+  paymentMethod: string;
+  logoUrl: string;
   notes: string;
 }
 
-const CURRENCIES = ['€', '$', 'US$', '£'] as const;
-const REMINDER_OPTIONS = ['1 día antes', '3 días antes', '7 días antes'] as const;
+// ─── Constants ───────────────────────────────────────────────────────
 
-type PickerKey = 'currency' | 'billing' | 'category' | 'reminder' | null;
-type DateKey = 'nextBilling' | null;
+const CURRENCIES = ['€', '$', '£', 'US$'] as const;
+
+const BILLING_OPTIONS = ['Monthly', 'Yearly', 'Quarterly', 'Weekly'] as const;
+type BillingLabel = typeof BILLING_OPTIONS[number];
+const BILLING_LABEL_TO_KEY: Record<BillingLabel, BillingPeriod> = {
+  Monthly: 'monthly',
+  Yearly: 'yearly',
+  Quarterly: 'quarterly',
+  Weekly: 'weekly',
+};
+const BILLING_KEY_TO_LABEL: Record<BillingPeriod, BillingLabel> = {
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+  quarterly: 'Quarterly',
+  weekly: 'Weekly',
+};
+
+const STATUS_OPTIONS = ['Activa', 'Pausada', 'Cancelada', 'Prueba'] as const;
+type StatusLabel = typeof STATUS_OPTIONS[number];
+const STATUS_LABEL_TO_KEY: Record<StatusLabel, SubscriptionStatus> = {
+  Activa: 'active',
+  Pausada: 'paused',
+  Cancelada: 'cancelled',
+  Prueba: 'trial',
+};
+const STATUS_KEY_TO_LABEL: Record<SubscriptionStatus, StatusLabel> = {
+  active: 'Activa',
+  paused: 'Pausada',
+  cancelled: 'Cancelada',
+  trial: 'Prueba',
+};
+
+const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
+
+const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function formatDate(d: Date): string {
+  return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+}
+function nextYear(d: Date): Date {
+  return new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
+}
+
+function currencyToSymbol(c: string): string {
+  if (c === 'EUR') return '€';
+  if (c === 'USD') return '$';
+  return c;
+}
+function symbolToCurrency(s: string): string {
+  if (s === '€') return 'EUR';
+  if (s === '$') return 'USD';
+  return s;
+}
+
+// ─── Draft helpers ────────────────────────────────────────────────────
 
 function makeDraft(sub: Subscription): EditDraft {
+  const today = new Date();
   return {
     name: sub.name,
+    currency: currencyToSymbol(sub.currency),
     price: sub.price_amount.toFixed(2).replace('.', ','),
-    currency: sub.currency === 'EUR' ? '€' : sub.currency,
+    startDate: sub.start_date ? new Date(sub.start_date) : new Date(sub.created_at),
+    nextPaymentDate: new Date(sub.next_billing_date),
     billingPeriod: sub.billing_period,
-    nextBillingDate: new Date(sub.next_billing_date),
+    endEnabled: !!sub.end_date,
+    endDate: sub.end_date ? new Date(sub.end_date) : nextYear(today),
     category: sub.category,
+    status: sub.status,
     reminderEnabled: sub.reminderEnabled ?? false,
     reminderDays: sub.reminderDays ?? '1 día antes',
+    shared: sub.is_shared,
+    sharedCount: Math.max(2, sub.shared_with_count),
+    paymentMethod: sub.payment_method ?? '',
+    logoUrl: sub.logo_url ?? '',
     notes: sub.notes ?? '',
   };
 }
@@ -75,27 +135,33 @@ function makeDraft(sub: Subscription): EditDraft {
 function draftEqual(a: EditDraft, b: EditDraft): boolean {
   return (
     a.name === b.name &&
-    a.price === b.price &&
     a.currency === b.currency &&
+    a.price === b.price &&
+    a.startDate.getTime() === b.startDate.getTime() &&
+    a.nextPaymentDate.getTime() === b.nextPaymentDate.getTime() &&
     a.billingPeriod === b.billingPeriod &&
-    a.nextBillingDate.getTime() === b.nextBillingDate.getTime() &&
+    a.endEnabled === b.endEnabled &&
+    a.endDate.getTime() === b.endDate.getTime() &&
     a.category === b.category &&
+    a.status === b.status &&
     a.reminderEnabled === b.reminderEnabled &&
     a.reminderDays === b.reminderDays &&
+    a.shared === b.shared &&
+    a.sharedCount === b.sharedCount &&
+    a.paymentMethod === b.paymentMethod &&
+    a.logoUrl === b.logoUrl &&
     a.notes === b.notes
   );
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────
 
-function FormDivider() {
-  return <View style={styles.divider} />;
-}
+function FormDivider() { return <View style={styles.divider} />; }
 
-function DatePill({ date, onPress }: { date: Date; onPress: () => void }) {
+function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
   return (
     <Pressable style={styles.datePill} onPress={onPress} hitSlop={8}>
-      <Text style={styles.datePillText}>{formatDateShort(date)}</Text>
+      <Text style={styles.datePillText}>{formatDate(date)}</Text>
     </Pressable>
   );
 }
@@ -109,7 +175,7 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
   );
 }
 
-// ─── Main component ──────────────────────────────────────────────────
+// ─── Props ───────────────────────────────────────────────────────────
 
 interface Props {
   sub: Subscription;
@@ -118,39 +184,43 @@ interface Props {
   onDelete: () => void;
 }
 
+// ─── Main component ──────────────────────────────────────────────────
+
 export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props) {
-  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const initialDraft = useRef<EditDraft>(makeDraft(sub));
   const [draft, setDraft] = useState<EditDraft>(() => makeDraft(sub));
   const [error, setError] = useState<string | null>(null);
-  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
   const [openDate, setOpenDate] = useState<DateKey>(null);
-  const [anchor, setAnchor] = useState<MenuAnchor | null>(null);
+  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
+  const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
 
-  const isDirty = useCallback(
-    () => !draftEqual(draft, initialDraft.current),
-    [draft],
-  );
+  const isDirty = useCallback(() => !draftEqual(draft, initialDraft.current), [draft]);
 
-  // ── Picker anchor measurement ──────────────────────────────────────
   const currencyRef = useRef<View>(null);
   const billingRef = useRef<View>(null);
   const categoryRef = useRef<View>(null);
+  const statusRef = useRef<View>(null);
   const reminderRef = useRef<View>(null);
 
   const openPickerAt = useCallback(
     (ref: React.RefObject<View | null>, key: Exclude<PickerKey, null>) => {
       ref.current?.measureInWindow((x, y, width, height) => {
-        setAnchor({ x, y, width, height });
+        setPickerAnchor({ x, y, width, height });
         setOpenPicker(key);
       });
     },
     [],
   );
 
-  // ── Dirty check on cancel ─────────────────────────────────────────
+  const decShared = useCallback(
+    () => setDraft((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), [],
+  );
+  const incShared = useCallback(
+    () => setDraft((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) })), [],
+  );
+
   const handleCancel = useCallback(() => {
     if (isDirty()) {
       Alert.alert(
@@ -166,7 +236,6 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
     }
   }, [isDirty, onCancel]);
 
-  // ── Delete confirmation ───────────────────────────────────────────
   const handleDelete = useCallback(() => {
     Alert.alert(
       'Eliminar suscripción',
@@ -178,7 +247,6 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
     );
   }, [onDelete]);
 
-  // ── Save ─────────────────────────────────────────────────────────
   const handleSave = useCallback(() => {
     if (!draft.name.trim()) {
       setError('El nombre de la suscripción es obligatorio.');
@@ -191,50 +259,45 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
     }
     setError(null);
 
-    const currencyValue = draft.currency === '€' ? 'EUR'
-      : draft.currency === '$' ? 'USD'
-      : draft.currency;
-
-    const monthly = priceNum;
-
     const updated: Subscription = {
       ...sub,
       name: draft.name.trim(),
       price_amount: priceNum,
-      currency: currencyValue,
+      currency: symbolToCurrency(draft.currency),
       billing_period: draft.billingPeriod,
-      next_billing_date: draft.nextBillingDate.toISOString().split('T')[0],
+      next_billing_date: draft.nextPaymentDate.toISOString().split('T')[0],
+      start_date: draft.startDate.toISOString().split('T')[0],
+      end_date: draft.endEnabled ? draft.endDate.toISOString().split('T')[0] : undefined,
       category: draft.category,
+      status: draft.status,
       reminderEnabled: draft.reminderEnabled,
       reminderDays: draft.reminderDays,
+      is_shared: draft.shared,
+      shared_with_count: draft.shared ? draft.sharedCount : sub.shared_with_count,
+      payment_method: draft.paymentMethod || undefined,
+      logo_url: draft.logoUrl || sub.logo_url,
       notes: draft.notes,
-      monthly_equivalent_cost: monthly,
-      my_monthly_cost: sub.is_shared ? monthly / sub.shared_with_count : monthly,
+      monthly_equivalent_cost: priceNum,
+      my_monthly_cost: draft.shared ? priceNum / draft.sharedCount : priceNum,
       updated_at: new Date().toISOString(),
     };
 
     onSave(updated);
   }, [draft, sub, onSave]);
 
-  const cardBg = colors.surface;
-  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+  // ─────────────────────────────────────────────────────────────────
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.surface }]}>
+    <View style={styles.sheet}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* ── Header ── */}
+        {/* ── Header — mirrors CreateSubscriptionSheet ── */}
         <View style={styles.header}>
-          <Pressable onPress={handleCancel} hitSlop={10} style={styles.cancelTextBtn}>
-            <Text style={[styles.cancelText, { color: colors.textPrimary }]}>Cancelar</Text>
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Editar suscripción
-          </Text>
-          <Pressable onPress={handleSave} hitSlop={10} style={styles.saveTextBtn}>
-            <Text style={styles.saveText}>Guardar</Text>
+          <Text style={styles.title}>Editar suscripción</Text>
+          <Pressable style={styles.closeBtn} onPress={handleCancel} hitSlop={10}>
+            <X size={15} color="#3C3C43" strokeWidth={2.5} />
           </Pressable>
         </View>
 
@@ -246,23 +309,21 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
         )}
 
+        {/* ── Form ── */}
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: Math.max(insets.bottom, 16) + 24 },
-          ]}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          {/* ── Platform + price card ── */}
-          <View style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7', borderColor: 'transparent' }]}>
+          {/* Platform card */}
+          <View style={styles.platformCard}>
             <TextInput
-              style={[styles.platformName, { color: colors.textPrimary }]}
+              style={styles.platformName}
               value={draft.name}
-              onChangeText={(t) => setDraft((d) => ({ ...d, name: t }))}
-              placeholder="Nombre"
+              onChangeText={(t) => setDraft((f) => ({ ...f, name: t }))}
+              placeholder="Nombre de la suscripción"
               placeholderTextColor="#C7C7CC"
               returnKeyType="done"
               autoCorrect={false}
@@ -274,16 +335,14 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                   onPress={() => openPickerAt(currencyRef, 'currency')}
                   hitSlop={8}
                 >
-                  <Text style={[styles.currencyText, { color: colors.textPrimary }]}>
-                    {draft.currency}
-                  </Text>
+                  <Text style={styles.currencyText}>{draft.currency}</Text>
                   <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
                 </Pressable>
               </View>
               <TextInput
-                style={[styles.priceInput, { color: colors.textPrimary }]}
+                style={styles.priceInput}
                 value={draft.price}
-                onChangeText={(t) => setDraft((d) => ({ ...d, price: t }))}
+                onChangeText={(t) => setDraft((f) => ({ ...f, price: t }))}
                 placeholder="0,00"
                 placeholderTextColor="#C7C7CC"
                 keyboardType="decimal-pad"
@@ -292,55 +351,68 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             </View>
           </View>
 
-          {/* ── Dates + billing ── */}
-          <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          {/* Dates + billing */}
+          <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                Próximo cobro
-              </Text>
-              <DatePill
-                date={draft.nextBillingDate}
-                onPress={() => setOpenDate('nextBilling')}
-              />
+              <Text style={styles.rowLabel}>Inicio de suscripción</Text>
+              <DatePillBtn date={draft.startDate} onPress={() => setOpenDate('start')} />
             </View>
             <FormDivider />
             <View style={styles.row}>
-              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                Periodo de cobro
-              </Text>
+              <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
+              <DatePillBtn date={draft.nextPaymentDate} onPress={() => setOpenDate('next')} />
+            </View>
+            <FormDivider />
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Periodo de cobro</Text>
               <View ref={billingRef} collapsable={false}>
                 <DropdownBtn
-                  value={BILLING_PERIOD_LABELS[draft.billingPeriod]}
+                  value={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
                   onPress={() => openPickerAt(billingRef, 'billing')}
                 />
               </View>
             </View>
+            <FormDivider />
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Fin de la suscripción</Text>
+              <Switch
+                value={draft.endEnabled}
+                onValueChange={(v) => setDraft((f) => ({ ...f, endEnabled: v }))}
+                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+            {draft.endEnabled && (
+              <>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Fecha de fin</Text>
+                  <DatePillBtn date={draft.endDate} onPress={() => setOpenDate('end')} />
+                </View>
+              </>
+            )}
           </View>
 
-          {/* ── Category ── */}
-          <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          {/* Category */}
+          <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                Categoría
-              </Text>
+              <Text style={styles.rowLabel}>Categoría</Text>
               <View ref={categoryRef} collapsable={false}>
                 <DropdownBtn
-                  value={CATEGORY_LABELS[draft.category]}
+                  value={CATEGORY_PICKER.find((o) => o.value === draft.category)?.label ?? draft.category}
                   onPress={() => openPickerAt(categoryRef, 'category')}
                 />
               </View>
             </View>
           </View>
 
-          {/* ── Reminder ── */}
-          <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          {/* Reminder */}
+          <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                Aviso de renovación
-              </Text>
+              <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
               <Switch
                 value={draft.reminderEnabled}
-                onValueChange={(v) => setDraft((d) => ({ ...d, reminderEnabled: v }))}
+                onValueChange={(v) => setDraft((f) => ({ ...f, reminderEnabled: v }))}
                 trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                 thumbColor="#FFFFFF"
               />
@@ -349,9 +421,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, { color: colors.textMuted }]}>
-                    Avisarme
-                  </Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
                   <View ref={reminderRef} collapsable={false}>
                     <DropdownBtn
                       value={draft.reminderDays}
@@ -363,76 +433,217 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             )}
           </View>
 
-          {/* ── Notes ── */}
-          <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-            <View style={styles.notesRow}>
-              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>Notas</Text>
+          {/* Shared */}
+          <View style={styles.group}>
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Suscripción compartida</Text>
+              <Switch
+                value={draft.shared}
+                onValueChange={(v) => setDraft((f) => ({ ...f, shared: v }))}
+                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+            {draft.shared && (
+              <>
+                <FormDivider />
+                <View style={styles.row}>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Total personas</Text>
+                  <View style={styles.stepper}>
+                    <Pressable
+                      onPress={decShared}
+                      hitSlop={6}
+                      disabled={draft.sharedCount <= 2}
+                      style={({ pressed }) => [
+                        styles.stepperBtn,
+                        draft.sharedCount <= 2 && styles.stepperBtnDisabled,
+                        pressed && { opacity: 0.6 },
+                      ]}
+                    >
+                      <Minus size={14} color="#000000" strokeWidth={2.5} />
+                    </Pressable>
+                    <Text style={styles.stepperValue}>{draft.sharedCount}</Text>
+                    <Pressable
+                      onPress={incShared}
+                      hitSlop={6}
+                      disabled={draft.sharedCount >= 10}
+                      style={({ pressed }) => [
+                        styles.stepperBtn,
+                        draft.sharedCount >= 10 && styles.stepperBtnDisabled,
+                        pressed && { opacity: 0.6 },
+                      ]}
+                    >
+                      <Plus size={14} color="#000000" strokeWidth={2.5} />
+                    </Pressable>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Payment method */}
+          <View style={styles.group}>
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Método de pago</Text>
               <TextInput
-                style={[styles.notesInput, { color: colors.textPrimary }]}
+                style={styles.inlineInput}
+                value={draft.paymentMethod}
+                onChangeText={(t) => setDraft((f) => ({ ...f, paymentMethod: t }))}
+                placeholder="Visa, PayPal..."
+                placeholderTextColor="#C7C7CC"
+                returnKeyType="done"
+                autoCorrect={false}
+                textAlign="right"
+              />
+            </View>
+          </View>
+
+          {/* Logo URL */}
+          <View style={styles.group}>
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>URL del logo</Text>
+              <View style={styles.urlRow}>
+                <TextInput
+                  style={styles.urlInput}
+                  value={draft.logoUrl}
+                  onChangeText={(t) => setDraft((f) => ({ ...f, logoUrl: t }))}
+                  placeholder="https://..."
+                  placeholderTextColor="#C7C7CC"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                />
+                {draft.logoUrl.length > 0 && (
+                  <Pressable
+                    onPress={() => setDraft((f) => ({ ...f, logoUrl: '' }))}
+                    hitSlop={8}
+                    style={styles.urlClear}
+                  >
+                    <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Status + Notes */}
+          <View style={styles.group}>
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Estado</Text>
+              <View ref={statusRef} collapsable={false}>
+                <DropdownBtn
+                  value={STATUS_KEY_TO_LABEL[draft.status]}
+                  onPress={() => openPickerAt(statusRef, 'status')}
+                />
+              </View>
+            </View>
+            <FormDivider />
+            <View style={styles.notesRow}>
+              <Text style={styles.rowLabel}>Notas</Text>
+              <TextInput
+                style={styles.notesInput}
                 value={draft.notes}
-                onChangeText={(t) => setDraft((d) => ({ ...d, notes: t }))}
-                placeholder="Añadir notas opcionales…"
+                onChangeText={(t) => setDraft((f) => ({ ...f, notes: t }))}
+                placeholder="Añadir opcional"
                 placeholderTextColor="#C7C7CC"
                 multiline
                 textAlignVertical="top"
               />
             </View>
           </View>
+        </ScrollView>
 
-          {/* ── Destructive zone ── */}
+        {/* ── Footer ── */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
           <Pressable
             style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.7 }]}
             onPress={handleDelete}
           >
-            <Text style={styles.deleteBtnText}>Eliminar suscripción</Text>
+            <Text style={styles.deleteBtnText}>Eliminar</Text>
           </Pressable>
-        </ScrollView>
+          <Pressable
+            style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.85 }]}
+            onPress={handleSave}
+          >
+            <Text style={styles.saveBtnText}>Guardar cambios</Text>
+          </Pressable>
+        </View>
       </KeyboardAvoidingView>
 
-      {/* ── Pickers ── */}
+      {/* ── Date pickers ── */}
       <NativeDatePickerSheet
-        visible={openDate === 'nextBilling'}
-        value={draft.nextBillingDate}
-        title="Próximo cobro"
-        onChange={(d) => setDraft((f) => ({ ...f, nextBillingDate: d }))}
+        visible={openDate === 'start'}
+        value={draft.startDate}
+        title="Inicio de suscripción"
+        onChange={(d) => setDraft((f) => ({ ...f, startDate: d }))}
         onClose={() => setOpenDate(null)}
       />
+      <NativeDatePickerSheet
+        visible={openDate === 'next'}
+        value={draft.nextPaymentDate}
+        title="Próxima fecha de pago"
+        minimumDate={draft.startDate}
+        onChange={(d) => setDraft((f) => ({ ...f, nextPaymentDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+      <NativeDatePickerSheet
+        visible={openDate === 'end'}
+        value={draft.endDate}
+        title="Fecha de fin"
+        minimumDate={draft.startDate}
+        onChange={(d) => setDraft((f) => ({ ...f, endDate: d }))}
+        onClose={() => setOpenDate(null)}
+      />
+
+      {/* ── Floating menus ── */}
       <FloatingOptionMenu
         visible={openPicker === 'currency'}
-        anchor={anchor}
+        anchor={pickerAnchor}
         options={[...CURRENCIES]}
         selected={draft.currency}
-        onSelect={(v) => setDraft((d) => ({ ...d, currency: v }))}
+        onSelect={(v) => setDraft((f) => ({ ...f, currency: v }))}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'billing'}
-        anchor={anchor}
-        options={BILLING_PERIOD_PICKER.map((o) => o.label)}
-        selected={BILLING_PERIOD_LABELS[draft.billingPeriod]}
+        anchor={pickerAnchor}
+        options={[...BILLING_OPTIONS]}
+        selected={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
         onSelect={(label) => {
-          const found = BILLING_PERIOD_PICKER.find((o) => o.label === label);
-          if (found) setDraft((d) => ({ ...d, billingPeriod: found.value }));
+          const key = BILLING_LABEL_TO_KEY[label as BillingLabel];
+          if (key) setDraft((f) => ({ ...f, billingPeriod: key }));
         }}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'category'}
-        anchor={anchor}
+        anchor={pickerAnchor}
         options={CATEGORY_PICKER.map((o) => o.label)}
-        selected={CATEGORY_LABELS[draft.category]}
+        selected={CATEGORY_PICKER.find((o) => o.value === draft.category)?.label ?? ''}
         onSelect={(label) => {
           const found = CATEGORY_PICKER.find((o) => o.label === label);
-          if (found) setDraft((d) => ({ ...d, category: found.value }));
+          if (found) setDraft((f) => ({ ...f, category: found.value }));
+        }}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'status'}
+        anchor={pickerAnchor}
+        options={[...STATUS_OPTIONS]}
+        selected={STATUS_KEY_TO_LABEL[draft.status]}
+        onSelect={(label) => {
+          const key = STATUS_LABEL_TO_KEY[label as StatusLabel];
+          if (key) setDraft((f) => ({ ...f, status: key }));
         }}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'reminder'}
-        anchor={anchor}
-        options={[...REMINDER_OPTIONS]}
+        anchor={pickerAnchor}
+        options={REMINDER_OPTIONS}
         selected={draft.reminderDays}
-        onSelect={(v) => setDraft((d) => ({ ...d, reminderDays: v as typeof draft.reminderDays }))}
+        onSelect={(v) => setDraft((f) => ({ ...f, reminderDays: v as ReminderDays }))}
         onClose={() => setOpenPicker(null)}
       />
     </View>
@@ -442,47 +653,44 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
 // ─── Styles ──────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: {
+  sheet: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 14,
   },
+
+  // Header — identical to CreateSubscriptionSheet
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
-  headerTitle: {
+  title: {
     ...fontFamily.bold,
-    fontSize: fontSize[18],
-    letterSpacing: -0.3,
-    flex: 1,
-    textAlign: 'center',
+    fontSize: fontSize[20],
+    color: '#000000',
+    letterSpacing: -0.4,
+    flexShrink: 1,
+    paddingRight: 12,
   },
-  cancelTextBtn: {
-    width: 80,
-  },
-  cancelText: {
-    ...fontFamily.regular,
-    fontSize: fontSize[16],
-  },
-  saveTextBtn: {
-    width: 80,
-    alignItems: 'flex-end',
-  },
-  saveText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[16],
-    color: '#007AFF',
+  closeBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#EBEBF0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
+  // Error
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 10,
     backgroundColor: '#FEE2E2',
     borderRadius: 12,
     paddingHorizontal: 14,
@@ -490,40 +698,40 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...fontFamily.regular,
-    fontSize: fontSize[15],
+    fontSize: fontSize[16],
     color: '#B91C1C',
     flex: 1,
+    letterSpacing: -0.1,
   },
 
+  // Scroll
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingBottom: 16,
     gap: 10,
   },
 
-  card: {
-    borderRadius: radius['3xl'],
-    borderWidth: 1,
-    overflow: 'hidden',
+  // Platform card (top name + price)
+  platformCard: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 11,
+    paddingBottom: 13,
   },
-
-  // Platform + price card
   platformName: {
     ...fontFamily.bold,
     fontSize: fontSize[20],
+    color: '#000000',
     letterSpacing: -0.3,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    marginBottom: 10,
     padding: 0,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 13,
   },
   currencyPill: {
     flexDirection: 'row',
@@ -537,17 +745,31 @@ const styles = StyleSheet.create({
   currencyText: {
     ...fontFamily.semibold,
     fontSize: fontSize[15],
+    color: '#000000',
     letterSpacing: -0.1,
   },
   priceInput: {
     ...fontFamily.regular,
     fontSize: fontSize[18],
+    color: '#000000',
     letterSpacing: -0.2,
     padding: 0,
     flex: 1,
   },
 
-  // Form rows
+  // Form groups
+  group: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DCDCE0',
+    overflow: 'hidden',
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#DCDCE0',
+    marginLeft: 16,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -559,19 +781,20 @@ const styles = StyleSheet.create({
   rowLabel: {
     ...fontFamily.regular,
     fontSize: fontSize[16],
+    color: '#000000',
     letterSpacing: -0.1,
-    flex: 1,
+    flexShrink: 1,
     paddingRight: 12,
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.1)',
-    marginLeft: 16,
+  rowLabelMuted: {
+    color: '#8E8E93',
+    fontSize: fontSize[15],
   },
 
+  // Date pill
   datePill: {
     backgroundColor: '#F2F2F7',
-    borderRadius: radius.full,
+    borderRadius: 9999,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -581,6 +804,8 @@ const styles = StyleSheet.create({
     color: '#000000',
     letterSpacing: -0.1,
   },
+
+  // Dropdown
   dropdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -593,31 +818,120 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
+  // Stepper
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  stepperBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperBtnDisabled: { opacity: 0.35 },
+  stepperValue: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#000000',
+    minWidth: 22,
+    textAlign: 'center',
+    letterSpacing: -0.2,
+  },
+
+  // Inline text input (payment method)
+  inlineInput: {
+    ...fontFamily.regular,
+    fontSize: fontSize[16],
+    color: '#000000',
+    letterSpacing: -0.1,
+    flex: 1,
+    textAlign: 'right',
+    padding: 0,
+  },
+
+  // Logo URL row
+  urlRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    minWidth: 0,
+  },
+  urlInput: {
+    ...fontFamily.regular,
+    fontSize: fontSize[15],
+    color: '#000000',
+    letterSpacing: -0.1,
+    flex: 1,
+    textAlign: 'right',
+    padding: 0,
+  },
+  urlClear: {
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   // Notes
   notesRow: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 14,
-    gap: 8,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   notesInput: {
     ...fontFamily.regular,
     fontSize: fontSize[15],
+    color: '#000000',
     letterSpacing: -0.1,
+    marginTop: 8,
     minHeight: 60,
     padding: 0,
-    marginTop: 4,
   },
 
-  // Delete
+  // Footer
+  footer: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#DCDCE0',
+  },
   deleteBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 9999,
+    borderWidth: 1.5,
+    borderColor: '#FF3B30',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    paddingVertical: 16,
+    justifyContent: 'center',
   },
   deleteBtnText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[15],
+    fontSize: fontSize[16],
     color: '#FF3B30',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
+  },
+  saveBtn: {
+    flex: 2,
+    height: 52,
+    borderRadius: 9999,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
 });
