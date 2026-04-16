@@ -3,6 +3,7 @@
     "name": "Perezoso",
     "slug": "perezoso",
     "version": "1.0.0",
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "perezoso",
