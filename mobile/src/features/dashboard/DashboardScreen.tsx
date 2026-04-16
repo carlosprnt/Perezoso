@@ -46,6 +46,7 @@ import {
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 import { useSettingsStore } from '../settings/useSettingsStore';
+import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -104,6 +105,11 @@ export function DashboardScreen() {
     reveal.close();
     openSettings();
   }, [reveal, openSettings]);
+
+  // ReminderCards "Ver oportunidades" → open the savings suggestions
+  // list sheet. Lives in its own globally-mounted Modal so the
+  // dashboard scroll position and reveal state are untouched.
+  const openSavingsList = useSavingsSuggestionsStore((s) => s.openList);
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
@@ -238,7 +244,11 @@ export function DashboardScreen() {
               {/* Reminder card — extra 10px separation from the module below */}
               <StaggeredItem index={0}>
                 <View style={{ marginBottom: 10 }}>
-                  <ReminderCards annualCount={1} sharedSavings={'18,86\u20AC'} />
+                  <ReminderCards
+                    annualCount={1}
+                    sharedSavings={'18,86\u20AC'}
+                    onViewSavings={openSavingsList}
+                  />
                 </View>
               </StaggeredItem>
 

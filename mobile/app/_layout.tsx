@@ -18,6 +18,8 @@ import { Toast } from '../src/components/Toast';
 import { SubscriptionCreatedCelebration } from '../src/features/add-subscription/SubscriptionCreatedCelebration';
 import { SubscriptionDetailSheet } from '../src/features/subscription-detail/SubscriptionDetailSheet';
 import { SettingsSheet } from '../src/features/settings/SettingsSheet';
+import { SavingsSuggestionsListSheet } from '../src/features/savings-suggestions/SavingsSuggestionsListSheet';
+import { SavingsSuggestionDetailSheet } from '../src/features/savings-suggestions/SavingsSuggestionDetailSheet';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -58,6 +60,8 @@ export default function RootLayout() {
         <CreateSubscriptionSheet />
         <SubscriptionDetailSheet />
         <SettingsSheet />
+        <SavingsSuggestionsListSheet />
+        <SavingsSuggestionDetailSheet />
         <Toast />
         <SubscriptionCreatedCelebration />
       </SafeAreaProvider>
