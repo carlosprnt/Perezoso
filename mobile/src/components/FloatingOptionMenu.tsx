@@ -142,8 +142,10 @@ export function FloatingOptionMenu({
             },
           ]}
         >
-          <BlurView intensity={60} tint="light" style={styles.menuBlur}>
+          <BlurView intensity={90} tint="light" style={styles.menuBlur}>
             <View style={styles.menuFill}>
+              {/* Inner bright edge — the "glass rim" of iOS 26 Liquid Glass. */}
+              <View pointerEvents="none" style={styles.menuGlassEdge} />
               {options.map((opt, idx) => {
                 const isSelected = opt === selected;
                 const isLast = idx === options.length - 1;
@@ -181,24 +183,43 @@ export function FloatingOptionMenu({
 
 const styles = StyleSheet.create({
   menu: {
+    // iOS 26 "Liquid Glass": deep blur, translucent white wash, thin
+    // bright outer stroke, soft diffuse shadow. Rounded corners a touch
+    // softer than pre-26 (16 instead of 13).
     position: 'absolute',
     minWidth: MENU_MIN_WIDTH,
-    borderRadius: 13,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 14,
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 18,
   },
   menuBlur: {
-    borderRadius: 13,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   menuFill: {
-    // Subtle white wash over the blur so text stays legible against
-    // any underlying colour.
-    backgroundColor: 'rgba(245,245,248,0.78)',
+    // Glassy white wash — a touch more transparent than before so the
+    // blur reads through and the surface looks "wet".
+    backgroundColor: 'rgba(255,255,255,0.56)',
+    // Subtle outer stroke — the glass edge itself.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 16,
+  },
+  menuGlassEdge: {
+    // Bright inner rim: a thin white highlight along the top of the
+    // menu to mimic the refractive edge on iOS 26 Liquid Glass.
+    ...StyleSheet.absoluteFillObject,
+    borderTopWidth: 0.75,
+    borderTopColor: 'rgba(255,255,255,0.9)',
+    borderLeftWidth: 0.5,
+    borderLeftColor: 'rgba(255,255,255,0.55)',
+    borderRightWidth: 0.5,
+    borderRightColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 16,
   },
   row: {
     flexDirection: 'row',
@@ -210,7 +231,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.29)',
+    borderBottomColor: 'rgba(60,60,67,0.22)',
   },
   rowPressed: {
     backgroundColor: 'rgba(0,0,0,0.06)',

@@ -10,6 +10,7 @@ export interface CelebrationData {
   price: string;
   currency: string;
   billingPeriod: string;
+  category?: string;
   logoUrl?: string;
 }
 

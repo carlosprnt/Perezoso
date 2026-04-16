@@ -304,6 +304,7 @@ export function CreateSubscriptionSheet() {
           price: form.price,
           currency: form.currency,
           billingPeriod: form.billingPeriod,
+          category: form.category,
           logoUrl: form.logoUrl || undefined,
         });
       }, 380);
@@ -458,18 +459,8 @@ export function CreateSubscriptionSheet() {
                 </View>
               </View>
 
-              {/* Status + Reminder */}
+              {/* Reminder */}
               <View style={styles.group}>
-                <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Estado</Text>
-                  <View ref={statusRef} collapsable={false}>
-                    <DropdownBtn
-                      value={form.status}
-                      onPress={() => openPickerAt(statusRef, 'status')}
-                    />
-                  </View>
-                </View>
-                <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
                   <Switch
@@ -560,7 +551,7 @@ export function CreateSubscriptionSheet() {
                 </View>
               </View>
 
-              {/* Logo URL + Notes */}
+              {/* Logo URL */}
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>URL del logo</Text>
@@ -587,6 +578,19 @@ export function CreateSubscriptionSheet() {
                     )}
                   </View>
                 </View>
+              </View>
+
+              {/* Status + Notes (bottom block) */}
+              <View style={styles.group}>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>Estado</Text>
+                  <View ref={statusRef} collapsable={false}>
+                    <DropdownBtn
+                      value={form.status}
+                      onPress={() => openPickerAt(statusRef, 'status')}
+                    />
+                  </View>
+                </View>
                 <FormDivider />
                 <View style={styles.notesRow}>
                   <Text style={styles.rowLabel}>Notas</Text>
@@ -594,7 +598,7 @@ export function CreateSubscriptionSheet() {
                     style={styles.notesInput}
                     value={form.notes}
                     onChangeText={(t) => setForm((f) => ({ ...f, notes: t }))}
-                    placeholder="Añade una nota..."
+                    placeholder="Añadir opcional"
                     placeholderTextColor="#C7C7CC"
                     multiline
                     textAlignVertical="top"
@@ -768,7 +772,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...fontFamily.regular,
-    fontSize: fontSize[14],
+    fontSize: fontSize[16],
     color: '#B91C1C',
     flex: 1,
     letterSpacing: -0.1,
@@ -785,8 +789,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 16,
+    paddingTop: 11,
+    paddingBottom: 13,
   },
   platformName: {
     ...fontFamily.bold,
@@ -829,12 +833,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#C6C6C8',
+    borderColor: '#DCDCE0',
     overflow: 'hidden',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#C6C6C8',
+    backgroundColor: '#DCDCE0',
     marginLeft: 16,
   },
   row: {
@@ -879,7 +883,7 @@ const styles = StyleSheet.create({
   dropdownText: {
     ...fontFamily.regular,
     fontSize: fontSize[16],
-    color: '#8E8E93',
+    color: '#000000',
     letterSpacing: -0.1,
   },
 
@@ -909,7 +913,7 @@ const styles = StyleSheet.create({
   inlineInput: {
     ...fontFamily.regular,
     fontSize: fontSize[16],
-    color: '#8E8E93',
+    color: '#000000',
     letterSpacing: -0.1,
     flex: 1,
     textAlign: 'right',
@@ -927,7 +931,7 @@ const styles = StyleSheet.create({
   urlInput: {
     ...fontFamily.regular,
     fontSize: fontSize[15],
-    color: '#8E8E93',
+    color: '#000000',
     letterSpacing: -0.1,
     flex: 1,
     textAlign: 'right',
@@ -959,10 +963,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 2,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: '#DCDCE0',
   },
   cancelBtn: {
     flex: 1,

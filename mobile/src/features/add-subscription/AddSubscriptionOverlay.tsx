@@ -339,7 +339,7 @@ export function AddSubscriptionOverlay() {
                 // The morph already sits 8px above the screen edge (see
                 // sheetBottomMargin), so the footer's own bottom padding
                 // only needs to breathe a little — no full insets.bottom.
-                { paddingBottom: 12 },
+                { paddingBottom: 22 },
               ]}
             >
               <Pressable
