@@ -72,7 +72,7 @@ export function Toast() {
       ]}
     >
       <View style={styles.inner}>
-        <Icon size={22} color="#FFFFFF" strokeWidth={3} />
+        <Icon size={22} color="#000000" strokeWidth={3} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   text: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
-    color: '#FFFFFF',
+    color: '#000000',
     letterSpacing: -0.2,
     flex: 1,
   },
