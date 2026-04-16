@@ -94,3 +94,19 @@ export const useTagsStore = create<TagsStore>((set) => ({
   removeTag: (id) =>
     set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
 }));
+
+// ─── Demo preset sheet (open/close) ──────────────────────────────────
+// State lives in subscriptionsStore — this only tracks the sheet's
+// presentation so other sheets don't need to know about demo presets.
+
+interface DemoSheetStore {
+  isOpen: boolean;
+  openSheet: () => void;
+  closeSheet: () => void;
+}
+
+export const useDemoSheetStore = create<DemoSheetStore>((set) => ({
+  isOpen: false,
+  openSheet: () => set({ isOpen: true }),
+  closeSheet: () => set({ isOpen: false }),
+}));

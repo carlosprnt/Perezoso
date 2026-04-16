@@ -44,7 +44,7 @@ import { radius } from '../../design/radius';
 
 import { WalletCard } from './WalletCard';
 import { Skeleton } from '../../components/Skeleton';
-import { MOCK_SUBSCRIPTIONS } from './mockData';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   navCompactProgress,
@@ -256,6 +256,7 @@ export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
+  const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const scrollY = useSharedValue(0);
   // listY is the Y offset of the list container within the scroll
   // content. Filled in by the list's own onLayout. Animations stay at
@@ -312,19 +313,19 @@ export function SubscriptionsScreen() {
   }, [periodLoading]);
 
   const filtered = useMemo(() => {
-    let subs = MOCK_SUBSCRIPTIONS;
+    let subs = subscriptions;
     if (filter !== 'all') {
       subs = subs.filter((s) => s.status === filter);
     }
     return sortSubscriptions(subs, sortMode);
-  }, [sortMode, filter]);
+  }, [subscriptions, sortMode, filter]);
 
   // Stats for the subtitle paragraph.
   // Active subs define the headline number; we always sum their
   // monthly-equivalent cost in EUR (my_monthly_cost is pre-converted).
   const activeSubs = useMemo(
-    () => MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active'),
-    [],
+    () => subscriptions.filter((s) => s.status === 'active'),
+    [subscriptions],
   );
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);

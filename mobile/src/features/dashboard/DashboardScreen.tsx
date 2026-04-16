@@ -55,17 +55,19 @@ import { UpcomingRenewals } from './UpcomingRenewals';
 import { TopCategories } from './TopCategories';
 import { TopExpensive } from './TopExpensive';
 
+import { MOCK_FIRST_NAME } from './mockData';
+import { formatAmount } from '../subscription-detail/helpers';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import {
-  MOCK_STATS,
-  MOCK_FIRST_NAME,
-  MOCK_RENEWALS,
-  MOCK_CATEGORIES,
-  MOCK_TOP_EXPENSIVE,
-  MOCK_HIGHEST_COST,
-  MOCK_TOP_CATEGORY,
-  MOCK_LOGO_URLS,
-  MOCK_SHARED_LOGO_URLS,
-} from './mockData';
+  deriveStats,
+  deriveRenewals,
+  deriveTopExpensive,
+  deriveCategories,
+  deriveHighestCost,
+  deriveTopCategory,
+  deriveLogoUrls,
+  deriveSharedLogoUrls,
+} from './derive';
 
 // Staggered entrance wrapper
 function StaggeredItem({ index, children }: { index: number; children: React.ReactNode }) {
@@ -76,6 +78,18 @@ function StaggeredItem({ index, children }: { index: number; children: React.Rea
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+
+  // All dashboard numbers flow from the active subscriptions preset —
+  // switching Demo states swaps every card in one go.
+  const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const stats            = React.useMemo(() => deriveStats(subscriptions),            [subscriptions]);
+  const renewals         = React.useMemo(() => deriveRenewals(subscriptions),         [subscriptions]);
+  const topExpensive     = React.useMemo(() => deriveTopExpensive(subscriptions),     [subscriptions]);
+  const categories       = React.useMemo(() => deriveCategories(subscriptions),       [subscriptions]);
+  const highestCost      = React.useMemo(() => deriveHighestCost(subscriptions),      [subscriptions]);
+  const topCategory      = React.useMemo(() => deriveTopCategory(subscriptions),      [subscriptions]);
+  const logoUrls         = React.useMemo(() => deriveLogoUrls(subscriptions),         [subscriptions]);
+  const sharedLogoUrls   = React.useMemo(() => deriveSharedLogoUrls(subscriptions),   [subscriptions]);
 
   // Confetti state
   const [moneyConfetti, setMoneyConfetti] = useState<{ x: number; y: number } | null>(null);
@@ -222,9 +236,9 @@ export function DashboardScreen() {
             <View style={styles.heroWrapper}>
               <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
                 <SummaryHero
-                  stats={MOCK_STATS}
-                  logoUrls={MOCK_LOGO_URLS}
-                  sharedLogoUrls={MOCK_SHARED_LOGO_URLS}
+                  stats={stats}
+                  logoUrls={logoUrls}
+                  sharedLogoUrls={sharedLogoUrls}
                   onAmountTap={handleAmountTap}
                   onLogosTap={handleLogosTap}
                 />
@@ -253,24 +267,26 @@ export function DashboardScreen() {
               </StaggeredItem>
 
               {/* Insight cards */}
-              <StaggeredItem index={1}>
-                <InsightCards
-                  highestCost={{
-                    name: MOCK_HIGHEST_COST.name,
-                    amount: `20,00US$ /mes`,
-                    category: 'IA',
-                  }}
-                  topCategory={{
-                    name: MOCK_TOP_CATEGORY.name,
-                    amount: `40,00\u20AC /mes`,
-                    count: MOCK_TOP_CATEGORY.count,
-                  }}
-                  sharedPlans={{
-                    count: MOCK_STATS.sharedCount,
-                    savings: '18,86\u20AC',
-                  }}
-                />
-              </StaggeredItem>
+              {highestCost && topCategory && (
+                <StaggeredItem index={1}>
+                  <InsightCards
+                    highestCost={{
+                      name: highestCost.name,
+                      amount: `${formatAmount(highestCost.monthlyCost, highestCost.currency)} /mes`,
+                      category: highestCost.category ?? '',
+                    }}
+                    topCategory={{
+                      name: topCategory.name,
+                      amount: `${formatAmount(topCategory.monthlyCost, topCategory.currency)} /mes`,
+                      count: topCategory.count,
+                    }}
+                    sharedPlans={{
+                      count: stats.sharedCount,
+                      savings: formatAmount(stats.savingsMonthly, stats.currency),
+                    }}
+                  />
+                </StaggeredItem>
+              )}
 
               {/* Upcoming Renewals */}
               <StaggeredItem index={2}>
@@ -279,7 +295,7 @@ export function DashboardScreen() {
                     title="Próximas renovaciones"
                     action={calendarAction}
                   />
-                  <UpcomingRenewals renewals={MOCK_RENEWALS} />
+                  <UpcomingRenewals renewals={renewals} />
                 </Card>
               </StaggeredItem>
 
@@ -288,8 +304,8 @@ export function DashboardScreen() {
                 <Card>
                   <CardHeader title="Categorías con más gasto" />
                   <TopCategories
-                    categories={MOCK_CATEGORIES}
-                    currency={MOCK_STATS.currency}
+                    categories={categories}
+                    currency={stats.currency}
                   />
                 </Card>
               </StaggeredItem>
@@ -300,7 +316,7 @@ export function DashboardScreen() {
                   <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                     Suscripciones más caras
                   </Text>
-                  <TopExpensive subscriptions={MOCK_TOP_EXPENSIVE} />
+                  <TopExpensive subscriptions={topExpensive} />
                 </View>
               </StaggeredItem>
             </View>
@@ -327,9 +343,9 @@ export function DashboardScreen() {
           onComplete={() => setMoneyConfetti(null)}
         />
       )}
-      {logoConfetti && (
+      {logoConfetti && logoUrls.length > 0 && (
         <LogoConfetti
-          logoUrls={MOCK_LOGO_URLS}
+          logoUrls={logoUrls}
           originX={logoConfetti.x}
           originY={logoConfetti.y}
           onComplete={() => setLogoConfetti(null)}

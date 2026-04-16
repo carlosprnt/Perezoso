@@ -17,7 +17,7 @@ import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import type { TopSubscription } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
-import { MOCK_SUBSCRIPTIONS } from '../subscriptions/mockData';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 
 interface TopExpensiveProps {
   subscriptions: TopSubscription[];
@@ -33,6 +33,7 @@ function formatCost(amount: number, currency: string): string {
 export function TopExpensive({ subscriptions }: TopExpensiveProps) {
   const { colors } = useTheme();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
+  const fullList = useSubscriptionsStore((s) => s.subscriptions);
 
   if (subscriptions.length === 0) return null;
 
@@ -49,7 +50,7 @@ export function TopExpensive({ subscriptions }: TopExpensiveProps) {
           key={sub.id}
           accessibilityLabel={sub.name}
           onPress={() => {
-            const full = MOCK_SUBSCRIPTIONS.find((s) => s.id === sub.id);
+            const full = fullList.find((s) => s.id === sub.id);
             if (full) openDetail(full);
           }}
         >

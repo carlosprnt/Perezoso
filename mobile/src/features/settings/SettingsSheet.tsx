@@ -59,12 +59,15 @@ import {
   SettingsSectionCard,
   SubscriptionCard,
 } from './components';
+import { DemoSheet } from './DemoSheet';
 import { TagsBottomSheet } from './TagsBottomSheet';
 import {
+  useDemoSheetStore,
   usePreferencesStore,
   useSettingsStore,
   useTagsStore,
 } from './useSettingsStore';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 
 // ─── Mock profile data ────────────────────────────────────────────────
 // Would come from an auth/profile store once wired to Supabase.
@@ -89,6 +92,9 @@ export function SettingsSheet() {
   const tagsCount             = useTagsStore((s) => s.tags.length);
   const openTags              = useTagsStore((s) => s.openSheet);
 
+  const openDemo              = useDemoSheetStore((s) => s.openSheet);
+  const isPlusActive          = useSubscriptionsStore((s) => s.isPlusActive);
+
   const insets = useSafeAreaInsets();
 
   // ── Individual row handlers ──────────────────────────────────────
@@ -106,7 +112,7 @@ export function SettingsSheet() {
   const handleCurrency   = useCallback(() => comingSoon('Moneda'), [comingSoon]);
   const handleAppearance = useCallback(() => comingSoon('Apariencia'), [comingSoon]);
   const handleAdmin      = useCallback(() => comingSoon('Admin'), [comingSoon]);
-  const handleDemo       = useCallback(() => comingSoon('Demo'), [comingSoon]);
+  const handleDemo       = useCallback(() => openDemo(), [openDemo]);
   const handleReview     = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);
 
   const handleShare = useCallback(() => {
@@ -186,8 +192,8 @@ export function SettingsSheet() {
           {/* 1 — Subscription highlight */}
           <SubscriptionCard
             title="Perezoso Plus"
-            status="Suscripción activa"
-            ctaLabel="Gestionar"
+            status={isPlusActive ? 'Suscripción activa' : 'Plan gratuito'}
+            ctaLabel={isPlusActive ? 'Gestionar' : 'Mejorar'}
             onManage={handleManagePlus}
           />
 
@@ -291,9 +297,10 @@ export function SettingsSheet() {
           />
         </ScrollView>
 
-        {/* Secondary sheet — mounted inside the Settings Modal so it
-            layers above this sheet but disappears when Settings closes. */}
+        {/* Secondary sheets — mounted inside the Settings Modal so they
+            layer above this sheet but disappear when Settings closes. */}
         <TagsBottomSheet />
+        <DemoSheet />
       </View>
     </Modal>
   );
