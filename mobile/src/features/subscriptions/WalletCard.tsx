@@ -146,13 +146,15 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           </Text>
         </View>
 
-        {/* Status dot + label */}
-        <View style={styles.statusRow}>
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusLabel, { color: statusColor }]}>
-            {STATUS_LABELS[sub.status]}
-          </Text>
-        </View>
+        {/* Status dot + label — hidden for 'active' (noise); shown for others */}
+        {sub.status !== 'active' && (
+          <View style={styles.statusRow}>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.statusLabel, { color: statusColor }]}>
+              {STATUS_LABELS[sub.status]}
+            </Text>
+          </View>
+        )}
       </View>
     </Pressable>
   );

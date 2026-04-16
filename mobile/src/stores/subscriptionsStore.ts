@@ -32,6 +32,12 @@ interface SubscriptionsStore {
    *  is left untouched — a future preset change still overwrites the
    *  list wholesale, which matches the Demo flow. */
   addSubscription: (sub: Subscription) => void;
+  /** Enable reminders on every yearly-billing subscription at 7-days-
+   *  before. Used by the dashboard "Avísame" reminder card — one tap
+   *  wires all annual renewals to the default heads-up. Returns the
+   *  number of subscriptions that were updated (already-enabled ones
+   *  are re-set to 7 days, which keeps the UX predictable). */
+  enableRemindersOnAnnuals: () => number;
 }
 
 // Default to "basic" — the 10-item dataset the app shipped with. Keeps
@@ -54,4 +60,20 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set) => ({
     set((state) => ({
       subscriptions: [sub, ...state.subscriptions],
     })),
+
+  enableRemindersOnAnnuals: () => {
+    let count = 0;
+    set((state) => ({
+      subscriptions: state.subscriptions.map((sub) => {
+        if (sub.billing_period !== 'yearly') return sub;
+        count += 1;
+        return {
+          ...sub,
+          reminderEnabled: true,
+          reminderDays: '7 d\u00EDas antes',
+        };
+      }),
+    }));
+    return count;
+  },
 }));

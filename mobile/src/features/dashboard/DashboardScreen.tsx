@@ -27,10 +27,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CalendarDays } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
-import { radius } from '../../design/radius';
 import { Card, CardHeader } from '../../components/Card';
 import { MoneyConfetti } from '../../components/MoneyConfetti';
 import { LogoConfetti } from '../../components/LogoConfetti';
@@ -47,6 +45,7 @@ import {
 import { SharedProfileHeader } from './SharedProfileHeader';
 import { useSettingsStore } from '../settings/useSettingsStore';
 import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
+import { useToastStore } from '../../components/useToastStore';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -83,7 +82,14 @@ export function DashboardScreen() {
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const enableRemindersOnAnnuals = useSubscriptionsStore((s) => s.enableRemindersOnAnnuals);
   const isEmpty = subscriptions.length === 0;
+  // Real count of yearly-billing subs — drives the "Avísame" reminder
+  // card's visibility (no annuals → don't render the card at all).
+  const annualCount = React.useMemo(
+    () => subscriptions.filter((s) => s.billing_period === 'yearly').length,
+    [subscriptions],
+  );
   const stats            = React.useMemo(() => deriveStats(subscriptions),            [subscriptions]);
   const renewals         = React.useMemo(() => deriveRenewals(subscriptions),         [subscriptions]);
   const topExpensive     = React.useMemo(() => deriveTopExpensive(subscriptions),     [subscriptions]);
@@ -126,6 +132,19 @@ export function DashboardScreen() {
   // list sheet. Lives in its own globally-mounted Modal so the
   // dashboard scroll position and reveal state are untouched.
   const openSavingsList = useSavingsSuggestionsStore((s) => s.openList);
+
+  // "Avísame" CTA — enable 7-day-before reminders on every annual sub and
+  // confirm via a green success toast. The store action returns how many
+  // subscriptions were touched so the toast can tailor the copy.
+  const handleActivateReminder = useCallback(() => {
+    const count = enableRemindersOnAnnuals();
+    const message =
+      count === 1
+        ? 'Avisos activados para tu suscripci\u00F3n anual'
+        : `Avisos activados para tus ${count} suscripciones anuales`;
+    useToastStore.getState().show('success', message);
+  }, [enableRemindersOnAnnuals]);
+
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
@@ -173,18 +192,24 @@ export function DashboardScreen() {
     return { opacity: 1 - progress };
   });
 
-  // Calendar icon button for upcoming renewals header
-  const calendarAction = (
-    <View style={[styles.calendarBtn, {
-      backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
-    }]}>
-      <CalendarDays
-        size={16}
-        strokeWidth={2}
-        color={isDark ? '#AEAEB2' : '#000000'}
-      />
-    </View>
-  );
+  // "Quedan X d\u00EDas" on the right of the renewals card header — the
+  // X is driven by the nearest upcoming renewal. Rendered as a discreet
+  // text label so the card reads like a live countdown rather than an
+  // inert list header.
+  const nextRenewalDays = renewals[0]?.daysUntilRenewal;
+  const daysLeftLabel =
+    nextRenewalDays == null
+      ? null
+      : nextRenewalDays === 0
+        ? 'Hoy'
+        : nextRenewalDays === 1
+          ? 'Queda 1 d\u00EDa'
+          : `Quedan ${nextRenewalDays} d\u00EDas`;
+  const daysLeftAction = daysLeftLabel ? (
+    <Text style={[styles.daysLeftText, { color: colors.textMuted }]}>
+      {daysLeftLabel}
+    </Text>
+  ) : undefined;
 
   return (
     // Root host: `#0A0A0A` so any hairline gap between the layers
@@ -274,8 +299,9 @@ export function DashboardScreen() {
               <StaggeredItem index={0}>
                 <View style={{ marginBottom: 10 }}>
                   <ReminderCards
-                    annualCount={1}
+                    annualCount={annualCount}
                     sharedSavings={'18,86\u20AC'}
+                    onActivateReminder={handleActivateReminder}
                     onViewSavings={openSavingsList}
                   />
                 </View>
@@ -307,8 +333,8 @@ export function DashboardScreen() {
               <StaggeredItem index={2}>
                 <Card>
                   <CardHeader
-                    title="Próximas renovaciones"
-                    action={calendarAction}
+                    title="Próxima renovación"
+                    action={daysLeftAction}
                   />
                   <UpcomingRenewals renewals={renewals} />
                 </Card>
@@ -408,11 +434,10 @@ const styles = StyleSheet.create({
     letterSpacing: letterSpacing.tight,
     marginBottom: 12,
   },
-  calendarBtn: {
-    width: 40, // w-10
-    height: 40, // h-10
-    borderRadius: radius.xl, // 12px = rounded-xl
-    alignItems: 'center',
-    justifyContent: 'center',
+  daysLeftText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
+    fontVariant: ['tabular-nums'],
   },
 });
