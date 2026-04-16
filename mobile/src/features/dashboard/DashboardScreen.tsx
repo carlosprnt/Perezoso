@@ -45,6 +45,7 @@ import {
   COMPACT_SCROLL_THRESHOLD,
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
+import { useSettingsStore } from '../settings/useSettingsStore';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -92,6 +93,17 @@ export function DashboardScreen() {
   // native pan), the snap state machine, scroll tracking and the
   // translateY shared value.
   const reveal = useDashboardReveal();
+
+  // Tapping "Ajustes" in the dark profile layer first dismisses the
+  // reveal (so the layer slides back underneath the dashboard), then
+  // presents the globally-mounted SettingsSheet. Order matters: opening
+  // the sheet first would try to present a Modal over a gesture-bound
+  // animation mid-flight, which feels janky on iOS.
+  const openSettings = useSettingsStore((s) => s.open);
+  const handleOpenSettings = useCallback(() => {
+    reveal.close();
+    openSettings();
+  }, [reveal, openSettings]);
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
@@ -164,7 +176,7 @@ export function DashboardScreen() {
           element in both closed and open states. */}
       <UnderlyingProfileLayer
         progress={reveal.progress}
-        onSettings={reveal.close}
+        onSettings={handleOpenSettings}
         onShareData={reveal.close}
         onManagePlus={reveal.close}
         onLogout={reveal.close}

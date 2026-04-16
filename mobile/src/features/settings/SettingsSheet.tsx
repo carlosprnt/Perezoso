@@ -1,0 +1,347 @@
+// SettingsSheet — globally mounted "Ajustes" modal.
+//
+// Presentation
+//   · Native iOS pageSheet (UISheetPresentationController). We rely on
+//     UIKit for the handle bar, the dimmed backdrop, the rounded top
+//     corners and the pan-down-to-dismiss gesture. No custom animation
+//     code — matches every other sheet in the app.
+//
+// Composition
+//   ┌──────────────────────────┐
+//   │ Header                  X│   ← Ajustes + close pill
+//   ├──────────────────────────┤
+//   │ Perezoso Plus │ Gestionar│   ← SubscriptionCard
+//   │ ProfileCard              │
+//   │ Moneda / Notificaciones  │   ← grouped SectionCard
+//   │ Apariencia               │
+//   │ Admin / Demo             │   ← grouped SectionCard
+//   │ Etiquetas ▸              │   ← opens TagsBottomSheet (secondary)
+//   │ Reseña / Compartir       │
+//   │ Twitter / Email          │
+//   │ Eliminar cuenta          │   ← destructive card, red
+//   └──────────────────────────┘
+//
+// Interactions
+//   · Every row has a working onPress / Switch wired to mock state.
+//   · "Etiquetas" is the only row that leaves the main sheet — it
+//     presents `TagsBottomSheet`, which layers on top as a child sheet.
+//   · "Eliminar cuenta" shows an Alert confirmation before calling the
+//     caller-provided delete handler (mocked for now).
+
+import React, { useCallback } from 'react';
+import {
+  Alert,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Bell,
+  Coins,
+  Mail,
+  Moon,
+  Share2,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Tag as TagIcon,
+  Trash2,
+  Twitter,
+  X,
+} from 'lucide-react-native';
+
+import { fontFamily, fontSize } from '../../design/typography';
+import {
+  DestructiveCard,
+  ProfileCard,
+  SettingsRow,
+  SettingsSectionCard,
+  SubscriptionCard,
+} from './components';
+import { TagsBottomSheet } from './TagsBottomSheet';
+import {
+  usePreferencesStore,
+  useSettingsStore,
+  useTagsStore,
+} from './useSettingsStore';
+
+// ─── Mock profile data ────────────────────────────────────────────────
+// Would come from an auth/profile store once wired to Supabase.
+const MOCK_PROFILE = {
+  name: 'Carlos Pariente',
+  email: 'carlosprnt@gmail.com',
+  avatarUrl: undefined as string | undefined,
+};
+
+const TWITTER_HANDLE = '@carlosprnt';
+const CONTACT_EMAIL  = 'hello@carlospariente.com';
+
+export function SettingsSheet() {
+  const isOpen = useSettingsStore((s) => s.isOpen);
+  const close  = useSettingsStore((s) => s.close);
+
+  const currency              = usePreferencesStore((s) => s.currency);
+  const notificationsEnabled  = usePreferencesStore((s) => s.notificationsEnabled);
+  const setNotificationsEnabled = usePreferencesStore((s) => s.setNotificationsEnabled);
+  const appearance            = usePreferencesStore((s) => s.appearance);
+
+  const tagsCount             = useTagsStore((s) => s.tags.length);
+  const openTags              = useTagsStore((s) => s.openSheet);
+
+  const insets = useSafeAreaInsets();
+
+  // ── Individual row handlers ──────────────────────────────────────
+  // Most are placeholders that pop an info alert — the real flows will
+  // be wired up as each sub-feature lands. Kept close together so it's
+  // obvious at a glance which rows are still mocked.
+  const comingSoon = useCallback((label: string) => {
+    Alert.alert(label, 'Próximamente disponible.');
+  }, []);
+
+  const handleManagePlus = useCallback(
+    () => comingSoon('Gestionar Perezoso Plus'),
+    [comingSoon],
+  );
+  const handleCurrency   = useCallback(() => comingSoon('Moneda'), [comingSoon]);
+  const handleAppearance = useCallback(() => comingSoon('Apariencia'), [comingSoon]);
+  const handleAdmin      = useCallback(() => comingSoon('Admin'), [comingSoon]);
+  const handleDemo       = useCallback(() => comingSoon('Demo'), [comingSoon]);
+  const handleReview     = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);
+
+  const handleShare = useCallback(() => {
+    // Native share sheet — universal app share copy.
+    Share.share({
+      message: 'Perezoso — la forma perezosa de controlar tus suscripciones. https://perezoso.app',
+    }).catch(() => { /* user cancel — no-op */ });
+  }, []);
+
+  const handleTwitter = useCallback(() => {
+    Linking.openURL('https://twitter.com/carlosprnt').catch(() =>
+      comingSoon(TWITTER_HANDLE),
+    );
+  }, [comingSoon]);
+
+  const handleEmail = useCallback(() => {
+    Linking.openURL(`mailto:${CONTACT_EMAIL}`).catch(() =>
+      comingSoon(CONTACT_EMAIL),
+    );
+  }, [comingSoon]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Eliminar cuenta',
+      'Se eliminarán todos tus datos y suscripciones. Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar cuenta',
+          style: 'destructive',
+          onPress: () => comingSoon('Cuenta eliminada'),
+        },
+      ],
+    );
+  }, [comingSoon]);
+
+  // ──────────────────────────────────────────────────────────────────
+
+  return (
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={close}
+      onDismiss={close}
+    >
+      <View style={styles.sheet}>
+        {/* ── Header ── */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Ajustes</Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.closeBtn,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={close}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar ajustes"
+          >
+            <X size={15} color="#3C3C43" strokeWidth={2.5} />
+          </Pressable>
+        </View>
+
+        {/* ── Scrollable content ── */}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: Math.max(insets.bottom, 20) + 28 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 1 — Subscription highlight */}
+          <SubscriptionCard
+            title="Perezoso Plus"
+            status="Suscripción activa"
+            ctaLabel="Gestionar"
+            onManage={handleManagePlus}
+          />
+
+          {/* 2 — Profile */}
+          <View style={styles.gap} />
+          <ProfileCard
+            name={MOCK_PROFILE.name}
+            email={MOCK_PROFILE.email}
+            avatarUrl={MOCK_PROFILE.avatarUrl}
+          />
+
+          {/* 3 — Moneda + Notificaciones (grouped) */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<Coins size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Moneda"
+              value={currency}
+              onPress={handleCurrency}
+            />
+            <SettingsRow
+              icon={<Bell size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Notificaciones"
+              switchValue={notificationsEnabled}
+              onSwitchChange={setNotificationsEnabled}
+            />
+          </SettingsSectionCard>
+
+          {/* 4 — Apariencia */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<Moon size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Apariencia"
+              value={appearance}
+              onPress={handleAppearance}
+            />
+          </SettingsSectionCard>
+
+          {/* 5 — Admin + Demo (grouped) */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<ShieldCheck size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Admin"
+              onPress={handleAdmin}
+            />
+            <SettingsRow
+              icon={<Sparkles size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Demo"
+              onPress={handleDemo}
+            />
+          </SettingsSectionCard>
+
+          {/* 6 — Etiquetas (opens TagsBottomSheet) */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<TagIcon size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Etiquetas"
+              value={`${tagsCount}`}
+              onPress={openTags}
+            />
+          </SettingsSectionCard>
+
+          {/* 7 — Reseña + Compartir (grouped) */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<Star size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Dejar una reseña"
+              onPress={handleReview}
+            />
+            <SettingsRow
+              icon={<Share2 size={20} color="#0F0F10" strokeWidth={2} />}
+              label="Compartir con un amigo"
+              onPress={handleShare}
+            />
+          </SettingsSectionCard>
+
+          {/* 8 — Contacto (grouped) */}
+          <View style={styles.gap} />
+          <SettingsSectionCard>
+            <SettingsRow
+              icon={<Twitter size={20} color="#0F0F10" strokeWidth={2} />}
+              label={TWITTER_HANDLE}
+              onPress={handleTwitter}
+            />
+            <SettingsRow
+              icon={<Mail size={20} color="#0F0F10" strokeWidth={2} />}
+              label={CONTACT_EMAIL}
+              onPress={handleEmail}
+            />
+          </SettingsSectionCard>
+
+          {/* 9 — Destructive */}
+          <View style={styles.gap} />
+          <DestructiveCard
+            label="Eliminar cuenta"
+            onPress={handleDeleteAccount}
+          />
+        </ScrollView>
+
+        {/* Secondary sheet — mounted inside the Settings Modal so it
+            layers above this sheet but disappears when Settings closes. */}
+        <TagsBottomSheet />
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  sheet: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 14,
+  },
+
+  // Header mirrors the CreateSubscription / EditSubscription sheets
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 14,
+  },
+  title: {
+    ...fontFamily.bold,
+    fontSize: fontSize[32],
+    color: '#000000',
+    letterSpacing: -0.6,
+    flexShrink: 1,
+    paddingRight: 12,
+  },
+  closeBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#EBEBF0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 18,
+    paddingTop: 8,
+  },
+
+  // Separation between cards — matches iOS "group" spacing
+  gap: { height: 14 },
+});
