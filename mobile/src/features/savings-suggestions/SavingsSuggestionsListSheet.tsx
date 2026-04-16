@@ -1,15 +1,15 @@
 // SavingsSuggestionsListSheet — first modal in the savings flow.
 //
 // Triggered from the dashboard's ReminderCards "Ver oportunidades" CTA.
-// Presents a vertical list of curated saving opportunities (share, switch
-// to annual, downgrade, …). Each card has a logo, a one-liner, the
-// estimated yearly savings, and a "Ver más" pill that opens the
-// SavingsSuggestionDetailSheet on top of this one.
+// Presents a vertical list of curated saving opportunities. Each card
+// has a service logo and a single paragraph — "Podrías ahorrar hasta
+// {{X}} …" with the amount rendered in bold — followed by a full-width
+// "Ver más" button that opens the SavingsSuggestionDetailSheet on top.
 //
 // Sheet behaviour mirrors TagsBottomSheet so the app speaks one
 // consistent visual language for child sheets:
 //   · Dim backdrop fades in with the slide
-//   · Drag handle + close pill (X) header
+//   · iOS drag handle + title + close pill (X)
 //   · Pan-down dismisses (>100px or velocity > 600)
 //   · Tap the backdrop to dismiss
 //   · Custom Modal (transparent) so it can stack above the dashboard
@@ -44,7 +44,7 @@ import {
 } from 'react-native-reanimated';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkles, X } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 import { SETTINGS_PALETTE as C } from '../settings/components';
@@ -176,11 +176,6 @@ export function SavingsSuggestionsListSheet() {
                   <X size={15} color="#3C3C43" strokeWidth={2.5} />
                 </Pressable>
               </View>
-
-              <Text style={styles.subtitle}>
-                Pequeños cambios en tus suscripciones que pueden marcar la
-                diferencia.
-              </Text>
             </View>
           </GestureDetector>
 
@@ -214,47 +209,30 @@ function SuggestionCard({
 }) {
   return (
     <View style={styles.card}>
-      <View style={styles.cardHead}>
+      <View style={styles.cardBody}>
         <SuggestionLogo
           logoUrl={suggestion.logoUrl}
           name={suggestion.serviceName}
           brandColor={suggestion.brandColor}
         />
-        <View style={styles.cardHeadText}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {suggestion.serviceName}
-          </Text>
-          <Text style={styles.cardCategory} numberOfLines={1}>
-            {suggestion.category}
-          </Text>
-        </View>
-      </View>
-
-      <Text style={styles.cardCopy} numberOfLines={3}>
-        {suggestion.shortCopy}
-      </Text>
-
-      <View style={styles.savingsPill}>
-        <Sparkles size={14} color="#0F5132" strokeWidth={2.4} />
-        <Text style={styles.savingsPillText}>
-          {suggestion.yearlySavings}
+        <Text style={styles.copy}>
+          {suggestion.listCopyBefore}
+          <Text style={styles.copyAmount}>{suggestion.listAmount}</Text>
+          {suggestion.listCopyAfter}
         </Text>
       </View>
 
-      <View style={styles.cardFooter}>
-        <Pressable
-          onPress={onViewMore}
-          hitSlop={8}
-          style={({ pressed }) => [
-            styles.viewMoreBtn,
-            pressed && { opacity: 0.85 },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel={`Ver m\u00E1s sobre ${suggestion.serviceName}`}
-        >
-          <Text style={styles.viewMoreText}>Ver m{'\u00E1'}s</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        onPress={onViewMore}
+        style={({ pressed }) => [
+          styles.viewMoreBtn,
+          pressed && { opacity: 0.85 },
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver m\u00E1s sobre ${suggestion.serviceName}`}
+      >
+        <Text style={styles.viewMoreText}>Ver m{'\u00E1'}s</Text>
+      </Pressable>
     </View>
   );
 }
@@ -327,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 2,
-    paddingBottom: 4,
+    paddingBottom: 14,
   },
   title: {
     ...fontFamily.bold,
@@ -345,15 +323,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  subtitle: {
-    ...fontFamily.regular,
-    fontSize: fontSize[14],
-    color: C.textMuted,
-    letterSpacing: -0.1,
-    paddingHorizontal: 2,
-    paddingTop: 2,
-    paddingBottom: 16,
-  },
 
   // Scroll list
   scroll: { flexGrow: 0 },
@@ -369,87 +338,55 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
   },
-  cardHead: {
+  cardBody: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    gap: 14,
+    marginBottom: 14,
   },
   logoTile: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoImg: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
   },
   logoInitial: {
     ...fontFamily.bold,
-    fontSize: fontSize[18],
+    fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.2,
   },
-  cardHeadText: {
+  copy: {
+    ...fontFamily.regular,
     flex: 1,
-    paddingLeft: 12,
-  },
-  cardTitle: {
-    ...fontFamily.bold,
-    fontSize: fontSize[16],
-    color: '#000000',
-    letterSpacing: -0.2,
-    marginBottom: 1,
-  },
-  cardCategory: {
-    ...fontFamily.regular,
-    fontSize: fontSize[13],
-    color: C.textMuted,
-    letterSpacing: -0.05,
-  },
-  cardCopy: {
-    ...fontFamily.regular,
     fontSize: fontSize[14],
     color: '#1F1F22',
     letterSpacing: -0.1,
     lineHeight: fontSize[14] * 1.4,
-    marginBottom: 12,
   },
-  savingsPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 9999,
-    backgroundColor: '#D7F0DA',
-    marginBottom: 14,
-  },
-  savingsPillText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[13],
-    color: '#0F5132',
-    letterSpacing: -0.1,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  copyAmount: {
+    ...fontFamily.bold,
+    color: '#000000',
   },
   viewMoreBtn: {
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    backgroundColor: '#000000',
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   viewMoreText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    color: '#FFFFFF',
+    fontSize: fontSize[15],
+    color: '#000000',
     letterSpacing: -0.1,
   },
 });

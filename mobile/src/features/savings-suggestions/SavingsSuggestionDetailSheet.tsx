@@ -2,12 +2,12 @@
 //
 // Layered on top of the SavingsSuggestionsListSheet (which stays
 // mounted underneath). Renders the full detail of a single suggestion:
-//   · Service logo + name + category
-//   · Highlighted savings summary (monthly + yearly)
-//   · Current plan vs Suggested plan label row
-//   · Comparison table (precio, pantallas, perfiles, …)
-//   · Short explanatory note
-//   · Primary "Entendido" button to dismiss
+//   · Service logo + name + current plan
+//   · Highlighted green savings card (monthly headline + yearly sub-line)
+//   · "Comparativa" table — two rows (label left / price right, with
+//     the suggested price tinted green)
+//   · Short muted explanatory note
+//   · Full-width primary "Entendido" button to dismiss
 //
 // Same Modal/Reanimated pattern as the list sheet, so dismiss
 // behaviour and visuals stay consistent — the user perceives this as
@@ -49,6 +49,8 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const ENTER_MS = 280;
 const EXIT_MS = 220;
+
+const SUGGESTED_COLOR = '#0F5132';
 
 export function SavingsSuggestionDetailSheet() {
   const isOpen      = useSavingsSuggestionsStore((s) => s.isDetailOpen);
@@ -157,7 +159,7 @@ export function SavingsSuggestionDetailSheet() {
               </View>
 
               <View style={styles.header}>
-                <Text style={styles.headerTitle}>Sugerencia</Text>
+                <Text style={styles.headerTitle}>Sugerencia de ahorro</Text>
                 <Pressable
                   style={styles.closeBtn}
                   onPress={closeDetail}
@@ -196,71 +198,37 @@ export function SavingsSuggestionDetailSheet() {
             {/* Highlighted savings summary */}
             <View style={styles.savingsCard}>
               <View style={styles.savingsIcon}>
-                <Sparkles size={18} color="#0F5132" strokeWidth={2.4} />
+                <Sparkles size={18} color={SUGGESTED_COLOR} strokeWidth={2.4} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.savingsHeadline}>
-                  Podr{'\u00ED'}as ahorrar
+                <Text style={styles.savingsAmount}>
+                  {snapshot.monthlySavings}
                 </Text>
-                <View style={styles.savingsRow}>
-                  <Text style={styles.savingsAmount}>
-                    {snapshot.monthlySavings}
-                  </Text>
-                  <Text style={styles.savingsDivider}>{'\u00B7'}</Text>
-                  <Text style={styles.savingsYear}>
-                    {snapshot.yearlySavings}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Plan-vs-plan column headers */}
-            <View style={styles.compareHead}>
-              <View style={styles.compareCell}>
-                <Text style={styles.compareHeadLabel}>Plan actual</Text>
-                <Text style={styles.compareHeadValue} numberOfLines={2}>
-                  {snapshot.currentPlanLabel}
-                </Text>
-              </View>
-              <View style={styles.compareCell}>
-                <Text style={[styles.compareHeadLabel, styles.suggestedAccent]}>
-                  Sugerido
-                </Text>
-                <Text style={[styles.compareHeadValue, styles.suggestedAccent]} numberOfLines={2}>
-                  {snapshot.suggestedPlanLabel}
+                <Text style={styles.savingsYear}>
+                  {snapshot.yearlySavings}
                 </Text>
               </View>
             </View>
 
-            {/* Comparison rows */}
+            {/* Comparativa */}
+            <Text style={styles.compareHeading}>COMPARATIVA</Text>
             <View style={styles.compareTable}>
-              {snapshot.comparison.map((row, i) => (
-                <View
-                  key={row.label}
-                  style={[
-                    styles.compareRow,
-                    i < snapshot.comparison.length - 1 && styles.compareRowDivider,
-                  ]}
-                >
-                  <Text style={styles.compareRowLabel} numberOfLines={1}>
-                    {row.label}
-                  </Text>
-                  <View style={styles.compareValues}>
-                    <Text style={styles.compareValue} numberOfLines={1}>
-                      {row.current}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.compareValue,
-                        row.highlightSuggested && styles.compareValueHighlight,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {row.suggested}
-                    </Text>
-                  </View>
-                </View>
-              ))}
+              <View style={[styles.compareRow, styles.compareRowDivider]}>
+                <Text style={styles.compareLabel} numberOfLines={2}>
+                  {snapshot.compareCurrentLabel}
+                </Text>
+                <Text style={styles.compareValue} numberOfLines={1}>
+                  {snapshot.compareCurrentPrice}
+                </Text>
+              </View>
+              <View style={styles.compareRow}>
+                <Text style={styles.compareLabel} numberOfLines={2}>
+                  {snapshot.compareSuggestedLabel}
+                </Text>
+                <Text style={[styles.compareValue, styles.compareValueHighlight]} numberOfLines={1}>
+                  {snapshot.compareSuggestedPrice}
+                </Text>
+              </View>
             </View>
 
             {/* Explanatory note */}
@@ -319,8 +287,6 @@ function DetailLogo({
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────
-
-const SUGGESTED_COLOR = '#0F5132';
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -433,114 +399,75 @@ const styles = StyleSheet.create({
   savingsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     backgroundColor: '#E5F4E8',
     borderRadius: 18,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    marginBottom: 18,
+    marginBottom: 20,
   },
   savingsIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
     backgroundColor: '#C9EAD0',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  savingsHeadline: {
-    ...fontFamily.regular,
-    fontSize: fontSize[13],
-    color: '#0F5132',
-    letterSpacing: -0.05,
-    marginBottom: 2,
-  },
-  savingsRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-  },
   savingsAmount: {
     ...fontFamily.bold,
     fontSize: fontSize[18],
-    color: '#0F5132',
+    color: SUGGESTED_COLOR,
     letterSpacing: -0.3,
-  },
-  savingsDivider: {
-    ...fontFamily.bold,
-    fontSize: fontSize[16],
-    color: '#0F5132',
-    paddingHorizontal: 8,
-    opacity: 0.6,
+    marginBottom: 2,
   },
   savingsYear: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    color: '#0F5132',
-    letterSpacing: -0.1,
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    color: SUGGESTED_COLOR,
+    letterSpacing: -0.05,
+    opacity: 0.9,
   },
 
-  // Compare head (column titles)
-  compareHead: {
-    flexDirection: 'row',
-    paddingHorizontal: 4,
-    paddingBottom: 10,
-  },
-  compareCell: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  compareHeadLabel: {
+  // Comparativa
+  compareHeading: {
     ...fontFamily.semibold,
     fontSize: fontSize[11],
     color: C.textMuted,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    paddingHorizontal: 4,
+    marginBottom: 8,
   },
-  compareHeadValue: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    color: '#000000',
-    letterSpacing: -0.1,
-    lineHeight: fontSize[14] * 1.3,
-  },
-  suggestedAccent: {
-    color: SUGGESTED_COLOR,
-  },
-
-  // Comparison table
   compareTable: {
     backgroundColor: C.cardBg,
     borderRadius: 16,
     paddingHorizontal: 4,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   compareRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
   },
   compareRowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.cardDivider,
   },
-  compareRowLabel: {
+  compareLabel: {
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    color: C.textMuted,
+    flex: 1,
+    fontSize: fontSize[14],
+    color: '#0F0F10',
     letterSpacing: -0.05,
-    marginBottom: 6,
-  },
-  compareValues: {
-    flexDirection: 'row',
   },
   compareValue: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
+    fontSize: fontSize[15],
     color: '#0F0F10',
     letterSpacing: -0.1,
-    flex: 1,
-    paddingRight: 8,
   },
   compareValueHighlight: {
     color: SUGGESTED_COLOR,
