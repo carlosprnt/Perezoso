@@ -9,7 +9,7 @@
 // Rendered as its own <Modal> at the app root via _layout.tsx so it
 // stacks above any content that happens to be underneath.
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Animated,
   Easing,
@@ -24,7 +24,6 @@ import { BlurView } from 'expo-blur';
 
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
-import { SiriEdgeGlow } from '../../components/SiriEdgeGlow';
 
 const ENTER_MS = 320;
 const HOLD_MS = 1760;       // ENTER + HOLD + EXIT ≈ 2500ms
@@ -45,15 +44,9 @@ export function SubscriptionCreatedCelebration() {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitingRef = useRef(false);
 
-  // Whether the Siri-like edge glow is active. Drops to false at the
-  // start of the exit animation so the glow fades out slightly ahead
-  // of the card, leaving the screen calm by the time the modal closes.
-  const [glowActive, setGlowActive] = useState(false);
-
   const startExit = useCallback(() => {
     if (exitingRef.current) return;
     exitingRef.current = true;
-    setGlowActive(false);
     if (holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
       holdTimerRef.current = null;
@@ -93,7 +86,6 @@ export function SubscriptionCreatedCelebration() {
 
     // Reset values each time the celebration fires.
     exitingRef.current = false;
-    setGlowActive(true);
     backdropOpacity.setValue(0);
     cardOpacity.setValue(0);
     cardScale.setValue(0.86);
@@ -167,11 +159,6 @@ export function SubscriptionCreatedCelebration() {
           ]}
         />
       </Animated.View>
-
-      {/* Siri-style green/violet halo tracing the device edges while
-          the celebration is on-screen. Fades in with the card and
-          starts retreating as soon as the exit begins. */}
-      <SiriEdgeGlow visible={glowActive} />
 
       <View style={styles.centerWrap} pointerEvents="box-none">
         <Animated.View
