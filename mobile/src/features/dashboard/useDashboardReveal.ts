@@ -47,6 +47,7 @@ import {
   type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, type ComposedGesture } from 'react-native-gesture-handler';
+import { haptic } from '../../lib/haptics';
 
 // ─── Tunables ───────────────────────────────────────────────────────
 const PEEK_HEIGHT = 120;            // px of foreground visible when lowered
@@ -275,6 +276,7 @@ export function useDashboardReveal(): DashboardReveal {
         isOpenSV.value = willBeOpen;
         revealIsOpen.value = willBeOpen;
         runOnJS(setOpenState)(willBeOpen);
+        runOnJS(haptic.medium)();
       }
       translateY.value = withSpring(target, SNAP_SPRING);
     });
@@ -296,6 +298,7 @@ export function useDashboardReveal(): DashboardReveal {
   }, [isOpenSV, translateY]);
 
   const toggle = useCallback(() => {
+    haptic.medium();
     if (isOpenSV.value) close();
     else open();
   }, [open, close, isOpenSV]);

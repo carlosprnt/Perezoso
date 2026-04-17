@@ -32,10 +32,13 @@ import Animated, {
   Extrapolation,
   interpolate,
   useAnimatedStyle,
+  useAnimatedReaction,
   useSharedValue,
+  runOnJS,
   type SharedValue,
 } from 'react-native-reanimated';
 import { Plus } from 'lucide-react-native';
+import { haptic } from '../../lib/haptics';
 
 import { useTheme } from '../../design/useTheme';
 import { fontFamily } from '../../design/typography';
@@ -187,10 +190,30 @@ function Row({
     };
   });
 
+  const hasEnteredHaptic = useSharedValue(0);
+  useAnimatedReaction(
+    () => {
+      if (measured.value === 0 || baselineY.value < 0) return 1;
+      const screenY = baselineY.value + rowY.value - scrollY.value;
+      return interpolate(
+        screenY,
+        [SCREEN_H - ENTER_START_FROM_BOTTOM, SCREEN_H - ENTER_END_FROM_BOTTOM],
+        [0, 1],
+        Extrapolation.CLAMP,
+      );
+    },
+    (cur, prev) => {
+      if (prev !== null && prev < 0.5 && cur >= 0.5 && hasEnteredHaptic.value === 0) {
+        hasEnteredHaptic.value = 1;
+        runOnJS(haptic.light)();
+      }
+    },
+  );
+
   return (
     <Animated.View onLayout={onLayout} style={animatedStyle}>
       <Pressable
-        onPress={onPress}
+        onPress={() => { haptic.light(); onPress(); }}
         style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
         accessibilityRole="button"
         accessibilityLabel={`Añadir ${name}`}

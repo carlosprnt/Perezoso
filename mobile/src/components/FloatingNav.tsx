@@ -25,6 +25,7 @@
 
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { haptic } from '../lib/haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -139,6 +140,7 @@ export function FloatingNav() {
   // thread so the morph-from-rect origin matches the visual button size.
   const openAddSubscription = useCallback(() => {
     if (useAddSubscriptionStore.getState().isOpen) return;
+    haptic.medium();
 
     const compact = navCompactProgress.value;
     const btnW = BTN_W_EXPANDED + (BTN_W_COMPACT - BTN_W_EXPANDED) * compact;
@@ -282,7 +284,7 @@ export function FloatingNav() {
               },
               navButtonStyle,
             ]}
-            onPress={() => router.push('/(tabs)/dashboard')}
+            onPress={() => { haptic.selection(); router.push('/(tabs)/dashboard'); }}
           >
             <LayoutGrid
               size={20}
@@ -311,7 +313,7 @@ export function FloatingNav() {
               },
               navButtonStyle,
             ]}
-            onPress={() => router.push('/(tabs)/subscriptions')}
+            onPress={() => { haptic.selection(); router.push('/(tabs)/subscriptions'); }}
           >
             <CardIcon
               size={20}

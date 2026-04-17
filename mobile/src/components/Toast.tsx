@@ -15,6 +15,7 @@ import { Check, X } from 'lucide-react-native';
 
 import { useToastStore } from './useToastStore';
 import { fontFamily, fontSize } from '../design/typography';
+import { haptic } from '../lib/haptics';
 
 const SHOW_DURATION_MS = 2800;
 
@@ -34,6 +35,9 @@ export function Toast() {
       translateY.setValue(-220);
       return;
     }
+
+    if (kind === 'success') haptic.success();
+    else haptic.error();
 
     Animated.timing(translateY, {
       toValue: 0,

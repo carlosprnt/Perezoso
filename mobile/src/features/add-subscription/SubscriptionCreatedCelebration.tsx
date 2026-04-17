@@ -24,6 +24,7 @@ import { BlurView } from 'expo-blur';
 
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
+import { haptic } from '../../lib/haptics';
 
 const ENTER_MS = 320;
 const HOLD_MS = 1760;       // ENTER + HOLD + EXIT ≈ 2500ms
@@ -86,6 +87,7 @@ export function SubscriptionCreatedCelebration() {
 
     // Reset values each time the celebration fires.
     exitingRef.current = false;
+    haptic.success();
     backdropOpacity.setValue(0);
     cardOpacity.setValue(0);
     cardScale.setValue(0.86);

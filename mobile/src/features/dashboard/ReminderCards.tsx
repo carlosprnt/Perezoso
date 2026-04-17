@@ -52,6 +52,7 @@ import { Bell, Sparkles } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
+import { haptic } from '../../lib/haptics';
 import { shadows } from '../../design/shadows';
 import { Pressable } from '../../components/Pressable';
 import { useReminderDismissalsStore } from './useReminderDismissalsStore';
@@ -278,14 +279,14 @@ function CardShell({
       </View>
 
       <View style={styles.buttons}>
-        <Pressable onPress={onDismiss} activeScale={0.97}>
+        <Pressable onPress={() => { haptic.light(); onDismiss?.(); }} activeScale={0.97}>
           <View style={styles.dismissBtn}>
             <Text style={[styles.dismissText, {
               color: isDark ? '#636366' : '#8E8E93',
             }]}>No me interesa</Text>
           </View>
         </Pressable>
-        <Pressable onPress={onCta} activeScale={0.97} style={{ flex: 1 }}>
+        <Pressable onPress={() => { haptic.medium(); onCta?.(); }} activeScale={0.97} style={{ flex: 1 }}>
           <View style={[styles.ctaBtn, {
             backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7',
           }]}>
@@ -439,6 +440,7 @@ function TwoSlotCarousel({
 
         if (shouldSwipe) {
           isAnimating.value = true;
+          runOnJS(haptic.light)();
           const dir = evt.translationX > 0 ? 1 : -1;
           // Fly out, fade out.
           myT.value = withTiming(
@@ -480,6 +482,7 @@ function TwoSlotCarousel({
   const dismissSlot = useCallback((mySlot: 0 | 1) => {
     if (isAnimating.value) return;
     if (frontSlot.value !== mySlot) return;
+    haptic.light();
     const myT = mySlot === 0 ? t0 : t1;
     const myE = mySlot === 0 ? e0 : e1;
     const otherD = mySlot === 0 ? d1 : d0;

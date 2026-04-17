@@ -14,6 +14,7 @@ import { radius } from '../../design/radius';
 import { shadows } from '../../design/shadows';
 import { LogoAvatar } from '../../components/LogoAvatar';
 import { Pressable } from '../../components/Pressable';
+import { haptic } from '../../lib/haptics';
 import type { Subscription } from './types';
 import { CATEGORY_LABELS, STATUS_LABELS } from './types';
 
@@ -95,7 +96,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => { haptic.selection(); onPress?.(); }}
       style={[
         styles.card,
         {

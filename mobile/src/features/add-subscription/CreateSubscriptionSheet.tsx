@@ -39,6 +39,7 @@ import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionM
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { haptic } from '../../lib/haptics';
 import type {
   BillingPeriod as SubBillingPeriod,
   Category as SubCategory,
@@ -305,6 +306,7 @@ export function CreateSubscriptionSheet() {
       return;
     }
     setError(null);
+    haptic.light();
     setIsSubmitting(true);
     try {
       // TODO: replace with real API call

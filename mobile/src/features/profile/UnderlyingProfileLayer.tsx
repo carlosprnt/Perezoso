@@ -34,6 +34,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings, Share2, LogOut, Sun } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { haptic } from '../../lib/haptics';
 
 // Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
 const PEEK_HEIGHT = 120;
@@ -123,7 +124,7 @@ export function UnderlyingProfileLayer({
               styles.plusBtn,
               pressed && styles.plusBtnPressed,
             ]}
-            onPress={onManagePlus}
+            onPress={() => { haptic.selection(); onManagePlus?.(); }}
             accessibilityLabel="Gestionar suscripción Perezoso Plus"
           >
             <Text style={styles.plusBtnText}>Gestionar</Text>
@@ -140,7 +141,7 @@ export function UnderlyingProfileLayer({
               styles.bottomBtn,
               pressed && { opacity: 0.7 },
             ]}
-            onPress={onLogout}
+            onPress={() => { haptic.light(); onLogout?.(); }}
             hitSlop={8}
             accessibilityLabel="Cerrar sesión"
           >
@@ -154,7 +155,7 @@ export function UnderlyingProfileLayer({
               styles.bottomBtn,
               pressed && { opacity: 0.7 },
             ]}
-            onPress={onToggleTheme}
+            onPress={() => { haptic.selection(); onToggleTheme?.(); }}
             hitSlop={8}
             accessibilityLabel="Cambiar a modo claro"
           >
@@ -183,7 +184,7 @@ function DarkTile({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => { haptic.selection(); onPress?.(); }}
       style={({ pressed }) => [
         styles.tile,
         pressed && styles.tilePressed,

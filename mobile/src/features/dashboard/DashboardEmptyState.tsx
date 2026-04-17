@@ -36,6 +36,7 @@ import { BlurView } from 'expo-blur';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
+import { haptic } from '../../lib/haptics';
 import { useCreateSubscriptionStore } from '../add-subscription/useCreateSubscriptionStore';
 import { SuggestionsList } from '../add-subscription/SuggestionsList';
 
@@ -114,6 +115,7 @@ export function DashboardEmptyState({ scrollY }: Props) {
   }));
 
   const handleManual = () => {
+    haptic.medium();
     useCreateSubscriptionStore.getState().open();
   };
 

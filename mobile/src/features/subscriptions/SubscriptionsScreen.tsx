@@ -25,11 +25,13 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useAnimatedReaction,
   useDerivedValue,
   interpolate,
   Extrapolation,
   withTiming,
   Easing,
+  runOnJS,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +41,7 @@ import { Check, ChevronsUpDown } from 'lucide-react-native';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
+import { haptic } from '../../lib/haptics';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
 
@@ -212,6 +215,17 @@ function ScrollCard({
     );
   });
 
+  const hasEnteredHaptic = useSharedValue(0);
+  useAnimatedReaction(
+    () => enterProgress.value,
+    (cur, prev) => {
+      if (prev !== null && prev < 0.5 && cur >= 0.5 && hasEnteredHaptic.value === 0) {
+        hasEnteredHaptic.value = 1;
+        runOnJS(haptic.light)();
+      }
+    },
+  );
+
   const animatedStyle = useAnimatedStyle(() => {
     // Children's onLayout fires before the parent's, so cardY can be
     // populated one frame before listY. Skip the transform on both
@@ -322,6 +336,12 @@ export function SubscriptionsScreen() {
   }, []);
   const closeDropdown = useCallback(() => setOpenMenu(null), []);
 
+  // Haptic on dropdown open
+  const openDropdownWithHaptic = useCallback((which: 'sort' | 'filter') => {
+    haptic.light();
+    openDropdown(which);
+  }, [openDropdown]);
+
   // Monthly <-> annual toggle for the "Pagas X al mes" line.
   // Tapping the amount triggers a 1.5s shimmer skeleton and then
   // switches the shown period. The skeleton covers the amount AND
@@ -336,6 +356,7 @@ export function SubscriptionsScreen() {
   }, []);
   const handleTogglePeriod = useCallback(() => {
     if (periodLoading) return;
+    haptic.selection();
     setPeriodLoading(true);
     periodTimeoutRef.current = setTimeout(() => {
       setPeriod((p) => (p === 'monthly' ? 'annual' : 'monthly'));
@@ -518,7 +539,7 @@ export function SubscriptionsScreen() {
               native iOS ActionSheet was replaced on user request). */}
           <Pressable
             ref={sortTriggerRef}
-            onPress={() => openDropdown('sort')}
+            onPress={() => openDropdownWithHaptic('sort')}
             style={styles.dropdownLeft}
             hitSlop={8}
           >
@@ -533,7 +554,7 @@ export function SubscriptionsScreen() {
 
           <Pressable
             ref={filterTriggerRef}
-            onPress={() => openDropdown('filter')}
+            onPress={() => openDropdownWithHaptic('filter')}
             style={styles.dropdownRight}
             hitSlop={8}
           >
@@ -686,6 +707,7 @@ function DropdownMenu<T extends string>({
             <Pressable
               key={value}
               onPress={() => {
+                haptic.selection();
                 onSelect(value);
                 onClose();
               }}
