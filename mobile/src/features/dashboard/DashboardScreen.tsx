@@ -353,7 +353,7 @@ export function DashboardScreen() {
 
               {/* Most Expensive */}
               <StaggeredItem index={4}>
-                <View>
+                <View style={{ marginTop: 16 }}>
                   <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                     Suscripciones más caras
                   </Text>

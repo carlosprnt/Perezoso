@@ -54,6 +54,16 @@ function renewalText(days: number): string {
   return `En ${days} días`;
 }
 
+const MONTHS_ES_SHORT = [
+  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+];
+
+function formatBillingDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getDate()} ${MONTHS_ES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 /** Billing progress: fraction of the billing cycle elapsed */
 function billingProgress(period: string, intervalCount: number, nextDate: string): number {
   const periodDays: Record<string, number> = {
@@ -90,6 +100,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
         styles.card,
         {
           backgroundColor: colors.surface,
+          borderColor: colors.borderLight,
         },
         shadows.cardSm,
       ]}
@@ -130,6 +141,9 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
       {/* Bottom row: progress bar + renewal info + status */}
       <View style={styles.bottomRow}>
         <View style={styles.progressSection}>
+          <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+            Siguiente cobro
+          </Text>
           <View style={[styles.progressBar, { backgroundColor: progressBarBg }]}>
             <View
               style={[
@@ -142,7 +156,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
             />
           </View>
           <Text style={[styles.renewalText, { color: colors.textMuted }]}>
-            {renewalText(days)}
+            {renewalText(days)} · {formatBillingDate(sub.next_billing_date)}
           </Text>
         </View>
 
@@ -165,6 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card, // 32px
     padding: 20,
     gap: 16,
+    borderWidth: 1,
   },
   topRow: {
     flexDirection: 'row',
@@ -225,6 +240,11 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 4,
     borderRadius: 2,
+  },
+  renewalLabel: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
   },
   renewalText: {
     ...fontFamily.medium,

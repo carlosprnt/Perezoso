@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   title: {
-    ...fontFamily.extrabold,
+    ...fontFamily.bold,
     fontSize: 30,
     lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
@@ -782,11 +782,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dropdownMuted: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[15],
   },
   dropdownValue: {
-    ...fontFamily.semibold,
+    ...fontFamily.regular,
     fontSize: fontSize[15],
     marginRight: 4,
   },
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
   },
   // 16px typography — explicit size on user's request.
   dropdownItemText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 16,
     lineHeight: 16 * 1.3,
   },
