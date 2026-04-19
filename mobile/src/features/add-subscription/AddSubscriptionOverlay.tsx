@@ -31,9 +31,10 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  ScrollView,
   Dimensions,
   Image,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -48,6 +49,7 @@ import Animated, {
 import {
   Gesture,
   GestureDetector,
+  ScrollView,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
@@ -57,6 +59,7 @@ import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { fontFamily, fontSize } from '../../design/typography';
 import { zIndex } from '../../design/zIndex';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
+import { haptic } from '../../lib/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -228,31 +231,41 @@ export function AddSubscriptionOverlay() {
     if (interactive) close();
   }, [interactive, close]);
 
-  // Swipe-to-dismiss (attached to the header area so it doesn't conflict
-  // with the ScrollView's own pan gesture). Requires 10px down before
-  // activating so taps on the close button still register; fails if the
-  // user starts by dragging up so upward flicks feel natural too.
+  // Track ScrollView offset so pull-to-dismiss only activates at top.
+  const scrollOffset = useSharedValue(0);
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollOffset.value = e.nativeEvent.contentOffset.y;
+  }, [scrollOffset]);
+
+  // Swipe-to-dismiss: works from anywhere in the sheet. Only activates
+  // when the ScrollView is at the top (offset ≤ 2) AND dragging down.
+  // This mimics iOS native modal dismiss behavior.
   const panGesture = Gesture.Pan()
     .activeOffsetY(10)
     .failOffsetY(-10)
     .onUpdate((e) => {
       'worklet';
+      if (scrollOffset.value > 2) return;
       if (e.translationY > 0) {
         swipeY.value = e.translationY;
       }
     })
     .onEnd((e) => {
       'worklet';
+      if (scrollOffset.value > 2) {
+        swipeY.value = withTiming(0, { duration: 260 });
+        return;
+      }
       const shouldClose =
         e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY;
       if (shouldClose) {
+        runOnJS(haptic.light)();
         runOnJS(close)();
       }
-      // In both cases animate swipeY back to 0 — either because we're
-      // snapping back, or because the close morph-shrink needs the
-      // translation to settle while `top` interpolates to the trigger rect.
       swipeY.value = withTiming(0, { duration: 260 });
     });
+
+  const nativeScrollGesture = Gesture.Native();
 
   if (!mounted || !triggerRect) return null;
 
@@ -277,8 +290,9 @@ export function AddSubscriptionOverlay() {
             is large enough to contain it. */}
         <View style={{ width: sheetW, height: sheetH }}>
           <Animated.View style={[styles.content, contentStyle]}>
-            {/* ─── Header (also the drag handle for swipe-to-dismiss) ── */}
-            <GestureDetector gesture={panGesture}>
+            <GestureDetector gesture={panGesture.simultaneousWithExternalGesture(nativeScrollGesture)}>
+            <View style={{ flex: 1 }}>
+            {/* ─── Header ── */}
               <View style={styles.header}>
                 <Text style={styles.title}>Crear nueva suscripción</Text>
                 <Pressable
@@ -290,13 +304,16 @@ export function AddSubscriptionOverlay() {
                   <X size={16} color="#FFFFFF" strokeWidth={2.5} />
                 </Pressable>
               </View>
-            </GestureDetector>
 
             {/* ─── Scrollable service list ─────────────────────── */}
+            <GestureDetector gesture={nativeScrollGesture}>
             <ScrollView
               style={styles.list}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              bounces={false}
             >
               {FEATURED.map((p) => (
                 <Pressable
@@ -331,14 +348,12 @@ export function AddSubscriptionOverlay() {
                 </Pressable>
               ))}
             </ScrollView>
+            </GestureDetector>
 
             {/* ─── Footer actions ──────────────────────────────── */}
             <View
               style={[
                 styles.footer,
-                // The morph already sits 8px above the screen edge (see
-                // sheetBottomMargin), so the footer's own bottom padding
-                // only needs to breathe a little — no full insets.bottom.
                 { paddingBottom: 22 },
               ]}
             >
@@ -371,6 +386,8 @@ export function AddSubscriptionOverlay() {
                 </Text>
               </Pressable>
             </View>
+            </View>
+            </GestureDetector>
           </Animated.View>
         </View>
       </Animated.View>
