@@ -1,25 +1,42 @@
-// Phase 9 — Login screen with carousel + floating logos + OAuth
-import { View, Text, StyleSheet } from 'react-native';
-import { light } from '../../src/design/colors';
+// Onboarding + login entry point. Hosts the LoginOnboardingScreen
+// and wires its handlers to the router / auth stubs.
 
-export default function LoginScreen() {
+import React, { useCallback } from 'react';
+import { Linking } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import { LoginOnboardingScreen } from '../../src/features/auth/LoginOnboardingScreen';
+import { haptic } from '../../src/lib/haptics';
+
+export default function LoginRoute() {
+  const router = useRouter();
+
+  const onPressGoogle = useCallback(() => {
+    haptic.medium();
+    // TODO: wire Supabase OAuth (Google)
+    router.replace('/(tabs)/dashboard');
+  }, [router]);
+
+  const onPressApple = useCallback(() => {
+    haptic.medium();
+    // TODO: wire Supabase OAuth (Apple)
+    router.replace('/(tabs)/dashboard');
+  }, [router]);
+
+  const onPressTerms = useCallback(() => {
+    Linking.openURL('https://perezoso.app/terminos').catch(() => {});
+  }, []);
+
+  const onPressPrivacy = useCallback(() => {
+    Linking.openURL('https://perezoso.app/privacidad').catch(() => {});
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Perezoso</Text>
-    </View>
+    <LoginOnboardingScreen
+      onPressGoogle={onPressGoogle}
+      onPressApple={onPressApple}
+      onPressTerms={onPressTerms}
+      onPressPrivacy={onPressPrivacy}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: light.background,
-  },
-  text: {
-    fontSize: 32,
-    fontFamily: 'Nunito_900Black',
-    color: light.textPrimary,
-  },
-});

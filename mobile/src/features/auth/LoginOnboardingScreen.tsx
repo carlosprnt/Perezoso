@@ -1,0 +1,246 @@
+// LoginOnboardingScreen — horizontal paged carousel of 5 slides with
+// a fixed bottom sheet overlay that renders the title/body/buttons
+// for the current slide. The sheet persists (no remount) so the
+// rounded top corners + shadow feel "pinned" while heroes scroll
+// behind it.
+
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Dimensions,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedScrollHandler,
+  useSharedValue,
+  type ScrollHandlerProcessed,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowRight } from 'lucide-react-native';
+
+import { useTheme } from '../../design/useTheme';
+import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { haptic } from '../../lib/haptics';
+
+import {
+  ONBOARDING_SLIDES,
+  LAST_SLIDE_INDEX,
+  type SlideMeta,
+} from './constants';
+import { OnboardingSlide } from './OnboardingSlide';
+import { OnboardingBottomSheet } from './OnboardingBottomSheet';
+import { SocialLoginButtons } from './SocialLoginButtons';
+
+import { FloatingLogosHero } from './heroes/FloatingLogosHero';
+import { RenewalsDashboardHero } from './heroes/RenewalsDashboardHero';
+import { CalendarHero } from './heroes/CalendarHero';
+import { SavingsInsightsHero } from './heroes/SavingsInsightsHero';
+import { FinalLoginHero } from './heroes/FinalLoginHero';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+
+export interface LoginOnboardingHandlers {
+  onPressGoogle?: () => void;
+  onPressApple?: () => void;
+  onPressTerms?: () => void;
+  onPressPrivacy?: () => void;
+}
+
+export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<Animated.ScrollView>(null);
+
+  // Continuous page position (scrollX / pageWidth). Drives dots + heroes.
+  const page = useSharedValue(0);
+  const [pageIndex, setPageIndex] = useState(0);
+
+  const scrollHandler: ScrollHandlerProcessed = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      page.value = e.contentOffset.x / SCREEN_W;
+    },
+    onMomentumEnd: (e) => {
+      const idx = Math.round(e.contentOffset.x / SCREEN_W);
+      runOnJS(setPageIndex)(idx);
+    },
+  });
+
+  const goTo = useCallback((idx: number) => {
+    scrollRef.current?.scrollTo({ x: idx * SCREEN_W, animated: true });
+  }, []);
+
+  const onContinueSlide = useCallback(() => {
+    haptic.selection();
+    const next = Math.min(pageIndex + 1, LAST_SLIDE_INDEX);
+    goTo(next);
+  }, [pageIndex, goTo]);
+
+  const onSkipToLogin = useCallback(() => {
+    haptic.selection();
+    goTo(LAST_SLIDE_INDEX);
+  }, [goTo]);
+
+  const onPressGoogle = useCallback(() => {
+    handlers.onPressGoogle?.();
+  }, [handlers]);
+
+  const onPressApple = useCallback(() => {
+    handlers.onPressApple?.();
+  }, [handlers]);
+
+  // Reserve a constant vertical slot for the bottom sheet across all
+  // slides so the hero area doesn't jump in size on page change. The
+  // sheet itself is absolutely positioned so actual rendered height
+  // can float freely inside this budget.
+  const RESERVED_SHEET_HEIGHT = 330;
+  const heroTopInset = insets.top + 40;
+
+  const renderHero = useMemo(
+    () => (slide: SlideMeta, idx: number) => {
+      return (
+        <OnboardingSlide
+          key={slide.id}
+          index={idx}
+          page={page}
+          heroTopInset={heroTopInset}
+          sheetHeight={RESERVED_SHEET_HEIGHT}
+        >
+          {(parallax) => {
+            switch (slide.id) {
+              case 'floating-logos':
+                return <FloatingLogosHero parallax={parallax} />;
+              case 'renewals-dashboard':
+                return <RenewalsDashboardHero parallax={parallax} />;
+              case 'calendar':
+                return <CalendarHero parallax={parallax} />;
+              case 'savings':
+                return <SavingsInsightsHero parallax={parallax} />;
+              case 'final-login':
+                return <FinalLoginHero parallax={parallax} />;
+            }
+          }}
+        </OnboardingSlide>
+      );
+    },
+    [page, heroTopInset],
+  );
+
+  const activeSlide = ONBOARDING_SLIDES[pageIndex];
+  const isLast = pageIndex === LAST_SLIDE_INDEX;
+
+  return (
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
+      {/* Slides ─────────────────────────── */}
+      <Animated.ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        style={styles.scroll}
+      >
+        {ONBOARDING_SLIDES.map(renderHero)}
+      </Animated.ScrollView>
+
+      {/* Bottom sheet (persistent) ──────── */}
+      <OnboardingBottomSheet
+        title={activeSlide.title}
+        body={activeSlide.body}
+        index={pageIndex}
+        page={page}
+        count={ONBOARDING_SLIDES.length}
+        showLegal={isLast}
+        onPressTerms={handlers.onPressTerms}
+        onPressPrivacy={handlers.onPressPrivacy}
+      >
+        {isLast ? (
+          <View style={{ flex: 1 }}>
+            <SocialLoginButtons
+              onPressGoogle={onPressGoogle}
+              onPressApple={onPressApple}
+            />
+          </View>
+        ) : (
+          <>
+            <Pressable
+              onPress={onSkipToLogin}
+              style={({ pressed }) => [
+                styles.secondaryBtn,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.borderLight,
+                },
+                pressed && { opacity: 0.8 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar sesión"
+            >
+              <Text style={[styles.secondaryBtnText, { color: colors.textPrimary }]}>
+                Iniciar sesión
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onContinueSlide}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                { backgroundColor: colors.textPrimary },
+                pressed && { opacity: 0.85 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Continuar"
+            >
+              <Text style={[styles.primaryBtnText, { color: colors.background }]}>
+                Continuar
+              </Text>
+              <ArrowRight size={16} color={colors.background} strokeWidth={2.4} />
+            </Pressable>
+          </>
+        )}
+      </OnboardingBottomSheet>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  secondaryBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryBtnText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[15],
+    letterSpacing: -0.1,
+  },
+  primaryBtn: {
+    flex: 1.3,
+    height: 52,
+    borderRadius: radius.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  primaryBtnText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[15],
+    letterSpacing: -0.1,
+  },
+});
