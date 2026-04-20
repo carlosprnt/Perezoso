@@ -68,6 +68,7 @@ import {
   useTagsStore,
 } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { useAuthStore } from '../auth/useAuthStore';
 
 // ─── Mock profile data ────────────────────────────────────────────────
 // Would come from an auth/profile store once wired to Supabase.
@@ -94,6 +95,7 @@ export function SettingsSheet() {
 
   const openDemo              = useDemoSheetStore((s) => s.openSheet);
   const isPlusActive          = useSubscriptionsStore((s) => s.isPlusActive);
+  const deleteAccount         = useAuthStore((s) => s.deleteAccount);
 
   const insets = useSafeAreaInsets();
 
@@ -143,11 +145,21 @@ export function SettingsSheet() {
         {
           text: 'Eliminar cuenta',
           style: 'destructive',
-          onPress: () => comingSoon('Cuenta eliminada'),
+          onPress: async () => {
+            const res = await deleteAccount();
+            if (!res.ok) {
+              Alert.alert('No se pudo eliminar', res.error ?? 'Error desconocido');
+              return;
+            }
+            // signOut inside deleteAccount flips auth → unauthenticated,
+            // AuthGate redirects to login. Close the sheet so the user
+            // isn't stuck looking at it during the transition.
+            close();
+          },
         },
       ],
     );
-  }, [comingSoon]);
+  }, [deleteAccount, close]);
 
   // ──────────────────────────────────────────────────────────────────
 

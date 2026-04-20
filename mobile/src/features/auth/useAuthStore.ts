@@ -18,6 +18,7 @@ import { makeRedirectUri } from 'expo-auth-session';
 import type { Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '../../services/supabase';
+import { deleteAllSubscriptions } from '../../services/subscriptionsApi';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -29,6 +30,9 @@ interface AuthState {
 
   signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  /** Wipe all DB data for the current user and sign out. Next login
+   *  starts fresh with zero subscriptions. */
+  deleteAccount: () => Promise<{ ok: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -101,6 +105,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     // onAuthStateChange flips status → 'unauthenticated'.
+  },
+
+  deleteAccount: async () => {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+    if (!userId) {
+      return { ok: false, error: 'No hay sesión activa' };
+    }
+    try {
+      await deleteAllSubscriptions(userId);
+    } catch (e: any) {
+      return { ok: false, error: e?.message ?? 'Error borrando datos' };
+    }
+    // Sign out — the auth.users row remains (needs a Supabase RPC with
+    // SECURITY DEFINER to remove it), but all app data is gone, so the
+    // next sign-in lands on an empty account.
+    await supabase.auth.signOut();
+    return { ok: true };
   },
 }));
 
