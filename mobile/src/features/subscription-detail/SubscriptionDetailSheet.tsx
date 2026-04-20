@@ -89,7 +89,7 @@ export function SubscriptionDetailSheet() {
       visible={isOpen}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={mode === 'edit' ? exitEdit : close}
+      onRequestClose={close}
       onDismiss={handleNativeDismiss}
     >
       {/* View mode — always mounted, fades out in edit mode */}
@@ -110,7 +110,7 @@ export function SubscriptionDetailSheet() {
         <SubscriptionEditView
           sub={sub}
           onSave={handleSave}
-          onCancel={exitEdit}
+          onCancel={close}
           onDelete={handleDelete}
         />
       </Animated.View>

@@ -42,14 +42,15 @@ const styles = StyleSheet.create({
   outer: {
     width: FRAME_WIDTH,
     alignSelf: 'center',
+    flex: 1,
   },
   frame: {
-    width: '100%',
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 32,
-    paddingTop: 0,
     paddingHorizontal: 10,
     paddingBottom: 16,
+    overflow: 'hidden',
     ...shadows.cardMd,
   },
   statusBar: {
@@ -58,6 +59,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    flexShrink: 0,
   },
   clock: {
     ...fontFamily.semibold,
@@ -76,7 +78,9 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   content: {
+    flex: 1,
     paddingHorizontal: 10,
     paddingTop: 6,
+    overflow: 'hidden',
   },
 });

@@ -26,6 +26,7 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
+import { HalfSheet } from '../../components/HalfSheet';
 
 import {
   ONBOARDING_SLIDES,
@@ -80,10 +81,18 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
     goTo(next);
   }, [pageIndex, goTo]);
 
-  const onSkipToLogin = useCallback(() => {
+  // "Iniciar sesión" opens a half-sheet with Google/Apple buttons
+  // instead of jumping to the last onboarding slide.
+  const [loginSheetOpen, setLoginSheetOpen] = useState(false);
+
+  const onOpenLoginSheet = useCallback(() => {
     haptic.selection();
-    goTo(LAST_SLIDE_INDEX);
-  }, [goTo]);
+    setLoginSheetOpen(true);
+  }, []);
+
+  const onCloseLoginSheet = useCallback(() => {
+    setLoginSheetOpen(false);
+  }, []);
 
   const onPressGoogle = useCallback(() => {
     handlers.onPressGoogle?.();
@@ -171,7 +180,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         ) : (
           <>
             <Pressable
-              onPress={onSkipToLogin}
+              onPress={onOpenLoginSheet}
               style={({ pressed }) => [
                 styles.secondaryBtn,
                 {
@@ -205,6 +214,44 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
           </>
         )}
       </OnboardingBottomSheet>
+
+      {/* Login sheet — opens from "Iniciar sesión" on any non-final slide */}
+      <HalfSheet
+        isOpen={loginSheetOpen}
+        onClose={onCloseLoginSheet}
+        title="Iniciar sesión"
+        heightFraction={0.38}
+      >
+        <View style={styles.loginSheetContent}>
+          <SocialLoginButtons
+            onPressGoogle={() => {
+              onCloseLoginSheet();
+              onPressGoogle();
+            }}
+            onPressApple={() => {
+              onCloseLoginSheet();
+              onPressApple();
+            }}
+          />
+          <Text style={[styles.legalText, { color: colors.textMuted }]}>
+            Al continuar, aceptas los{' '}
+            <Text
+              style={styles.legalLink}
+              onPress={handlers.onPressTerms}
+            >
+              Términos de uso
+            </Text>
+            {' y la '}
+            <Text
+              style={styles.legalLink}
+              onPress={handlers.onPressPrivacy}
+            >
+              Política de privacidad
+            </Text>
+            .
+          </Text>
+        </View>
+      </HalfSheet>
     </View>
   );
 }
@@ -242,5 +289,20 @@ const styles = StyleSheet.create({
     ...fontFamily.semibold,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
+  },
+  loginSheetContent: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    gap: 20,
+  },
+  legalText: {
+    ...fontFamily.regular,
+    fontSize: 11,
+    lineHeight: 11 * 1.5,
+    textAlign: 'center',
+  },
+  legalLink: {
+    ...fontFamily.semibold,
+    textDecorationLine: 'underline',
   },
 });
