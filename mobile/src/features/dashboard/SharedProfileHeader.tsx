@@ -32,14 +32,13 @@
 // UnderlyingProfileLayer content padding so the element lines up with
 // whatever is behind it in either state.
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
   Image,
-  type ImageSourcePropType,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -53,8 +52,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { revealProgress } from './useDashboardReveal';
 import { fontFamily } from '../../design/typography';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
-
-const AVATAR_SOURCE: ImageSourcePropType = require('../../../assets/logo.png');
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
@@ -85,6 +82,8 @@ export function SharedProfileHeader({
   const insets = useSafeAreaInsets();
   const displayName = fullName || firstName;
   const pastel = getAvatarPastel(displayName);
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = !!avatarUrl && !imgFailed;
 
   // Greeting text — fontSize + color both drive off the same progress.
   // Reanimated's useAnimatedStyle can animate `fontSize` via RN 0.81's
@@ -137,12 +136,13 @@ export function SharedProfileHeader({
           accessibilityLabel="Abrir / cerrar menú de perfil"
           accessibilityRole="button"
         >
-          {avatarUrl ? (
+          {showImage ? (
             <View style={styles.avatar}>
               <Image
-                source={{ uri: avatarUrl }}
+                source={{ uri: avatarUrl! }}
                 style={styles.avatarImg}
                 resizeMode="cover"
+                onError={() => setImgFailed(true)}
               />
             </View>
           ) : (
