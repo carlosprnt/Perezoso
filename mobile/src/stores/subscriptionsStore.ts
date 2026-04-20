@@ -155,10 +155,9 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
 // inherits the behaviour — no component needs to wire it up.
 useAuthStore.subscribe((state, prev) => {
   if (state.status === prev.status) return;
-  const mode = useSubscriptionsStore.getState().mode;
 
-  if (state.status === 'authenticated' && mode === 'real') {
-    useSubscriptionsStore.getState().loadFromSupabase();
+  if (state.status === 'authenticated') {
+    useSubscriptionsStore.getState().useRealMode();
   } else if (state.status === 'unauthenticated') {
     useSubscriptionsStore.getState().clear();
   }
