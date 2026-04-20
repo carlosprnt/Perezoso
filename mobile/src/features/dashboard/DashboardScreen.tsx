@@ -387,15 +387,18 @@ export function DashboardScreen() {
                 </Card>
               </StaggeredItem>
 
-              {/* Most Expensive */}
-              <StaggeredItem index={4}>
-                <View style={{ marginTop: 16 }}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    Suscripciones más caras
-                  </Text>
-                  <TopExpensive subscriptions={topExpensive} />
-                </View>
-              </StaggeredItem>
+              {/* Most Expensive — only surfaces once the user has enough
+                  subscriptions for a ranking to be meaningful. */}
+              {subscriptions.length > 3 && (
+                <StaggeredItem index={4}>
+                  <View style={{ marginTop: 16 }}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                      Suscripciones más caras
+                    </Text>
+                    <TopExpensive subscriptions={topExpensive} />
+                  </View>
+                </StaggeredItem>
+              )}
             </View>
             )}
           </Animated.ScrollView>

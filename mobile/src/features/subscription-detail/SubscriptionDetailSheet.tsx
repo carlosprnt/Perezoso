@@ -71,14 +71,12 @@ export function SubscriptionDetailSheet() {
 
   const handleSave = useCallback((updated: Subscription) => {
     updateSub(updated);
-    exitEdit();
-    // Green iOS-style banner confirming the save. Fired here instead
-    // of inside the edit view so the toast survives any re-render the
-    // mode transition triggers. Rendered both at the app root and
-    // inside the pageSheet Modal below — the native iOS sheet covers
-    // the root instance, so we need an in-sheet Toast to be visible.
+    // After a successful edit, dismiss the whole detail sheet and drop
+    // the user back on the previous screen (Subscriptions / Dashboard).
+    // The root-level <Toast /> takes over once the pageSheet is gone.
+    close();
     useToastStore.getState().show('success', 'Suscripción actualizada');
-  }, [updateSub, exitEdit]);
+  }, [updateSub, close]);
 
   const handleDelete = useCallback(() => {
     deleteSub();

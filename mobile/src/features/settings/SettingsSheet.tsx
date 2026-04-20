@@ -2,9 +2,10 @@
 //
 // Fully theme-aware: respects current dark/light mode for all colors.
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated as RNAnimated,
   Linking,
   Modal,
   Pressable,
@@ -18,8 +19,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowUpDown,
   Bell,
+  Check,
   Coins,
   Mail,
+  RotateCcw,
   Share2,
   Shield,
   Star,
@@ -27,6 +30,8 @@ import {
   Tag as TagIcon,
   X,
 } from 'lucide-react-native';
+
+import { haptic } from '../../lib/haptics';
 
 import { fontFamily, fontSize } from '../../design/typography';
 import { useTheme } from '../../design/useTheme';
@@ -84,6 +89,7 @@ export function SettingsSheet() {
   );
 
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+  const [resetToastVisible, setResetToastVisible] = useState(false);
 
   const insets = useSafeAreaInsets();
 
@@ -131,7 +137,8 @@ export function SettingsSheet() {
 
   const handleResetCards = useCallback(() => {
     clearAllDismissals();
-    Alert.alert('Listo', 'Las tarjetas de notificaciones volverán a aparecer.');
+    haptic.success();
+    setResetToastVisible(true);
   }, [clearAllDismissals]);
 
   const handleDeleteAccount = useCallback(() => {
@@ -225,14 +232,16 @@ export function SettingsSheet() {
                 <Pressable
                   onPress={handleResetCards}
                   style={({ pressed }) => [
-                    styles.resetBtn,
-                    { borderColor: isDark ? '#38383A' : '#D4D4D4' },
-                    pressed && { opacity: 0.6 },
+                    styles.resetBtnFull,
+                    {
+                      backgroundColor: isDark ? '#2C2C2E' : '#F2F2F4',
+                    },
+                    pressed && { opacity: 0.7 },
                   ]}
                   accessibilityLabel="Restaurar tarjetas de notificaciones"
                 >
-                  <Bell size={14} color={isDark ? '#AEAEB2' : '#6B6B6B'} strokeWidth={2} />
-                  <Text style={[styles.resetBtnText, { color: isDark ? '#AEAEB2' : '#6B6B6B' }]}>
+                  <RotateCcw size={17} color={isDark ? '#FFFFFF' : '#0F0F10'} strokeWidth={2.2} />
+                  <Text style={[styles.resetBtnFullText, { color: isDark ? '#FFFFFF' : '#0F0F10' }]}>
                     Restaurar tarjetas
                   </Text>
                 </Pressable>
@@ -338,6 +347,15 @@ export function SettingsSheet() {
             />
           </ScrollView>
 
+          {/* Inline success toast — renders on top of the Settings sheet
+              content so the user sees feedback without leaving context. */}
+          <InlineToast
+            visible={resetToastVisible}
+            message="Las sugerencias vuelven a estar visibles"
+            onHide={() => setResetToastVisible(false)}
+            isDark={isDark}
+          />
+
           {/* Secondary sheets */}
           <TagsBottomSheet />
           <DemoSheet />
@@ -348,6 +366,82 @@ export function SettingsSheet() {
         </View>
       </SettingsPaletteProvider>
     </Modal>
+  );
+}
+
+// ─── Inline toast — slides down at the top of the Settings sheet. ───
+// Rendered inside the native pageSheet modal so it appears above the
+// sheet content rather than being hidden behind the iOS modal.
+function InlineToast({
+  visible,
+  message,
+  onHide,
+  isDark,
+}: {
+  visible: boolean;
+  message: string;
+  onHide: () => void;
+  isDark: boolean;
+}) {
+  const translateY = useRef(new RNAnimated.Value(-100)).current;
+  const opacity = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    if (!visible) return;
+
+    RNAnimated.parallel([
+      RNAnimated.timing(translateY, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+      RNAnimated.timing(opacity, {
+        toValue: 1,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    const t = setTimeout(() => {
+      RNAnimated.parallel([
+        RNAnimated.timing(translateY, {
+          toValue: -100,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(opacity, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => { if (finished) onHide(); });
+    }, 2400);
+
+    return () => clearTimeout(t);
+  }, [visible, onHide, translateY, opacity]);
+
+  if (!visible) return null;
+
+  return (
+    <RNAnimated.View
+      pointerEvents="none"
+      style={[
+        styles.inlineToast,
+        {
+          backgroundColor: isDark ? '#1F2A1F' : '#E9F7EC',
+          borderColor: isDark ? 'rgba(52,199,89,0.35)' : 'rgba(52,199,89,0.3)',
+          transform: [{ translateY }],
+          opacity,
+        },
+      ]}
+    >
+      <View style={styles.inlineToastIcon}>
+        <Check size={14} color="#FFFFFF" strokeWidth={3} />
+      </View>
+      <Text style={[styles.inlineToastText, { color: isDark ? '#E6F7EA' : '#0F4F20' }]}>
+        {message}
+      </Text>
+    </RNAnimated.View>
   );
 }
 
@@ -396,21 +490,53 @@ const styles = StyleSheet.create({
   gap: { height: 14 },
   resetBtnWrap: {
     paddingTop: 10,
-    alignItems: 'flex-start',
   },
-  resetBtn: {
+  resetBtnFull: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 9999,
-    borderWidth: 1,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
+    width: '100%',
   },
-  resetBtnText: {
-    ...fontFamily.medium,
-    fontSize: fontSize[13],
+  resetBtnFullText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[15],
+    letterSpacing: -0.2,
+  },
+  inlineToast: {
+    position: 'absolute',
+    top: 12,
+    left: 18,
+    right: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    zIndex: 99,
+    elevation: 99,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  inlineToastIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#34C759',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inlineToastText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[14],
     letterSpacing: -0.1,
+    flex: 1,
   },
   appearanceRight: {
     flexDirection: 'row',

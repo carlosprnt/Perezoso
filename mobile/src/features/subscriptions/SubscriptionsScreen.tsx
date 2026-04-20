@@ -62,9 +62,9 @@ import { STATUS_LABELS } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
-// peeks above the card below it. Slightly looser than web (-76) so the
-// price + status row underneath remain readable between stacked cards.
-const STACK_MARGIN_PX = -60;
+// peeks above the card below it. Tighter stacking — cards overlap more,
+// closer to the web's wallet look.
+const STACK_MARGIN_PX = -82;
 
 // ─── Sort + filter config (labels taken from web) ─────────────────
 const SORT_LABELS: Record<SortMode, string> = {
