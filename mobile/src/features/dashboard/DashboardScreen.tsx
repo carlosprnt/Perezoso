@@ -35,6 +35,7 @@ import { LogoConfetti } from '../../components/LogoConfetti';
 
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   useDashboardReveal,
@@ -89,6 +90,8 @@ export function DashboardScreen() {
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const enableRemindersOnAnnuals = useSubscriptionsStore((s) => s.enableRemindersOnAnnuals);
+  const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const openPaywall  = usePaywallStore((s) => s.open);
   const isEmpty = subscriptions.length === 0;
   // Real count of yearly-billing subs — drives the "Avísame" reminder
   // card's visibility (no annuals → don't render the card at all).
@@ -143,6 +146,15 @@ export function DashboardScreen() {
     reveal.close();
     signOut();
   }, [reveal, signOut]);
+
+  // "Mejorar" / "Gestionar" on the Perezoso Plus card in the dark panel —
+  // for non-Plus users we close the reveal and open the paywall sheet.
+  // Plus users currently land on the same sheet (the CTA swap is handled
+  // in UnderlyingProfileLayer copy); future work: show a manage-plan sheet.
+  const handleManagePlus = useCallback(() => {
+    reveal.close();
+    openPaywall('general');
+  }, [reveal, openPaywall]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions
   // list sheet. Lives in its own globally-mounted Modal so the
@@ -239,9 +251,10 @@ export function DashboardScreen() {
           element in both closed and open states. */}
       <UnderlyingProfileLayer
         progress={reveal.progress}
+        isPlusActive={isPlusActive}
         onSettings={handleOpenSettings}
         onShareData={reveal.close}
-        onManagePlus={reveal.close}
+        onManagePlus={handleManagePlus}
         onLogout={handleLogout}
         onToggleTheme={reveal.close}
       />

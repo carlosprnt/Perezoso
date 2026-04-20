@@ -48,6 +48,9 @@ const HEADER_RESERVED = 44;
 interface Props {
   /** 0 (closed) → 1 (fully open). Drives the fade + parallax. */
   progress: SharedValue<number>;
+  /** Whether the user currently has Perezoso Plus. Drives the Plus block
+   *  copy + CTA — active users see "Gestionar", free users see "Mejorar". */
+  isPlusActive?: boolean;
   onSettings?: () => void;
   onShareData?: () => void;
   onManagePlus?: () => void;
@@ -57,6 +60,7 @@ interface Props {
 
 export function UnderlyingProfileLayer({
   progress,
+  isPlusActive = false,
   onSettings,
   onShareData,
   onManagePlus,
@@ -117,7 +121,11 @@ export function UnderlyingProfileLayer({
         <View style={styles.plusBlock}>
           <View style={styles.plusTextCol}>
             <Text style={styles.plusTitle}>Perezoso Plus</Text>
-            <Text style={styles.plusSubtitle}>Ya tienes la versión Pro</Text>
+            <Text style={styles.plusSubtitle}>
+              {isPlusActive
+                ? 'Ya tienes la versi\u00F3n Pro'
+                : 'Desbloquea todo con Pro'}
+            </Text>
           </View>
           <Pressable
             style={({ pressed }) => [
@@ -125,9 +133,15 @@ export function UnderlyingProfileLayer({
               pressed && styles.plusBtnPressed,
             ]}
             onPress={() => { haptic.selection(); onManagePlus?.(); }}
-            accessibilityLabel="Gestionar suscripción Perezoso Plus"
+            accessibilityLabel={
+              isPlusActive
+                ? 'Gestionar suscripci\u00F3n Perezoso Plus'
+                : 'Mejorar a Perezoso Plus'
+            }
           >
-            <Text style={styles.plusBtnText}>Gestionar</Text>
+            <Text style={styles.plusBtnText}>
+              {isPlusActive ? 'Gestionar' : 'Mejorar'}
+            </Text>
           </Pressable>
         </View>
 

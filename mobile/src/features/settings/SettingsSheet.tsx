@@ -69,6 +69,7 @@ import {
 } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useAuthStore } from '../auth/useAuthStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 
 const TWITTER_HANDLE = '@carlosprnt';
 const CONTACT_EMAIL  = 'hello@carlospariente.com';
@@ -87,6 +88,7 @@ export function SettingsSheet() {
 
   const openDemo              = useDemoSheetStore((s) => s.openSheet);
   const isPlusActive          = useSubscriptionsStore((s) => s.isPlusActive);
+  const openPaywall           = usePaywallStore((s) => s.open);
   const deleteAccount         = useAuthStore((s) => s.deleteAccount);
   const user                  = useAuthStore((s) => s.user);
   const profileName  = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? 'Usuario';
@@ -103,10 +105,16 @@ export function SettingsSheet() {
     Alert.alert(label, 'Próximamente disponible.');
   }, []);
 
-  const handleManagePlus = useCallback(
-    () => comingSoon('Gestionar Perezoso Plus'),
-    [comingSoon],
-  );
+  // "Mejorar" for free users → open the paywall sheet. Once the user
+  // has Plus, the row label flips to "Gestionar" — that management flow
+  // is still pending, so we keep the coming-soon alert for that branch.
+  const handleManagePlus = useCallback(() => {
+    if (isPlusActive) {
+      comingSoon('Gestionar Perezoso Plus');
+      return;
+    }
+    openPaywall('general');
+  }, [isPlusActive, openPaywall, comingSoon]);
   const handleCurrency   = useCallback(() => comingSoon('Moneda'), [comingSoon]);
   const handleAppearance = useCallback(() => comingSoon('Apariencia'), [comingSoon]);
   const handleAdmin      = useCallback(() => comingSoon('Admin'), [comingSoon]);
