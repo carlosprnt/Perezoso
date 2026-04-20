@@ -27,6 +27,12 @@ import {
 import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
 import { fetchSubscriptions, insertSubscription } from '../services/subscriptionsApi';
 import { useAuthStore } from '../features/auth/useAuthStore';
+import {
+  addCustomerInfoListener,
+  configure as configurePurchases,
+  fetchIsPro,
+  logOut as purchasesLogOut,
+} from '../services/purchases';
 
 export type Mode = 'real' | 'demo';
 
@@ -153,12 +159,43 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
 // Subscribe to auth status so subs are fetched on sign-in and cleared
 // on sign-out. Lives at module level so any app that imports this store
 // inherits the behaviour — no component needs to wire it up.
+//
+// On sign-in we also bring RevenueCat online: the SDK is configured
+// with the user's Supabase ID as appUserID so purchases survive a
+// reinstall / device switch. The entitlement listener pushes any
+// change (renewal, cancellation, restore) straight into `isPlusActive`.
+let unsubscribePurchases: (() => void) | null = null;
+
+function bootstrapPurchases(userId: string | undefined) {
+  (async () => {
+    await configurePurchases(userId);
+    const isPro = await fetchIsPro();
+    useSubscriptionsStore.setState({ isPlusActive: isPro });
+    unsubscribePurchases?.();
+    unsubscribePurchases = addCustomerInfoListener((pro) => {
+      useSubscriptionsStore.setState({ isPlusActive: pro });
+    });
+  })();
+}
+
+// Cold-boot case: if the app is opened with a persisted session, the
+// status is already 'authenticated' by the time this subscribe runs,
+// so the event-based branch never fires. Bootstrap RC here too.
+const initialAuth = useAuthStore.getState();
+if (initialAuth.status === 'authenticated') {
+  bootstrapPurchases(initialAuth.user?.id);
+}
+
 useAuthStore.subscribe((state, prev) => {
   if (state.status === prev.status) return;
 
   if (state.status === 'authenticated') {
     useSubscriptionsStore.getState().useRealMode();
+    bootstrapPurchases(state.user?.id);
   } else if (state.status === 'unauthenticated') {
     useSubscriptionsStore.getState().clear();
+    unsubscribePurchases?.();
+    unsubscribePurchases = null;
+    void purchasesLogOut();
   }
 });

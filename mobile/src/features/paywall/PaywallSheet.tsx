@@ -39,10 +39,32 @@ import { Check, X } from 'lucide-react-native';
 import { fontFamily, fontSize } from '../../design/typography';
 import { usePaywallStore } from './usePaywallStore';
 import { PAYWALL_BENEFITS, PAYWALL_COPY } from './paywallTriggers';
+import {
+  getCurrentOffering,
+  purchasePackage,
+  type RCOffering,
+  type RCPackage,
+} from '../../services/purchases';
 
 const LOGO_SOURCE = require('../../../assets/logo.png');
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Derive the "per month" string shown under the annual plan from the
+// package's numeric price + currency so it stays correct in any
+// storefront. Falls back to a plain two-decimal EUR format if Intl
+// fails on the runtime (some older Hermes builds).
+function formatMonthly(amount: number, currency: string): string {
+  try {
+    return `${new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(amount)}/mes`;
+  } catch {
+    return `${amount.toFixed(2)}\u00A0${currency}/mes`;
+  }
+}
 
 const ENTER_MS = 300;
 const EXIT_MS = 220;
@@ -57,10 +79,23 @@ export function PaywallSheet() {
 
   const [plan, setPlan] = useState<Plan>('annual');
   const [mounted, setMounted] = useState(isOpen);
+  const [offering, setOffering] = useState<RCOffering | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
 
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  // Fetch the current offering whenever the paywall opens. RC caches
+  // internally, so re-opening after the first load is instant.
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    getCurrentOffering().then((o) => {
+      if (!cancelled) setOffering(o);
+    });
+    return () => { cancelled = true; };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -114,11 +149,39 @@ export function PaywallSheet() {
 
   if (!mounted) return null;
 
-  const handlePurchase = () => {
-    Alert.alert(
-      'Pr\u00F3ximamente',
-      'La compra desde la app estar\u00E1 disponible muy pronto.',
-    );
+  // Fallback strings used when the RC SDK isn't loaded yet (Expo Go /
+  // first render before the offering resolves). Keep them aligned with
+  // the dashboard so the layout doesn't jump when real data lands.
+  const annualPkg  = offering?.annual;
+  const monthlyPkg = offering?.monthly;
+  const annualPrice  = annualPkg?.product.priceString  ?? '19,99\u20AC / a\u00F1o';
+  const monthlyPrice = monthlyPkg?.product.priceString ?? '2,99\u20AC / mes';
+  // Monthly-equivalent for the annual plan, computed so it stays right
+  // whatever currency RC returns.
+  const annualPerMonth = annualPkg?.product.price
+    ? formatMonthly(annualPkg.product.price / 12, annualPkg.product.currencyCode)
+    : '1,66\u20AC/mes';
+
+  const handlePurchase = async () => {
+    const pkg: RCPackage | undefined = plan === 'annual' ? annualPkg : monthlyPkg;
+    if (!pkg) {
+      Alert.alert(
+        'No disponible',
+        'Los planes de suscripci\u00F3n a\u00FAn no est\u00E1n configurados. Int\u00E9ntalo m\u00E1s tarde.',
+      );
+      return;
+    }
+    setPurchasing(true);
+    const res = await purchasePackage(pkg);
+    setPurchasing(false);
+    if (res.cancelled) return;
+    if (!res.ok) {
+      Alert.alert('No se pudo completar la compra', res.error ?? 'Int\u00E9ntalo de nuevo');
+      return;
+    }
+    // The customer-info listener in the subscriptions store flips
+    // isPlusActive automatically — we just close the sheet.
+    close();
   };
 
   return (
@@ -206,26 +269,32 @@ export function PaywallSheet() {
                 selected={plan === 'annual'}
                 onPress={() => setPlan('annual')}
                 label="Anual"
-                price="19,99\u20AC / a\u00F1o"
+                price={annualPrice}
                 badge="M\u00E1s popular"
-                perMonth="1,66\u20AC/mes"
+                perMonth={annualPerMonth}
               />
               <PlanCard
                 selected={plan === 'monthly'}
                 onPress={() => setPlan('monthly')}
                 label="Mensual"
-                price="2,99\u20AC / mes"
+                price={monthlyPrice}
               />
             </View>
 
             {/* CTA */}
             <Pressable
               onPress={handlePurchase}
-              style={({ pressed }) => [styles.ctaBtn, pressed && { opacity: 0.85 }]}
+              disabled={purchasing}
+              style={({ pressed }) => [
+                styles.ctaBtn,
+                (pressed || purchasing) && { opacity: 0.85 },
+              ]}
               accessibilityRole="button"
               accessibilityLabel="Continuar con Pro"
             >
-              <Text style={styles.ctaText}>Continuar con Pro</Text>
+              <Text style={styles.ctaText}>
+                {purchasing ? 'Procesando...' : 'Continuar con Pro'}
+              </Text>
             </Pressable>
 
             <Text style={styles.footer}>
