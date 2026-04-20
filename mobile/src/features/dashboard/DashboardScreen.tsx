@@ -20,7 +20,7 @@
 //   - FloatingNav space at bottom
 
 import React, { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -78,6 +78,7 @@ function StaggeredItem({ index, children }: { index: number; children: React.Rea
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
@@ -127,6 +128,14 @@ export function DashboardScreen() {
     reveal.close();
     openSettings();
   }, [reveal, openSettings]);
+
+  // "Cerrar sesión" in the dark profile layer: dismiss the reveal, then
+  // jump to the login-onboarding carousel. `replace` so the dashboard
+  // isn't reachable via back-gesture once signed out.
+  const handleLogout = useCallback(() => {
+    reveal.close();
+    router.replace('/(auth)/login');
+  }, [reveal, router]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions
   // list sheet. Lives in its own globally-mounted Modal so the
@@ -226,7 +235,7 @@ export function DashboardScreen() {
         onSettings={handleOpenSettings}
         onShareData={reveal.close}
         onManagePlus={reveal.close}
-        onLogout={reveal.close}
+        onLogout={handleLogout}
         onToggleTheme={reveal.close}
       />
 
