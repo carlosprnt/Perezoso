@@ -79,6 +79,9 @@ export function SettingsSheet() {
   const profileAvatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture;
 
   const clearAllDismissals = useReminderDismissalsStore((s) => s.clearAll);
+  const hasDismissals = useReminderDismissalsStore(
+    (s) => Object.keys(s.dismissals).length > 0,
+  );
 
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
 
@@ -210,29 +213,31 @@ export function SettingsSheet() {
               onManage={handleManagePlus}
             />
 
-            {/* 2 — Profile + reset cards */}
+            {/* 2 — Profile + reset cards (only if there are dismissed cards) */}
             <View style={styles.gap} />
             <ProfileCard
               name={profileName}
               email={profileEmail}
               avatarUrl={profileAvatar}
             />
-            <View style={styles.resetBtnWrap}>
-              <Pressable
-                onPress={handleResetCards}
-                style={({ pressed }) => [
-                  styles.resetBtn,
-                  { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F4' },
-                  pressed && { opacity: 0.7 },
-                ]}
-                accessibilityLabel="Restaurar tarjetas de notificaciones"
-              >
-                <Bell size={14} color={isDark ? '#8E8E93' : '#8E8E93'} strokeWidth={2} />
-                <Text style={[styles.resetBtnText, { color: isDark ? '#8E8E93' : '#6B6B6B' }]}>
-                  Restaurar tarjetas
-                </Text>
-              </Pressable>
-            </View>
+            {hasDismissals && (
+              <View style={styles.resetBtnWrap}>
+                <Pressable
+                  onPress={handleResetCards}
+                  style={({ pressed }) => [
+                    styles.resetBtn,
+                    { borderColor: isDark ? '#38383A' : '#D4D4D4' },
+                    pressed && { opacity: 0.6 },
+                  ]}
+                  accessibilityLabel="Restaurar tarjetas de notificaciones"
+                >
+                  <Bell size={14} color={isDark ? '#AEAEB2' : '#6B6B6B'} strokeWidth={2} />
+                  <Text style={[styles.resetBtnText, { color: isDark ? '#AEAEB2' : '#6B6B6B' }]}>
+                    Restaurar tarjetas
+                  </Text>
+                </Pressable>
+              </View>
+            )}
 
             {/* 3 — Moneda + Notificaciones (grouped) */}
             <View style={styles.gap} />
@@ -390,17 +395,17 @@ const styles = StyleSheet.create({
   },
   gap: { height: 14 },
   resetBtnWrap: {
-    paddingHorizontal: 4,
     paddingTop: 10,
+    alignItems: 'flex-start',
   },
   resetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 9999,
+    borderWidth: 1,
   },
   resetBtnText: {
     ...fontFamily.medium,

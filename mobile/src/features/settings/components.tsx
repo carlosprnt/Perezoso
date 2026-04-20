@@ -301,28 +301,9 @@ export function SubscriptionCard({
 }: SubscriptionCardProps) {
   const p = usePalette();
 
-  // Animated glow border — a soft blue light that "travels" around the card.
-  const glowProgress = useSharedValue(0);
-  useEffect(() => {
-    glowProgress.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.linear }),
-      -1,
-      false,
-    );
-  }, [glowProgress]);
-
-  const glowStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      glowProgress.value,
-      [0, 0.3, 0.6, 1],
-      [0.3, 0.9, 0.9, 0.3],
-    );
-    return { opacity };
-  });
-
   return (
     <View style={styles.subCardOuter}>
-      <Animated.View style={[styles.subCardGlow, glowStyle]} />
+      <GlowBorder borderRadius={20} />
       <View style={[styles.subCard, { backgroundColor: p.cardBg }]}>
         <View style={styles.subTextCol}>
           <Text style={[styles.subTitle, { color: p.textPrimary }]} numberOfLines={1}>
@@ -346,6 +327,43 @@ export function SubscriptionCard({
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// ─── GlowBorder ────────────────────────────────────────────────────
+// Reusable subtle animated glow ring. Pulsing opacity gives a soft
+// "breathing" light effect around a card — elegant, not flashy.
+export function GlowBorder({ borderRadius = 20 }: { borderRadius?: number }) {
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    progress.value = withRepeat(
+      withTiming(1, { duration: 3500, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+  }, [progress]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [0.15, 0.5]),
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          ...StyleSheet.absoluteFillObject,
+          borderRadius: borderRadius + 2,
+          borderWidth: 1,
+          borderColor: '#93C5FD',
+          top: -1,
+          left: -1,
+          right: -1,
+          bottom: -1,
+        },
+        animStyle,
+      ]}
+      pointerEvents="none"
+    />
   );
 }
 
@@ -467,17 +485,6 @@ const styles = StyleSheet.create({
   // Subscription highlight card
   subCardOuter: {
     position: 'relative',
-  },
-  subCardGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#60A5FA',
-    // Extend slightly beyond the card to create glow effect
-    top: -1,
-    left: -1,
-    right: -1,
-    bottom: -1,
   },
   subCard: {
     flexDirection: 'row',

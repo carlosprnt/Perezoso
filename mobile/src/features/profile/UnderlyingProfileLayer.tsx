@@ -36,6 +36,7 @@ import { Settings, Share2, LogOut } from 'lucide-react-native';
 import { fontFamily, fontSize } from '../../design/typography';
 import { haptic } from '../../lib/haptics';
 import { ThemeToggleButton } from '../../components/ThemeToggleButton';
+import { GlowBorder } from '../settings/components';
 
 // Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
 const PEEK_HEIGHT = 120;
@@ -116,7 +117,9 @@ export function UnderlyingProfileLayer({
           />
         </View>
 
-        {/* ─── Perezoso Pro block — border-only, no fill ──── */}
+        {/* ─── Perezoso Pro block — border-only + animated glow ──── */}
+        <View style={{ position: 'relative' }}>
+        <GlowBorder borderRadius={18} />
         <View style={styles.plusBlock}>
           <View style={styles.plusTextCol}>
             <Text style={styles.plusTitle}>Perezoso Pro</Text>
@@ -142,6 +145,7 @@ export function UnderlyingProfileLayer({
               {isPlusActive ? 'Gestionar' : 'Mejorar'}
             </Text>
           </Pressable>
+        </View>
         </View>
 
         {/* Spacer — pushes the footer row down to the peek boundary. */}

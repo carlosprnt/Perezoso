@@ -49,6 +49,7 @@ import { WalletCard } from './WalletCard';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { SubscriptionsSkeleton } from '../../components/ScreenSkeletons';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   navCompactProgress,
@@ -309,6 +310,8 @@ export function SubscriptionsScreen() {
   const insets = useSafeAreaInsets();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const storeLoading = useSubscriptionsStore((s) => s.loading);
+  const isFirstLoad = storeLoading && subscriptions.length === 0;
   const scrollY = useSharedValue(0);
   // listY is the Y offset of the list container within the scroll
   // content. Filled in by the list's own onLayout. Animations stay at
@@ -446,6 +449,10 @@ export function SubscriptionsScreen() {
   const dropdownMutedColor = colors.textMuted;
 
   const isEmpty = subscriptions.length === 0;
+
+  if (isFirstLoad) {
+    return <SubscriptionsSkeleton />;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>

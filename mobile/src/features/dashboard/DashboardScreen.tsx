@@ -60,6 +60,7 @@ import { DashboardEmptyState } from './DashboardEmptyState';
 import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { DashboardSkeleton } from '../../components/ScreenSkeletons';
 import {
   deriveStats,
   deriveRenewals,
@@ -90,9 +91,11 @@ export function DashboardScreen() {
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const storeLoading = useSubscriptionsStore((s) => s.loading);
   const enableRemindersOnAnnuals = useSubscriptionsStore((s) => s.enableRemindersOnAnnuals);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const openPaywall  = usePaywallStore((s) => s.open);
+  const isFirstLoad = storeLoading && subscriptions.length === 0;
   const isEmpty = subscriptions.length === 0;
   // Real count of yearly-billing subs — drives the "Avísame" reminder
   // card's visibility (no annuals → don't render the card at all).
@@ -287,10 +290,13 @@ export function DashboardScreen() {
               },
             ]}
           >
+            {/* Skeleton — shown only during first data load */}
+            {isFirstLoad && <DashboardSkeleton />}
+
             {/* Hero — content fades out while a blur veil fades in on top.
                 Outer View owns position: relative so the absoluteFill
                 BlurView sizes to the hero. */}
-            {!isEmpty && (
+            {!isEmpty && !isFirstLoad && (
               <View style={styles.heroWrapper}>
                 <Animated.View style={[heroFadeStyle, { backgroundColor: colors.background }]}>
                   <SummaryHero
@@ -316,14 +322,14 @@ export function DashboardScreen() {
                 user has zero subscriptions (new user / Vacío demo preset).
                 Sits below the SharedProfileHeader greeting so the screen
                 still feels anchored. */}
-            {isEmpty && (
+            {isEmpty && !isFirstLoad && (
               <View style={{ paddingTop: 44 + 8 }}>
                 <DashboardEmptyState scrollY={scrollY} />
               </View>
             )}
 
             {/* Card stack -- staggered entrance */}
-            {!isEmpty && (
+            {!isEmpty && !isFirstLoad && (
             <View style={styles.cardStack}>
               {/* Reminder card — extra 10px separation from the module below */}
               <StaggeredItem index={0}>
