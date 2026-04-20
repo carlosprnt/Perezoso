@@ -130,11 +130,16 @@ export function DashboardScreen() {
   }, [reveal, openSettings]);
 
   // "Cerrar sesión" in the dark profile layer: dismiss the reveal, then
-  // jump to the login-onboarding carousel. `replace` so the dashboard
-  // isn't reachable via back-gesture once signed out.
+  // jump to the login-onboarding carousel. Uses the clean `/login` href
+  // (expo-router auto-resolves the (auth) group) — the grouped notation
+  // doesn't switch cleanly between sibling stack groups. We defer the
+  // navigation one tick so the reveal.close() spring starts first and the
+  // route transition doesn't fight the gesture animation mid-flight.
   const handleLogout = useCallback(() => {
     reveal.close();
-    router.replace('/(auth)/login');
+    requestAnimationFrame(() => {
+      router.replace('/login');
+    });
   }, [reveal, router]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions
