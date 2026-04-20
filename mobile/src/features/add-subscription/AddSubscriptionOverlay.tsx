@@ -115,8 +115,10 @@ const SHEET_SIDE_MARGIN = 8;
 const SHEET_RADIUS = 48;
 
 // ─── Swipe-to-dismiss config ────────────────────────────────────────
-const DISMISS_DISTANCE = 100;
-const DISMISS_VELOCITY = 600;
+// Thresholds chosen to match the iOS system pageSheet feel: a moderate
+// drag (≈80px) or a clear flick (≈400px/s) commits the dismiss.
+const DISMISS_DISTANCE = 80;
+const DISMISS_VELOCITY = 400;
 
 export function AddSubscriptionOverlay() {
   const insets = useSafeAreaInsets();
@@ -292,6 +294,10 @@ export function AddSubscriptionOverlay() {
           <Animated.View style={[styles.content, contentStyle]}>
             <GestureDetector gesture={panGesture.simultaneousWithExternalGesture(nativeScrollGesture)}>
             <View style={{ flex: 1 }}>
+            {/* ─── Drag handle — iOS affordance for swipe-to-dismiss ─ */}
+              <View style={styles.handleWrap}>
+                <View style={styles.handle} />
+              </View>
             {/* ─── Header ── */}
               <View style={styles.header}>
                 <Text style={styles.title}>Crear nueva suscripción</Text>
@@ -411,7 +417,19 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 14,
+    paddingTop: 6,
+  },
+  // ── Drag handle (iOS affordance) ────────────────────────
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255,255,255,0.28)',
   },
   // ── Header ──────────────────────────────────────────────
   header: {
@@ -419,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 14,
   },
   title: {
