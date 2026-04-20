@@ -11,7 +11,7 @@
 // own any state or navigation. The SettingsSheet composes them and
 // wires up real behaviour via the `onPress` prop.
 
-import React, { type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
 import {
   Image,
   Pressable,
@@ -20,13 +20,21 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 
 // ─── Palette (colocated — kept tight, iOS-literal) ──────────────────
 const C = {
-  cardBg: '#F2F2F4',       // gray-50 with a subtle cool tint (as in screenshots)
+  cardBg: '#F2F2F4',
   cardDivider: '#DEDEE3',
   iconTileBg: '#FFFFFF',
   iconStroke: '#0F0F10',
@@ -35,6 +43,24 @@ const C = {
   destructiveBg: '#FCE6E5',
   destructiveText: '#FF3B30',
 };
+
+const CDark = {
+  cardBg: '#1C1C1E',
+  cardDivider: '#38383A',
+  iconTileBg: '#2C2C2E',
+  iconStroke: '#FFFFFF',
+  textPrimary: '#FFFFFF',
+  textMuted: '#8E8E93',
+  destructiveBg: '#3A1515',
+  destructiveText: '#FF6961',
+};
+
+export type SettingsPalette = typeof C;
+const PaletteContext = createContext<SettingsPalette>(C);
+export function SettingsPaletteProvider({ dark, children }: { dark: boolean; children: ReactNode }) {
+  return <PaletteContext.Provider value={dark ? CDark : C}>{children}</PaletteContext.Provider>;
+}
+function usePalette() { return useContext(PaletteContext); }
 
 // ─── SettingsSectionCard ─────────────────────────────────────────────
 // A light-gray rounded container that groups 1..N rows. Children are
@@ -54,9 +80,10 @@ export function SettingsSectionCard({
   dividerInset = 64,
   style,
 }: SectionCardProps) {
+  const p = usePalette();
   const items = React.Children.toArray(children).filter(Boolean);
   return (
-    <View style={[styles.card, style]}>
+    <View style={[styles.card, { backgroundColor: p.cardBg }, style]}>
       {items.map((child, i) => (
         <React.Fragment key={i}>
           {child}
@@ -64,7 +91,7 @@ export function SettingsSectionCard({
             <View
               style={[
                 styles.divider,
-                { marginLeft: dividerInset },
+                { marginLeft: dividerInset, backgroundColor: p.cardDivider },
               ]}
             />
           )}
@@ -84,11 +111,12 @@ interface IconTileProps {
 }
 
 export function IconTile({ children, tint = 'neutral' }: IconTileProps) {
+  const p = usePalette();
   return (
     <View
       style={[
         styles.iconTile,
-        tint === 'destructive' && { backgroundColor: C.destructiveBg },
+        { backgroundColor: tint === 'destructive' ? p.destructiveBg : p.iconTileBg },
       ]}
     >
       {children}
@@ -130,6 +158,7 @@ export function SettingsRow({
   destructive,
   a11yLabel,
 }: SettingsRowProps) {
+  const p = usePalette();
   const hasSwitch = typeof switchValue === 'boolean';
   const isPressable = !!onPress && !hasSwitch;
 
@@ -139,7 +168,7 @@ export function SettingsRow({
       <Text
         style={[
           styles.rowLabel,
-          destructive && { color: C.destructiveText },
+          { color: destructive ? p.destructiveText : p.textPrimary },
         ]}
         numberOfLines={1}
       >
@@ -159,14 +188,14 @@ export function SettingsRow({
         ) : (
           <>
             {value ? (
-              <Text style={styles.rowValue} numberOfLines={1}>
+              <Text style={[styles.rowValue, { color: p.textMuted }]} numberOfLines={1}>
                 {value}
               </Text>
             ) : null}
             {!hideChevron && (
               <ChevronRight
                 size={18}
-                color={C.textMuted}
+                color={p.textMuted}
                 strokeWidth={2.4}
               />
             )}
@@ -208,6 +237,7 @@ export function ProfileCard({
   avatarUrl,
   onPress,
 }: ProfileCardProps) {
+  const p = usePalette();
   const initials = React.useMemo(() => {
     const parts = name.trim().split(/\s+/);
     return (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '');
@@ -227,10 +257,10 @@ export function ProfileCard({
         )}
       </View>
       <View style={styles.profileTextCol}>
-        <Text style={styles.profileName} numberOfLines={1}>
+        <Text style={[styles.profileName, { color: p.textPrimary }]} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.profileEmail} numberOfLines={1}>
+        <Text style={[styles.profileEmail, { color: p.textMuted }]} numberOfLines={1}>
           {email}
         </Text>
       </View>
@@ -238,12 +268,12 @@ export function ProfileCard({
   );
 
   if (!onPress) {
-    return <View style={styles.card}>{inner}</View>;
+    return <View style={[styles.card, { backgroundColor: p.cardBg }]}>{inner}</View>;
   }
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [styles.card, { backgroundColor: p.cardBg }, pressed && { opacity: 0.7 }]}
       accessibilityRole="button"
       accessibilityLabel={`Perfil de ${name}`}
     >
@@ -269,28 +299,52 @@ export function SubscriptionCard({
   ctaLabel,
   onManage,
 }: SubscriptionCardProps) {
+  const p = usePalette();
+
+  // Animated glow border — a soft blue light that "travels" around the card.
+  const glowProgress = useSharedValue(0);
+  useEffect(() => {
+    glowProgress.value = withRepeat(
+      withTiming(1, { duration: 3000, easing: Easing.linear }),
+      -1,
+      false,
+    );
+  }, [glowProgress]);
+
+  const glowStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      glowProgress.value,
+      [0, 0.3, 0.6, 1],
+      [0.3, 0.9, 0.9, 0.3],
+    );
+    return { opacity };
+  });
+
   return (
-    <View style={styles.subCard}>
-      <View style={styles.subTextCol}>
-        <Text style={styles.subTitle} numberOfLines={1}>
-          {title}
-        </Text>
-        <Text style={styles.subStatus} numberOfLines={1}>
-          {status}
-        </Text>
+    <View style={styles.subCardOuter}>
+      <Animated.View style={[styles.subCardGlow, glowStyle]} />
+      <View style={[styles.subCard, { backgroundColor: p.cardBg }]}>
+        <View style={styles.subTextCol}>
+          <Text style={[styles.subTitle, { color: p.textPrimary }]} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={[styles.subStatus, { color: p.textMuted }]} numberOfLines={1}>
+            {status}
+          </Text>
+        </View>
+        <Pressable
+          onPress={onManage}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.subBtn,
+            pressed && { opacity: 0.85 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={ctaLabel}
+        >
+          <Text style={styles.subBtnText}>{ctaLabel}</Text>
+        </Pressable>
       </View>
-      <Pressable
-        onPress={onManage}
-        hitSlop={8}
-        style={({ pressed }) => [
-          styles.subBtn,
-          pressed && { opacity: 0.85 },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={ctaLabel}
-      >
-        <Text style={styles.subBtnText}>{ctaLabel}</Text>
-      </Pressable>
     </View>
   );
 }
@@ -304,10 +358,11 @@ interface DestructiveCardProps {
 }
 
 export function DestructiveCard({ label, onPress }: DestructiveCardProps) {
+  const p = usePalette();
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: p.cardBg }]}>
       <SettingsRow
-        icon={<Trash2 size={18} color={C.destructiveText} strokeWidth={2.2} />}
+        icon={<Trash2 size={18} color={p.destructiveText} strokeWidth={2.2} />}
         label={label}
         onPress={onPress}
         destructive
@@ -331,7 +386,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: C.cardDivider,
   },
 
   // Generic row
@@ -345,7 +399,6 @@ const styles = StyleSheet.create({
   rowLabel: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
-    color: C.textPrimary,
     letterSpacing: -0.2,
     flex: 1,
     paddingLeft: 12,
@@ -360,17 +413,15 @@ const styles = StyleSheet.create({
   rowValue: {
     ...fontFamily.regular,
     fontSize: fontSize[15],
-    color: C.textMuted,
     letterSpacing: -0.1,
     maxWidth: 180,
   },
 
-  // White rounded icon tile
+  // Rounded icon tile
   iconTile: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: C.iconTileBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -404,22 +455,33 @@ const styles = StyleSheet.create({
   profileName: {
     ...fontFamily.bold,
     fontSize: fontSize[18],
-    color: C.textPrimary,
     letterSpacing: -0.3,
     marginBottom: 2,
   },
   profileEmail: {
     ...fontFamily.regular,
     fontSize: fontSize[14],
-    color: C.textMuted,
     letterSpacing: -0.1,
   },
 
   // Subscription highlight card
+  subCardOuter: {
+    position: 'relative',
+  },
+  subCardGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#60A5FA',
+    // Extend slightly beyond the card to create glow effect
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+  },
   subCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.cardBg,
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 18,
@@ -431,14 +493,12 @@ const styles = StyleSheet.create({
   subTitle: {
     ...fontFamily.bold,
     fontSize: fontSize[20],
-    color: C.textPrimary,
     letterSpacing: -0.3,
     marginBottom: 2,
   },
   subStatus: {
     ...fontFamily.regular,
     fontSize: fontSize[14],
-    color: C.textMuted,
     letterSpacing: -0.1,
   },
   subBtn: {

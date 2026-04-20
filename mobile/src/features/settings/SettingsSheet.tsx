@@ -1,34 +1,8 @@
 // SettingsSheet — globally mounted "Ajustes" modal.
 //
-// Presentation
-//   · Native iOS pageSheet (UISheetPresentationController). We rely on
-//     UIKit for the handle bar, the dimmed backdrop, the rounded top
-//     corners and the pan-down-to-dismiss gesture. No custom animation
-//     code — matches every other sheet in the app.
-//
-// Composition
-//   ┌──────────────────────────┐
-//   │ Header                  X│   ← Ajustes + close pill
-//   ├──────────────────────────┤
-//   │ Perezoso Plus │ Gestionar│   ← SubscriptionCard
-//   │ ProfileCard              │
-//   │ Moneda / Notificaciones  │   ← grouped SectionCard
-//   │ Apariencia               │
-//   │ Admin / Demo             │   ← grouped SectionCard
-//   │ Etiquetas ▸              │   ← opens TagsBottomSheet (secondary)
-//   │ Reseña / Compartir       │
-//   │ Twitter / Email          │
-//   │ Eliminar cuenta          │   ← destructive card, red
-//   └──────────────────────────┘
-//
-// Interactions
-//   · Every row has a working onPress / Switch wired to mock state.
-//   · "Etiquetas" is the only row that leaves the main sheet — it
-//     presents `TagsBottomSheet`, which layers on top as a child sheet.
-//   · "Eliminar cuenta" shows an Alert confirmation before calling the
-//     caller-provided delete handler (mocked for now).
+// Fully theme-aware: respects current dark/light mode for all colors.
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -42,23 +16,29 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  ArrowUpDown,
   Bell,
-  Check,
+  Coins,
+  Mail,
   Share2,
-  Sparkles,
+  Shield,
+  Star,
   Sun,
   Tag as TagIcon,
   X,
 } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { useTheme } from '../../design/useTheme';
 import {
   DestructiveCard,
   ProfileCard,
   SettingsRow,
   SettingsSectionCard,
+  SettingsPaletteProvider,
   SubscriptionCard,
 } from './components';
+import { CurrencySheet } from './CurrencySheet';
 import { DemoSheet } from './DemoSheet';
 import { TagsBottomSheet } from './TagsBottomSheet';
 import {
@@ -70,6 +50,7 @@ import {
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useAuthStore } from '../auth/useAuthStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { useReminderDismissalsStore } from '../dashboard/useReminderDismissalsStore';
 
 const TWITTER_HANDLE = '@carlosprnt';
 const CONTACT_EMAIL  = 'hello@carlospariente.com';
@@ -77,6 +58,7 @@ const CONTACT_EMAIL  = 'hello@carlospariente.com';
 export function SettingsSheet() {
   const isOpen = useSettingsStore((s) => s.isOpen);
   const close  = useSettingsStore((s) => s.close);
+  const { isDark, colors } = useTheme();
 
   const currency              = usePreferencesStore((s) => s.currency);
   const notificationsEnabled  = usePreferencesStore((s) => s.notificationsEnabled);
@@ -96,19 +78,19 @@ export function SettingsSheet() {
   const profileEmail = user?.email ?? '';
   const profileAvatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture;
 
+  const clearAllDismissals = useReminderDismissalsStore((s) => s.clearAll);
+
+  const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+
   const insets = useSafeAreaInsets();
 
-  // ── Individual row handlers ──────────────────────────────────────
-  // Most are placeholders that pop an info alert — the real flows will
-  // be wired up as each sub-feature lands. Kept close together so it's
-  // obvious at a glance which rows are still mocked.
+  const iconColor = isDark ? '#FFFFFF' : '#0F0F10';
+
+  // ── Handlers ─────────────────────────────────────────────────────────
   const comingSoon = useCallback((label: string) => {
     Alert.alert(label, 'Próximamente disponible.');
   }, []);
 
-  // "Mejorar" for free users → open the paywall sheet. Once the user
-  // has Plus, the row label flips to "Gestionar" — that management flow
-  // is still pending, so we keep the coming-soon alert for that branch.
   const handleManagePlus = useCallback(() => {
     if (isPlusActive) {
       comingSoon('Gestionar Perezoso Plus');
@@ -116,22 +98,20 @@ export function SettingsSheet() {
     }
     openPaywall('general');
   }, [isPlusActive, openPaywall, comingSoon]);
-  const handleCurrency   = useCallback(() => comingSoon('Moneda'), [comingSoon]);
-  // Apariencia row behaves like a binary toggle — taps flip between
-  // 'Claro' and 'Oscuro'. 'Automático' is treated as light for the
-  // purpose of the flip target (so the first tap lands on 'Oscuro').
+
+  const handleCurrency = useCallback(() => setCurrencySheetOpen(true), []);
+
   const handleAppearance = useCallback(() => {
     setAppearance(appearance === 'Oscuro' ? 'Claro' : 'Oscuro');
   }, [appearance, setAppearance]);
-  const handleAdmin      = useCallback(() => comingSoon('Admin'), [comingSoon]);
-  const handleDemo       = useCallback(() => openDemo(), [openDemo]);
-  const handleReview     = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);
+
+  const handleDemo = useCallback(() => openDemo(), [openDemo]);
+  const handleReview = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);
 
   const handleShare = useCallback(() => {
-    // Native share sheet — universal app share copy.
     Share.share({
       message: 'Perezoso — la forma perezosa de controlar tus suscripciones. https://perezoso.app',
-    }).catch(() => { /* user cancel — no-op */ });
+    }).catch(() => {});
   }, []);
 
   const handleTwitter = useCallback(() => {
@@ -145,6 +125,11 @@ export function SettingsSheet() {
       comingSoon(CONTACT_EMAIL),
     );
   }, [comingSoon]);
+
+  const handleResetCards = useCallback(() => {
+    clearAllDismissals();
+    Alert.alert('Listo', 'Las tarjetas de notificaciones volverán a aparecer.');
+  }, [clearAllDismissals]);
 
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(
@@ -161,9 +146,6 @@ export function SettingsSheet() {
               Alert.alert('No se pudo eliminar', res.error ?? 'Error desconocido');
               return;
             }
-            // signOut inside deleteAccount flips auth → unauthenticated,
-            // AuthGate redirects to login. Close the sheet so the user
-            // isn't stuck looking at it during the transition.
             close();
           },
         },
@@ -171,7 +153,14 @@ export function SettingsSheet() {
     );
   }, [deleteAccount, close]);
 
-  // ──────────────────────────────────────────────────────────────────
+  // Demo visible only for carlosprnt@gmail.com
+  const showDemo = profileEmail === 'carlosprnt@gmail.com';
+
+  const sheetBg = isDark ? '#000000' : '#FFFFFF';
+  const handleColor = isDark ? '#636366' : '#D4D4D4';
+  const titleColor = isDark ? '#FFFFFF' : '#000000';
+  const closeBtnBg = isDark ? '#2C2C2E' : '#EBEBF0';
+  const closeBtnColor = isDark ? '#AEAEB2' : '#3C3C43';
 
   return (
     <Modal
@@ -181,163 +170,187 @@ export function SettingsSheet() {
       onRequestClose={close}
       onDismiss={close}
     >
-      <View style={styles.sheet}>
-        {/* ── iOS-style drag handle + header ── */}
-        <View style={styles.handleWrap}>
-          <View style={styles.handle} />
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.title}>Ajustes</Text>
-          <Pressable
-            style={({ pressed }) => [
-              styles.closeBtn,
-              pressed && { opacity: 0.7 },
+      <SettingsPaletteProvider dark={isDark}>
+        <View style={[styles.sheet, { backgroundColor: sheetBg }]}>
+          {/* ── iOS-style drag handle + header ── */}
+          <View style={styles.handleWrap}>
+            <View style={[styles.handle, { backgroundColor: handleColor }]} />
+          </View>
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: titleColor }]}>Ajustes</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.closeBtn,
+                { backgroundColor: closeBtnBg },
+                pressed && { opacity: 0.7 },
+              ]}
+              onPress={close}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar ajustes"
+            >
+              <X size={15} color={closeBtnColor} strokeWidth={2.5} />
+            </Pressable>
+          </View>
+
+          {/* ── Scrollable content ── */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: Math.max(insets.bottom, 20) + 28 },
             ]}
-            onPress={close}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Cerrar ajustes"
+            showsVerticalScrollIndicator={false}
           >
-            <X size={15} color="#3C3C43" strokeWidth={2.5} />
-          </Pressable>
+            {/* 1 — Subscription highlight */}
+            <SubscriptionCard
+              title="Perezoso Pro"
+              status={isPlusActive ? 'Suscripción activa' : 'Desbloquea todas las funcionalidades'}
+              ctaLabel={isPlusActive ? 'Gestionar' : 'Mejorar'}
+              onManage={handleManagePlus}
+            />
+
+            {/* 2 — Profile + reset cards */}
+            <View style={styles.gap} />
+            <ProfileCard
+              name={profileName}
+              email={profileEmail}
+              avatarUrl={profileAvatar}
+            />
+            <View style={styles.resetBtnWrap}>
+              <Pressable
+                onPress={handleResetCards}
+                style={({ pressed }) => [
+                  styles.resetBtn,
+                  { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F4' },
+                  pressed && { opacity: 0.7 },
+                ]}
+                accessibilityLabel="Restaurar tarjetas de notificaciones"
+              >
+                <Bell size={14} color={isDark ? '#8E8E93' : '#8E8E93'} strokeWidth={2} />
+                <Text style={[styles.resetBtnText, { color: isDark ? '#8E8E93' : '#6B6B6B' }]}>
+                  Restaurar tarjetas
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* 3 — Moneda + Notificaciones (grouped) */}
+            <View style={styles.gap} />
+            <SettingsSectionCard>
+              <SettingsRow
+                icon={<Coins size={20} color={iconColor} strokeWidth={2} />}
+                label="Moneda"
+                value={currency}
+                onPress={handleCurrency}
+              />
+              <SettingsRow
+                icon={<Bell size={20} color={iconColor} strokeWidth={2} />}
+                label="Notificaciones"
+                switchValue={notificationsEnabled}
+                onSwitchChange={setNotificationsEnabled}
+              />
+            </SettingsSectionCard>
+
+            {/* 4 — Apariencia */}
+            <View style={styles.gap} />
+            <SettingsSectionCard>
+              <SettingsRow
+                icon={<Sun size={20} color={iconColor} strokeWidth={2} />}
+                label="Apariencia"
+                value={appearance}
+                onPress={handleAppearance}
+                rightAccessory={
+                  <View style={styles.appearanceRight}>
+                    <Text style={[styles.appearanceValue, { color: isDark ? '#8E8E93' : '#8E8E93' }]}>
+                      {appearance}
+                    </Text>
+                    <ArrowUpDown size={16} color={isDark ? '#8E8E93' : '#8E8E93'} strokeWidth={2.2} />
+                  </View>
+                }
+              />
+            </SettingsSectionCard>
+
+            {/* 5 — Demo (only carlosprnt@gmail.com) */}
+            {showDemo && (
+              <>
+                <View style={styles.gap} />
+                <SettingsSectionCard>
+                  <SettingsRow
+                    icon={<Shield size={20} color={iconColor} strokeWidth={2} />}
+                    label="Demo"
+                    onPress={handleDemo}
+                  />
+                </SettingsSectionCard>
+              </>
+            )}
+
+            {/* 6 — Etiquetas */}
+            <View style={styles.gap} />
+            <SettingsSectionCard>
+              <SettingsRow
+                icon={<TagIcon size={20} color={iconColor} strokeWidth={2} />}
+                label="Etiquetas"
+                value={`${tagsCount}`}
+                onPress={openTags}
+              />
+            </SettingsSectionCard>
+
+            {/* 7 — Reseña + Compartir (grouped) */}
+            <View style={styles.gap} />
+            <SettingsSectionCard>
+              <SettingsRow
+                icon={<Star size={20} color={iconColor} strokeWidth={2} />}
+                label={'Dejar una rese\u00F1a'}
+                onPress={handleReview}
+              />
+              <SettingsRow
+                icon={<Share2 size={20} color={iconColor} strokeWidth={2} />}
+                label="Compartir con un amigo"
+                onPress={handleShare}
+              />
+            </SettingsSectionCard>
+
+            {/* 8 — Contacto (grouped) */}
+            <View style={styles.gap} />
+            <SettingsSectionCard>
+              <SettingsRow
+                icon={<Text style={{ fontSize: 18, fontWeight: '700', color: iconColor }}>X</Text>}
+                label={TWITTER_HANDLE}
+                onPress={handleTwitter}
+              />
+              <SettingsRow
+                icon={<Mail size={20} color={iconColor} strokeWidth={2} />}
+                label={CONTACT_EMAIL}
+                onPress={handleEmail}
+              />
+            </SettingsSectionCard>
+
+            {/* 9 — Destructive */}
+            <View style={styles.gap} />
+            <DestructiveCard
+              label="Eliminar cuenta"
+              onPress={handleDeleteAccount}
+            />
+          </ScrollView>
+
+          {/* Secondary sheets */}
+          <TagsBottomSheet />
+          <DemoSheet />
+          <CurrencySheet
+            visible={currencySheetOpen}
+            onClose={() => setCurrencySheetOpen(false)}
+          />
         </View>
-
-        {/* ── Scrollable content ── */}
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: Math.max(insets.bottom, 20) + 28 },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 1 — Subscription highlight */}
-          <SubscriptionCard
-            title="Perezoso Pro"
-            status={isPlusActive ? 'Suscripción activa' : 'Desbloquea todas las funcionalidades'}
-            ctaLabel={isPlusActive ? 'Gestionar' : 'Mejorar'}
-            onManage={handleManagePlus}
-          />
-
-          {/* 2 — Profile */}
-          <View style={styles.gap} />
-          <ProfileCard
-            name={profileName}
-            email={profileEmail}
-            avatarUrl={profileAvatar}
-          />
-
-          {/* 3 — Moneda + Notificaciones (grouped) */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>{'\u20AC'}</Text>}
-              label="Moneda"
-              value={currency}
-              onPress={handleCurrency}
-            />
-            <SettingsRow
-              icon={<Bell size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Notificaciones"
-              switchValue={notificationsEnabled}
-              onSwitchChange={setNotificationsEnabled}
-            />
-          </SettingsSectionCard>
-
-          {/* 4 — Apariencia */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<Sun size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Apariencia"
-              value={appearance}
-              onPress={handleAppearance}
-            />
-          </SettingsSectionCard>
-
-          {/* 5 — Admin + Demo (grouped) */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<Check size={20} color="#0F0F10" strokeWidth={2.4} />}
-              label="Admin"
-              onPress={handleAdmin}
-            />
-            <SettingsRow
-              icon={<Sparkles size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Demo"
-              onPress={handleDemo}
-            />
-          </SettingsSectionCard>
-
-          {/* 6 — Etiquetas (opens TagsBottomSheet) */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<TagIcon size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Etiquetas"
-              value={`${tagsCount}`}
-              onPress={openTags}
-            />
-          </SettingsSectionCard>
-
-          {/* 7 — Reseña + Compartir (grouped) */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<Sparkles size={20} color="#0F0F10" strokeWidth={2} />}
-              label={'Dejar una rese\u00F1a'}
-              onPress={handleReview}
-            />
-            <SettingsRow
-              icon={<Share2 size={20} color="#0F0F10" strokeWidth={2} />}
-              label="Compartir con un amigo"
-              onPress={handleShare}
-            />
-          </SettingsSectionCard>
-
-          {/* 8 — Contacto (grouped) */}
-          <View style={styles.gap} />
-          <SettingsSectionCard>
-            <SettingsRow
-              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>X</Text>}
-              label={TWITTER_HANDLE}
-              onPress={handleTwitter}
-            />
-            <SettingsRow
-              icon={<Text style={{ fontSize: 18, fontWeight: '700', color: '#0F0F10' }}>@</Text>}
-              label={CONTACT_EMAIL}
-              onPress={handleEmail}
-            />
-          </SettingsSectionCard>
-
-          {/* 9 — Destructive */}
-          <View style={styles.gap} />
-          <DestructiveCard
-            label="Eliminar cuenta"
-            onPress={handleDeleteAccount}
-          />
-        </ScrollView>
-
-        {/* Secondary sheets — mounted inside the Settings Modal so they
-            layer above this sheet but disappear when Settings closes. */}
-        <TagsBottomSheet />
-        <DemoSheet />
-      </View>
+      </SettingsPaletteProvider>
     </Modal>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   sheet: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingTop: 6,
   },
-
-  // iOS-style drag handle at the top of the sheet.
   handleWrap: {
     alignItems: 'center',
     paddingTop: 8,
@@ -347,10 +360,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 5,
     borderRadius: 9999,
-    backgroundColor: '#D4D4D4',
   },
-
-  // Header mirrors the CreateSubscription / EditSubscription sheets
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -362,7 +372,6 @@ const styles = StyleSheet.create({
   title: {
     ...fontFamily.bold,
     fontSize: fontSize[32],
-    color: '#000000',
     letterSpacing: -0.6,
     flexShrink: 1,
     paddingRight: 12,
@@ -371,17 +380,41 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#EBEBF0',
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 18,
     paddingTop: 8,
   },
-
-  // Separation between cards — matches iOS "group" spacing
   gap: { height: 14 },
+  resetBtnWrap: {
+    paddingHorizontal: 4,
+    paddingTop: 10,
+  },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  resetBtnText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    letterSpacing: -0.1,
+  },
+  appearanceRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  appearanceValue: {
+    ...fontFamily.regular,
+    fontSize: fontSize[15],
+    letterSpacing: -0.1,
+  },
 });

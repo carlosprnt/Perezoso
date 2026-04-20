@@ -24,6 +24,8 @@ interface ReminderDismissalsStore {
   dismiss: (id: string) => void;
   /** Remove a specific dismissal, re-surfacing the card on next render. */
   clear: (id: string) => void;
+  /** Remove ALL dismissals — used by the "reset cards" action in Settings. */
+  clearAll: () => void;
 }
 
 export const useReminderDismissalsStore = create<ReminderDismissalsStore>(
@@ -45,5 +47,6 @@ export const useReminderDismissalsStore = create<ReminderDismissalsStore>(
         delete next[id];
         return { dismissals: next };
       }),
+    clearAll: () => set({ dismissals: {} }),
   }),
 );
