@@ -207,8 +207,8 @@ export function SettingsSheet() {
         >
           {/* 1 — Subscription highlight */}
           <SubscriptionCard
-            title="Perezoso Plus"
-            status={isPlusActive ? 'Suscripción activa' : 'Plan gratuito'}
+            title="Perezoso Pro"
+            status={isPlusActive ? 'Suscripción activa' : 'Desbloquea todas las funcionalidades'}
             ctaLabel={isPlusActive ? 'Gestionar' : 'Mejorar'}
             onManage={handleManagePlus}
           />

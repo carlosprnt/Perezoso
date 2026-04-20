@@ -117,14 +117,14 @@ export function UnderlyingProfileLayer({
           />
         </View>
 
-        {/* ─── Perezoso Plus block — border-only, no fill ──── */}
+        {/* ─── Perezoso Pro block — border-only, no fill ──── */}
         <View style={styles.plusBlock}>
           <View style={styles.plusTextCol}>
-            <Text style={styles.plusTitle}>Perezoso Plus</Text>
+            <Text style={styles.plusTitle}>Perezoso Pro</Text>
             <Text style={styles.plusSubtitle}>
               {isPlusActive
-                ? 'Ya tienes la versi\u00F3n Pro'
-                : 'Desbloquea todo con Pro'}
+                ? 'Suscripci\u00F3n activa'
+                : 'Desbloquea todas las funcionalidades'}
             </Text>
           </View>
           <Pressable
@@ -135,8 +135,8 @@ export function UnderlyingProfileLayer({
             onPress={() => { haptic.selection(); onManagePlus?.(); }}
             accessibilityLabel={
               isPlusActive
-                ? 'Gestionar suscripci\u00F3n Perezoso Plus'
-                : 'Mejorar a Perezoso Plus'
+                ? 'Gestionar suscripci\u00F3n Perezoso Pro'
+                : 'Mejorar a Perezoso Pro'
             }
           >
             <Text style={styles.plusBtnText}>
