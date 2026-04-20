@@ -31,10 +31,11 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Settings, Share2, LogOut, Sun } from 'lucide-react-native';
+import { Settings, Share2, LogOut } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 import { haptic } from '../../lib/haptics';
+import { ThemeToggleButton } from '../../components/ThemeToggleButton';
 
 // Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
 const PEEK_HEIGHT = 120;
@@ -55,7 +56,6 @@ interface Props {
   onShareData?: () => void;
   onManagePlus?: () => void;
   onLogout?: () => void;
-  onToggleTheme?: () => void;
 }
 
 export function UnderlyingProfileLayer({
@@ -65,7 +65,6 @@ export function UnderlyingProfileLayer({
   onShareData,
   onManagePlus,
   onLogout,
-  onToggleTheme,
 }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -164,20 +163,7 @@ export function UnderlyingProfileLayer({
               Cerrar sesión
             </Text>
           </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.bottomBtn,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => { haptic.selection(); onToggleTheme?.(); }}
-            hitSlop={8}
-            accessibilityLabel="Cambiar a modo claro"
-          >
-            <Text style={[styles.bottomBtnText, { color: '#FFFFFF' }]}>
-              Light mode
-            </Text>
-            <Sun size={18} color="#FFFFFF" strokeWidth={2} />
-          </Pressable>
+          <ThemeToggleButton color="#FFFFFF" />
         </View>
       </View>
     </Animated.View>

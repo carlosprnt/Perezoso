@@ -82,6 +82,7 @@ export function SettingsSheet() {
   const notificationsEnabled  = usePreferencesStore((s) => s.notificationsEnabled);
   const setNotificationsEnabled = usePreferencesStore((s) => s.setNotificationsEnabled);
   const appearance            = usePreferencesStore((s) => s.appearance);
+  const setAppearance         = usePreferencesStore((s) => s.setAppearance);
 
   const tagsCount             = useTagsStore((s) => s.tags.length);
   const openTags              = useTagsStore((s) => s.openSheet);
@@ -116,7 +117,12 @@ export function SettingsSheet() {
     openPaywall('general');
   }, [isPlusActive, openPaywall, comingSoon]);
   const handleCurrency   = useCallback(() => comingSoon('Moneda'), [comingSoon]);
-  const handleAppearance = useCallback(() => comingSoon('Apariencia'), [comingSoon]);
+  // Apariencia row behaves like a binary toggle — taps flip between
+  // 'Claro' and 'Oscuro'. 'Automático' is treated as light for the
+  // purpose of the flip target (so the first tap lands on 'Oscuro').
+  const handleAppearance = useCallback(() => {
+    setAppearance(appearance === 'Oscuro' ? 'Claro' : 'Oscuro');
+  }, [appearance, setAppearance]);
   const handleAdmin      = useCallback(() => comingSoon('Admin'), [comingSoon]);
   const handleDemo       = useCallback(() => openDemo(), [openDemo]);
   const handleReview     = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);

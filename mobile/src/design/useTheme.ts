@@ -1,26 +1,33 @@
 // Phase 1 — Design tokens: useTheme hook
-// Provides theme-aware colors via Zustand + system appearance
+// Provides theme-aware colors via user preference + system appearance.
+//
+// Resolution order:
+//   · usePreferencesStore.appearance === 'Claro'       → light
+//   · usePreferencesStore.appearance === 'Oscuro'      → dark
+//   · usePreferencesStore.appearance === 'Automático'  → useColorScheme()
 
 import { useColorScheme } from 'react-native';
 import { light, dark, type ThemeColors } from './colors';
+import { usePreferencesStore } from '../features/settings/useSettingsStore';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-/**
- * Returns the resolved color palette for the current theme.
- *
- * For now this follows the system appearance directly.
- * When the settings store is built (Phase 5), it will read the
- * user's preference from `useSettingsStore().themeMode` and
- * resolve 'system' → actual scheme here.
- */
 export function useTheme(): {
   mode: 'light' | 'dark';
   colors: ThemeColors;
   isDark: boolean;
 } {
   const systemScheme = useColorScheme();
-  const resolved = systemScheme === 'dark' ? 'dark' : 'light';
+  const appearance = usePreferencesStore((s) => s.appearance);
+
+  const resolved: 'light' | 'dark' =
+    appearance === 'Claro'
+      ? 'light'
+      : appearance === 'Oscuro'
+        ? 'dark'
+        : systemScheme === 'dark'
+          ? 'dark'
+          : 'light';
 
   return {
     mode: resolved,

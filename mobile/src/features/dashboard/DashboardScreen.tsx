@@ -258,7 +258,6 @@ export function DashboardScreen() {
         onShareData={reveal.close}
         onManagePlus={handleManagePlus}
         onLogout={handleLogout}
-        onToggleTheme={reveal.close}
       />
 
       {/* Dashboard surface — slides down to expose the layer behind. */}
