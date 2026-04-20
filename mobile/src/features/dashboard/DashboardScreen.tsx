@@ -21,7 +21,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Calendar } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -60,6 +61,7 @@ import { DashboardEmptyState } from './DashboardEmptyState';
 import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { useCalendarStore } from '../calendar/useCalendarStore';
 import { DashboardSkeleton } from '../../components/ScreenSkeletons';
 import {
   deriveStats,
@@ -91,6 +93,7 @@ export function DashboardScreen() {
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const openCalendar = useCalendarStore((s) => s.open);
   const storeLoading = useSubscriptionsStore((s) => s.loading);
   const enableRemindersOnAnnuals = useSubscriptionsStore((s) => s.enableRemindersOnAnnuals);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
@@ -238,11 +241,34 @@ export function DashboardScreen() {
         : nextRenewalDays === 1
           ? 'Queda 1 d\u00EDa'
           : `Quedan ${nextRenewalDays} d\u00EDas`;
-  const daysLeftAction = daysLeftLabel ? (
-    <Text style={[styles.daysLeftText, { color: colors.textMuted }]}>
-      {daysLeftLabel}
-    </Text>
-  ) : undefined;
+  const daysLeftAction = (
+    <View style={styles.renewalAction}>
+      {daysLeftLabel ? (
+        <Text style={[styles.daysLeftText, { color: colors.textMuted }]}>
+          {daysLeftLabel}
+        </Text>
+      ) : null}
+      <Pressable
+        onPress={openCalendar}
+        accessibilityRole="button"
+        accessibilityLabel="Ver calendario de pagos"
+        hitSlop={8}
+        style={({ pressed }) => [
+          styles.calendarBtn,
+          {
+            backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
+            opacity: pressed ? 0.6 : 1,
+          },
+        ]}
+      >
+        <Calendar
+          size={16}
+          strokeWidth={2}
+          color={isDark ? '#AEAEB2' : '#333333'}
+        />
+      </Pressable>
+    </View>
+  );
 
   return (
     // Root host: `#0A0A0A` so any hairline gap between the layers
@@ -480,5 +506,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     fontVariant: ['tabular-nums'],
+  },
+  renewalAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  calendarBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

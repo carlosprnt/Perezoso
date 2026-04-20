@@ -37,7 +37,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Check, ChevronsUpDown } from 'lucide-react-native';
+import { Calendar, Check, ChevronsUpDown } from 'lucide-react-native';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 import { useTheme } from '../../design/useTheme';
@@ -49,6 +49,7 @@ import { WalletCard } from './WalletCard';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { useCalendarStore } from '../calendar/useCalendarStore';
 import { SubscriptionsSkeleton } from '../../components/ScreenSkeletons';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
@@ -309,6 +310,7 @@ export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
+  const openCalendar = useCalendarStore((s) => s.open);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const storeLoading = useSubscriptionsStore((s) => s.loading);
   const isFirstLoad = storeLoading && subscriptions.length === 0;
@@ -472,9 +474,33 @@ export function SubscriptionsScreen() {
             The outer View holds both so the veil sits above the text. */}
         <View style={styles.header}>
           <Animated.View style={headerFadeStyle}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Mis suscripciones
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                Mis suscripciones
+              </Text>
+              {!isEmpty && (
+                <Pressable
+                  onPress={openCalendar}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ver calendario de pagos"
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.calendarBtn,
+                    {
+                      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
+                      borderColor: isDark ? '#3A3A3C' : '#E4E4E4',
+                      opacity: pressed ? 0.6 : 1,
+                    },
+                  ]}
+                >
+                  <Calendar
+                    size={18}
+                    strokeWidth={2}
+                    color={isDark ? '#AEAEB2' : '#333333'}
+                  />
+                </Pressable>
+              )}
+            </View>
 
           {!isEmpty && (
             <>
@@ -774,11 +800,26 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     overflow: 'hidden',
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     ...fontFamily.bold,
     fontSize: 30,
     lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
+    flex: 1,
+  },
+  calendarBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
   // Matches web: 18px bold, primary text color (NOT muted), tight leading.
   paragraph: {
