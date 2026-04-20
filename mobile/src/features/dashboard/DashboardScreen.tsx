@@ -85,26 +85,6 @@ export function DashboardScreen() {
   const firstName = fullName.split(/\s+/)[0];
   const avatarUrl = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null;
 
-  // TEMP diagnostic — fires once per session to surface what Google actually
-  // returned in user_metadata. Remove after avatar rendering is verified.
-  const diagShown = React.useRef(false);
-  React.useEffect(() => {
-    if (!user || diagShown.current) return;
-    diagShown.current = true;
-    const meta = user.user_metadata ?? {};
-    const keys = Object.keys(meta).join(', ');
-    const preview = JSON.stringify({
-      avatar_url: meta.avatar_url,
-      picture: meta.picture,
-      full_name: meta.full_name,
-      name: meta.name,
-    }, null, 2);
-    require('react-native').Alert.alert(
-      `metadata keys: ${keys || '(empty)'}`,
-      preview,
-    );
-  }, [user]);
-
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
