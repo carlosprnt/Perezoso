@@ -12,7 +12,7 @@
 // underlying list changes mid-flight.
 
 import { create } from 'zustand';
-import type { SavingsSuggestion } from './mockData';
+import type { SavingsSuggestion } from './deriveSuggestions';
 
 interface SavingsSuggestionsStore {
   isListOpen: boolean;

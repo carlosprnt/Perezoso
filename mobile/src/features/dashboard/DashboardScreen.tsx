@@ -70,6 +70,7 @@ import {
   deriveLogoUrls,
   deriveSharedLogoUrls,
 } from './derive';
+import { deriveSavingsSuggestions } from '../savings-suggestions/deriveSuggestions';
 
 // Staggered entrance wrapper
 function StaggeredItem({ index, children }: { index: number; children: React.ReactNode }) {
@@ -107,6 +108,7 @@ export function DashboardScreen() {
   const topCategory      = React.useMemo(() => deriveTopCategory(subscriptions),      [subscriptions]);
   const logoUrls         = React.useMemo(() => deriveLogoUrls(subscriptions),         [subscriptions]);
   const sharedLogoUrls   = React.useMemo(() => deriveSharedLogoUrls(subscriptions),   [subscriptions]);
+  const savingsSuggestions = React.useMemo(() => deriveSavingsSuggestions(subscriptions), [subscriptions]);
 
   // Confetti state
   const [moneyConfetti, setMoneyConfetti] = useState<{ x: number; y: number } | null>(null);
@@ -329,7 +331,7 @@ export function DashboardScreen() {
                 <View style={{ marginBottom: 10 }}>
                   <ReminderCards
                     annualCount={annualCount}
-                    sharedSavings={'18,86\u20AC'}
+                    savingsCount={savingsSuggestions.length}
                     onActivateReminder={handleActivateReminder}
                     onViewSavings={openSavingsList}
                   />

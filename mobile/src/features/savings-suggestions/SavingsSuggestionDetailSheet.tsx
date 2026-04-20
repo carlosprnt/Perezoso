@@ -43,7 +43,7 @@ import { Sparkles, X } from 'lucide-react-native';
 import { fontFamily, fontSize } from '../../design/typography';
 import { SETTINGS_PALETTE as C } from '../settings/components';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
-import type { SavingsSuggestion } from './mockData';
+import type { SavingsSuggestion } from './deriveSuggestions';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

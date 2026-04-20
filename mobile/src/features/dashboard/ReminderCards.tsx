@@ -78,7 +78,7 @@ interface ReminderItem {
 
 interface ReminderCardsProps {
   annualCount: number;
-  sharedSavings?: string; // e.g. "18,86€"
+  savingsCount: number;
   onActivateReminder?: () => void;
   onViewSavings?: () => void;
 }
@@ -304,7 +304,7 @@ function CardShell({
 
 export function ReminderCards({
   annualCount,
-  sharedSavings = '18,86\u20AC',
+  savingsCount,
   onActivateReminder,
   onViewSavings,
 }: ReminderCardsProps) {
@@ -347,21 +347,27 @@ export function ReminderCards({
     });
   }
 
-  allItems.push({
-    id: 'savings',
-    icon: 'sparkles',
-    gradient: ['#FEF3C7', '#FDE68A'] as const,
-    iconColor: '#92400E',
-    body: (
-      <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
-        Compartir planes te est{'\u00E1'} ahorrando{' '}
-        <Text style={styles.bodyBold}>{sharedSavings}</Text>
-        {' '}al mes. Mira qu{'\u00E9'} m{'\u00E1'}s puedes compartir.
-      </Text>
-    ),
-    ctaLabel: 'Ver oportunidades',
-    onCta: onViewSavings,
-  });
+  if (savingsCount > 0) {
+    allItems.push({
+      id: 'savings',
+      icon: 'sparkles',
+      gradient: ['#FEF3C7', '#FDE68A'] as const,
+      iconColor: '#92400E',
+      body: (
+        <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
+          Tienes{' '}
+          <Text style={styles.bodyBold}>
+            {savingsCount === 1
+              ? '1 oportunidad'
+              : `${savingsCount} oportunidades`}
+          </Text>
+          {' '}de ahorro en tus suscripciones. Desc{'\u00FA'}brelas.
+        </Text>
+      ),
+      ctaLabel: 'Ver oportunidades',
+      onCta: onViewSavings,
+    });
+  }
 
   const items = allItems.filter((item) => !isDismissed(item.id));
 

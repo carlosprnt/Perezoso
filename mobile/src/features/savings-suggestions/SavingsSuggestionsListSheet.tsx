@@ -48,12 +48,11 @@ import { X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
 import { SETTINGS_PALETTE as C } from '../settings/components';
-import {
-  MOCK_SAVINGS_SUGGESTIONS,
-  type SavingsSuggestion,
-} from './mockData';
+import type { SavingsSuggestion } from './deriveSuggestions';
+import { deriveSavingsSuggestions } from './deriveSuggestions';
 import { SavingsSuggestionDetailSheet } from './SavingsSuggestionDetailSheet';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -64,6 +63,12 @@ export function SavingsSuggestionsListSheet() {
   const isOpen      = useSavingsSuggestionsStore((s) => s.isListOpen);
   const closeList   = useSavingsSuggestionsStore((s) => s.closeList);
   const openDetail  = useSavingsSuggestionsStore((s) => s.openDetail);
+
+  const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const suggestions = React.useMemo(
+    () => deriveSavingsSuggestions(subscriptions),
+    [subscriptions],
+  );
 
   const [mounted, setMounted] = useState(isOpen);
 
@@ -182,13 +187,22 @@ export function SavingsSuggestionsListSheet() {
             ]}
             showsVerticalScrollIndicator={false}
           >
-            {MOCK_SAVINGS_SUGGESTIONS.map((s) => (
-              <SuggestionCard
-                key={s.id}
-                suggestion={s}
-                onViewMore={() => openDetail(s)}
-              />
-            ))}
+            {suggestions.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>
+                  No hay sugerencias de ahorro para tus suscripciones actuales.
+                  {'\n'}A medida que añadas más, aparecerán aquí.
+                </Text>
+              </View>
+            ) : (
+              suggestions.map((s) => (
+                <SuggestionCard
+                  key={s.id}
+                  suggestion={s}
+                  onViewMore={() => openDetail(s)}
+                />
+              ))
+            )}
           </ScrollView>
         </Reanimated.View>
 
@@ -393,5 +407,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
+  },
+  emptyState: {
+    paddingVertical: 48,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    ...fontFamily.regular,
+    fontSize: fontSize[15],
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: fontSize[15] * 1.5,
   },
 });
