@@ -219,9 +219,16 @@ function ScrollCard({
   useAnimatedReaction(
     () => enterProgress.value,
     (cur, prev) => {
-      if (prev !== null && prev < 0.5 && cur >= 0.5 && hasEnteredHaptic.value === 0) {
+      if (prev === null) return;
+      // Rising through the 0.5 gate: card has scaled into view — vibrate.
+      if (prev < 0.5 && cur >= 0.5 && hasEnteredHaptic.value === 0) {
         hasEnteredHaptic.value = 1;
         runOnJS(haptic.light)();
+      }
+      // Falling back below the gate: arm the haptic again so the next
+      // re-entry retriggers it.
+      else if (prev >= 0.5 && cur < 0.5 && hasEnteredHaptic.value === 1) {
+        hasEnteredHaptic.value = 0;
       }
     },
   );
