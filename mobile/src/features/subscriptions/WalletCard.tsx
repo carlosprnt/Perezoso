@@ -142,9 +142,14 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
       {/* Bottom row: progress bar + renewal info + status */}
       <View style={styles.bottomRow}>
         <View style={styles.progressSection}>
-          <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-            Siguiente cobro
-          </Text>
+          <View style={styles.renewalRow}>
+            <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+              Siguiente cobro
+            </Text>
+            <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+              {formatBillingDate(sub.next_billing_date)}
+            </Text>
+          </View>
           <View style={[styles.progressBar, { backgroundColor: progressBarBg }]}>
             <View
               style={[
@@ -156,8 +161,8 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
               ]}
             />
           </View>
-          <Text style={[styles.renewalText, { color: colors.textMuted }]}>
-            {renewalText(days)} · {formatBillingDate(sub.next_billing_date)}
+          <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+            {renewalText(days)}
           </Text>
         </View>
 
@@ -241,6 +246,11 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 4,
     borderRadius: 2,
+  },
+  renewalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   renewalLabel: {
     ...fontFamily.medium,

@@ -107,7 +107,6 @@ export function SummaryHero({
             <Text style={[styles.heroAmount, { color: amountColor }]}>
               {formatAmount(stats.monthlyTotal, stats.currency)}
             </Text>
-            <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
           </Text>
         </View>
 
@@ -125,7 +124,6 @@ export function SummaryHero({
             <Text style={[styles.heroAmount, { color: amountColor }]}>
               {formatAmount(stats.annualTotal, stats.currency)}
             </Text>
-            <Text style={[styles.heroPeriod, { color: labelColor }]}>.</Text>
           </Text>
         </View>
       </Pressable>
@@ -148,7 +146,7 @@ export function SummaryHero({
             <LogoStack logoUrls={logoUrls} totalCount={stats.totalCount} />
           ) : null}
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-            {logoUrls.length > 0 ? ' ' : ' '}suscripciones.
+            {logoUrls.length > 0 ? ' ' : ' '}{stats.totalCount === 1 ? 'suscripción' : 'suscripciones'}.
           </Text>
         </Pressable>
         {stats.sharedCount > 0 ? (
