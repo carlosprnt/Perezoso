@@ -13,6 +13,7 @@
 //      sign-out events flow back into the UI.
 
 import { create } from 'zustand';
+import { Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import type { Session, User } from '@supabase/supabase-js';
@@ -46,6 +47,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       scheme: 'perezoso',
       path: 'auth/callback',
     });
+
+    // TEMP diagnostic — surfaces the exact URL Supabase will redirect to.
+    // Add this string to Supabase Dashboard → Authentication → URL
+    // Configuration → Redirect URLs. Remove this Alert once verified.
+    Alert.alert('Redirect URL', redirectTo);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
