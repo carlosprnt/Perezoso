@@ -12,15 +12,15 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. ' +
-      'Set them in mobile/.env and restart Metro.',
-  );
-}
+// Hardcoded intentionally: these are public client credentials (anon key
+// + project URL). Security is enforced via RLS on the DB, not by hiding
+// the anon key. Hardcoding avoids EAS Update env-var bundling issues —
+// `EXPO_PUBLIC_*` vars are inlined at `eas update` time and silently
+// resolve to empty strings if the `.env` isn't present on the machine
+// that ran the update, which surfaces as "Invalid API key" at runtime.
+const SUPABASE_URL = 'https://uectdurdngkjkwilfphh.supabase.co';
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlY3RkdXJkbmdramt3aWxmcGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzOTM1MjIsImV4cCI6MjA4OTk2OTUyMn0.FIC8KALJbQ615AydHVMUhogAwLTaspVpp45BW-HCvLk';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
