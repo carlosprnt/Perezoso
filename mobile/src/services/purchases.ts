@@ -13,6 +13,12 @@
 //   footgun we hit with Supabase before.
 
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+// Expo Go bundles the JS shim of `react-native-purchases` but not the
+// native module — so `require()` succeeds and the crash only happens
+// on the first native call. Detect it up-front and no-op entirely.
+const isExpoGo = Constants.appOwnership === 'expo';
 
 // ── Keys ─────────────────────────────────────────────────────────────
 // Replace with real `appl_...` / `goog_...` keys once the Apple
@@ -34,6 +40,10 @@ export const PRO_ENTITLEMENT_ID = 'pro';
 let cachedModule: any | undefined;
 function loadPurchases(): any | null {
   if (cachedModule !== undefined) return cachedModule;
+  if (isExpoGo) {
+    cachedModule = null;
+    return null;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('react-native-purchases');
@@ -87,8 +97,13 @@ export async function configure(userId?: string): Promise<void> {
   const apiKey = Platform.OS === 'ios' ? KEYS.ios : KEYS.android;
 
   if (!configured) {
-    P.configure({ apiKey, appUserID: userId ?? null });
-    configured = true;
+    try {
+      P.configure({ apiKey, appUserID: userId ?? null });
+      configured = true;
+    } catch {
+      // Native module not wired up — behave like it wasn't there.
+      cachedModule = null;
+    }
     return;
   }
   if (userId) {
@@ -182,7 +197,11 @@ export function addCustomerInfoListener(
   const P = loadPurchases();
   if (!P) return () => {};
   const listener = (info: any) => cb(hasProEntitlement(info));
-  P.addCustomerInfoUpdateListener(listener);
+  try {
+    P.addCustomerInfoUpdateListener(listener);
+  } catch {
+    return () => {};
+  }
   return () => {
     try {
       P.removeCustomerInfoUpdateListener(listener);
