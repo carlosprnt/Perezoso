@@ -20,7 +20,7 @@
 //   - FloatingNav space at bottom
 
 import React, { useState, useCallback } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -44,6 +44,7 @@ import {
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 import { useSettingsStore } from '../settings/useSettingsStore';
+import { useAuthStore } from '../auth/useAuthStore';
 import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
 import { useToastStore } from '../../components/useToastStore';
 
@@ -78,7 +79,6 @@ function StaggeredItem({ index, children }: { index: number; children: React.Rea
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
@@ -129,16 +129,15 @@ export function DashboardScreen() {
     openSettings();
   }, [reveal, openSettings]);
 
-  // "Cerrar sesión" in the dark profile layer: dismiss the reveal, then
-  // jump to the login-onboarding carousel. Uses the clean `/login` href
-  // (expo-router auto-resolves the (auth) group) — the grouped notation
-  // doesn't switch cleanly between sibling stack groups. We defer the
-  // navigation one tick so the reveal.close() spring starts first and the
-  // route transition doesn't fight the gesture animation mid-flight.
+  // "Cerrar sesión" — close the reveal, then tell Supabase to sign out.
+  // The AuthGate in app/_layout.tsx is subscribed to the session, so it
+  // will redirect to /login on its own once the status flips. No need
+  // to call router.replace here.
+  const signOut = useAuthStore((s) => s.signOut);
   const handleLogout = useCallback(() => {
     reveal.close();
-    router.replace('/login');
-  }, [reveal, router]);
+    signOut();
+  }, [reveal, signOut]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions
   // list sheet. Lives in its own globally-mounted Modal so the

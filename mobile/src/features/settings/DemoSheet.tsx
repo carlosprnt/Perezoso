@@ -47,40 +47,53 @@ import { useDemoSheetStore } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import type { AppPreset } from '../subscriptions/presets';
 
+// Selector: either a demo preset or the string 'real' to mean "use my
+// real Supabase account".
+type Choice = 'real' | AppPreset;
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const ENTER_MS = 280;
 const EXIT_MS = 220;
 
 interface Option {
-  preset: AppPreset;
+  choice: Choice;
   title: string;
   description: string;
 }
 
 const OPTIONS: Option[] = [
   {
-    preset: 'empty',
-    title: 'Vacío',
+    choice: 'real',
+    title: 'Mi cuenta',
+    description: 'Tus suscripciones reales. Añadir, editar y eliminar se guarda en tu cuenta.',
+  },
+  {
+    choice: 'empty',
+    title: 'Demo · Vacío',
     description: 'Sin suscripciones. Estado inicial tras el registro.',
   },
   {
-    preset: 'basic',
-    title: 'Básico',
+    choice: 'basic',
+    title: 'Demo · Básico',
     description: '10 suscripciones activas, sin Perezoso Plus.',
   },
   {
-    preset: 'pro',
-    title: 'Pro',
+    choice: 'pro',
+    title: 'Demo · Pro',
     description: '20 suscripciones activas con Perezoso Plus.',
   },
 ];
 
 export function DemoSheet() {
-  const isOpen     = useDemoSheetStore((s) => s.isOpen);
-  const closeSheet = useDemoSheetStore((s) => s.closeSheet);
-  const preset     = useSubscriptionsStore((s) => s.preset);
-  const setPreset  = useSubscriptionsStore((s) => s.setPreset);
+  const isOpen        = useDemoSheetStore((s) => s.isOpen);
+  const closeSheet    = useDemoSheetStore((s) => s.closeSheet);
+  const mode          = useSubscriptionsStore((s) => s.mode);
+  const preset        = useSubscriptionsStore((s) => s.preset);
+  const useRealMode   = useSubscriptionsStore((s) => s.useRealMode);
+  const useDemoPreset = useSubscriptionsStore((s) => s.useDemoPreset);
+
+  const currentChoice: Choice = mode === 'real' ? 'real' : preset;
 
   const [mounted, setMounted] = useState(isOpen);
 
@@ -140,8 +153,12 @@ export function DemoSheet() {
 
   if (!mounted) return null;
 
-  const handleSelect = (next: AppPreset) => {
-    setPreset(next);
+  const handleSelect = (next: Choice) => {
+    if (next === 'real') {
+      useRealMode();
+    } else {
+      useDemoPreset(next);
+    }
     closeSheet();
   };
 
@@ -207,11 +224,11 @@ export function DemoSheet() {
             showsVerticalScrollIndicator={false}
           >
             {OPTIONS.map((opt) => {
-              const isActive = preset === opt.preset;
+              const isActive = currentChoice === opt.choice;
               return (
                 <Pressable
-                  key={opt.preset}
-                  onPress={() => handleSelect(opt.preset)}
+                  key={opt.choice}
+                  onPress={() => handleSelect(opt.choice)}
                   style={({ pressed }) => [
                     styles.option,
                     isActive && styles.optionActive,

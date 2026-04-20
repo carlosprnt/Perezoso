@@ -1,6 +1,21 @@
-import { Redirect } from 'expo-router';
+// Root redirect — sends the user to the right group based on auth state.
+// While the session is still loading (reading AsyncStorage), render
+// nothing so we don't flash the dashboard before bouncing to /login.
 
-// Root redirect: send to dashboard (auth guard will be added in Phase 5)
+import { Redirect } from 'expo-router';
+import { View } from 'react-native';
+import { useAuthStore } from '../src/features/auth/useAuthStore';
+
 export default function Index() {
-  return <Redirect href="/(tabs)/dashboard" />;
+  const status = useAuthStore((s) => s.status);
+
+  if (status === 'loading') {
+    return <View style={{ flex: 1, backgroundColor: '#0A0A0A' }} />;
+  }
+
+  return status === 'authenticated' ? (
+    <Redirect href="/(tabs)/dashboard" />
+  ) : (
+    <Redirect href="/login" />
+  );
 }

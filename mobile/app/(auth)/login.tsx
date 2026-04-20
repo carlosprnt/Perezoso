@@ -1,27 +1,31 @@
 // Onboarding + login entry point. Hosts the LoginOnboardingScreen
-// and wires its handlers to the router / auth stubs.
+// and wires the Google / Apple buttons to the auth store. AuthGate
+// in the root layout handles the actual redirect once the session
+// becomes authenticated.
 
 import React, { useCallback } from 'react';
-import { Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Alert, Linking } from 'react-native';
 
 import { LoginOnboardingScreen } from '../../src/features/auth/LoginOnboardingScreen';
+import { useAuthStore } from '../../src/features/auth/useAuthStore';
 import { haptic } from '../../src/lib/haptics';
 
 export default function LoginRoute() {
-  const router = useRouter();
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
 
-  const onPressGoogle = useCallback(() => {
+  const onPressGoogle = useCallback(async () => {
     haptic.medium();
-    // TODO: wire Supabase OAuth (Google)
-    router.replace('/(tabs)/dashboard');
-  }, [router]);
+    const res = await signInWithGoogle();
+    if (!res.ok && res.error && res.error !== 'cancelled') {
+      Alert.alert('No se pudo iniciar sesión', res.error);
+    }
+    // AuthGate handles navigation to /(tabs)/dashboard on success.
+  }, [signInWithGoogle]);
 
   const onPressApple = useCallback(() => {
     haptic.medium();
-    // TODO: wire Supabase OAuth (Apple)
-    router.replace('/(tabs)/dashboard');
-  }, [router]);
+    Alert.alert('Próximamente', 'Apple Sign-In llegará en una próxima versión.');
+  }, []);
 
   const onPressTerms = useCallback(() => {
     Linking.openURL('https://perezoso.app/terminos').catch(() => {});

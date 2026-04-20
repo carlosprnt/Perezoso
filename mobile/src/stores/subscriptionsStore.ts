@@ -1,19 +1,21 @@
-// Global subscriptions + user-status store.
+// Subscriptions store — serves the whole app from a single source of truth.
 //
-// Source of truth for:
-//   · `subscriptions` — the user's current list. Every screen that
-//     used to import MOCK_SUBSCRIPTIONS directly now reads this.
-//   · `isPlusActive` — whether Perezoso Plus is active. The Ajustes
-//     "Suscripción" card switches between "Suscripción activa" and
-//     "Plan gratuito" based on this flag.
-//   · `preset` — which demo state is currently selected (used by the
-//     Demo sheet in Ajustes to show the selected option).
+// Two modes:
+//   · 'real'  — subscriptions come from Supabase (filtered by user_id).
+//                Adds/edits/deletes round-trip to the DB. Default after
+//                login. Empty by default for a brand-new account.
+//   · 'demo'  — subscriptions come from the local preset registry
+//                (empty / basic / pro). No DB writes. Used from
+//                Ajustes → Demo to showcase the UI with pre-seeded data
+//                without touching the real account.
 //
-// All three values are driven by `setPreset(...)` which swaps them
-// atomically from the registry in `features/subscriptions/presets.ts`.
+// The currently-selected demo preset lives in `preset`. In real mode it's
+// ignored (and `preset` is conventionally left as 'empty').
 //
-// NOTE: There is no persistence — switching preset resets state every
-// session, which is exactly what the demo flow wants.
+// Bootstrapping flow:
+//   1. Auth store flips to 'authenticated' → subscribers call `loadFromSupabase()`
+//   2. On sign-out → `clear()` wipes the list so the next user doesn't
+//      inherit the previous one's cache.
 
 import { create } from 'zustand';
 
@@ -23,49 +25,109 @@ import {
   type AppPreset,
 } from '../features/subscriptions/presets';
 import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
+import { fetchSubscriptions, insertSubscription } from '../services/subscriptionsApi';
+import { useAuthStore } from '../features/auth/useAuthStore';
+
+export type Mode = 'real' | 'demo';
 
 interface SubscriptionsStore {
+  mode: Mode;
+  /** Only meaningful when mode === 'demo'. Which preset is displayed. */
   preset: AppPreset;
   subscriptions: Subscription[];
   isPlusActive: boolean;
-  setPreset: (preset: AppPreset) => void;
-  /** Prepend a newly created subscription to the list. The preset tag
-   *  is left untouched — a future preset change still overwrites the
-   *  list wholesale, which matches the Demo flow. */
-  addSubscription: (sub: Subscription) => void;
-  /** Enable reminders on every yearly-billing subscription at 7-days-
-   *  before. Used by the dashboard "Avísame" reminder card — one tap
-   *  wires all annual renewals to the default heads-up. Returns the
-   *  number of subscriptions that were updated (already-enabled ones
-   *  are re-set to 7 days, which keeps the UX predictable). */
+  loading: boolean;
+  error: string | null;
+
+  /** Switch to real mode and pull fresh data from Supabase. */
+  useRealMode: () => Promise<void>;
+  /** Switch to demo mode with the given preset. */
+  useDemoPreset: (preset: AppPreset) => void;
+
+  /** Re-pull from Supabase (real mode only — no-op in demo). */
+  loadFromSupabase: () => Promise<void>;
+  /** Wipe state (on sign-out). */
+  clear: () => void;
+
+  addSubscription: (
+    sub: Omit<Subscription, 'id' | 'created_at' | 'updated_at' | 'monthly_equivalent_cost' | 'my_monthly_cost'>
+      & Partial<Pick<Subscription, 'id' | 'created_at' | 'updated_at' | 'monthly_equivalent_cost' | 'my_monthly_cost'>>,
+  ) => Promise<void>;
+
   enableRemindersOnAnnuals: () => number;
 }
 
-// Default to "basic" — the 10-item dataset the app shipped with. Keeps
-// dev + screenshots identical to what the team is used to seeing.
-const DEFAULT_PRESET: AppPreset = 'basic';
+export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
+  // Default = real mode, empty. AuthGate triggers loadFromSupabase on sign-in.
+  mode: 'real',
+  preset: 'empty',
+  subscriptions: [],
+  isPlusActive: false,
+  loading: false,
+  error: null,
 
-export const useSubscriptionsStore = create<SubscriptionsStore>((set) => ({
-  preset: DEFAULT_PRESET,
-  subscriptions: PRESET_CONFIG[DEFAULT_PRESET].subscriptions,
-  isPlusActive: PRESET_CONFIG[DEFAULT_PRESET].isPlusActive,
+  useRealMode: async () => {
+    set({ mode: 'real', preset: 'empty', subscriptions: [], isPlusActive: false });
+    await get().loadFromSupabase();
+  },
 
-  setPreset: (preset) =>
+  useDemoPreset: (preset) =>
     set({
+      mode: 'demo',
       preset,
       subscriptions: PRESET_CONFIG[preset].subscriptions,
       isPlusActive: PRESET_CONFIG[preset].isPlusActive,
+      error: null,
     }),
 
-  addSubscription: (sub) => {
-    set((state) => ({
-      subscriptions: [sub, ...state.subscriptions],
-    }));
-    // Bringing a new annual renewal into the list re-surfaces the
-    // "Av\u00EDsame" heads-up reminder, even if the user dismissed it
-    // earlier. Dismissals for other cards (e.g. the savings tip) are
-    // left alone on purpose.
-    if (sub.billing_period === 'yearly') {
+  loadFromSupabase: async () => {
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      set({ subscriptions: [], loading: false });
+      return;
+    }
+    set({ loading: true, error: null });
+    try {
+      const subs = await fetchSubscriptions(user.id);
+      set({ subscriptions: subs, loading: false });
+    } catch (e: any) {
+      set({ loading: false, error: e?.message ?? 'Error cargando suscripciones' });
+    }
+  },
+
+  clear: () =>
+    set({
+      subscriptions: [],
+      isPlusActive: false,
+      loading: false,
+      error: null,
+    }),
+
+  addSubscription: async (sub) => {
+    // Demo mode: local-only insert (what the old store did).
+    if (get().mode === 'demo') {
+      const local: Subscription = {
+        id: sub.id ?? `local-${Date.now()}`,
+        created_at: sub.created_at ?? new Date().toISOString(),
+        updated_at: sub.updated_at ?? new Date().toISOString(),
+        monthly_equivalent_cost: sub.monthly_equivalent_cost ?? sub.price_amount,
+        my_monthly_cost: sub.my_monthly_cost ?? sub.price_amount,
+        ...sub,
+      } as Subscription;
+      set((state) => ({ subscriptions: [local, ...state.subscriptions] }));
+      if (sub.billing_period === 'yearly') {
+        useReminderDismissalsStore.getState().clear('reminder');
+      }
+      return;
+    }
+
+    // Real mode: insert into Supabase, then prepend the returned row.
+    const user = useAuthStore.getState().user;
+    if (!user) throw new Error('No user session');
+
+    const inserted = await insertSubscription(user.id, sub);
+    set((state) => ({ subscriptions: [inserted, ...state.subscriptions] }));
+    if (inserted.billing_period === 'yearly') {
       useReminderDismissalsStore.getState().clear('reminder');
     }
   },
@@ -86,3 +148,18 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set) => ({
     return count;
   },
 }));
+
+// ── Auth-driven data lifecycle ───────────────────────────────────────
+// Subscribe to auth status so subs are fetched on sign-in and cleared
+// on sign-out. Lives at module level so any app that imports this store
+// inherits the behaviour — no component needs to wire it up.
+useAuthStore.subscribe((state, prev) => {
+  if (state.status === prev.status) return;
+  const mode = useSubscriptionsStore.getState().mode;
+
+  if (state.status === 'authenticated' && mode === 'real') {
+    useSubscriptionsStore.getState().loadFromSupabase();
+  } else if (state.status === 'unauthenticated') {
+    useSubscriptionsStore.getState().clear();
+  }
+});

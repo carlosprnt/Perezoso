@@ -309,8 +309,6 @@ export function CreateSubscriptionSheet() {
     haptic.light();
     setIsSubmitting(true);
     try {
-      // TODO: replace with real API call
-      await new Promise<void>((r) => setTimeout(r, 900));
 
       // Persist the new subscription in the global store so both the
       // dashboard and subscriptions screens leave their empty states
@@ -348,7 +346,7 @@ export function CreateSubscriptionSheet() {
           : undefined,
         payment_method: form.paymentMethod || undefined,
       };
-      useSubscriptionsStore.getState().addSubscription(newSub);
+      await useSubscriptionsStore.getState().addSubscription(newSub);
 
       setIsSubmitting(false);
       closeStore();

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -19,8 +19,32 @@ import { SubscriptionCreatedCelebration } from '../src/features/add-subscription
 import { SubscriptionDetailSheet } from '../src/features/subscription-detail/SubscriptionDetailSheet';
 import { SettingsSheet } from '../src/features/settings/SettingsSheet';
 import { SavingsSuggestionsListSheet } from '../src/features/savings-suggestions/SavingsSuggestionsListSheet';
+import { useAuthStore } from '../src/features/auth/useAuthStore';
 
 SplashScreen.preventAutoHideAsync();
+
+// Route guard — redirects between the (auth) and (tabs) groups based on
+// supabase session. Kept as a child component so it has access to the
+// expo-router context (useSegments/useRouter only work inside the Stack).
+function AuthGate() {
+  const status = useAuthStore((s) => s.status);
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (status === 'unauthenticated' && !inAuthGroup) {
+      router.replace('/login');
+    } else if (status === 'authenticated' && inAuthGroup) {
+      router.replace('/(tabs)/dashboard');
+    }
+  }, [status, segments, router]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -64,6 +88,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="index" />
         </Stack>
+        <AuthGate />
         <CreateSubscriptionSheet />
         <SubscriptionDetailSheet />
         <SettingsSheet />
