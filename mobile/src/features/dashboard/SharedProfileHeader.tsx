@@ -140,7 +140,7 @@ export function SharedProfileHeader({
           {avatarUrl ? (
             <View style={styles.avatar}>
               <Image
-                source={AVATAR_SOURCE}
+                source={{ uri: avatarUrl }}
                 style={styles.avatarImg}
                 resizeMode="cover"
               />

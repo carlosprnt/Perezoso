@@ -80,6 +80,11 @@ export function DashboardScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
+  const user = useAuthStore((s) => s.user);
+  const fullName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? MOCK_FIRST_NAME;
+  const firstName = fullName.split(/\s+/)[0];
+  const avatarUrl = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null;
+
   // All dashboard numbers flow from the active subscriptions preset —
   // switching Demo states swaps every card in one go.
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
@@ -383,7 +388,9 @@ export function DashboardScreen() {
           looks correct whether the white sheet or the black panel is the
           visible context. Avatar tap toggles the reveal. */}
       <SharedProfileHeader
-        firstName={MOCK_FIRST_NAME}
+        firstName={firstName}
+        fullName={fullName}
+        avatarUrl={avatarUrl}
         onAvatarPress={reveal.toggle}
         scrollY={scrollY}
       />

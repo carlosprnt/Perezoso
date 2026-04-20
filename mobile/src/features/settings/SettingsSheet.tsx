@@ -70,14 +70,6 @@ import {
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useAuthStore } from '../auth/useAuthStore';
 
-// ─── Mock profile data ────────────────────────────────────────────────
-// Would come from an auth/profile store once wired to Supabase.
-const MOCK_PROFILE = {
-  name: 'Carlos Pariente',
-  email: 'carlosprnt@gmail.com',
-  avatarUrl: undefined as string | undefined,
-};
-
 const TWITTER_HANDLE = '@carlosprnt';
 const CONTACT_EMAIL  = 'hello@carlospariente.com';
 
@@ -96,6 +88,10 @@ export function SettingsSheet() {
   const openDemo              = useDemoSheetStore((s) => s.openSheet);
   const isPlusActive          = useSubscriptionsStore((s) => s.isPlusActive);
   const deleteAccount         = useAuthStore((s) => s.deleteAccount);
+  const user                  = useAuthStore((s) => s.user);
+  const profileName  = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? 'Usuario';
+  const profileEmail = user?.email ?? '';
+  const profileAvatar = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture;
 
   const insets = useSafeAreaInsets();
 
@@ -212,9 +208,9 @@ export function SettingsSheet() {
           {/* 2 — Profile */}
           <View style={styles.gap} />
           <ProfileCard
-            name={MOCK_PROFILE.name}
-            email={MOCK_PROFILE.email}
-            avatarUrl={MOCK_PROFILE.avatarUrl}
+            name={profileName}
+            email={profileEmail}
+            avatarUrl={profileAvatar}
           />
 
           {/* 3 — Moneda + Notificaciones (grouped) */}
