@@ -44,7 +44,7 @@
     },
     "owner": "carlosprnt",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/7ed0ce73-b35a-49c7-90c7-8737f808e530"
