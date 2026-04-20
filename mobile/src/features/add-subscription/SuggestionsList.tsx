@@ -46,18 +46,76 @@ import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 
 const FEATURED_IDS = [
+  // Streaming
   'netflix',
   'spotify',
+  'youtube-premium',
   'disney-plus',
-  'apple-tv',
   'prime-video',
   'hbo-max',
-  'youtube-premium',
-  'notion',
+  'apple-tv',
   'apple-music',
+  'hulu',
+  'paramount-plus',
+  'crunchyroll',
+  'twitch',
+  'dazn',
+  'mubi',
+  // Music & audio
+  'tidal',
+  'deezer',
+  'soundcloud',
+  'audible',
+  'amazon-prime',
+  // AI
+  'chatgpt',
+  'claude',
+  'midjourney',
+  'perplexity',
+  'copilot',
+  'cursor',
+  // Productivity
+  'notion',
   'figma',
   'adobe',
   'canva',
+  'microsoft-365',
+  'google-workspace',
+  'slack',
+  'zoom',
+  'dropbox',
+  'grammarly',
+  'todoist',
+  'evernote',
+  // Cloud & storage
+  'icloud',
+  'google-one',
+  'github',
+  'onedrive',
+  // Gaming
+  'playstation-plus',
+  'xbox-gamepass',
+  'nintendo-switch',
+  'ea-play',
+  'geforce-now',
+  // Education & wellness
+  'duolingo',
+  'coursera',
+  'masterclass',
+  'skillshare',
+  'headspace',
+  'calm',
+  // Communication
+  'discord',
+  'telegram',
+  // VPN & security
+  'nordvpn',
+  'expressvpn',
+  '1password',
+  'protonvpn',
+  // Fitness
+  'strava',
+  'apple-fitness',
 ] as const;
 
 const FEATURED = FEATURED_IDS
