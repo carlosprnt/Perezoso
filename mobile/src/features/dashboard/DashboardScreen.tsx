@@ -21,7 +21,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Alert, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -136,11 +136,8 @@ export function DashboardScreen() {
   // navigation one tick so the reveal.close() spring starts first and the
   // route transition doesn't fight the gesture animation mid-flight.
   const handleLogout = useCallback(() => {
-    Alert.alert('Logout', 'Handler fired — navigating to /login');
     reveal.close();
-    requestAnimationFrame(() => {
-      router.replace('/login');
-    });
+    router.replace('/login');
   }, [reveal, router]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions

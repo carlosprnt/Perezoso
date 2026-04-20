@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -55,7 +55,15 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <Slot />
+        {/* Root Stack: exposes the (tabs) and (auth) groups as sibling
+            screens so `router.replace('/login')` can switch between
+            them. `<Slot />` works for passive rendering but doesn't
+            support imperative cross-group navigation from handlers. */}
+        <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="index" />
+        </Stack>
         <CreateSubscriptionSheet />
         <SubscriptionDetailSheet />
         <SettingsSheet />
