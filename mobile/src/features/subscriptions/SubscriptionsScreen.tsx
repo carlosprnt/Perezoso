@@ -487,8 +487,7 @@ export function SubscriptionsScreen() {
                   style={({ pressed }) => [
                     styles.calendarBtn,
                     {
-                      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
-                      borderColor: isDark ? '#3A3A3C' : '#E4E4E4',
+                      backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
                       opacity: pressed ? 0.6 : 1,
                     },
                   ]}
@@ -816,7 +815,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,

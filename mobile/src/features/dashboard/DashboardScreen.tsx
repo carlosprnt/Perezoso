@@ -228,46 +228,30 @@ export function DashboardScreen() {
     return { opacity: 1 - progress };
   });
 
-  // "Quedan X d\u00EDas" on the right of the renewals card header — the
-  // X is driven by the nearest upcoming renewal. Rendered as a discreet
-  // text label so the card reads like a live countdown rather than an
-  // inert list header.
-  const nextRenewalDays = renewals[0]?.daysUntilRenewal;
-  const daysLeftLabel =
-    nextRenewalDays == null
-      ? null
-      : nextRenewalDays === 0
-        ? 'Hoy'
-        : nextRenewalDays === 1
-          ? 'Queda 1 d\u00EDa'
-          : `Quedan ${nextRenewalDays} d\u00EDas`;
+  // Calendar button on the right of the renewals card header — opens
+  // the global PaymentsCalendarModal. The countdown label that used to
+  // sit here was dropped; the module now reads as "Próxima renovación"
+  // + calendar shortcut, nothing else.
   const daysLeftAction = (
-    <View style={styles.renewalAction}>
-      {daysLeftLabel ? (
-        <Text style={[styles.daysLeftText, { color: colors.textMuted }]}>
-          {daysLeftLabel}
-        </Text>
-      ) : null}
-      <Pressable
-        onPress={openCalendar}
-        accessibilityRole="button"
-        accessibilityLabel="Ver calendario de pagos"
-        hitSlop={8}
-        style={({ pressed }) => [
-          styles.calendarBtn,
-          {
-            backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
-            opacity: pressed ? 0.6 : 1,
-          },
-        ]}
-      >
-        <Calendar
-          size={16}
-          strokeWidth={2}
-          color={isDark ? '#AEAEB2' : '#333333'}
-        />
-      </Pressable>
-    </View>
+    <Pressable
+      onPress={openCalendar}
+      accessibilityRole="button"
+      accessibilityLabel="Ver calendario de pagos"
+      hitSlop={8}
+      style={({ pressed }) => [
+        styles.calendarBtn,
+        {
+          backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <Calendar
+        size={16}
+        strokeWidth={2}
+        color={isDark ? '#AEAEB2' : '#333333'}
+      />
+    </Pressable>
   );
 
   return (
@@ -500,17 +484,6 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
     marginBottom: 12,
-  },
-  daysLeftText: {
-    ...fontFamily.medium,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
-    fontVariant: ['tabular-nums'],
-  },
-  renewalAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
   },
   calendarBtn: {
     width: 32,

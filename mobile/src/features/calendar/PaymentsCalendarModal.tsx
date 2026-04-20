@@ -139,43 +139,50 @@ export function PaymentsCalendarModal() {
     });
   }, []);
 
-  // ── Drag-to-dismiss on the header ──────────────────────────────────
-  // Only the top strip owns the pan gesture so taps/presses inside
-  // the grid keep working normally.
-  const dragGesture = Gesture.Pan()
+  // ── Unified sheet pan ──────────────────────────────────────────────
+  // A single pan gesture covers the whole sheet:
+  //   · Vertical drag (downward) → track sheet translation, release to
+  //     dismiss if past threshold or velocity.
+  //   · Horizontal swipe → change month on release.
+  // The gesture picks its axis the first time it moves past the small
+  // activation threshold and sticks with it for the rest of the pan.
+  const sheetPan = Gesture.Pan()
+    .minDistance(8)
     .onUpdate((e) => {
       'worklet';
-      if (e.translationY > 0) {
-        translateY.value = e.translationY;
-      } else {
-        translateY.value = e.translationY * 0.15;
+      const dx = e.translationX;
+      const dy = e.translationY;
+      // Vertical-dominant → drive the sheet's translateY.
+      if (Math.abs(dy) > Math.abs(dx)) {
+        translateY.value = dy > 0 ? dy : dy * 0.15;
       }
     })
     .onEnd((e) => {
       'worklet';
-      const shouldDismiss = e.translationY > 80 || e.velocityY > 500;
-      if (shouldDismiss) {
-        translateY.value = withTiming(
-          SHEET_HEIGHT,
-          { duration: EXIT_MS, easing: EASE },
-          (fin) => {
-            if (fin) runOnJS(close)();
-          },
-        );
-        backdropOpacity.value = withTiming(0, { duration: EXIT_MS, easing: EASE });
-      } else {
-        translateY.value = withTiming(0, { duration: 200, easing: EASE });
-      }
-    });
-
-  // ── Horizontal swipe on the grid to change month ───────────────────
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-20, 20])
-    .failOffsetY([-20, 20])
-    .onEnd((e) => {
-      'worklet';
       const dx = e.translationX;
       const dy = e.translationY;
+      const vy = e.velocityY;
+
+      const verticalDominant = Math.abs(dy) > Math.abs(dx);
+
+      if (verticalDominant) {
+        const shouldDismiss = dy > 80 || vy > 500;
+        if (shouldDismiss) {
+          translateY.value = withTiming(
+            SHEET_HEIGHT,
+            { duration: EXIT_MS, easing: EASE },
+            (fin) => {
+              if (fin) runOnJS(close)();
+            },
+          );
+          backdropOpacity.value = withTiming(0, { duration: EXIT_MS, easing: EASE });
+        } else {
+          translateY.value = withTiming(0, { duration: 200, easing: EASE });
+        }
+        return;
+      }
+
+      // Horizontal-dominant → month change if it's a real swipe.
       if (Math.abs(dx) < 50) return;
       if (Math.abs(dx) < Math.abs(dy) * 1.5) return;
       if (dx < 0) runOnJS(nextMonth)();
@@ -249,61 +256,61 @@ export function PaymentsCalendarModal() {
             sheetStyle,
           ]}
         >
-          {/* Drag handle + header — pan gesture lives here */}
-          <GestureDetector gesture={dragGesture}>
-            <View style={styles.headerBlock}>
-              <View style={styles.handleWrap}>
-                <View style={[styles.handle, { backgroundColor: handleColor }]} />
-              </View>
+          {/* Single pan gesture covers the whole sheet: vertical drag
+              dismisses, horizontal swipe changes month. */}
+          <GestureDetector gesture={sheetPan}>
+            <Animated.View style={styles.sheetBody}>
+              <View style={styles.headerBlock}>
+                <View style={styles.handleWrap}>
+                  <View style={[styles.handle, { backgroundColor: handleColor }]} />
+                </View>
 
-              <View style={styles.headerPad}>
-                <CalendarMonthHeader
-                  year={year}
-                  month={month}
-                  onPrev={prevMonth}
-                  onNext={nextMonth}
-                />
-
-                <View style={styles.subtitleRow}>
-                  <Text
-                    style={[
-                      styles.subtitle,
-                      { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
-                    ]}
-                  >
-                    {formatAmount(animatedAmount, currency)} total
-                  </Text>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: isDark ? '#3A3A3C' : '#D4D4D4' },
-                    ]}
+                <View style={styles.headerPad}>
+                  <CalendarMonthHeader
+                    year={year}
+                    month={month}
+                    onPrev={prevMonth}
+                    onNext={nextMonth}
                   />
-                  <Text
-                    style={[
-                      styles.subtitle,
-                      { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
-                    ]}
-                  >
-                    {totalCount === 0
-                      ? 'Sin renovaciones'
-                      : `${Math.round(animatedCount)} ${Math.round(animatedCount) === 1 ? 'renovación' : 'renovaciones'}`}
-                  </Text>
+
+                  <View style={styles.subtitleRow}>
+                    <Text
+                      style={[
+                        styles.subtitle,
+                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                      ]}
+                    >
+                      {formatAmount(animatedAmount, currency)} total
+                    </Text>
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: isDark ? '#3A3A3C' : '#D4D4D4' },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.subtitle,
+                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                      ]}
+                    >
+                      {totalCount === 0
+                        ? 'Sin renovaciones'
+                        : `${Math.round(animatedCount)} ${Math.round(animatedCount) === 1 ? 'renovación' : 'renovaciones'}`}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </GestureDetector>
 
-          {/* Grid — fills remaining height, rows flex equally */}
-          <GestureDetector gesture={swipeGesture}>
-            <Animated.View style={[styles.gridWrap, gridStyle]}>
-              <CalendarGrid
-                year={year}
-                month={month}
-                today={today}
-                dayMap={dayMap}
-                onDayPress={handleDayPress}
-              />
+              <Animated.View style={[styles.gridWrap, gridStyle]}>
+                <CalendarGrid
+                  year={year}
+                  month={month}
+                  today={today}
+                  dayMap={dayMap}
+                  onDayPress={handleDayPress}
+                />
+              </Animated.View>
             </Animated.View>
           </GestureDetector>
         </Animated.View>
@@ -326,6 +333,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -6 },
     elevation: 24,
     overflow: 'hidden',
+  },
+  sheetBody: {
+    flex: 1,
   },
   headerBlock: {
     paddingHorizontal: 16,
