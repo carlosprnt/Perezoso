@@ -151,18 +151,19 @@ export function subscriptionTint(sub: Subscription): string {
 }
 
 /**
- * Gradient stops for the hero header — tint at the top, fading down
- * to the sheet background. Returns a 3-stop gradient designed for
- * LinearGradient from expo-linear-gradient.
+ * Gradient stops for the hero header — very subtle tint at the top,
+ * fading down to full transparency. Combined with a BlurView on top,
+ * this produces a soft, atmospheric color wash rather than a hard
+ * color band. The `sheetBg` arg is kept for API compatibility but no
+ * longer used — the gradient ends in transparent so whatever surface
+ * is underneath shows through cleanly.
  */
 export function heroGradientColors(
   sub: Subscription,
-  sheetBg: string,
+  _sheetBg: string,
 ): [string, string, string] {
   const tint = subscriptionTint(sub);
-  // Subtle wash: low-alpha tint at top → barely-there mid → surface.
-  // Gives a blurry, desaturated feel rather than a heavy color chip.
-  return [withAlpha(tint, 0.45), withAlpha(tint, 0.12), sheetBg];
+  return [withAlpha(tint, 0.22), withAlpha(tint, 0.06), withAlpha(tint, 0)];
 }
 
 /** Apply an alpha channel to an `#rrggbb` hex string. */

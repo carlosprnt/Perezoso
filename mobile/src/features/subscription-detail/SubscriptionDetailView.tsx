@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Bell,
@@ -128,10 +129,19 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
         <View style={styles.heroWrapper}>
           <LinearGradient
             colors={gradientColors}
-            locations={[0, 0.55, 1]}
+            locations={[0, 0.5, 1]}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={StyleSheet.absoluteFill}
+          />
+          {/* Heavy blur on top of the gradient softens the tint into
+              an atmospheric wash. Pointer events pass through so taps
+              on the close button still work. */}
+          <BlurView
+            intensity={60}
+            tint={isDark ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
           />
 
           {/* iOS-style drag handle — on top of the gradient */}
