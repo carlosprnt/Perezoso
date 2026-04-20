@@ -1,26 +1,30 @@
 // PaymentsCalendarModal — globally mounted payments calendar.
 //
 // Mounted once in app/_layout.tsx. Driven by useCalendarStore so any
-// screen can open it with a single call. Uses a native iOS pageSheet
-// (same primitive as SubscriptionDetailSheet) so we inherit the
-// correct safe-area insets, the dimmed backdrop, the handle bar and
-// the pan-down-to-dismiss gesture for free.
+// screen can open it with a single call. Renders as a custom 65%-screen
+// bottom sheet (not the native pageSheet) so we control the exact
+// height and keep the day grid from scrolling.
 //
-// Inside the sheet:
-//   · Large month title + circular prev/next nav buttons
-//   · Subtitle: "X€ total · N renovaciones"
-//   · Monday-first 7-column day grid with logos + today border
+// Layout:
+//   · Header block: big month title + circular prev/next + subtitle
+//   · Weekday labels row
+//   · Day grid — flex:1 → rows expand to fill remaining sheet height
+//
+// Dismiss:
+//   · Drag the handle/header down past 80px (or flick) → close
+//   · Tap the backdrop → close
 //
 // Months animate with a horizontal slide/fade via CalendarMonthHeader.
 // Horizontal swipes on the grid also advance the month.
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Dimensions,
   Modal,
+  Pressable,
   StyleSheet,
   Text,
   View,
-  ScrollView,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -42,29 +46,51 @@ import { useCalendarStore } from './useCalendarStore';
 import { buildDayMap } from './dateHelpers';
 import { CalendarMonthHeader } from './CalendarMonthHeader';
 import { CalendarGrid } from './CalendarGrid';
+import { useCountUp } from './useCountUp';
 import type { Subscription } from '../subscriptions/types';
 
-const FADE_MS = 220;
-const EASE = Easing.bezier(0.4, 0, 0.2, 1);
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.65;
+
+const ENTER_MS = 280;
+const EXIT_MS  = 220;
+const FADE_MS  = 220;
+const EASE     = Easing.bezier(0.4, 0, 0.2, 1);
 
 export function PaymentsCalendarModal() {
   const isOpen        = useCalendarStore((s) => s.isOpen);
   const close         = useCalendarStore((s) => s.close);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
 
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const today = useMemo(() => new Date(), [isOpen]); // re-freeze on each open
+  const today = useMemo(() => new Date(), [isOpen]);
   const [year, setYear]   = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
 
-  // Reset to current month every time the sheet opens so the user
-  // always lands on "today" when revisiting the calendar.
-  React.useEffect(() => {
+  const [mounted, setMounted] = useState(isOpen);
+  const translateY     = useSharedValue(SHEET_HEIGHT);
+  const backdropOpacity = useSharedValue(0);
+
+  // Reset to current month every time the sheet opens.
+  useEffect(() => {
     if (isOpen) {
       setYear(today.getFullYear());
       setMonth(today.getMonth());
+      setMounted(true);
+      translateY.value = SHEET_HEIGHT;
+      translateY.value = withTiming(0, { duration: ENTER_MS, easing: EASE });
+      backdropOpacity.value = withTiming(1, { duration: ENTER_MS, easing: EASE });
+    } else if (mounted) {
+      translateY.value = withTiming(
+        SHEET_HEIGHT,
+        { duration: EXIT_MS, easing: EASE },
+        (finished) => {
+          if (finished) runOnJS(setMounted)(false);
+        },
+      );
+      backdropOpacity.value = withTiming(0, { duration: EXIT_MS, easing: EASE });
     }
   }, [isOpen, today]);
 
@@ -88,6 +114,10 @@ export function PaymentsCalendarModal() {
 
   const currency = subscriptions[0]?.currency ?? '€';
 
+  // Animated count-up — amount + count smoothly morph on month change.
+  const animatedAmount = useCountUp(totalAmount, 550);
+  const animatedCount  = useCountUp(totalCount, 450);
+
   // ── Month navigation ───────────────────────────────────────────────
   const prevMonth = useCallback(() => {
     setMonth((m) => {
@@ -109,6 +139,35 @@ export function PaymentsCalendarModal() {
     });
   }, []);
 
+  // ── Drag-to-dismiss on the header ──────────────────────────────────
+  // Only the top strip owns the pan gesture so taps/presses inside
+  // the grid keep working normally.
+  const dragGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      'worklet';
+      if (e.translationY > 0) {
+        translateY.value = e.translationY;
+      } else {
+        translateY.value = e.translationY * 0.15;
+      }
+    })
+    .onEnd((e) => {
+      'worklet';
+      const shouldDismiss = e.translationY > 80 || e.velocityY > 500;
+      if (shouldDismiss) {
+        translateY.value = withTiming(
+          SHEET_HEIGHT,
+          { duration: EXIT_MS, easing: EASE },
+          (fin) => {
+            if (fin) runOnJS(close)();
+          },
+        );
+        backdropOpacity.value = withTiming(0, { duration: EXIT_MS, easing: EASE });
+      } else {
+        translateY.value = withTiming(0, { duration: 200, easing: EASE });
+      }
+    });
+
   // ── Horizontal swipe on the grid to change month ───────────────────
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-20, 20])
@@ -124,7 +183,6 @@ export function PaymentsCalendarModal() {
     });
 
   // ── Grid cross-fade on month change ────────────────────────────────
-  // Tiny opacity pulse to mask the content swap for a cleaner transition.
   const gridOpacity = useSharedValue(1);
   const prevKey = React.useRef(`${year}-${month}`);
   const nowKey = `${year}-${month}`;
@@ -133,7 +191,15 @@ export function PaymentsCalendarModal() {
     gridOpacity.value = 0.4;
     gridOpacity.value = withTiming(1, { duration: FADE_MS, easing: EASE });
   }
-  const gridStyle = useAnimatedStyle(() => ({ opacity: gridOpacity.value }));
+  const gridStyle = useAnimatedStyle(() => ({ opacity: gridOpacity.value, flex: 1 }));
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   const handleDayPress = useCallback(
     (_day: number, _subs: Subscription[]) => {
@@ -142,66 +208,95 @@ export function PaymentsCalendarModal() {
     [],
   );
 
+  if (!mounted) return null;
+
+  const sheetBg       = isDark ? '#1C1C1E' : '#FFFFFF';
+  const handleColor   = isDark ? '#3A3A3C' : '#D4D4D4';
+  const backdropColor = isDark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.35)';
+
   return (
     <Modal
-      visible={isOpen}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      visible={mounted}
+      transparent
+      statusBarTranslucent
+      animationType="none"
       onRequestClose={close}
     >
-      <View
+      {/* Backdrop — tap to dismiss */}
+      <Animated.View
         style={[
-          styles.container,
-          {
-            backgroundColor: colors.background,
-            paddingTop: 8,
-            paddingBottom: Math.max(insets.bottom, 16),
-          },
+          StyleSheet.absoluteFillObject,
+          { backgroundColor: backdropColor },
+          backdropStyle,
         ]}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          bounces
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={close}
+          accessibilityLabel="Cerrar calendario"
+        />
+      </Animated.View>
+
+      <View style={styles.sheetWrap} pointerEvents="box-none">
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              height: SHEET_HEIGHT,
+              backgroundColor: sheetBg,
+              paddingBottom: Math.max(insets.bottom, 16),
+            },
+            sheetStyle,
+          ]}
         >
-          <View style={styles.headerBlock}>
-            <CalendarMonthHeader
-              year={year}
-              month={month}
-              onPrev={prevMonth}
-              onNext={nextMonth}
-            />
+          {/* Drag handle + header — pan gesture lives here */}
+          <GestureDetector gesture={dragGesture}>
+            <View style={styles.headerBlock}>
+              <View style={styles.handleWrap}>
+                <View style={[styles.handle, { backgroundColor: handleColor }]} />
+              </View>
 
-            <View style={styles.subtitleRow}>
-              <Text
-                style={[
-                  styles.subtitle,
-                  { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
-                ]}
-              >
-                {formatAmount(totalAmount, currency)} total
-              </Text>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: isDark ? '#3A3A3C' : '#D4D4D4' },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.subtitle,
-                  { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
-                ]}
-              >
-                {totalCount === 0
-                  ? 'Sin renovaciones'
-                  : `${totalCount} ${totalCount === 1 ? 'renovación' : 'renovaciones'}`}
-              </Text>
+              <View style={styles.headerPad}>
+                <CalendarMonthHeader
+                  year={year}
+                  month={month}
+                  onPrev={prevMonth}
+                  onNext={nextMonth}
+                />
+
+                <View style={styles.subtitleRow}>
+                  <Text
+                    style={[
+                      styles.subtitle,
+                      { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                    ]}
+                  >
+                    {formatAmount(animatedAmount, currency)} total
+                  </Text>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: isDark ? '#3A3A3C' : '#D4D4D4' },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.subtitle,
+                      { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                    ]}
+                  >
+                    {totalCount === 0
+                      ? 'Sin renovaciones'
+                      : `${Math.round(animatedCount)} ${Math.round(animatedCount) === 1 ? 'renovación' : 'renovaciones'}`}
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
+          </GestureDetector>
 
+          {/* Grid — fills remaining height, rows flex equally */}
           <GestureDetector gesture={swipeGesture}>
-            <Animated.View style={gridStyle}>
+            <Animated.View style={[styles.gridWrap, gridStyle]}>
               <CalendarGrid
                 year={year}
                 month={month}
@@ -211,23 +306,43 @@ export function PaymentsCalendarModal() {
               />
             </Animated.View>
           </GestureDetector>
-        </ScrollView>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  sheetWrap: {
     flex: 1,
-    paddingHorizontal: 16,
+    justifyContent: 'flex-end',
   },
-  scrollContent: {
-    paddingBottom: 24,
+  sheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 24,
+    overflow: 'hidden',
   },
   headerBlock: {
+    paddingHorizontal: 16,
+  },
+  handleWrap: {
+    alignItems: 'center',
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 6,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 9999,
+  },
+  headerPad: {
+    paddingTop: 6,
+    paddingBottom: 12,
   },
   subtitleRow: {
     flexDirection: 'row',
@@ -241,5 +356,10 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 12,
+  },
+  gridWrap: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
 });

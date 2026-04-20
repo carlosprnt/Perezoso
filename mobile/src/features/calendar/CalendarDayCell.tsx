@@ -23,8 +23,9 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
   const emptyBg   = isDark ? '#252527' : '#F7F8FA';
   const filledBg  = isDark ? '#2C2C2E' : '#F5F5F5';
   const todayLine = isDark ? '#FFFFFF' : '#000000';
-  const mutedDay  = isDark ? '#8E8E93' : '#A0A0A0';
-  const normalDay = isDark ? '#F2F2F7' : '#000000';
+  // Day numbers are muted grey across the board — the logo + today
+  // border carry the visual weight, so the numbers stay quiet.
+  const dayColor  = isDark ? '#8E8E93' : '#A0A0A0';
   const badgeBg   = isDark ? '#3A3A3C' : '#F0F0F0';
   const badgeFg   = isDark ? '#8E8E93' : '#737373';
 
@@ -51,11 +52,7 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
         style={[
           styles.dayNumber,
           {
-            color: isToday
-              ? todayLine
-              : hasSubs
-                ? normalDay
-                : mutedDay,
+            color: dayColor,
             ...(isToday ? fontFamily.semibold : fontFamily.medium),
           },
         ]}
@@ -125,7 +122,6 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
 const styles = StyleSheet.create({
   cell: {
     flex: 1,
-    minHeight: 80,
     borderRadius: 12,
     borderWidth: 1.5,
     padding: 8,

@@ -48,7 +48,7 @@ export function CalendarGrid({ year, month, today, dayMap, onDayPress }: Props) 
     year === today.getFullYear() && month === today.getMonth();
 
   return (
-    <View>
+    <View style={styles.container}>
       {/* Weekday header */}
       <View style={styles.weekRow}>
         {WEEKDAYS_ES.map((w) => (
@@ -65,36 +65,48 @@ export function CalendarGrid({ year, month, today, dayMap, onDayPress }: Props) 
         ))}
       </View>
 
-      {/* Day cells */}
-      {weeks.map((row, weekIdx) => (
-        <View key={weekIdx} style={styles.dayRow}>
-          {row.map((day, colIdx) => {
-            const isToday = sameMonth && day === today.getDate();
-            const subs    = day !== null ? (dayMap[day] ?? []) : [];
-            return (
-              <View
-                key={`${weekIdx}-${colIdx}`}
-                style={[
-                  styles.dayColWrap,
-                  colIdx < 6 ? { marginRight: 5 } : null,
-                ]}
-              >
-                <CalendarDayCell
-                  day={day}
-                  isToday={isToday}
-                  subs={subs}
-                  onPress={onDayPress}
-                />
-              </View>
-            );
-          })}
-        </View>
-      ))}
+      {/* Day cells — rows and columns flex so the grid fills whatever
+          vertical space the parent gives us. */}
+      <View style={styles.grid}>
+        {weeks.map((row, weekIdx) => (
+          <View
+            key={weekIdx}
+            style={[
+              styles.dayRow,
+              weekIdx < weeks.length - 1 ? { marginBottom: 5 } : null,
+            ]}
+          >
+            {row.map((day, colIdx) => {
+              const isToday = sameMonth && day === today.getDate();
+              const subs    = day !== null ? (dayMap[day] ?? []) : [];
+              return (
+                <View
+                  key={`${weekIdx}-${colIdx}`}
+                  style={[
+                    styles.dayColWrap,
+                    colIdx < 6 ? { marginRight: 5 } : null,
+                  ]}
+                >
+                  <CalendarDayCell
+                    day={day}
+                    isToday={isToday}
+                    subs={subs}
+                    onPress={onDayPress}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   weekRow: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -108,9 +120,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.4,
   },
+  grid: {
+    flex: 1,
+  },
   dayRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    flex: 1,
   },
   dayColWrap: {
     flex: 1,

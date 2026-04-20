@@ -1,6 +1,8 @@
 // Big month title on the left, circular prev/next nav buttons on the
-// right. Month label cross-fades + slides when changing months so the
-// transition mirrors the webapp's AnimatePresence behavior.
+// right. Month label cross-fades with a soft blur-like scale when the
+// month changes: the outgoing label scales up slightly while fading
+// out, the incoming one scales from 1.04 → 1 while fading in. Layered
+// on the same spot so the transition reads as "breathing" into place.
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -30,33 +32,57 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
   const { isDark } = useTheme();
 
   const titleColor = isDark ? '#F2F2F7' : '#000000';
-  const btnBg      = isDark ? '#2C2C2E' : '#FFFFFF';
-  const btnBorder  = isDark ? '#3A3A3C' : '#E4E4E4';
+  const btnBg      = isDark ? '#2C2C2E' : '#F5F5F5';
   const iconColor  = isDark ? '#AEAEB2' : '#333333';
 
-  // Track the previous (year, month) so we can animate on change.
-  // Positive direction → swipe title to the left, incoming from right.
-  const dir = React.useRef<1 | -1>(1);
+  // Two stacked title layers so the old and new labels can cross-fade
+  // without remounting. Whichever slot is "current" holds the freshly
+  // set month label; the other holds the label we're transitioning away
+  // from.
+  const [labelA, setLabelA] = React.useState(monthLabel(year, month));
+  const [labelB, setLabelB] = React.useState<string | null>(null);
+  const currentSlot = React.useRef<'A' | 'B'>('A');
+
+  const opA = useSharedValue(1);
+  const opB = useSharedValue(0);
+  const scaleA = useSharedValue(1);
+  const scaleB = useSharedValue(1);
+
   const prev = React.useRef({ year, month });
-  const tx      = useSharedValue(0);
-  const opacity = useSharedValue(1);
 
   if (prev.current.year !== year || prev.current.month !== month) {
-    const forward =
-      year > prev.current.year ||
-      (year === prev.current.year && month > prev.current.month);
-    dir.current = forward ? 1 : -1;
+    const nextLabel = monthLabel(year, month);
     prev.current = { year, month };
-    // Kick the title in from the new direction.
-    tx.value = dir.current * 24;
-    opacity.value = 0;
-    tx.value = withTiming(0, { duration: DURATION, easing: EASE });
-    opacity.value = withTiming(1, { duration: DURATION, easing: EASE });
+
+    if (currentSlot.current === 'A') {
+      // A → B: move new label to B, fade A out + scale up, fade B in + scale from 1.04
+      setLabelB(nextLabel);
+      opB.value = 0;
+      scaleB.value = 1.04;
+      opA.value = withTiming(0, { duration: DURATION, easing: EASE });
+      scaleA.value = withTiming(1.08, { duration: DURATION, easing: EASE });
+      opB.value = withTiming(1, { duration: DURATION, easing: EASE });
+      scaleB.value = withTiming(1, { duration: DURATION, easing: EASE });
+      currentSlot.current = 'B';
+    } else {
+      setLabelA(nextLabel);
+      opA.value = 0;
+      scaleA.value = 1.04;
+      opB.value = withTiming(0, { duration: DURATION, easing: EASE });
+      scaleB.value = withTiming(1.08, { duration: DURATION, easing: EASE });
+      opA.value = withTiming(1, { duration: DURATION, easing: EASE });
+      scaleA.value = withTiming(1, { duration: DURATION, easing: EASE });
+      currentSlot.current = 'A';
+    }
   }
 
-  const titleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: tx.value }],
-    opacity: opacity.value,
+  const titleAStyle = useAnimatedStyle(() => ({
+    opacity: opA.value,
+    transform: [{ scale: scaleA.value }],
+  }));
+  const titleBStyle = useAnimatedStyle(() => ({
+    opacity: opB.value,
+    transform: [{ scale: scaleB.value }],
   }));
 
   const handlePrev = React.useCallback(() => {
@@ -75,13 +101,35 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
         <Animated.Text
           style={[
             styles.title,
+            styles.titleLayer,
             { color: titleColor, ...fontFamily.bold },
-            titleStyle,
+            titleAStyle,
           ]}
           numberOfLines={1}
         >
-          {monthLabel(year, month)}
+          {labelA}
         </Animated.Text>
+        {labelB !== null ? (
+          <Animated.Text
+            style={[
+              styles.title,
+              styles.titleLayer,
+              { color: titleColor, ...fontFamily.bold },
+              titleBStyle,
+            ]}
+            numberOfLines={1}
+          >
+            {labelB}
+          </Animated.Text>
+        ) : null}
+        {/* Invisible sizing placeholder — pushes the row to the correct
+            height so the absolutely-positioned title layers stay anchored. */}
+        <Text
+          style={[styles.title, styles.titleSpacer, { ...fontFamily.bold }]}
+          numberOfLines={1}
+        >
+          {labelA}
+        </Text>
       </View>
 
       <View style={styles.navGroup}>
@@ -93,7 +141,6 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
             styles.navBtn,
             {
               backgroundColor: btnBg,
-              borderColor: btnBorder,
               opacity: pressed ? 0.6 : 1,
             },
           ]}
@@ -108,7 +155,6 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
             styles.navBtn,
             {
               backgroundColor: btnBg,
-              borderColor: btnBorder,
               opacity: pressed ? 0.6 : 1,
             },
           ]}
@@ -129,11 +175,21 @@ const styles = StyleSheet.create({
   titleWrap: {
     flex: 1,
     paddingRight: 12,
+    position: 'relative',
   },
   title: {
     fontSize: 28,
     lineHeight: 30,
     letterSpacing: -0.4,
+  },
+  titleLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+  },
+  titleSpacer: {
+    opacity: 0,
   },
   navGroup: {
     flexDirection: 'row',
@@ -143,7 +199,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
