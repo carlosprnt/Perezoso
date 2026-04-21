@@ -335,6 +335,9 @@ export function PaymentsCalendarModal() {
         isOpen={dayDetail !== null}
         onClose={closeDayDetail}
         title={dayDetail ? `${dayDetail.day} de ${MONTH_NAMES[month]}` : ''}
+        subtitle={dayDetail && dayDetail.subs.length > 1
+          ? `Total: ${formatAmount(dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0), dayDetail.subs[0].currency)}`
+          : undefined}
         heightFraction={0.22 + (dayDetail ? dayDetail.subs.length * 0.06 : 0)}
       >
         <View style={styles.dayDetailContent}>
@@ -353,23 +356,10 @@ export function PaymentsCalendarModal() {
                 {sub.name}
               </Text>
               <Text style={[styles.dayDetailAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                {formatAmount(sub.price_amount, sub.currency)}€
+                {formatAmount(sub.price_amount, sub.currency)}
               </Text>
             </View>
           ))}
-          {dayDetail && dayDetail.subs.length > 1 ? (
-            <View style={styles.dayDetailTotal}>
-              <Text style={[styles.dayDetailTotalLabel, { color: isDark ? '#8E8E93' : '#737373' }]}>
-                Total
-              </Text>
-              <Text style={[styles.dayDetailTotalAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                {formatAmount(
-                  dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0),
-                  dayDetail.subs[0].currency,
-                )}€
-              </Text>
-            </View>
-          ) : null}
         </View>
       </HalfSheet>
     </Modal>
@@ -452,19 +442,5 @@ const styles = StyleSheet.create({
   dayDetailAmount: {
     ...fontFamily.bold,
     fontSize: 14,
-  },
-  dayDetailTotal: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 10,
-  },
-  dayDetailTotalLabel: {
-    ...fontFamily.medium,
-    fontSize: 13,
-  },
-  dayDetailTotalAmount: {
-    ...fontFamily.bold,
-    fontSize: 15,
   },
 });

@@ -159,7 +159,7 @@ const ENTRANCE_END_FROM_BOTTOM   = 200;
 // reads as an intentional transition rather than a tap glitch.
 const PERIOD_TOGGLE_MS = 1500;
 
-const STACK_MARGIN_GROW = 10;
+const STACK_MARGIN_GROW = 24;
 
 function ScrollCard({
   scrollY,
@@ -254,7 +254,7 @@ function ScrollCard({
       ? interpolate(e, [0, 1], [0.9, 1], Extrapolation.CLAMP)
       : interpolate(x, [0, 1], [1, 0.85], Extrapolation.CLAMP);
     const opacity = e < 1
-      ? e
+      ? 1
       : interpolate(x, [0.3, 1], [1, 0], Extrapolation.CLAMP);
     const rotate = interpolate(x, [0, 1], [0, 20], Extrapolation.CLAMP);
     return {
@@ -282,7 +282,7 @@ function ScrollCard({
 
   const marginStyle = useAnimatedStyle(() => {
     if (stackMargin === 0) return { marginTop: 0 };
-    const extra = interpolate(scrollY.value, [0, 200], [0, STACK_MARGIN_GROW], Extrapolation.CLAMP);
+    const extra = interpolate(scrollY.value, [0, -120], [0, STACK_MARGIN_GROW], Extrapolation.CLAMP);
     return { marginTop: stackMargin + extra };
   });
 
