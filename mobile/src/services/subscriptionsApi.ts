@@ -129,6 +129,36 @@ export async function insertSubscription(
   return rowToSubscription(data as SubscriptionRow);
 }
 
+export async function updateSubscription(
+  sub: Subscription,
+): Promise<Subscription> {
+  const payload = {
+    name: sub.name,
+    logo_url: sub.logo_url,
+    category: sub.category,
+    price_amount: sub.price_amount,
+    currency: sub.currency,
+    billing_period: sub.billing_period,
+    billing_interval_count: sub.billing_interval_count,
+    next_billing_date: sub.next_billing_date || null,
+    status: sub.status,
+    is_shared: sub.is_shared,
+    shared_with_count: sub.is_shared ? Math.max(sub.shared_with_count, 2) : 1,
+    card_color: sub.card_color,
+    notes: sub.notes ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .update(payload)
+    .eq('id', sub.id)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return rowToSubscription(data as SubscriptionRow);
+}
+
 // Wipe every subscription belonging to a user. Used by "Eliminar cuenta"
 // in Settings to reset an account back to its empty state. RLS enforces
 // that the delete only touches rows owned by the authenticated user.

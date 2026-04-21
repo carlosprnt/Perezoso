@@ -25,7 +25,7 @@ import {
   type AppPreset,
 } from '../features/subscriptions/presets';
 import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
-import { fetchSubscriptions, insertSubscription } from '../services/subscriptionsApi';
+import { fetchSubscriptions, insertSubscription, updateSubscription as apiUpdateSubscription } from '../services/subscriptionsApi';
 import { useAuthStore } from '../features/auth/useAuthStore';
 import {
   addCustomerInfoListener,
@@ -59,6 +59,8 @@ interface SubscriptionsStore {
     sub: Omit<Subscription, 'id' | 'created_at' | 'updated_at' | 'monthly_equivalent_cost' | 'my_monthly_cost'>
       & Partial<Pick<Subscription, 'id' | 'created_at' | 'updated_at' | 'monthly_equivalent_cost' | 'my_monthly_cost'>>,
   ) => Promise<void>;
+
+  updateSubscription: (sub: Subscription) => Promise<void>;
 
   enableRemindersOnAnnuals: () => number;
 }
@@ -136,6 +138,19 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     if (inserted.billing_period === 'yearly') {
       useReminderDismissalsStore.getState().clear('reminder');
     }
+  },
+
+  updateSubscription: async (sub) => {
+    if (get().mode === 'demo') {
+      set((state) => ({
+        subscriptions: state.subscriptions.map((s) => (s.id === sub.id ? sub : s)),
+      }));
+      return;
+    }
+    const updated = await apiUpdateSubscription(sub);
+    set((state) => ({
+      subscriptions: state.subscriptions.map((s) => (s.id === updated.id ? updated : s)),
+    }));
   },
 
   enableRemindersOnAnnuals: () => {

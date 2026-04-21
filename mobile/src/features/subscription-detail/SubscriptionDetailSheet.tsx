@@ -29,6 +29,7 @@ import { SubscriptionDetailView } from './SubscriptionDetailView';
 import { SubscriptionEditView } from './SubscriptionEditView';
 import { Toast } from '../../components/Toast';
 import { useToastStore } from '../../components/useToastStore';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import type { Subscription } from '../subscriptions/types';
 
 const FADE_MS = 160;
@@ -69,13 +70,15 @@ export function SubscriptionDetailSheet() {
   const viewStyle  = useAnimatedStyle(() => ({ opacity: viewOpacity.value }));
   const editStyle  = useAnimatedStyle(() => ({ opacity: editOpacity.value }));
 
-  const handleSave = useCallback((updated: Subscription) => {
-    updateSub(updated);
-    // After a successful edit, dismiss the whole detail sheet and drop
-    // the user back on the previous screen (Subscriptions / Dashboard).
-    // The root-level <Toast /> takes over once the pageSheet is gone.
-    close();
-    useToastStore.getState().show('success', 'Suscripción actualizada');
+  const handleSave = useCallback(async (updated: Subscription) => {
+    try {
+      await useSubscriptionsStore.getState().updateSubscription(updated);
+      updateSub(updated);
+      close();
+      useToastStore.getState().show('success', 'Suscripción actualizada');
+    } catch {
+      useToastStore.getState().show('error', 'Error al guardar cambios');
+    }
   }, [updateSub, close]);
 
   const handleDelete = useCallback(() => {

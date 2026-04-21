@@ -159,6 +159,8 @@ const ENTRANCE_END_FROM_BOTTOM   = 200;
 // reads as an intentional transition rather than a tap glitch.
 const PERIOD_TOGGLE_MS = 1500;
 
+const STACK_MARGIN_GROW = 10;
+
 function ScrollCard({
   scrollY,
   listY,
@@ -278,11 +280,14 @@ function ScrollCard({
     };
   });
 
+  const marginStyle = useAnimatedStyle(() => {
+    if (stackMargin === 0) return { marginTop: 0 };
+    const extra = interpolate(scrollY.value, [0, 200], [0, STACK_MARGIN_GROW], Extrapolation.CLAMP);
+    return { marginTop: stackMargin + extra };
+  });
+
   return (
-    // Outer wrapper OWNS onLayout + marginTop. Its layout.y — measured
-    // relative to the list container — reflects the cumulative stack
-    // offset (including the negative stack margins above it).
-    <View onLayout={onLayout} style={{ marginTop: stackMargin }}>
+    <Animated.View onLayout={onLayout} style={marginStyle}>
       <Animated.View
         style={[animatedStyle, { transformOrigin: 'center bottom' } as any]}
       >
@@ -300,7 +305,7 @@ function ScrollCard({
           />
         </View>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }
 
