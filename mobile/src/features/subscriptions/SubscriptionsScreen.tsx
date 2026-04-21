@@ -406,24 +406,29 @@ export function SubscriptionsScreen() {
 
   const blobStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
-    if (y >= 0) return { height: BLOB_START_SIZE, width: BLOB_START_SIZE, opacity: 0, borderRadius: BLOB_START_SIZE / 2 };
+    if (y >= 0) return { height: BLOB_START_SIZE, width: BLOB_START_SIZE, opacity: 0, borderRadius: BLOB_START_SIZE / 2, transform: [{ translateY: 0 }], backgroundColor: '#000000' };
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
     const w = interpolate(progress, [0, 1], [BLOB_START_SIZE, BLOB_MAX_W], Extrapolation.CLAMP);
     const h = interpolate(progress, [0, 1], [BLOB_START_SIZE, BLOB_GROW_H], Extrapolation.CLAMP);
+    const bg = Math.round(interpolate(progress, [0, 1], [0, 255], Extrapolation.CLAMP));
     return {
       height: h,
       width: w,
       opacity: interpolate(progress, [0, 0.08], [0, 1], Extrapolation.CLAMP),
       borderRadius: 9999,
+      transform: [{ translateY: interpolate(progress, [0, 1], [0, 40], Extrapolation.CLAMP) }],
+      backgroundColor: `rgb(${bg},${bg},${bg})`,
     };
   });
 
   const blobTextStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
+    const c = Math.round(interpolate(progress, [0, 1], [255, 0], Extrapolation.CLAMP));
     return {
       opacity: interpolate(progress, [0.35, 0.65], [0, 1], Extrapolation.CLAMP),
       fontSize: interpolate(progress, [0.35, 1], [11, 13], Extrapolation.CLAMP),
+      color: `rgb(${c},${c},${c})`,
     };
   });
 
@@ -505,7 +510,7 @@ export function SubscriptionsScreen() {
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
       {/* Dynamic Island blob — black pill that grows from below the notch */}
       <Animated.View
-        style={[styles.islandBlob, { top: insets.top + 2 }, blobStyle]}
+        style={[styles.islandBlob, { top: insets.top - 8 }, blobStyle]}
         pointerEvents="none"
       >
         <Animated.Text style={[styles.islandBlobText, blobTextStyle]}>
@@ -840,7 +845,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     alignSelf: 'center',
-    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -848,7 +852,6 @@ const styles = StyleSheet.create({
   },
   islandBlobText: {
     ...fontFamily.semibold,
-    color: '#FFFFFF',
   },
   content: {
     flexGrow: 1,

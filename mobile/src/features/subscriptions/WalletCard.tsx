@@ -33,10 +33,10 @@ function formatPrice(amount: number, currency: string): string {
 
 function billingLabel(period: string): string {
   switch (period) {
-    case 'monthly': return '/mes';
-    case 'yearly': return '/año';
-    case 'quarterly': return '/trimestre';
-    case 'weekly': return '/semana';
+    case 'monthly': return 'Mes';
+    case 'yearly': return 'Año';
+    case 'quarterly': return 'Trimestre';
+    case 'weekly': return 'Semana';
     default: return '';
   }
 }
