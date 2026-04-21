@@ -102,6 +102,7 @@ export function NotificationHero({ parallax }: Props) {
   };
 
   useEffect(() => {
+    // Bell wobble — always runs (lightweight, decorative).
     bellRot.value = withRepeat(
       withSequence(
         withTiming(14, { duration: 180, easing: Easing.inOut(Easing.sin) }),
@@ -114,19 +115,34 @@ export function NotificationHero({ parallax }: Props) {
       -1,
       false,
     );
-
-    runCycle();
-
-    clock.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: CYCLE_MS }),
-        withTiming(0, { duration: 0 }),
-      ),
-      -1,
-      false,
-    );
   }, []);
 
+  // Start/stop the cycle based on whether this slide is in view.
+  useAnimatedReaction(
+    () => Math.abs(parallax.value) < 0.5,
+    (active, wasActive) => {
+      if (active && !wasActive) {
+        runCycle();
+        clock.value = 0;
+        clock.value = withRepeat(
+          withSequence(
+            withTiming(1, { duration: CYCLE_MS }),
+            withTiming(0, { duration: 0 }),
+          ),
+          -1,
+          false,
+        );
+      } else if (!active && wasActive) {
+        for (const s of rowScales) s.value = 0;
+        btnDone.value = 0;
+        btnScale.value = 1;
+        shiftY.value = CENTER_OFFSET;
+        clock.value = 0;
+      }
+    },
+  );
+
+  // Re-run the cycle each time the clock resets (loop while active).
   useAnimatedReaction(
     () => clock.value,
     (v, prev) => {
