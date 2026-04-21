@@ -20,6 +20,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -27,6 +28,8 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  FadeIn,
+  FadeOut,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -47,6 +50,8 @@ import { buildDayMap } from './dateHelpers';
 import { CalendarMonthHeader } from './CalendarMonthHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { useCountUp } from './useCountUp';
+import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
+import { radius } from '../../design/radius';
 import type { Subscription } from '../subscriptions/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -120,6 +125,7 @@ export function PaymentsCalendarModal() {
 
   // ── Month navigation ───────────────────────────────────────────────
   const prevMonth = useCallback(() => {
+    setDayDetail(null);
     setMonth((m) => {
       if (m === 0) {
         setYear((y) => y - 1);
@@ -130,6 +136,7 @@ export function PaymentsCalendarModal() {
   }, []);
 
   const nextMonth = useCallback(() => {
+    setDayDetail(null);
     setMonth((m) => {
       if (m === 11) {
         setYear((y) => y + 1);
@@ -208,12 +215,21 @@ export function PaymentsCalendarModal() {
     opacity: backdropOpacity.value,
   }));
 
+  const [dayDetail, setDayDetail] = useState<{ day: number; subs: Subscription[] } | null>(null);
+
   const handleDayPress = useCallback(
-    (_day: number, _subs: Subscription[]) => {
+    (day: number, subs: Subscription[]) => {
       haptic.selection();
+      if (subs.length === 0) {
+        setDayDetail(null);
+        return;
+      }
+      setDayDetail({ day, subs });
     },
     [],
   );
+
+  const closeDayDetail = useCallback(() => setDayDetail(null), []);
 
   if (!mounted) return null;
 
@@ -313,11 +329,73 @@ export function PaymentsCalendarModal() {
               </Animated.View>
             </Animated.View>
           </GestureDetector>
+
+          {/* Day detail popover */}
+          {dayDetail ? (
+            <Animated.View
+              entering={FadeIn.duration(180)}
+              exiting={FadeOut.duration(120)}
+              style={[
+                styles.dayDetailOverlay,
+                { backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF' },
+              ]}
+            >
+              <Pressable
+                onPress={closeDayDetail}
+                style={styles.dayDetailClose}
+                hitSlop={8}
+              >
+                <Text style={{ color: isDark ? '#8E8E93' : '#999', fontSize: 13, ...fontFamily.medium }}>
+                  Cerrar
+                </Text>
+              </Pressable>
+              <Text style={[styles.dayDetailTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                {dayDetail.day} de {MONTH_NAMES[month]}
+              </Text>
+              {dayDetail.subs.map((sub) => (
+                <View key={sub.id} style={[styles.dayDetailRow, { borderBottomColor: isDark ? '#3A3A3C' : '#F0F0F0' }]}>
+                  <SubscriptionAvatar
+                    name={sub.name}
+                    logoUrl={sub.logo_url}
+                    size="sm"
+                    cornerRadius={8}
+                  />
+                  <Text
+                    style={[styles.dayDetailName, { color: isDark ? '#FFFFFF' : '#000000' }]}
+                    numberOfLines={1}
+                  >
+                    {sub.name}
+                  </Text>
+                  <Text style={[styles.dayDetailAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                    {formatAmount(sub.price_amount, sub.currency)}€
+                  </Text>
+                </View>
+              ))}
+              {dayDetail.subs.length > 1 ? (
+                <View style={styles.dayDetailTotal}>
+                  <Text style={[styles.dayDetailTotalLabel, { color: isDark ? '#8E8E93' : '#737373' }]}>
+                    Total
+                  </Text>
+                  <Text style={[styles.dayDetailTotalAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                    {formatAmount(
+                      dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0),
+                      dayDetail.subs[0].currency,
+                    )}€
+                  </Text>
+                </View>
+              ) : null}
+            </Animated.View>
+          ) : null}
         </Animated.View>
       </View>
     </Modal>
   );
 }
+
+const MONTH_NAMES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
 
 const styles = StyleSheet.create({
   sheetWrap: {
@@ -371,5 +449,59 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 8,
+  },
+  dayDetailOverlay: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12,
+  },
+  dayDetailClose: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    zIndex: 1,
+  },
+  dayDetailTitle: {
+    ...fontFamily.bold,
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  dayDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  dayDetailName: {
+    ...fontFamily.semibold,
+    fontSize: 14,
+    flex: 1,
+  },
+  dayDetailAmount: {
+    ...fontFamily.bold,
+    fontSize: 14,
+  },
+  dayDetailTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 10,
+  },
+  dayDetailTotalLabel: {
+    ...fontFamily.medium,
+    fontSize: 13,
+  },
+  dayDetailTotalAmount: {
+    ...fontFamily.bold,
+    fontSize: 15,
   },
 });
