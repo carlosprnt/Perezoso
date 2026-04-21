@@ -15,6 +15,9 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  FadeIn,
+  FadeInDown,
+  FadeOut,
   runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -44,6 +47,7 @@ import { OnboardingBottomSheet } from './OnboardingBottomSheet';
 import { SocialLoginButtons } from './SocialLoginButtons';
 
 import { SubscriptionListHero } from './heroes/SubscriptionListHero';
+import { NotificationHero } from './heroes/NotificationHero';
 import { ScreenshotHero } from './heroes/ScreenshotHero';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -136,6 +140,9 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
             if (slide.id === 'floating-logos') {
               return <SubscriptionListHero parallax={parallax} />;
             }
+            if (slide.id === 'renewals-dashboard') {
+              return <NotificationHero parallax={parallax} />;
+            }
             const source = SLIDE_SCREENSHOTS[slide.id];
             if (!source) return null;
             return <ScreenshotHero source={source} parallax={parallax} />;
@@ -180,14 +187,24 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         onSwipeRight={onSwipeRight}
       >
         {isLast ? (
-          <View style={{ flex: 1 }}>
+          <Animated.View
+            key="social"
+            entering={FadeInDown.duration(320).delay(80)}
+            exiting={FadeOut.duration(200)}
+            style={{ flex: 1 }}
+          >
             <SocialLoginButtons
               onPressGoogle={onPressGoogle}
               onPressApple={onPressApple}
             />
-          </View>
+          </Animated.View>
         ) : (
-          <>
+          <Animated.View
+            key="nav"
+            entering={FadeInDown.duration(280)}
+            exiting={FadeOut.duration(200)}
+            style={styles.navRow}
+          >
             <Pressable
               onPress={onOpenLoginSheet}
               style={({ pressed }) => [
@@ -220,7 +237,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
               </Text>
               <LoopingArrow color={colors.background} />
             </Pressable>
-          </>
+          </Animated.View>
         )}
       </OnboardingBottomSheet>
 
@@ -229,7 +246,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         isOpen={loginSheetOpen}
         onClose={onCloseLoginSheet}
         title="Iniciar sesión"
-        heightFraction={0.38}
+        heightFraction={0.30}
       >
         <View style={styles.loginSheetContent}>
           <SocialLoginButtons
@@ -325,6 +342,10 @@ const styles = StyleSheet.create({
     ...fontFamily.semibold,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   loginSheetContent: {
     paddingHorizontal: 20,

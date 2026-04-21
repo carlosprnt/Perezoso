@@ -9,6 +9,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  FadeIn,
   interpolate,
   Extrapolation,
   runOnJS,
@@ -116,23 +117,25 @@ export function OnboardingBottomSheet({
         <View style={styles.actions}>{children}</View>
 
         {showLegal && (
-          <Text style={[styles.legal, { color: colors.textMuted }]}>
-            {LEGAL.prefix}
-            <Text
-              style={[styles.legalLink, { color: colors.textSecondary }]}
-              onPress={onPressTerms}
-            >
-              {LEGAL.terms}
+          <Animated.View entering={FadeIn.duration(400).delay(260)}>
+            <Text style={[styles.legal, { color: colors.textMuted }]}>
+              {LEGAL.prefix}
+              <Text
+                style={[styles.legalLink, { color: colors.textSecondary }]}
+                onPress={onPressTerms}
+              >
+                {LEGAL.terms}
+              </Text>
+              {LEGAL.middle}
+              <Text
+                style={[styles.legalLink, { color: colors.textSecondary }]}
+                onPress={onPressPrivacy}
+              >
+                {LEGAL.privacy}
+              </Text>
+              {LEGAL.suffix}
             </Text>
-            {LEGAL.middle}
-            <Text
-              style={[styles.legalLink, { color: colors.textSecondary }]}
-              onPress={onPressPrivacy}
-            >
-              {LEGAL.privacy}
-            </Text>
-            {LEGAL.suffix}
-          </Text>
+          </Animated.View>
         )}
       </View>
     </View>
