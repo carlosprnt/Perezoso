@@ -48,6 +48,7 @@ import { SocialLoginButtons } from './SocialLoginButtons';
 
 import { SubscriptionListHero } from './heroes/SubscriptionListHero';
 import { NotificationHero } from './heroes/NotificationHero';
+import { CalendarHero } from './heroes/CalendarHero';
 import { ScreenshotHero } from './heroes/ScreenshotHero';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -142,6 +143,9 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
             }
             if (slide.id === 'renewals-dashboard') {
               return <NotificationHero parallax={parallax} />;
+            }
+            if (slide.id === 'calendar') {
+              return <CalendarHero parallax={parallax} />;
             }
             const source = SLIDE_SCREENSHOTS[slide.id];
             if (!source) return null;
