@@ -399,23 +399,32 @@ export function SubscriptionsScreen() {
   const calendarTriggered = useSharedValue(false);
   const OVERSCROLL_THRESHOLD = -120;
 
-  const overscrollHintStyle = useAnimatedStyle(() => {
+  // Dynamic Island "chicle" blob — a black pill that stretches down
+  // from the notch area as the user overscrolls. Width stays close to
+  // the Dynamic Island (~126px) and grows slightly; height stretches
+  // from 0 to ~70px. The text fades in inside the blob.
+  const ISLAND_W = 126;
+  const BLOB_MAX_H = 70;
+  const BLOB_MAX_W = 190;
+
+  const blobStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
-    if (y >= 0) return { opacity: 0, transform: [{ translateY: -20 }] };
+    if (y >= 0) return { height: 0, width: ISLAND_W, opacity: 0 };
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
     return {
-      opacity: progress,
-      transform: [{ translateY: interpolate(progress, [0, 1], [-20, 0], Extrapolation.CLAMP) }],
+      height: interpolate(progress, [0, 1], [0, BLOB_MAX_H], Extrapolation.CLAMP),
+      width: interpolate(progress, [0, 1], [ISLAND_W, BLOB_MAX_W], Extrapolation.CLAMP),
+      opacity: 1,
     };
   });
 
-  const overscrollHintTextStyle = useAnimatedStyle(() => {
+  const blobTextStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
-    const r = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
-    const g = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
-    const b = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
-    return { color: `rgb(${r},${g},${b})` };
+    return {
+      opacity: interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP),
+      fontSize: interpolate(progress, [0.3, 1], [12, 14], Extrapolation.CLAMP),
+    };
   });
 
   const onScroll = useAnimatedScrollHandler({
@@ -481,12 +490,12 @@ export function SubscriptionsScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
-      {/* Overscroll hint — slides in from above as user pulls down */}
+      {/* Dynamic Island blob — black chicle that drips from the notch */}
       <Animated.View
-        style={[styles.overscrollHint, { top: insets.top - 4 }, overscrollHintStyle]}
+        style={[styles.islandBlob, blobStyle]}
         pointerEvents="none"
       >
-        <Animated.Text style={[styles.overscrollHintText, overscrollHintTextStyle]}>
+        <Animated.Text style={[styles.islandBlobText, blobTextStyle]}>
           Mostrar calendario
         </Animated.Text>
       </Animated.View>
@@ -814,16 +823,22 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  overscrollHint: {
+  islandBlob: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    top: 0,
+    alignSelf: 'center',
+    backgroundColor: '#000000',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 12,
     zIndex: 10,
+    overflow: 'hidden',
   },
-  overscrollHintText: {
+  islandBlobText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[13],
+    color: '#FFFFFF',
   },
   content: {
     flexGrow: 1,
