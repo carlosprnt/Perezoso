@@ -152,11 +152,9 @@ function SubscriptionRow({ sub, index, scrollY, colors }: RowProps) {
   const rowStyle = useAnimatedStyle(() => {
     const rowTop = index * ROW_H + scrollY.value;
     const distFromTop = rowTop;
-    const distFromBottom = VISIBLE_LIST_H - (rowTop + ROW_H);
-    const edgeDist = Math.min(distFromTop, distFromBottom);
 
-    const s = interpolate(edgeDist, [-ROW_H, 0, ROW_H], [0.92, 0.95, 1], Extrapolation.CLAMP);
-    const o = interpolate(edgeDist, [-ROW_H * 0.5, 0, ROW_H], [0, 0.6, 1], Extrapolation.CLAMP);
+    const s = interpolate(distFromTop, [-ROW_H, 0, ROW_H], [0.92, 0.95, 1], Extrapolation.CLAMP);
+    const o = interpolate(distFromTop, [-ROW_H * 0.5, 0, ROW_H], [0, 0.6, 1], Extrapolation.CLAMP);
 
     return {
       transform: [{ scale: s }],
