@@ -136,19 +136,14 @@ export function useDashboardReveal(): DashboardReveal {
     return p;
   });
 
-  // Reset the module singletons when the hook mounts, in case a previous
-  // DashboardScreen lifecycle left them at 1 (e.g. navigation away while
-  // open). They're module-scoped so they persist across unmounts.
+  // Reset reveal singletons on mount/unmount. Nav compact state is NOT
+  // reset — it persists across tab switches so the pill keeps its shape.
   useEffect(() => {
     revealProgress.value = 0;
     revealIsOpen.value = false;
-    navCompactProgress.value = 0;
-    navCompactState.value = 0;
     return () => {
       revealProgress.value = 0;
       revealIsOpen.value = false;
-      navCompactProgress.value = 0;
-      navCompactState.value = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

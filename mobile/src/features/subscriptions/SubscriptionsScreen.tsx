@@ -35,7 +35,6 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { Calendar, Check, ChevronsUpDown } from 'lucide-react-native';
 
@@ -397,10 +396,23 @@ export function SubscriptionsScreen() {
   const periodLabel = period === 'monthly' ? 'al mes' : 'al a\u00F1o';
   const amountFormatted = totalForPeriod.toFixed(2).replace('.', ',');
 
+  const calendarTriggered = useSharedValue(false);
+  const OVERSCROLL_THRESHOLD = -120;
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       const y = event.contentOffset.y;
       scrollY.value = y;
+
+      // Overscroll shortcut: pull down far past the top opens the calendar.
+      if (y < OVERSCROLL_THRESHOLD && !calendarTriggered.value) {
+        calendarTriggered.value = true;
+        runOnJS(openCalendar)();
+      }
+      if (y >= 0) {
+        calendarTriggered.value = false;
+      }
+
       // Same compact state machine as DashboardScreen — see the comment
       // in useDashboardReveal: immediate response, 500 ms animation
       // either direction, auto-cancelling in-flight animation via
@@ -425,15 +437,7 @@ export function SubscriptionsScreen() {
     },
   });
 
-  // On focus, snap compact state to match current scroll position without
-  // a delay — the delay only applies when the user is actively scrolling.
-  useFocusEffect(
-    useCallback(() => {
-      const shouldCompact = scrollY.value > COMPACT_SCROLL_THRESHOLD;
-      navCompactState.value = shouldCompact ? 1 : 0;
-      navCompactProgress.value = shouldCompact ? 1 : 0;
-    }, [scrollY]),
-  );
+  // Nav compact state persists across tab switches — no focus sync needed.
 
   // Header fade+blur: as the user scrolls, the "Mis suscripciones"
   // title and its paragraphs dissolve behind a PROGRESSIVE blur veil

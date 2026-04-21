@@ -20,7 +20,6 @@
 //   - FloatingNav space at bottom
 
 import React, { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Calendar } from 'lucide-react-native';
 import Animated, {
@@ -40,9 +39,6 @@ import { usePaywallStore } from '../paywall/usePaywallStore';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   useDashboardReveal,
-  navCompactProgress,
-  navCompactState,
-  COMPACT_SCROLL_THRESHOLD,
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 import { useSettingsStore } from '../settings/useSettingsStore';
@@ -185,19 +181,8 @@ export function DashboardScreen() {
   // source of truth for "where is the user in the scroll view".
   const scrollY = reveal.scrollY;
 
-  // Sync the nav-bar compact state from our current scroll position
-  // whenever this screen (re)focuses — scrolling doesn't fire during
-  // tab switches so without this the nav could be stuck compact from
-  // the other tab's scroll state.
-  // On focus, snap compact state to match current scroll position without
-  // a delay — the delay only applies when the user is actively scrolling.
-  useFocusEffect(
-    useCallback(() => {
-      const shouldCompact = scrollY.value > COMPACT_SCROLL_THRESHOLD;
-      navCompactState.value = shouldCompact ? 1 : 0;
-      navCompactProgress.value = shouldCompact ? 1 : 0;
-    }, [scrollY]),
-  );
+  // Nav compact state is NOT synced on focus — it persists across tab
+  // switches so the pill keeps whatever shape it had when the user left.
 
   // The dashboard surface only animates translateY — the top-corner
   // radius and drop shadow are ALWAYS applied (matches the web's
