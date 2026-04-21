@@ -400,18 +400,21 @@ export function SubscriptionsScreen() {
   const lastHapticStep = useSharedValue(0);
   const OVERSCROLL_THRESHOLD = -120;
 
-  const ISLAND_W = 126;
-  const BLOB_MAX_H = 70;
+  const BLOB_START_W = 36;
   const BLOB_MAX_W = 190;
+  const BLOB_MAX_H = 70;
 
   const blobStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
-    if (y >= 0) return { height: 0, width: ISLAND_W, opacity: 0 };
+    if (y >= 0) return { height: 0, width: BLOB_START_W, opacity: 0, borderRadius: BLOB_START_W / 2 };
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
+    const w = interpolate(progress, [0, 1], [BLOB_START_W, BLOB_MAX_W], Extrapolation.CLAMP);
     return {
       height: interpolate(progress, [0, 1], [0, BLOB_MAX_H], Extrapolation.CLAMP),
-      width: interpolate(progress, [0, 1], [ISLAND_W, BLOB_MAX_W], Extrapolation.CLAMP),
+      width: w,
       opacity: 1,
+      borderBottomLeftRadius: interpolate(progress, [0, 1], [w / 2, 28], Extrapolation.CLAMP),
+      borderBottomRightRadius: interpolate(progress, [0, 1], [w / 2, 28], Extrapolation.CLAMP),
     };
   });
 
@@ -838,8 +841,6 @@ const styles = StyleSheet.create({
     top: 0,
     alignSelf: 'center',
     backgroundColor: '#000000',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 12,
