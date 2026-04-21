@@ -329,14 +329,14 @@ function PlanCard({ selected, onPress, label, price, badge, perMonth }: PlanCard
       accessibilityState={{ selected }}
       accessibilityLabel={label}
     >
+      <Text style={styles.planLabel}>{label}</Text>
+      <Text style={styles.planPrice}>{price}</Text>
+      {perMonth ? <Text style={styles.planPerMonth}>{perMonth}</Text> : null}
       {badge && (
         <View style={styles.planBadge}>
           <Text style={styles.planBadgeText}>{badge}</Text>
         </View>
       )}
-      <Text style={styles.planLabel}>{label}</Text>
-      <Text style={styles.planPrice}>{price}</Text>
-      {perMonth ? <Text style={styles.planPerMonth}>{perMonth}</Text> : null}
     </Pressable>
   );
 }
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginBottom: 6,
+    marginTop: 6,
   },
   planBadgeText: {
     ...fontFamily.semibold,

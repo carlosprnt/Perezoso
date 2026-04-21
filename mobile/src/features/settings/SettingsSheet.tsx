@@ -55,6 +55,7 @@ import {
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useAuthStore } from '../auth/useAuthStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { openManageSubscriptions } from '../../services/purchases';
 import { useReminderDismissalsStore } from '../dashboard/useReminderDismissalsStore';
 
 const TWITTER_HANDLE = '@carlosprnt';
@@ -102,11 +103,11 @@ export function SettingsSheet() {
 
   const handleManagePlus = useCallback(() => {
     if (isPlusActive) {
-      comingSoon('Gestionar Perezoso Plus');
+      openManageSubscriptions();
       return;
     }
     openPaywall('general');
-  }, [isPlusActive, openPaywall, comingSoon]);
+  }, [isPlusActive, openPaywall]);
 
   const handleCurrency = useCallback(() => setCurrencySheetOpen(true), []);
 

@@ -12,7 +12,7 @@
 //   JS (and not .env) also avoids the EAS Update env-var bundling
 //   footgun we hit with Supabase before.
 
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 // Expo Go bundles the JS shim of `react-native-purchases` but not the
@@ -209,6 +209,17 @@ export function addCustomerInfoListener(
       // removeCustomerInfoUpdateListener isn't exposed on all versions.
     }
   };
+}
+
+export async function openManageSubscriptions(): Promise<void> {
+  const url = Platform.OS === 'ios'
+    ? 'https://apps.apple.com/account/subscriptions'
+    : 'https://play.google.com/store/account/subscriptions';
+  try {
+    await Linking.openURL(url);
+  } catch {
+    // Fallback: noop if URL can't be opened.
+  }
 }
 
 function hasProEntitlement(customerInfo: any): boolean {

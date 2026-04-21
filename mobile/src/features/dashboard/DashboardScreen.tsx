@@ -36,6 +36,7 @@ import { LogoConfetti } from '../../components/LogoConfetti';
 import { useStaggeredEntrance } from '../../motion/useStaggeredEntrance';
 import { UnderlyingProfileLayer } from '../profile/UnderlyingProfileLayer';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { openManageSubscriptions } from '../../services/purchases';
 import { ProgressiveBlurView } from '../../components/ProgressiveBlurView';
 import {
   useDashboardReveal,
@@ -157,8 +158,12 @@ export function DashboardScreen() {
   // in UnderlyingProfileLayer copy); future work: show a manage-plan sheet.
   const handleManagePlus = useCallback(() => {
     reveal.close();
-    openPaywall('general');
-  }, [reveal, openPaywall]);
+    if (isPlusActive) {
+      openManageSubscriptions();
+    } else {
+      openPaywall('general');
+    }
+  }, [reveal, openPaywall, isPlusActive]);
 
   // ReminderCards "Ver oportunidades" → open the savings suggestions
   // list sheet. Lives in its own globally-mounted Modal so the
