@@ -49,9 +49,9 @@ export const PAYWALL_COPY: Record<PaywallTrigger, PaywallTriggerMeta> = {
 };
 
 export const PAYWALL_BENEFITS = [
-  { id: 'unlimited_subscriptions', text: 'Suscripciones ilimitadas' },
-  { id: 'reminders',               text: 'Avísate antes de cada cargo' },
-  { id: 'future_calendar',         text: 'Anticípate meses por adelantado' },
-  { id: 'savings',                 text: 'Todas las oportunidades de ahorro' },
-  { id: 'custom_categories',       text: 'Categorías a tu medida' },
+  { id: 'unlimited_subscriptions', text: 'Añade todas las suscripciones que quieras, sin límite de 15' },
+  { id: 'reminders',               text: 'Recibe un aviso días antes de cada renovación para que nada te pille por sorpresa' },
+  { id: 'future_calendar',         text: 'Visualiza tus próximos cobros en el calendario, no solo el mes actual' },
+  { id: 'savings',                 text: 'Descubre cuánto puedes ahorrar con recomendaciones personalizadas' },
+  { id: 'custom_categories',       text: 'Crea tus propias categorías para organizar las suscripciones como prefieras' },
 ] as const;
