@@ -20,7 +20,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
-  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -28,8 +27,6 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeOut,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -51,7 +48,7 @@ import { CalendarMonthHeader } from './CalendarMonthHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { useCountUp } from './useCountUp';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
-import { radius } from '../../design/radius';
+import { HalfSheet } from '../../components/HalfSheet';
 import type { Subscription } from '../subscriptions/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -330,64 +327,51 @@ export function PaymentsCalendarModal() {
             </Animated.View>
           </GestureDetector>
 
-          {/* Day detail popover */}
-          {dayDetail ? (
-            <Animated.View
-              entering={FadeIn.duration(180)}
-              exiting={FadeOut.duration(120)}
-              style={[
-                styles.dayDetailOverlay,
-                { backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF' },
-              ]}
-            >
-              <Pressable
-                onPress={closeDayDetail}
-                style={styles.dayDetailClose}
-                hitSlop={8}
-              >
-                <Text style={{ color: isDark ? '#8E8E93' : '#999', fontSize: 13, ...fontFamily.medium }}>
-                  Cerrar
-                </Text>
-              </Pressable>
-              <Text style={[styles.dayDetailTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                {dayDetail.day} de {MONTH_NAMES[month]}
-              </Text>
-              {dayDetail.subs.map((sub) => (
-                <View key={sub.id} style={[styles.dayDetailRow, { borderBottomColor: isDark ? '#3A3A3C' : '#F0F0F0' }]}>
-                  <SubscriptionAvatar
-                    name={sub.name}
-                    logoUrl={sub.logo_url}
-                    size="sm"
-                    cornerRadius={8}
-                  />
-                  <Text
-                    style={[styles.dayDetailName, { color: isDark ? '#FFFFFF' : '#000000' }]}
-                    numberOfLines={1}
-                  >
-                    {sub.name}
-                  </Text>
-                  <Text style={[styles.dayDetailAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                    {formatAmount(sub.price_amount, sub.currency)}€
-                  </Text>
-                </View>
-              ))}
-              {dayDetail.subs.length > 1 ? (
-                <View style={styles.dayDetailTotal}>
-                  <Text style={[styles.dayDetailTotalLabel, { color: isDark ? '#8E8E93' : '#737373' }]}>
-                    Total
-                  </Text>
-                  <Text style={[styles.dayDetailTotalAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                    {formatAmount(
-                      dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0),
-                      dayDetail.subs[0].currency,
-                    )}€
-                  </Text>
-                </View>
-              ) : null}
-            </Animated.View>
-          ) : null}
         </Animated.View>
       </View>
+
+      {/* Day detail sheet — proper modal like the rest of the app */}
+      <HalfSheet
+        isOpen={dayDetail !== null}
+        onClose={closeDayDetail}
+        title={dayDetail ? `${dayDetail.day} de ${MONTH_NAMES[month]}` : ''}
+        heightFraction={0.22 + (dayDetail ? dayDetail.subs.length * 0.06 : 0)}
+      >
+        <View style={styles.dayDetailContent}>
+          {dayDetail?.subs.map((sub) => (
+            <View key={sub.id} style={[styles.dayDetailRow, { borderBottomColor: isDark ? '#3A3A3C' : '#F0F0F0' }]}>
+              <SubscriptionAvatar
+                name={sub.name}
+                logoUrl={sub.logo_url}
+                size="sm"
+                cornerRadius={8}
+              />
+              <Text
+                style={[styles.dayDetailName, { color: isDark ? '#FFFFFF' : '#000000' }]}
+                numberOfLines={1}
+              >
+                {sub.name}
+              </Text>
+              <Text style={[styles.dayDetailAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                {formatAmount(sub.price_amount, sub.currency)}€
+              </Text>
+            </View>
+          ))}
+          {dayDetail && dayDetail.subs.length > 1 ? (
+            <View style={styles.dayDetailTotal}>
+              <Text style={[styles.dayDetailTotalLabel, { color: isDark ? '#8E8E93' : '#737373' }]}>
+                Total
+              </Text>
+              <Text style={[styles.dayDetailTotalAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                {formatAmount(
+                  dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0),
+                  dayDetail.subs[0].currency,
+                )}€
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </HalfSheet>
     </Modal>
   );
 }
@@ -450,29 +434,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  dayDetailOverlay: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 12,
-  },
-  dayDetailClose: {
-    position: 'absolute',
-    top: 12,
-    right: 16,
-    zIndex: 1,
-  },
-  dayDetailTitle: {
-    ...fontFamily.bold,
-    fontSize: 16,
-    marginBottom: 12,
+  dayDetailContent: {
+    paddingHorizontal: 20,
   },
   dayDetailRow: {
     flexDirection: 'row',

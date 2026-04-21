@@ -400,21 +400,21 @@ export function SubscriptionsScreen() {
   const lastHapticStep = useSharedValue(0);
   const OVERSCROLL_THRESHOLD = -120;
 
-  const BLOB_START_W = 36;
+  const BLOB_START_SIZE = 20;
   const BLOB_MAX_W = 190;
-  const BLOB_MAX_H = 70;
+  const BLOB_GROW_H = 50;
 
   const blobStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
-    if (y >= 0) return { height: 0, width: BLOB_START_W, opacity: 0, borderRadius: BLOB_START_W / 2 };
+    if (y >= 0) return { height: BLOB_START_SIZE, width: BLOB_START_SIZE, opacity: 0, borderRadius: BLOB_START_SIZE / 2 };
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
-    const w = interpolate(progress, [0, 1], [BLOB_START_W, BLOB_MAX_W], Extrapolation.CLAMP);
+    const w = interpolate(progress, [0, 1], [BLOB_START_SIZE, BLOB_MAX_W], Extrapolation.CLAMP);
+    const h = interpolate(progress, [0, 1], [BLOB_START_SIZE, BLOB_GROW_H], Extrapolation.CLAMP);
     return {
-      height: interpolate(progress, [0, 1], [0, BLOB_MAX_H], Extrapolation.CLAMP),
+      height: h,
       width: w,
-      opacity: 1,
-      borderBottomLeftRadius: interpolate(progress, [0, 1], [w / 2, 28], Extrapolation.CLAMP),
-      borderBottomRightRadius: interpolate(progress, [0, 1], [w / 2, 28], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0, 0.08], [0, 1], Extrapolation.CLAMP),
+      borderRadius: 9999,
     };
   });
 
@@ -422,8 +422,8 @@ export function SubscriptionsScreen() {
     const y = scrollY.value;
     const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
     return {
-      opacity: interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP),
-      fontSize: interpolate(progress, [0.3, 1], [12, 14], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0.35, 0.65], [0, 1], Extrapolation.CLAMP),
+      fontSize: interpolate(progress, [0.35, 1], [11, 13], Extrapolation.CLAMP),
     };
   });
 
@@ -503,9 +503,9 @@ export function SubscriptionsScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
-      {/* Dynamic Island blob — black chicle that drips from the notch */}
+      {/* Dynamic Island blob — black pill that grows from below the notch */}
       <Animated.View
-        style={[styles.islandBlob, { top: insets.top - 12 }, blobStyle]}
+        style={[styles.islandBlob, { top: insets.top + 2 }, blobStyle]}
         pointerEvents="none"
       >
         <Animated.Text style={[styles.islandBlobText, blobTextStyle]}>
@@ -842,8 +842,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#000000',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 12,
+    justifyContent: 'center',
     zIndex: 10,
     overflow: 'hidden',
   },
