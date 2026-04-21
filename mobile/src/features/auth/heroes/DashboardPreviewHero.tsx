@@ -1,10 +1,10 @@
-// Slide 5 hero — dashboard preview that loads from a skeleton.
+// Slide 5 hero — dashboard preview that loads from a shimmer skeleton.
 // Replicates the real SummaryHero + InsightCards layout.
 // Skeleton holds 2s → content fades in with numbers counting up
-// over 3s → holds 4s → resets. Loops while visible.
+// over 3s → holds 1s → resets. Loops while visible (6s cycle).
 
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
   Easing,
   Extrapolation,
@@ -26,6 +26,7 @@ import { useTheme } from '../../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
+import { Skeleton } from '../../../components/Skeleton';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -40,12 +41,11 @@ const MAX_BLUR_INTENSITY = 38;
 
 const MONTHLY = 148.33;
 const YEARLY = 1779.96;
-const ACTIVE_COUNT = 11;
 
 const SKELETON_HOLD = 2000;
 const SKELETON_FADE = 500;
 const COUNT_DUR = 3000;
-const HOLD_DUR = 4000;
+const HOLD_DUR = 1000;
 const CYCLE_MS = SKELETON_HOLD + COUNT_DUR + HOLD_DUR;
 
 function formatEur(val: number): string {
@@ -168,25 +168,40 @@ export function DashboardPreviewHero({ parallax }: Props) {
           { backgroundColor: colors.surface, borderColor: colors.borderLight },
         ]}
       >
-        {/* Skeleton layer */}
+        {/* Skeleton layer — uses real Skeleton component with shimmer */}
         <Animated.View style={[styles.absLayer, skeletonStyle]}>
-          <View style={[styles.skelBar, { width: 120, height: 18, marginBottom: 18, backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, { width: 100, height: 20, marginBottom: 6, backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, { width: 200, height: 38, marginBottom: 6, backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, { width: 100, height: 20, marginTop: 10, marginBottom: 6, backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, { width: 220, height: 38, marginBottom: 14, backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, { width: 180, height: 14, marginBottom: 14, backgroundColor: colors.borderLight }]} />
+          {/* Greeting row */}
+          <View style={styles.skelGreetingRow}>
+            <Skeleton style={{ width: 130, height: 20 }} borderRadius={6} />
+            <Skeleton style={{ width: 36, height: 36 }} borderRadius={18} />
+          </View>
+          {/* Label + amount 1 */}
+          <Skeleton style={{ width: 110, height: 20, marginBottom: 6 }} borderRadius={6} />
+          <Skeleton style={{ width: 200, height: 40, marginBottom: 8 }} borderRadius={8} />
+          {/* Label + amount 2 */}
+          <Skeleton style={{ width: 110, height: 20, marginBottom: 6 }} borderRadius={6} />
+          <Skeleton style={{ width: 230, height: 40, marginBottom: 12 }} borderRadius={8} />
+          {/* Supporting text */}
+          <Skeleton style={{ width: 180, height: 14, marginBottom: 14 }} borderRadius={6} />
+          {/* Insight cards */}
           {[0, 1, 2].map((i) => (
-            <View key={i} style={[styles.skelCell, { backgroundColor: colors.borderLight }]} />
+            <Skeleton key={i} style={styles.skelCell} borderRadius={14} />
           ))}
         </Animated.View>
 
         {/* Real content layer */}
         <Animated.View style={[styles.absLayer, contentStyle]}>
-          {/* Greeting */}
-          <Text style={[styles.greeting, { color: colors.textPrimary }]}>
-            Hola, Carlos.
-          </Text>
+          {/* Greeting + avatar */}
+          <View style={styles.greetingRow}>
+            <Text style={[styles.greeting, { color: colors.textPrimary }]}>
+              Hola, Perezoso.
+            </Text>
+            <Image
+              source={require('../../../../assets/logo.png')}
+              style={styles.avatar}
+              resizeMode="cover"
+            />
+          </View>
 
           {/* Monthly */}
           <Text style={[styles.heroLabel, { color: labelColor }]}>
@@ -216,10 +231,10 @@ export function DashboardPreviewHero({ parallax }: Props) {
 
           {/* Supporting text */}
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-            Tienes <Text style={styles.supportBold}>{ACTIVE_COUNT}</Text> suscripciones.
+            Tienes <Text style={styles.supportBold}>11</Text> suscripciones.
           </Text>
 
-          {/* Insight cards (matching InsightCards component) */}
+          {/* Insight cards */}
           <View style={styles.insightList}>
             <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
               <View style={[styles.insightIcon, { backgroundColor: iconBg }]}>
@@ -303,20 +318,32 @@ const styles = StyleSheet.create({
   },
 
   // Skeleton
-  skelBar: {
-    borderRadius: 6,
+  skelGreetingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   skelCell: {
-    height: 56,
-    borderRadius: radius.card,
+    height: 52,
     marginBottom: 6,
   },
 
-  // Content — SummaryHero replica
+  // Content
+  greetingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   greeting: {
     ...fontFamily.bold,
     fontSize: fontSize[18],
-    marginBottom: 16,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   heroLabel: {
     ...fontFamily.extrabold,
@@ -348,12 +375,12 @@ const styles = StyleSheet.create({
     ...fontFamily.bold,
   },
 
-  // InsightCards replica
+  // Insight cards
   insightList: {
     gap: 6,
   },
   insightCell: {
-    borderRadius: radius.card,
+    borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
     flexDirection: 'row',
