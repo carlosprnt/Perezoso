@@ -2,6 +2,10 @@
 // subscription-service logos. Each logo has its own subtle idle drift
 // (Y oscillation at different periods) so the composition feels alive
 // without ever looping obviously.
+//
+// Tapping anywhere on the hero fires a broadcast bounce: every logo
+// pops in scale with a random delay, mirroring the webapp's
+// `handleHeroTap` stagger effect.
 
 import React, { useCallback, useEffect } from 'react';
 import {
@@ -13,12 +17,15 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSequence,
   withSpring,
   withRepeat,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { haptic } from '../../../lib/haptics';
 
@@ -54,17 +61,31 @@ const MASCOT_SIZE = 130;
 
 interface Props {
   /** Scroll-driven parallax progress (−1, 0, +1). 0 = this slide active. */
-  parallax: Animated.SharedValue<number>;
+  parallax: SharedValue<number>;
 }
 
 export function FloatingLogosHero({ parallax }: Props) {
+  // Broadcast trigger — every increment fans out a bounce to every
+  // logo. Children watch the value via useAnimatedReaction.
+  const popTrigger = useSharedValue(0);
+
   const heroStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: parallax.value * 20 }],
   }));
 
+  const onTapAnywhere = useCallback(() => {
+    haptic.light();
+    popTrigger.value = popTrigger.value + 1;
+  }, [popTrigger]);
+
   return (
     <Animated.View style={[styles.root, heroStyle]}>
-      <View style={styles.canvas}>
+      <Pressable
+        onPress={onTapAnywhere}
+        style={styles.canvas}
+        accessibilityRole="button"
+        accessibilityLabel="Animar logos"
+      >
         {FLOATING_LOGOS.map((l, i) => {
           const pos = LOGO_LAYOUT[i];
           if (!pos) return null;
@@ -76,6 +97,7 @@ export function FloatingLogosHero({ parallax }: Props) {
               y={pos.y}
               size={pos.size}
               delay={pos.delay}
+              popTrigger={popTrigger}
             />
           );
         })}
@@ -83,7 +105,7 @@ export function FloatingLogosHero({ parallax }: Props) {
         {/* Mascot — the sloth. We use the bundled logo asset as a
             stand-in; swap for a dedicated hero illustration later. */}
         <MascotPulse />
-      </View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -94,12 +116,14 @@ function FloatingLogo({
   y,
   size,
   delay,
+  popTrigger,
 }: {
   domain: string;
   x: number;
   y: number;
   size: number;
   delay: number;
+  popTrigger: SharedValue<number>;
 }) {
   const offset = useSharedValue(0);
   const pop = useSharedValue(1);
@@ -116,13 +140,22 @@ function FloatingLogo({
     );
   }, [offset, delay]);
 
-  const onTap = useCallback(() => {
-    haptic.light();
-    pop.value = withSequence(
-      withSpring(1.4, { damping: 6, stiffness: 400 }),
-      withSpring(1, { damping: 8, stiffness: 300 }),
-    );
-  }, [pop]);
+  // Random per-tap delay keeps the bounce feeling organic — no two
+  // logos ever pop at the same instant.
+  useAnimatedReaction(
+    () => popTrigger.value,
+    (v, prev) => {
+      if (prev === null || v === prev) return;
+      const d = Math.random() * 240;
+      pop.value = withDelay(
+        d,
+        withSequence(
+          withSpring(1.4, { damping: 6, stiffness: 400 }),
+          withSpring(1, { damping: 8, stiffness: 300 }),
+        ),
+      );
+    },
+  );
 
   const style = useAnimatedStyle(() => ({
     transform: [{ translateY: offset.value }, { scale: pop.value }],
@@ -132,25 +165,26 @@ function FloatingLogo({
   const top = HERO_HEIGHT * y - size / 2;
 
   return (
-    <Pressable onPress={onTap} style={{ position: 'absolute', left, top }}>
-      <Animated.View
-        style={[
-          styles.logoCard,
-          {
-            width: size,
-            height: size,
-            borderRadius: Math.max(14, size * 0.26),
-          },
-          style,
-        ]}
-      >
-        <Image
-          source={{ uri: logoUrlFromDomain(domain) }}
-          style={{ width: size * 0.62, height: size * 0.62 }}
-          resizeMode="contain"
-        />
-      </Animated.View>
-    </Pressable>
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        styles.logoCard,
+        {
+          left,
+          top,
+          width: size,
+          height: size,
+          borderRadius: Math.max(14, size * 0.26),
+        },
+        style,
+      ]}
+    >
+      <Image
+        source={{ uri: logoUrlFromDomain(domain) }}
+        style={{ width: size * 0.62, height: size * 0.62 }}
+        resizeMode="contain"
+      />
+    </Animated.View>
   );
 }
 
@@ -175,7 +209,7 @@ function MascotPulse() {
   }));
 
   return (
-    <Animated.View style={[styles.mascot, style]}>
+    <Animated.View pointerEvents="none" style={[styles.mascot, style]}>
       <Image
         source={require('../../../../assets/icon.png')}
         style={styles.mascotImg}
@@ -198,6 +232,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   logoCard: {
+    position: 'absolute',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',

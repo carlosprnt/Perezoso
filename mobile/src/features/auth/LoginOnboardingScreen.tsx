@@ -4,7 +4,7 @@
 // rounded top corners + shadow feel "pinned" while heroes scroll
 // behind it.
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   Pressable,
@@ -14,9 +14,14 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  Easing,
   runOnJS,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
   type ScrollHandlerProcessed,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -213,7 +218,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
               <Text style={[styles.primaryBtnText, { color: colors.background }]}>
                 Continuar
               </Text>
-              <ArrowRight size={16} color={colors.background} strokeWidth={2.4} />
+              <LoopingArrow color={colors.background} />
             </Pressable>
           </>
         )}
@@ -257,6 +262,33 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         </View>
       </HalfSheet>
     </View>
+  );
+}
+
+// Slow infinite left-right drift on the Continue arrow — nudges the
+// user toward the primary action without being shouty.
+function LoopingArrow({ color }: { color: string }) {
+  const x = useSharedValue(0);
+
+  useEffect(() => {
+    x.value = withRepeat(
+      withSequence(
+        withTiming(4, { duration: 900, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 900, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      false,
+    );
+  }, [x]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value }],
+  }));
+
+  return (
+    <Animated.View style={style}>
+      <ArrowRight size={16} color={color} strokeWidth={2.4} />
+    </Animated.View>
   );
 }
 

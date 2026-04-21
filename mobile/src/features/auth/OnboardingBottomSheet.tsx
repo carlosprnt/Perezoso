@@ -89,7 +89,7 @@ export function OnboardingBottomSheet({
         },
       ]}
     >
-      {/* Texts ─────────────────────────────────────────── */}
+      {/* Texts (anchored to top) ───────────────────────── */}
       <Animated.View style={[styles.texts, textStyle]}>
         <Text
           style={[styles.title, { color: colors.textPrimary }]}
@@ -102,38 +102,39 @@ export function OnboardingBottomSheet({
         </Text>
       </Animated.View>
 
-      {/* Dots ─────────────────────────────────────────── */}
-      <View style={styles.dotsRow}>
-        <PaginationDots
-          page={page}
-          count={count}
-          activeColor={colors.textPrimary}
-          inactiveColor={colors.borderLight}
-        />
+      {/* Dots + actions + legal (anchored to bottom) ───── */}
+      <View style={styles.bottomGroup}>
+        <View style={styles.dotsRow}>
+          <PaginationDots
+            page={page}
+            count={count}
+            activeColor={colors.textPrimary}
+            inactiveColor={colors.borderLight}
+          />
+        </View>
+
+        <View style={styles.actions}>{children}</View>
+
+        {showLegal && (
+          <Text style={[styles.legal, { color: colors.textMuted }]}>
+            {LEGAL.prefix}
+            <Text
+              style={[styles.legalLink, { color: colors.textSecondary }]}
+              onPress={onPressTerms}
+            >
+              {LEGAL.terms}
+            </Text>
+            {LEGAL.middle}
+            <Text
+              style={[styles.legalLink, { color: colors.textSecondary }]}
+              onPress={onPressPrivacy}
+            >
+              {LEGAL.privacy}
+            </Text>
+            {LEGAL.suffix}
+          </Text>
+        )}
       </View>
-
-      {/* Actions (slide-specific) ─────────────────────── */}
-      <View style={styles.actions}>{children}</View>
-
-      {showLegal && (
-        <Text style={[styles.legal, { color: colors.textMuted }]}>
-          {LEGAL.prefix}
-          <Text
-            style={[styles.legalLink, { color: colors.textSecondary }]}
-            onPress={onPressTerms}
-          >
-            {LEGAL.terms}
-          </Text>
-          {LEGAL.middle}
-          <Text
-            style={[styles.legalLink, { color: colors.textSecondary }]}
-            onPress={onPressPrivacy}
-          >
-            {LEGAL.privacy}
-          </Text>
-          {LEGAL.suffix}
-        </Text>
-      )}
     </View>
     </GestureDetector>
   );
@@ -150,10 +151,10 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingHorizontal: 24,
     minHeight: 330,
+    justifyContent: 'space-between',
   },
-  texts: {
-    marginBottom: 18,
-  },
+  texts: {},
+  bottomGroup: {},
   title: {
     ...fontFamily.extrabold,
     fontSize: 28,
@@ -167,7 +168,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   dotsRow: {
-    marginBottom: 18,
+    marginBottom: 16,
+    alignItems: 'center',
   },
   actions: {
     flexDirection: 'row',
