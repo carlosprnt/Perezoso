@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   dotsRow: {
     marginBottom: 16,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   actions: {
     flexDirection: 'row',
