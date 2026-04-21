@@ -346,6 +346,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   navRow: {
+    flex: 1,
     flexDirection: 'row',
     gap: 12,
   },

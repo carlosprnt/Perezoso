@@ -1,14 +1,14 @@
 // Slide 2 hero — animated notification-opt-in card. Shows a
 // "turn on renewal alerts" prompt with a wobbling bell, auto-taps the
 // CTA, then stagger-reveals several subscriptions with active
-// notification badges. The whole sequence loops.
+// notification badges. The prompt starts vertically centered and
+// slides up when the rows appear. Whole sequence loops.
 
 import React, { useEffect } from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   Extrapolation,
-  FadeInDown,
   interpolate,
   useAnimatedProps,
   useAnimatedReaction,
@@ -40,13 +40,13 @@ const CARD_H = 480;
 const MAX_ROT_DEG = 22;
 const MAX_BLUR_INTENSITY = 38;
 
-// Total loop cycle duration.
-const CYCLE_MS = 8000;
-// When the "tap" fires within the cycle.
-const TAP_AT = 2200;
-// When subscription rows start appearing.
-const ROWS_START = 2800;
-const ROW_STAGGER = 350;
+// How far the prompt section shifts down to appear centered before tap.
+const CENTER_OFFSET = 90;
+
+const CYCLE_MS = 6000;
+const TAP_AT = 1400;
+const ROWS_START = 1700;
+const ROW_STAGGER = 220;
 
 const NOTIF_SUBS = [
   { domain: 'netflix.com',    name: 'Netflix',          days: '3 días' },
@@ -61,63 +61,62 @@ interface Props {
 }
 
 export function NotificationHero({ parallax }: Props) {
-  // Master clock: 0→1 over CYCLE_MS, repeats. Children derive their
-  // show/hide timing from this single shared value.
   const clock = useSharedValue(0);
   const bellRot = useSharedValue(0);
   const btnScale = useSharedValue(1);
   const btnDone = useSharedValue(0);
+  const shiftY = useSharedValue(CENTER_OFFSET);
   const rowScales = NOTIF_SUBS.map(() => useSharedValue(0));
 
+  const runCycle = () => {
+    'worklet';
+    for (const s of rowScales) s.value = 0;
+    btnDone.value = 0;
+    btnScale.value = 1;
+    shiftY.value = CENTER_OFFSET;
+
+    // Button tap
+    btnScale.value = withDelay(
+      TAP_AT,
+      withSequence(
+        withTiming(0.9, { duration: 100 }),
+        withTiming(1, { duration: 140 }),
+      ),
+    );
+    btnDone.value = withDelay(TAP_AT + 150, withTiming(1, { duration: 150 }));
+
+    // Shift content up
+    shiftY.value = withDelay(
+      TAP_AT + 100,
+      withTiming(0, { duration: 350, easing: Easing.out(Easing.cubic) }),
+    );
+
+    // Staggered row reveals
+    for (let i = 0; i < rowScales.length; i++) {
+      const delay = ROWS_START + i * ROW_STAGGER;
+      rowScales[i].value = withDelay(
+        delay,
+        withSpring(1, { damping: 14, stiffness: 220 }),
+      );
+    }
+  };
+
   useEffect(() => {
-    // Bell wobble — continuous, independent of cycle.
     bellRot.value = withRepeat(
       withSequence(
-        withTiming(12, { duration: 200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-12, { duration: 200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(8, { duration: 160, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-8, { duration: 160, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 140, easing: Easing.out(Easing.sin) }),
-        withTiming(0, { duration: 1800 }),
+        withTiming(14, { duration: 180, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-14, { duration: 180, easing: Easing.inOut(Easing.sin) }),
+        withTiming(8, { duration: 140, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-8, { duration: 140, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 120, easing: Easing.out(Easing.sin) }),
+        withTiming(0, { duration: 1600 }),
       ),
       -1,
       false,
     );
 
-    const runCycle = () => {
-      'worklet';
-      // Reset rows
-      for (const s of rowScales) {
-        s.value = 0;
-      }
-      btnDone.value = 0;
-      btnScale.value = 1;
-
-      // Button tap at TAP_AT
-      btnScale.value = withDelay(
-        TAP_AT,
-        withSequence(
-          withTiming(0.92, { duration: 120 }),
-          withTiming(1, { duration: 180 }),
-        ),
-      );
-      btnDone.value = withDelay(TAP_AT + 300, withTiming(1, { duration: 250 }));
-
-      // Staggered row reveals
-      for (let i = 0; i < rowScales.length; i++) {
-        const delay = ROWS_START + i * ROW_STAGGER;
-        rowScales[i].value = withDelay(
-          delay,
-          withSpring(1, { damping: 12, stiffness: 200 }),
-        );
-      }
-    };
-
-    // Kick off first cycle.
     runCycle();
 
-    // Re-trigger every CYCLE_MS. We drive this through a clock value
-    // that resets, which triggers useAnimatedReaction.
     clock.value = withRepeat(
       withSequence(
         withTiming(1, { duration: CYCLE_MS }),
@@ -126,38 +125,13 @@ export function NotificationHero({ parallax }: Props) {
       -1,
       false,
     );
-
-    return undefined;
   }, []);
 
-  // Re-run the cycle each time the clock resets.
   useAnimatedReaction(
     () => clock.value,
     (v, prev) => {
       if (prev !== null && prev > 0.5 && v < 0.1) {
-        // Reset rows
-        for (const s of rowScales) {
-          s.value = 0;
-        }
-        btnDone.value = 0;
-        btnScale.value = 1;
-
-        btnScale.value = withDelay(
-          TAP_AT,
-          withSequence(
-            withTiming(0.92, { duration: 120 }),
-            withTiming(1, { duration: 180 }),
-          ),
-        );
-        btnDone.value = withDelay(TAP_AT + 300, withTiming(1, { duration: 250 }));
-
-        for (let i = 0; i < rowScales.length; i++) {
-          const delay = ROWS_START + i * ROW_STAGGER;
-          rowScales[i].value = withDelay(
-            delay,
-            withSpring(1, { damping: 12, stiffness: 200 }),
-          );
-        }
+        runCycle();
       }
     },
   );
@@ -196,6 +170,10 @@ export function NotificationHero({ parallax }: Props) {
     opacity: btnDone.value,
   }));
 
+  const promptShiftStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: shiftY.value }],
+  }));
+
   const { colors } = useTheme();
   const accentGreen = '#22C55E';
 
@@ -207,50 +185,52 @@ export function NotificationHero({ parallax }: Props) {
           { backgroundColor: colors.surface, borderColor: colors.borderLight },
         ]}
       >
-        {/* Prompt card */}
-        <View style={styles.promptCard}>
-          <Animated.View style={bellStyle}>
-            <Bell size={28} color={colors.textPrimary} strokeWidth={1.8} />
-          </Animated.View>
-          <Text style={[styles.promptTitle, { color: colors.textPrimary }]}>
-            Activa avisos de renovación
-          </Text>
-          <Text style={[styles.promptBody, { color: colors.textSecondary }]}>
-            Recibe una alerta 7 días antes de cada cobro automático
-          </Text>
-          <Animated.View
-            style={[
-              styles.ctaBtn,
-              { backgroundColor: colors.textPrimary },
-              btnStyle,
-            ]}
-          >
-            <Animated.Text
-              style={[styles.ctaBtnText, { color: colors.background }, btnLabelStyle]}
-            >
-              Avísame 7 días antes
-            </Animated.Text>
-            <Animated.View style={[styles.ctaDoneWrap, btnDoneStyle]}>
-              <Check size={16} color={colors.background} strokeWidth={2.5} />
-              <Text style={[styles.ctaBtnText, { color: colors.background }]}>
-                {' '}Activado
-              </Text>
+        <Animated.View style={promptShiftStyle}>
+          {/* Prompt card */}
+          <View style={styles.promptCard}>
+            <Animated.View style={bellStyle}>
+              <Bell size={28} color={colors.textPrimary} strokeWidth={1.8} />
             </Animated.View>
-          </Animated.View>
-        </View>
+            <Text style={[styles.promptTitle, { color: colors.textPrimary }]}>
+              Activa avisos de renovación
+            </Text>
+            <Text style={[styles.promptBody, { color: colors.textSecondary }]}>
+              Recibe una alerta 7 días antes de cada cobro automático
+            </Text>
+            <Animated.View
+              style={[
+                styles.ctaBtn,
+                { backgroundColor: colors.textPrimary },
+                btnStyle,
+              ]}
+            >
+              <Animated.Text
+                style={[styles.ctaBtnText, { color: colors.background }, btnLabelStyle]}
+              >
+                Avísame 7 días antes
+              </Animated.Text>
+              <Animated.View style={[styles.ctaDoneWrap, btnDoneStyle]}>
+                <Check size={16} color={colors.background} strokeWidth={2.5} />
+                <Text style={[styles.ctaBtnText, { color: colors.background }]}>
+                  {' '}Activado
+                </Text>
+              </Animated.View>
+            </Animated.View>
+          </View>
 
-        {/* Subscription rows with notification badges */}
-        <View style={styles.rowList}>
-          {NOTIF_SUBS.map((sub, i) => (
-            <NotifRow
-              key={sub.domain}
-              sub={sub}
-              scale={rowScales[i]}
-              colors={colors}
-              accentGreen={accentGreen}
-            />
-          ))}
-        </View>
+          {/* Subscription rows with notification badges */}
+          <View style={styles.rowList}>
+            {NOTIF_SUBS.map((sub, i) => (
+              <NotifRow
+                key={sub.domain}
+                sub={sub}
+                scale={rowScales[i]}
+                colors={colors}
+                accentGreen={accentGreen}
+              />
+            ))}
+          </View>
+        </Animated.View>
       </View>
 
       <AnimatedBlurView
