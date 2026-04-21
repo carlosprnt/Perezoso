@@ -140,3 +140,19 @@ export const FLOATING_LOGOS = [
   { domain: 'github.com' },
   { domain: 'icloud.com' },
 ] as const;
+
+// Mock subscription list shown in the first onboarding slide.
+// 10 most recognisable services — varied categories so the hero
+// feels universal rather than tied to one vertical.
+export const MOCK_SUBSCRIPTIONS = [
+  { domain: 'netflix.com',              name: 'Netflix',          price: '12,99€', period: 'mes', renewsIn: '3 días' },
+  { domain: 'spotify.com',              name: 'Spotify Premium',  price: '10,99€', period: 'mes', renewsIn: '12 días' },
+  { domain: 'youtube.com',              name: 'YouTube Premium',  price: '13,99€', period: 'mes', renewsIn: '8 días' },
+  { domain: 'amazon.com',               name: 'Amazon Prime',     price: '4,99€',  period: 'mes', renewsIn: '21 días' },
+  { domain: 'disneyplus.com',           name: 'Disney+',          price: '8,99€',  period: 'mes', renewsIn: '15 días' },
+  { domain: 'max.com',                  name: 'Max',              price: '9,99€',  period: 'mes', renewsIn: '5 días' },
+  { domain: 'apple.com/apple-music',    name: 'Apple Music',      price: '10,99€', period: 'mes', renewsIn: '18 días' },
+  { domain: 'icloud.com',               name: 'iCloud+',          price: '2,99€',  period: 'mes', renewsIn: '26 días' },
+  { domain: 'openai.com',               name: 'ChatGPT Plus',     price: '20,00€', period: 'mes', renewsIn: '9 días' },
+  { domain: 'figma.com',                name: 'Figma',            price: '15,00€', period: 'mes', renewsIn: '2 días' },
+] as const;

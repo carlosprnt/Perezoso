@@ -43,7 +43,7 @@ import { OnboardingSlide } from './OnboardingSlide';
 import { OnboardingBottomSheet } from './OnboardingBottomSheet';
 import { SocialLoginButtons } from './SocialLoginButtons';
 
-import { FloatingLogosHero } from './heroes/FloatingLogosHero';
+import { SubscriptionListHero } from './heroes/SubscriptionListHero';
 import { ScreenshotHero } from './heroes/ScreenshotHero';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -134,7 +134,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         >
           {(parallax) => {
             if (slide.id === 'floating-logos') {
-              return <FloatingLogosHero parallax={parallax} />;
+              return <SubscriptionListHero parallax={parallax} />;
             }
             const source = SLIDE_SCREENSHOTS[slide.id];
             if (!source) return null;
