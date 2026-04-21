@@ -155,7 +155,7 @@ export function SavingsInsightsHero({ parallax }: Props) {
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             Sugerencias de ahorro
           </Text>
-          <View style={[styles.closeBtn, { backgroundColor: colors.borderLight }]}>
+          <View style={[styles.closeBtn, { backgroundColor: 'rgba(0,0,0,0.04)' }]}>
             <X size={12} color={colors.textMuted} strokeWidth={2.4} />
           </View>
         </View>
@@ -206,7 +206,7 @@ function InsightCard({
     <Animated.View
       style={[
         styles.insightCard,
-        { backgroundColor: colors.borderLight },
+        { backgroundColor: 'rgba(0,0,0,0.035)' },
         style,
       ]}
     >

@@ -51,6 +51,7 @@ import { NotificationHero } from './heroes/NotificationHero';
 import { CalendarHero } from './heroes/CalendarHero';
 import { ScreenshotHero } from './heroes/ScreenshotHero';
 import { SavingsInsightsHero } from './heroes/SavingsInsightsHero';
+import { DashboardPreviewHero } from './heroes/DashboardPreviewHero';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -150,6 +151,9 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
             }
             if (slide.id === 'savings') {
               return <SavingsInsightsHero parallax={parallax} />;
+            }
+            if (slide.id === 'final-login') {
+              return <DashboardPreviewHero parallax={parallax} />;
             }
             const source = SLIDE_SCREENSHOTS[slide.id];
             if (!source) return null;

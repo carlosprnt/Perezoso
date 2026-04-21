@@ -233,7 +233,7 @@ export function CalendarHero({ parallax }: Props) {
                 underlineColorAndroid="transparent"
               />
               <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
-                {' total'}
+                Total
               </Text>
               <View style={[styles.subDot, { backgroundColor: colors.textMuted }]} />
               <AnimatedTextInput
@@ -245,15 +245,15 @@ export function CalendarHero({ parallax }: Props) {
                 underlineColorAndroid="transparent"
               />
               <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
-                {' renovaciones'}
+                Renovaciones
               </Text>
             </View>
           </View>
           <View style={styles.navBtns}>
-            <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
+            <View style={[styles.navBtn, { backgroundColor: 'rgba(0,0,0,0.04)' }]}>
               <ChevronLeft size={16} color={colors.textMuted} strokeWidth={2.2} />
             </View>
-            <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
+            <View style={[styles.navBtn, { backgroundColor: 'rgba(0,0,0,0.04)' }]}>
               <ChevronRight size={16} color={colors.textMuted} strokeWidth={2.2} />
             </View>
           </View>
@@ -407,6 +407,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 2,
+    gap: 3,
   },
   subNumber: {
     ...fontFamily.medium,
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     height: 22,
-    width: 72,
+    width: 62,
   },
   subNumberNarrow: {
     ...fontFamily.medium,
@@ -422,17 +423,17 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     height: 22,
-    width: 14,
+    width: 11,
   },
   subLabel: {
     ...fontFamily.medium,
     fontSize: 16,
   },
   subDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginHorizontal: 8,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    marginHorizontal: 4,
   },
   navBtns: {
     flexDirection: 'row',
