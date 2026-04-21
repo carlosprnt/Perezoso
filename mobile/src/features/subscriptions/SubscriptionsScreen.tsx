@@ -397,12 +397,9 @@ export function SubscriptionsScreen() {
   const amountFormatted = totalForPeriod.toFixed(2).replace('.', ',');
 
   const calendarTriggered = useSharedValue(false);
+  const lastHapticStep = useSharedValue(0);
   const OVERSCROLL_THRESHOLD = -120;
 
-  // Dynamic Island "chicle" blob — a black pill that stretches down
-  // from the notch area as the user overscrolls. Width stays close to
-  // the Dynamic Island (~126px) and grows slightly; height stretches
-  // from 0 to ~70px. The text fades in inside the blob.
   const ISLAND_W = 126;
   const BLOB_MAX_H = 70;
   const BLOB_MAX_W = 190;
@@ -432,10 +429,23 @@ export function SubscriptionsScreen() {
       const y = event.contentOffset.y;
       scrollY.value = y;
 
+      // Progressive haptic ticks as blob stretches
+      if (y < 0) {
+        const step = Math.floor(Math.abs(y) / 15);
+        if (step > lastHapticStep.value) {
+          lastHapticStep.value = step;
+          runOnJS(haptic.light)();
+        } else if (step < lastHapticStep.value) {
+          lastHapticStep.value = step;
+        }
+      } else {
+        lastHapticStep.value = 0;
+      }
+
       if (y < OVERSCROLL_THRESHOLD && !calendarTriggered.value) {
         calendarTriggered.value = true;
         runOnJS(openCalendar)();
-        runOnJS(haptic.medium)();
+        runOnJS(haptic.heavy)();
       }
       if (y >= 0) {
         calendarTriggered.value = false;
@@ -492,7 +502,7 @@ export function SubscriptionsScreen() {
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
       {/* Dynamic Island blob — black chicle that drips from the notch */}
       <Animated.View
-        style={[styles.islandBlob, blobStyle]}
+        style={[styles.islandBlob, { top: insets.top - 12 }, blobStyle]}
         pointerEvents="none"
       >
         <Animated.Text style={[styles.islandBlobText, blobTextStyle]}>
@@ -529,7 +539,7 @@ export function SubscriptionsScreen() {
                   style={({ pressed }) => [
                     styles.calendarBtn,
                     {
-                      backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5',
+                      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
                       opacity: pressed ? 0.6 : 1,
                     },
                   ]}
