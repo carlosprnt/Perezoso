@@ -301,16 +301,16 @@ function NotifRow({
 const styles = StyleSheet.create({
   root: {
     position: 'absolute',
-    top: 100,
+    top: 200,
     left: SIDE_MARGIN,
     width: CARD_W,
     height: CARD_H,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
     overflow: 'hidden',
   },
   card: {
     flex: 1,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     ...shadows.cardMd,
@@ -390,6 +390,6 @@ const styles = StyleSheet.create({
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
   },
 });

@@ -45,7 +45,7 @@ const YEARLY = 1779.96;
 const SKELETON_HOLD = 2000;
 const SKELETON_FADE = 500;
 const COUNT_DUR = 3000;
-const HOLD_DUR = 1000;
+const HOLD_DUR = 6000;
 const CYCLE_MS = SKELETON_HOLD + COUNT_DUR + HOLD_DUR;
 
 function formatEur(val: number): string {
@@ -237,7 +237,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
           {/* Insight cards */}
           <View style={styles.insightList}>
             <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
-              <View style={[styles.insightIcon, { backgroundColor: iconBg }]}>
+              <View style={[styles.insightIcon, { backgroundColor: colors.surface }]}>
                 <TrendingUp size={18} strokeWidth={2} color={iconColor} />
               </View>
               <View style={styles.insightInfo}>
@@ -265,7 +265,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
             </View>
 
             <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
-              <View style={[styles.insightIcon, { backgroundColor: iconBg }]}>
+              <View style={[styles.insightIcon, { backgroundColor: colors.surface }]}>
                 <Users size={18} strokeWidth={2} color={iconColor} />
               </View>
               <View style={styles.insightInfo}>
