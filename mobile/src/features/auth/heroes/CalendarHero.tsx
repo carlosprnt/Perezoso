@@ -1,6 +1,6 @@
 // Slide 3 hero — animated calendar that cross-fades between two months.
-// Month name slides horizontally, totals slide vertically (slot-machine
-// feel), and the day grid cross-fades. Only runs while visible.
+// Month name slides horizontally first, then totals slide vertically
+// and the day grid cross-fades. Only runs while the slide is visible.
 
 import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
@@ -31,12 +31,13 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const SIDE_MARGIN = 20;
 const CARD_W = SCREEN_W - SIDE_MARGIN * 2;
 const CARD_H = 480;
-const CELL_GAP = 4;
 const GRID_PAD = 14;
-const INNER_W = CARD_W - GRID_PAD * 2;
-const CELL_SIZE = (INNER_W - CELL_GAP * 6) / 7;
 
-const LOGO_SIZE = Math.min(24, CELL_SIZE * 0.52);
+const COL_GAP = 3;
+const ROW_GAP = 3;
+const CELL_H = 68;
+const APPROX_CELL_W = (CARD_W - GRID_PAD * 2 - COL_GAP * 6) / 7;
+const LOGO_SIZE = Math.min(24, APPROX_CELL_W * 0.55);
 
 const MAX_ROT_DEG = 22;
 const MAX_BLUR_INTENSITY = 38;
@@ -91,9 +92,7 @@ function buildCells(month: MonthData): (number | null)[] {
   const cells: (number | null)[] = [];
   for (let i = 0; i < month.firstWeekdayIndex; i++) cells.push(null);
   for (let d = 1; d <= month.daysInMonth; d++) cells.push(d);
-  // Pad trailing to complete the last week (fill to Sunday).
   while (cells.length % 7 !== 0) cells.push(null);
-  // Cap at 35 cells (5 weeks) to fit the card.
   return cells.slice(0, 35);
 }
 
@@ -138,57 +137,73 @@ export function CalendarHero({ parallax }: Props) {
     intensity: Math.abs(parallax.value) * MAX_BLUR_INTENSITY,
   }));
 
-  // Month name — horizontal slide.
+  // Phase map (sequential: name slides → then numbers + grid):
+  //   0.00–0.38  hold A
+  //   0.38–0.43  month name slides (A exits left, B enters right)
+  //   0.43–0.50  totals slide vertically + grid cross-fades
+  //   0.50–0.88  hold B
+  //   0.88–0.93  month name slides back (B exits left, A enters right)
+  //   0.93–1.00  totals + grid transition back to A
+
   const nameAStyle = useAnimatedStyle(() => {
     const p = phase.value;
     return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [1, 1, 0, 0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0.38, 0.43, 0.93, 1.0], [1, 0, 0, 1], Extrapolation.CLAMP),
       transform: [{
-        translateX: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [0, 0, -20, -20, 0], Extrapolation.CLAMP),
+        translateX: interpolate(
+          p, [0.38, 0.43, 0.44, 0.93, 1.0], [0, -28, 28, 28, 0], Extrapolation.CLAMP,
+        ),
       }],
     };
   });
+
   const nameBStyle = useAnimatedStyle(() => {
     const p = phase.value;
     return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [0, 0, 1, 1, 0], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0.38, 0.43, 0.88, 0.93], [0, 1, 1, 0], Extrapolation.CLAMP),
       transform: [{
-        translateX: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [20, 20, 0, 0, 20], Extrapolation.CLAMP),
+        translateX: interpolate(
+          p, [0.38, 0.43, 0.88, 0.93], [28, 0, 0, -28], Extrapolation.CLAMP,
+        ),
       }],
     };
   });
 
-  // Totals — vertical slot-machine slide.
   const totalAStyle = useAnimatedStyle(() => {
     const p = phase.value;
     return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [1, 1, 0, 0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0.43, 0.50, 0.93, 1.0], [1, 0, 0, 1], Extrapolation.CLAMP),
       transform: [{
-        translateY: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [0, 0, -14, -14, 0], Extrapolation.CLAMP),
-      }],
-    };
-  });
-  const totalBStyle = useAnimatedStyle(() => {
-    const p = phase.value;
-    return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [0, 0, 1, 1, 0], Extrapolation.CLAMP),
-      transform: [{
-        translateY: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [14, 14, 0, 0, 14], Extrapolation.CLAMP),
+        translateY: interpolate(
+          p, [0.43, 0.50, 0.51, 0.93, 1.0], [0, -16, 16, 16, 0], Extrapolation.CLAMP,
+        ),
       }],
     };
   });
 
-  // Grid — simple opacity cross-fade.
+  const totalBStyle = useAnimatedStyle(() => {
+    const p = phase.value;
+    return {
+      opacity: interpolate(p, [0.43, 0.50, 0.93, 1.0], [0, 1, 1, 0], Extrapolation.CLAMP),
+      transform: [{
+        translateY: interpolate(
+          p, [0.43, 0.50, 0.93, 1.0], [16, 0, 0, -16], Extrapolation.CLAMP,
+        ),
+      }],
+    };
+  });
+
   const gridAStyle = useAnimatedStyle(() => {
     const p = phase.value;
     return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [1, 1, 0, 0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0.43, 0.50, 0.93, 1.0], [1, 0, 0, 1], Extrapolation.CLAMP),
     };
   });
+
   const gridBStyle = useAnimatedStyle(() => {
     const p = phase.value;
     return {
-      opacity: interpolate(p, [0, 0.43, 0.50, 0.93, 1.0], [0, 0, 1, 1, 0], Extrapolation.CLAMP),
+      opacity: interpolate(p, [0.43, 0.50, 0.93, 1.0], [0, 1, 1, 0], Extrapolation.CLAMP),
     };
   });
 
@@ -206,29 +221,33 @@ export function CalendarHero({ parallax }: Props) {
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <View style={styles.monthNameWrap}>
-              <Animated.Text style={[styles.monthName, { color: colors.textPrimary }, nameAStyle]}>
+              <Animated.Text
+                style={[styles.monthName, { color: colors.textPrimary }, nameAStyle]}
+              >
                 {MONTH_A.name}
               </Animated.Text>
-              <Animated.Text style={[styles.monthName, styles.abs, { color: colors.textPrimary }, nameBStyle]}>
+              <Animated.Text
+                style={[styles.monthName, styles.abs, { color: colors.textPrimary }, nameBStyle]}
+              >
                 {MONTH_B.name}
               </Animated.Text>
             </View>
             <View style={styles.subWrap}>
               <Animated.View style={[styles.subRow, totalAStyle]}>
-                <Text style={[styles.subText, { color: colors.textMuted }]}>
+                <Text style={[styles.subText, { color: colors.textSecondary }]}>
                   {MONTH_A.total} total
                 </Text>
-                <View style={[styles.subDot, { backgroundColor: colors.borderLight }]} />
-                <Text style={[styles.subText, { color: colors.textMuted }]}>
+                <View style={[styles.subDot, { backgroundColor: colors.textMuted }]} />
+                <Text style={[styles.subText, { color: colors.textSecondary }]}>
                   {MONTH_A.renewalCount} renovaciones
                 </Text>
               </Animated.View>
               <Animated.View style={[styles.subRow, styles.abs, totalBStyle]}>
-                <Text style={[styles.subText, { color: colors.textMuted }]}>
+                <Text style={[styles.subText, { color: colors.textSecondary }]}>
                   {MONTH_B.total} total
                 </Text>
-                <View style={[styles.subDot, { backgroundColor: colors.borderLight }]} />
-                <Text style={[styles.subText, { color: colors.textMuted }]}>
+                <View style={[styles.subDot, { backgroundColor: colors.textMuted }]} />
+                <Text style={[styles.subText, { color: colors.textSecondary }]}>
                   {MONTH_B.renewalCount} renovaciones
                 </Text>
               </Animated.View>
@@ -236,10 +255,20 @@ export function CalendarHero({ parallax }: Props) {
           </View>
           <View style={styles.navBtns}>
             <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
-              <ChevronLeft size={14} color={colors.textMuted} strokeWidth={2.4} />
+              <ChevronLeft
+                size={16}
+                color={colors.textSecondary}
+                fill={colors.textSecondary}
+                strokeWidth={0}
+              />
             </View>
             <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
-              <ChevronRight size={14} color={colors.textMuted} strokeWidth={2.4} />
+              <ChevronRight
+                size={16}
+                color={colors.textSecondary}
+                fill={colors.textSecondary}
+                strokeWidth={0}
+              />
             </View>
           </View>
         </View>
@@ -247,9 +276,9 @@ export function CalendarHero({ parallax }: Props) {
         {/* Weekday labels */}
         <View style={styles.weekRow}>
           {WEEKDAYS.map((w) => (
-            <Text key={w} style={[styles.weekday, { color: colors.textMuted }]}>
-              {w}
-            </Text>
+            <View key={w} style={styles.weekCell}>
+              <Text style={[styles.weekday, { color: colors.textMuted }]}>{w}</Text>
+            </View>
           ))}
         </View>
 
@@ -286,53 +315,81 @@ function MonthGrid({
   month.renewals.forEach((r) => renewalsByDay.set(r.day, r));
   const cells = buildCells(month);
 
+  const rows: (number | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    rows.push(cells.slice(i, i + 7));
+  }
+
   return (
     <View style={styles.grid}>
-      {cells.map((d, i) => {
-        const isToday = d === month.today;
-        const renewal = d ? renewalsByDay.get(d) : undefined;
-        return (
-          <View
-            key={i}
-            style={[
-              styles.cell,
-              { backgroundColor: d ? colors.borderLight : colors.background },
-              isToday && styles.todayCell,
-            ]}
-          >
-            {d !== null && (
-              <>
-                <Text
-                  style={[
-                    styles.dayNumber,
-                    { color: colors.textMuted },
-                    isToday && { color: colors.textPrimary, ...fontFamily.bold },
-                    renewal && { ...fontFamily.bold },
-                  ]}
-                >
-                  {d}
-                </Text>
-                {renewal && (
-                  <View style={styles.logoWrap}>
-                    <Image
-                      source={{ uri: logoUrlFromDomain(renewal.domain) }}
-                      style={styles.logoImg}
-                      resizeMode="contain"
-                    />
-                    {renewal.stackCount ? (
-                      <View style={[styles.stackBadge, { backgroundColor: colors.borderLight }]}>
-                        <Text style={[styles.stackBadgeText, { color: colors.textMuted }]}>
-                          +{renewal.stackCount}
-                        </Text>
+      {rows.map((row, ri) => (
+        <View key={ri} style={styles.gridRow}>
+          {row.map((d, ci) => {
+            const isToday = d === month.today;
+            const renewal = d ? renewalsByDay.get(d) : undefined;
+            return (
+              <View
+                key={ci}
+                style={[
+                  styles.cell,
+                  {
+                    backgroundColor:
+                      d !== null ? colors.borderLight : 'rgba(0,0,0,0.025)',
+                  },
+                  isToday && {
+                    borderWidth: 1.5,
+                    borderColor: '#000000',
+                  },
+                ]}
+              >
+                {d !== null && (
+                  <>
+                    <Text
+                      style={[
+                        styles.dayNumber,
+                        { color: colors.textMuted },
+                        isToday && {
+                          color: colors.textPrimary,
+                          ...fontFamily.bold,
+                        },
+                        renewal && { ...fontFamily.bold },
+                      ]}
+                    >
+                      {d}
+                    </Text>
+                    {renewal && (
+                      <View style={styles.logoWrap}>
+                        <Image
+                          source={{ uri: logoUrlFromDomain(renewal.domain) }}
+                          style={styles.logoImg}
+                          resizeMode="contain"
+                        />
+                        {renewal.stackCount ? (
+                          <View
+                            style={[
+                              styles.stackBadge,
+                              { backgroundColor: colors.surface },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.stackBadgeText,
+                                { color: colors.textMuted },
+                              ]}
+                            >
+                              +{renewal.stackCount}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
-                    ) : null}
-                  </View>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </View>
-        );
-      })}
+              </View>
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 }
@@ -353,26 +410,26 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     paddingHorizontal: GRID_PAD,
-    paddingTop: 18,
+    paddingTop: 20,
     ...shadows.cardMd,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   headerLeft: {
     flex: 1,
   },
   monthNameWrap: {
     position: 'relative',
-    height: 30,
+    height: 34,
     overflow: 'hidden',
   },
   monthName: {
-    ...fontFamily.extrabold,
-    fontSize: 24,
+    ...fontFamily.semibold,
+    fontSize: 28,
     letterSpacing: -0.3,
   },
   abs: {
@@ -382,8 +439,8 @@ const styles = StyleSheet.create({
   },
   subWrap: {
     position: 'relative',
-    height: 16,
-    marginTop: 4,
+    height: 22,
+    marginTop: 2,
     overflow: 'hidden',
   },
   subRow: {
@@ -392,8 +449,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   subText: {
-    ...fontFamily.regular,
-    fontSize: 10,
+    ...fontFamily.medium,
+    fontSize: 14,
   },
   subDot: {
     width: 3,
@@ -403,23 +460,27 @@ const styles = StyleSheet.create({
   navBtns: {
     flexDirection: 'row',
     gap: 6,
+    marginTop: 4,
   },
   navBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   weekRow: {
     flexDirection: 'row',
-    marginBottom: 6,
+    gap: COL_GAP,
+    marginBottom: 4,
+  },
+  weekCell: {
+    flex: 1,
+    alignItems: 'center',
   },
   weekday: {
     ...fontFamily.medium,
-    fontSize: 9.5,
-    width: CELL_SIZE,
-    textAlign: 'center',
+    fontSize: 11,
   },
   gridWrap: {
     position: 'relative',
@@ -432,24 +493,21 @@ const styles = StyleSheet.create({
     right: 0,
   },
   grid: {
+    gap: ROW_GAP,
+  },
+  gridRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: CELL_GAP,
+    gap: COL_GAP,
   },
   cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: 8,
-    padding: 4,
-  },
-  todayCell: {
-    borderWidth: 1.5,
-    borderColor: '#000000',
-    backgroundColor: 'transparent',
+    flex: 1,
+    height: CELL_H,
+    borderRadius: 10,
+    padding: 6,
   },
   dayNumber: {
     ...fontFamily.medium,
-    fontSize: 9.5,
+    fontSize: 11,
   },
   logoWrap: {
     marginTop: 'auto',
@@ -463,7 +521,7 @@ const styles = StyleSheet.create({
   },
   stackBadge: {
     position: 'absolute',
-    bottom: -6,
+    bottom: -4,
     borderRadius: 4,
     paddingHorizontal: 3,
     paddingVertical: 1,
