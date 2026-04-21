@@ -37,7 +37,11 @@ export function ScreenshotHero({ source, parallax }: Props) {
 
   return (
     <Animated.View style={[styles.root, heroStyle]}>
-      <Image source={source} style={styles.img} resizeMode="contain" />
+      <Image
+        source={source}
+        style={StyleSheet.absoluteFill}
+        resizeMode="contain"
+      />
     </Animated.View>
   );
 }
@@ -47,10 +51,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: FRAME_WIDTH,
     alignSelf: 'center',
-    alignItems: 'center',
-  },
-  img: {
-    flex: 1,
-    width: '100%',
+    overflow: 'hidden',
   },
 });
