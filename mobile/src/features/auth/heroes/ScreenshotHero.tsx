@@ -52,9 +52,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   img: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
     width: '100%',
     aspectRatio: IMG_ASPECT,
   },
