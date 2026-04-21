@@ -196,6 +196,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
             <SocialLoginButtons
               onPressGoogle={onPressGoogle}
               onPressApple={onPressApple}
+              appleDisabled={false}
             />
           </Animated.View>
         ) : (
@@ -258,6 +259,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
               onCloseLoginSheet();
               onPressApple();
             }}
+            appleDisabled={false}
           />
           <Text style={[styles.legalText, { color: colors.textMuted }]}>
             Al continuar, aceptas los{' '}

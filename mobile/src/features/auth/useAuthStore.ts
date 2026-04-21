@@ -15,6 +15,7 @@
 import { create } from 'zustand';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import type { Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '../../services/supabase';
@@ -29,6 +30,7 @@ interface AuthState {
   error: string | null;
 
   signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  signInWithApple: () => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   /** Wipe all DB data for the current user and sign out. Next login
    *  starts fresh with zero subscriptions. */
@@ -100,6 +102,44 @@ export const useAuthStore = create<AuthState>((set) => ({
     // onAuthStateChange will flip status → 'authenticated' via the
     // subscription below, so we don't set it here.
     return { ok: true };
+  },
+
+  signInWithApple: async () => {
+    set({ error: null });
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        const msg = 'No se recibió el token de Apple';
+        set({ error: msg });
+        return { ok: false, error: msg };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+
+      if (error) {
+        set({ error: error.message });
+        return { ok: false, error: error.message };
+      }
+
+      // onAuthStateChange flips status → 'authenticated'.
+      return { ok: true };
+    } catch (e: any) {
+      if (e.code === 'ERR_REQUEST_CANCELED') {
+        return { ok: false, error: 'cancelled' };
+      }
+      const msg = e?.message ?? 'Error al iniciar sesión con Apple';
+      set({ error: msg });
+      return { ok: false, error: msg };
+    }
   },
 
   signOut: async () => {

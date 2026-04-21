@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.perezoso.app"
+      "bundleIdentifier": "com.perezoso.app",
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"]
+      }
     },
     "android": {
       "package": "com.perezoso.app",
@@ -29,6 +32,7 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

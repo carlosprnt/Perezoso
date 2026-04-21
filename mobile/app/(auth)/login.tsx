@@ -12,6 +12,7 @@ import { haptic } from '../../src/lib/haptics';
 
 export default function LoginRoute() {
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const signInWithApple = useAuthStore((s) => s.signInWithApple);
 
   const onPressGoogle = useCallback(async () => {
     haptic.medium();
@@ -22,10 +23,14 @@ export default function LoginRoute() {
     // AuthGate handles navigation to /(tabs)/dashboard on success.
   }, [signInWithGoogle]);
 
-  const onPressApple = useCallback(() => {
+  const onPressApple = useCallback(async () => {
     haptic.medium();
-    Alert.alert('Próximamente', 'Apple Sign-In llegará en una próxima versión.');
-  }, []);
+    const res = await signInWithApple();
+    if (!res.ok && res.error && res.error !== 'cancelled') {
+      Alert.alert('No se pudo iniciar sesión con Apple', res.error);
+    }
+    // AuthGate handles navigation to /(tabs)/dashboard on success.
+  }, [signInWithApple]);
 
   const onPressTerms = useCallback(() => {
     Linking.openURL('https://perezoso.app/terminos').catch(() => {});

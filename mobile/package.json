@@ -17,6 +17,7 @@
     "@react-native-masked-view/masked-view": "0.3.2",
     "@supabase/supabase-js": "^2.49.0",
     "expo": "~54.0.33",
+    "expo-apple-authentication": "~8.0.8",
     "expo-auth-session": "~7.0.9",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
