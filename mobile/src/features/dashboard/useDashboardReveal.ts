@@ -113,6 +113,7 @@ export interface DashboardReveal {
 export function useDashboardReveal(): DashboardReveal {
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
+  const lastHapticStep = useSharedValue(0);
   // Captured at gesture start so onUpdate can decide whether the user
   // started "from the top" (the only condition that lets a closed sheet
   // begin to reveal while scroll is the dominant gesture).
@@ -224,8 +225,6 @@ export function useDashboardReveal(): DashboardReveal {
       const dy = e.translationY;
 
       if (isOpenSV.value) {
-        // Open → user is closing (or jostling). Position is base + dy,
-        // rubber-banded past both bounds.
         const raw = startTranslateY.value + dy;
         let clamped = raw;
         if (raw < 0) clamped = raw * OVER_DAMP;
@@ -233,13 +232,19 @@ export function useDashboardReveal(): DashboardReveal {
           clamped = REVEAL_HEIGHT + (raw - REVEAL_HEIGHT) * OVER_DAMP;
         translateY.value = clamped;
       } else {
-        // Closed → we only reach here after manualActivation approved
-        // the gesture (downward from scroll-top). Track dy directly.
         let clamped = dy;
         if (dy > REVEAL_HEIGHT)
           clamped = REVEAL_HEIGHT + (dy - REVEAL_HEIGHT) * OVER_DAMP;
         else if (dy < 0) clamped = 0;
         translateY.value = clamped;
+      }
+
+      const step = Math.floor(translateY.value / 30);
+      if (step !== lastHapticStep.value && step > 0) {
+        lastHapticStep.value = step;
+        runOnJS(haptic.light)();
+      } else if (step === 0) {
+        lastHapticStep.value = 0;
       }
     })
     .onEnd((e) => {
