@@ -159,8 +159,6 @@ const ENTRANCE_END_FROM_BOTTOM   = 200;
 // reads as an intentional transition rather than a tap glitch.
 const PERIOD_TOGGLE_MS = 1500;
 
-const STACK_MARGIN_GROW = 24;
-
 function ScrollCard({
   scrollY,
   listY,
@@ -223,15 +221,12 @@ function ScrollCard({
     () => enterProgress.value,
     (cur, prev) => {
       if (prev === null) return;
-      // Rising through the 0.5 gate: card has scaled into view — vibrate.
       if (prev < 0.5 && cur >= 0.5 && hasEnteredHaptic.value === 0) {
         hasEnteredHaptic.value = 1;
         runOnJS(haptic.light)();
-      }
-      // Falling back below the gate: arm the haptic again so the next
-      // re-entry retriggers it.
-      else if (prev >= 0.5 && cur < 0.5 && hasEnteredHaptic.value === 1) {
+      } else if (prev >= 0.5 && cur < 0.5 && hasEnteredHaptic.value === 1) {
         hasEnteredHaptic.value = 0;
+        runOnJS(haptic.light)();
       }
     },
   );
@@ -281,9 +276,7 @@ function ScrollCard({
   });
 
   const marginStyle = useAnimatedStyle(() => {
-    if (stackMargin === 0) return { marginTop: 0 };
-    const extra = interpolate(scrollY.value, [0, -120], [0, STACK_MARGIN_GROW], Extrapolation.CLAMP);
-    return { marginTop: stackMargin + extra };
+    return { marginTop: stackMargin };
   });
 
   return (
