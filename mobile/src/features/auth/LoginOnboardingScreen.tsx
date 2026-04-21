@@ -31,6 +31,7 @@ import { HalfSheet } from '../../components/HalfSheet';
 import {
   ONBOARDING_SLIDES,
   LAST_SLIDE_INDEX,
+  SLIDE_SCREENSHOTS,
   type SlideMeta,
 } from './constants';
 import { OnboardingSlide } from './OnboardingSlide';
@@ -38,10 +39,7 @@ import { OnboardingBottomSheet } from './OnboardingBottomSheet';
 import { SocialLoginButtons } from './SocialLoginButtons';
 
 import { FloatingLogosHero } from './heroes/FloatingLogosHero';
-import { RenewalsDashboardHero } from './heroes/RenewalsDashboardHero';
-import { CalendarHero } from './heroes/CalendarHero';
-import { SavingsInsightsHero } from './heroes/SavingsInsightsHero';
-import { FinalLoginHero } from './heroes/FinalLoginHero';
+import { ScreenshotHero } from './heroes/ScreenshotHero';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -120,18 +118,12 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
           sheetHeight={RESERVED_SHEET_HEIGHT}
         >
           {(parallax) => {
-            switch (slide.id) {
-              case 'floating-logos':
-                return <FloatingLogosHero parallax={parallax} />;
-              case 'renewals-dashboard':
-                return <RenewalsDashboardHero parallax={parallax} />;
-              case 'calendar':
-                return <CalendarHero parallax={parallax} />;
-              case 'savings':
-                return <SavingsInsightsHero parallax={parallax} />;
-              case 'final-login':
-                return <FinalLoginHero parallax={parallax} />;
+            if (slide.id === 'floating-logos') {
+              return <FloatingLogosHero parallax={parallax} />;
             }
+            const source = SLIDE_SCREENSHOTS[slide.id];
+            if (!source) return null;
+            return <ScreenshotHero source={source} parallax={parallax} />;
           }}
         </OnboardingSlide>
       );

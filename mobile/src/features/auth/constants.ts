@@ -119,6 +119,15 @@ export const MOCK_CALENDAR = {
   ],
 } as const;
 
+// Screenshot assets for each image-based slide. Matches the web app's
+// /public/onboarding/*.png set. Keys align with SlideId.
+export const SLIDE_SCREENSHOTS: Partial<Record<SlideId, number>> = {
+  'renewals-dashboard': require('../../../assets/onboarding/03.png'),
+  calendar: require('../../../assets/onboarding/02.png'),
+  savings: require('../../../assets/onboarding/04.png'),
+  'final-login': require('../../../assets/onboarding/05.png'),
+};
+
 export const FLOATING_LOGOS = [
   { domain: 'netflix.com' },
   { domain: 'figma.com' },
