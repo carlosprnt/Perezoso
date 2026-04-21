@@ -3,7 +3,7 @@
 // app's behavior where slides 2+ swap in static PNGs from /public/onboarding.
 
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Dimensions, Image, StyleSheet } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -11,8 +11,11 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-// Ratio of the source PNGs (1080×2340).
-const IMG_ASPECT = 1080 / 2340;
+const { width: SCREEN_W } = Dimensions.get('window');
+const SIDE_MARGIN = 20;
+const IMG_W = SCREEN_W - SIDE_MARGIN * 2;
+// Source PNGs are 1080×2340.
+const IMG_H = IMG_W * (2340 / 1080);
 
 interface Props {
   source: number;
@@ -36,25 +39,22 @@ export function ScreenshotHero({ source, parallax }: Props) {
 
   return (
     <Animated.View style={[styles.root, heroStyle]}>
-      <Image source={source} style={styles.img} resizeMode="cover" />
+      <Image source={source} style={styles.img} resizeMode="contain" />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Mirror of the web: absolutely anchored at 100px from top, 20px sides,
-  // extended to the bottom — the bottom sheet (also absolute) covers the
-  // excess so the screenshot reads as "full image, anchored from the top".
   root: {
     position: 'absolute',
     top: 100,
-    left: 20,
-    right: 20,
-    bottom: 0,
+    left: SIDE_MARGIN,
+    width: IMG_W,
+    height: IMG_H,
     overflow: 'hidden',
   },
   img: {
-    width: '100%',
-    aspectRatio: IMG_ASPECT,
+    width: IMG_W,
+    height: IMG_H,
   },
 });
