@@ -3,7 +3,7 @@
 // app's behavior where slides 2+ swap in static PNGs from /public/onboarding.
 
 import React from 'react';
-import { Dimensions, Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -11,9 +11,6 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-const { width: SCREEN_W } = Dimensions.get('window');
-const FRAME_MARGIN_X = 20;
-const FRAME_WIDTH = SCREEN_W - FRAME_MARGIN_X * 2;
 // Ratio of the source PNGs (1080×2340).
 const IMG_ASPECT = 1080 / 2340;
 
@@ -39,16 +36,21 @@ export function ScreenshotHero({ source, parallax }: Props) {
 
   return (
     <Animated.View style={[styles.root, heroStyle]}>
-      <Image source={source} style={styles.img} resizeMode="contain" />
+      <Image source={source} style={styles.img} resizeMode="cover" />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Mirror of the web: absolutely anchored at 100px from top, 20px sides,
+  // extended to the bottom — the bottom sheet (also absolute) covers the
+  // excess so the screenshot reads as "full image, anchored from the top".
   root: {
-    flex: 1,
-    width: FRAME_WIDTH,
-    alignSelf: 'center',
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    right: 20,
+    bottom: 0,
     overflow: 'hidden',
   },
   img: {
