@@ -251,10 +251,10 @@ export function CalendarHero({ parallax }: Props) {
           </View>
           <View style={styles.navBtns}>
             <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
-              <ChevronLeft size={16} color={colors.textSecondary} strokeWidth={2.2} />
+              <ChevronLeft size={16} color={colors.textMuted} strokeWidth={2.2} />
             </View>
             <View style={[styles.navBtn, { backgroundColor: colors.borderLight }]}>
-              <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2.2} />
+              <ChevronRight size={16} color={colors.textMuted} strokeWidth={2.2} />
             </View>
           </View>
         </View>
@@ -367,12 +367,12 @@ const styles = StyleSheet.create({
     left: SIDE_MARGIN,
     width: CARD_W,
     height: CARD_H,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
     overflow: 'hidden',
   },
   card: {
     flex: 1,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     paddingHorizontal: GRID_PAD,
@@ -410,22 +410,22 @@ const styles = StyleSheet.create({
   },
   subNumber: {
     ...fontFamily.medium,
-    fontSize: 19,
+    fontSize: 16,
     padding: 0,
     margin: 0,
-    height: 24,
+    height: 22,
   },
   subNumberNarrow: {
     ...fontFamily.medium,
-    fontSize: 19,
+    fontSize: 16,
     padding: 0,
     margin: 0,
-    height: 24,
-    minWidth: 18,
+    height: 22,
+    minWidth: 16,
   },
   subLabel: {
     ...fontFamily.medium,
-    fontSize: 19,
+    fontSize: 16,
   },
   subDot: {
     width: 4,
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     height: CELL_H,
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 6,
   },
   todayCell: {
@@ -500,6 +500,6 @@ const styles = StyleSheet.create({
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: radius['2xl'],
+    borderRadius: radius['2xl'] * 2,
   },
 });
