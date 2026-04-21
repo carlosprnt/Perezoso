@@ -51,8 +51,8 @@ const CYCLE_MS = (HOLD_MS + FADE_MS) * 2;
 
 const TOTAL_A = 476.58;
 const TOTAL_B = 398.42;
-const RENEWALS_A = 11;
-const RENEWALS_B = 8;
+const RENEWALS_A = 3;
+const RENEWALS_B = 4;
 
 interface MonthData {
   name: string;
@@ -414,6 +414,7 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     height: 22,
+    width: 72,
   },
   subNumberNarrow: {
     ...fontFamily.medium,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     height: 22,
-    minWidth: 16,
+    width: 14,
   },
   subLabel: {
     ...fontFamily.medium,
