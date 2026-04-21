@@ -79,6 +79,16 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
     goTo(next);
   }, [pageIndex, goTo]);
 
+  const onSwipeLeft = useCallback(() => {
+    const next = Math.min(pageIndex + 1, LAST_SLIDE_INDEX);
+    if (next !== pageIndex) goTo(next);
+  }, [pageIndex, goTo]);
+
+  const onSwipeRight = useCallback(() => {
+    const prev = Math.max(pageIndex - 1, 0);
+    if (prev !== pageIndex) goTo(prev);
+  }, [pageIndex, goTo]);
+
   // "Iniciar sesión" opens a half-sheet with Google/Apple buttons
   // instead of jumping to the last onboarding slide.
   const [loginSheetOpen, setLoginSheetOpen] = useState(false);
@@ -161,6 +171,8 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
         showLegal={isLast}
         onPressTerms={handlers.onPressTerms}
         onPressPrivacy={handlers.onPressPrivacy}
+        onSwipeLeft={onSwipeLeft}
+        onSwipeRight={onSwipeRight}
       >
         {isLast ? (
           <View style={{ flex: 1 }}>

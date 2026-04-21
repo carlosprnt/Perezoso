@@ -3,10 +3,11 @@
 // (Y oscillation at different periods) so the composition feels alive
 // without ever looping obviously.
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Dimensions,
   Image,
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
@@ -14,10 +15,12 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
+  withSpring,
+  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { haptic } from '../../../lib/haptics';
 
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -34,16 +37,16 @@ const { width: SCREEN_W } = Dimensions.get('window');
 // the mascot, smaller ones scattered further out, asymmetric so it
 // doesn't read as a ring.
 const LOGO_LAYOUT: { x: number; y: number; size: number; delay: number }[] = [
-  { x: 0.09, y: 0.34, size: 64, delay: 0 },       // Netflix
-  { x: 0.46, y: 0.14, size: 60, delay: 180 },     // Figma
-  { x: 0.76, y: 0.30, size: 60, delay: 320 },     // Spotify
-  { x: 0.57, y: 0.37, size: 46, delay: 90 },      // Revolut
-  { x: 0.78, y: 0.50, size: 72, delay: 260 },     // YouTube
-  { x: 0.08, y: 0.54, size: 56, delay: 420 },     // Duolingo
-  { x: 0.05, y: 0.84, size: 52, delay: 150 },     // Notion
-  { x: 0.72, y: 0.85, size: 58, delay: 310 },     // Twitch
-  { x: 0.17, y: 0.96, size: 44, delay: 220 },     // iCloud
-  { x: 0.54, y: 0.96, size: 50, delay: 60 },      // GitHub
+  { x: 0.09, y: 0.22, size: 64, delay: 0 },       // Netflix
+  { x: 0.46, y: 0.08, size: 60, delay: 180 },     // Figma
+  { x: 0.76, y: 0.20, size: 60, delay: 320 },     // Spotify
+  { x: 0.57, y: 0.32, size: 46, delay: 90 },      // Revolut
+  { x: 0.78, y: 0.46, size: 72, delay: 260 },     // YouTube
+  { x: 0.08, y: 0.46, size: 56, delay: 420 },     // Duolingo
+  { x: 0.05, y: 0.68, size: 52, delay: 150 },     // Notion
+  { x: 0.72, y: 0.70, size: 58, delay: 310 },     // Twitch
+  { x: 0.17, y: 0.82, size: 44, delay: 220 },     // iCloud
+  { x: 0.54, y: 0.80, size: 50, delay: 60 },      // GitHub
 ];
 
 const HERO_HEIGHT = 460;
@@ -99,6 +102,7 @@ function FloatingLogo({
   delay: number;
 }) {
   const offset = useSharedValue(0);
+  const pop = useSharedValue(1);
 
   useEffect(() => {
     const period = 2600 + ((delay * 7) % 1400);
@@ -112,35 +116,41 @@ function FloatingLogo({
     );
   }, [offset, delay]);
 
+  const onTap = useCallback(() => {
+    haptic.light();
+    pop.value = withSequence(
+      withSpring(1.4, { damping: 6, stiffness: 400 }),
+      withSpring(1, { damping: 8, stiffness: 300 }),
+    );
+  }, [pop]);
+
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateY: offset.value }],
+    transform: [{ translateY: offset.value }, { scale: pop.value }],
   }));
 
-  // Position in px within the hero canvas (SCREEN_W × HERO_HEIGHT).
-  // Subtract half the size so x/y anchor the logo's center.
   const left = SCREEN_W * x - size / 2;
   const top = HERO_HEIGHT * y - size / 2;
 
   return (
-    <Animated.View
-      style={[
-        styles.logoCard,
-        {
-          width: size,
-          height: size,
-          borderRadius: Math.max(14, size * 0.26),
-          left,
-          top,
-        },
-        style,
-      ]}
-    >
-      <Image
-        source={{ uri: logoUrlFromDomain(domain) }}
-        style={{ width: size * 0.62, height: size * 0.62 }}
-        resizeMode="contain"
-      />
-    </Animated.View>
+    <Pressable onPress={onTap} style={{ position: 'absolute', left, top }}>
+      <Animated.View
+        style={[
+          styles.logoCard,
+          {
+            width: size,
+            height: size,
+            borderRadius: Math.max(14, size * 0.26),
+          },
+          style,
+        ]}
+      >
+        <Image
+          source={{ uri: logoUrlFromDomain(domain) }}
+          style={{ width: size * 0.62, height: size * 0.62 }}
+          resizeMode="contain"
+        />
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -188,7 +198,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   logoCard: {
-    position: 'absolute',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',

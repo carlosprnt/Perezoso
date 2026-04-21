@@ -7,19 +7,20 @@
 // on the final slide).
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   interpolate,
   Extrapolation,
+  runOnJS,
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
-import { shadows } from '../../design/shadows';
 
 import { PaginationDots } from './PaginationDots';
 import { LEGAL } from './constants';
@@ -27,18 +28,15 @@ import { LEGAL } from './constants';
 interface Props {
   title: string;
   body: string;
-  /** Index of this slide. */
   index: number;
-  /** Continuous page position (scrollX / pageWidth). */
   page: SharedValue<number>;
-  /** Total slides. */
   count: number;
-  /** Actions row — primary + secondary buttons, rendered inside the sheet. */
   children: React.ReactNode;
-  /** When true, renders legal text under the actions (final slide). */
   showLegal?: boolean;
   onPressTerms?: () => void;
   onPressPrivacy?: () => void;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
 export function OnboardingBottomSheet({
@@ -51,13 +49,12 @@ export function OnboardingBottomSheet({
   showLegal,
   onPressTerms,
   onPressPrivacy,
+  onSwipeLeft,
+  onSwipeRight,
 }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  // Micro entrance per slide: when this slide is active, title+body
-  // should look "just arrived". The further away the user scrolls,
-  // the more they slide out and fade.
   const textStyle = useAnimatedStyle(() => {
     const distance = Math.abs(page.value - index);
     const t = Math.min(distance, 1);
@@ -69,7 +66,20 @@ export function OnboardingBottomSheet({
     };
   });
 
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-30, 30])
+    .failOffsetY([-15, 15])
+    .onEnd((e) => {
+      'worklet';
+      if (e.velocityX < -400 || e.translationX < -60) {
+        if (onSwipeLeft) runOnJS(onSwipeLeft)();
+      } else if (e.velocityX > 400 || e.translationX > 60) {
+        if (onSwipeRight) runOnJS(onSwipeRight)();
+      }
+    });
+
   return (
+    <GestureDetector gesture={swipeGesture}>
     <View
       style={[
         styles.sheet,
@@ -125,6 +135,7 @@ export function OnboardingBottomSheet({
         </Text>
       )}
     </View>
+    </GestureDetector>
   );
 }
 
@@ -138,7 +149,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.card,
     paddingTop: 28,
     paddingHorizontal: 24,
-    ...shadows.sheetTop,
+    minHeight: 330,
   },
   texts: {
     marginBottom: 18,
