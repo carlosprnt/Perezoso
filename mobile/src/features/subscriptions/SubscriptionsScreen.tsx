@@ -399,15 +399,34 @@ export function SubscriptionsScreen() {
   const calendarTriggered = useSharedValue(false);
   const OVERSCROLL_THRESHOLD = -120;
 
+  const overscrollHintStyle = useAnimatedStyle(() => {
+    const y = scrollY.value;
+    if (y >= 0) return { opacity: 0, transform: [{ translateY: -20 }] };
+    const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
+    return {
+      opacity: progress,
+      transform: [{ translateY: interpolate(progress, [0, 1], [-20, 0], Extrapolation.CLAMP) }],
+    };
+  });
+
+  const overscrollHintTextStyle = useAnimatedStyle(() => {
+    const y = scrollY.value;
+    const progress = interpolate(y, [0, OVERSCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP);
+    const r = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
+    const g = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
+    const b = Math.round(interpolate(progress, [0, 1], [160, 0], Extrapolation.CLAMP));
+    return { color: `rgb(${r},${g},${b})` };
+  });
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       const y = event.contentOffset.y;
       scrollY.value = y;
 
-      // Overscroll shortcut: pull down far past the top opens the calendar.
       if (y < OVERSCROLL_THRESHOLD && !calendarTriggered.value) {
         calendarTriggered.value = true;
         runOnJS(openCalendar)();
+        runOnJS(haptic.medium)();
       }
       if (y >= 0) {
         calendarTriggered.value = false;
@@ -462,6 +481,16 @@ export function SubscriptionsScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: 'transparent' }]}>
+      {/* Overscroll hint — slides in from above as user pulls down */}
+      <Animated.View
+        style={[styles.overscrollHint, { top: insets.top - 4 }, overscrollHintStyle]}
+        pointerEvents="none"
+      >
+        <Animated.Text style={[styles.overscrollHintText, overscrollHintTextStyle]}>
+          Mostrar calendario
+        </Animated.Text>
+      </Animated.View>
+
       <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -784,6 +813,17 @@ function DropdownMenu<T extends string>({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  overscrollHint: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  overscrollHintText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[13],
   },
   content: {
     flexGrow: 1,
