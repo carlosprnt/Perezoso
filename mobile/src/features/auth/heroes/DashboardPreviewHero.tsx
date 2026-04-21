@@ -1,10 +1,10 @@
 // Slide 5 hero — dashboard preview that loads from a skeleton.
-// Skeleton bars fade out, real content fades in, and the big
-// total numbers count up from 0 to their final values.
-// Only animates while the slide is visible.
+// Replicates the real SummaryHero + InsightCards layout.
+// Skeleton holds 2s → content fades in with numbers counting up
+// over 3s → holds 4s → resets. Loops while visible.
 
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
   Easing,
   Extrapolation,
@@ -14,14 +14,16 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withRepeat,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { TextInput } from 'react-native';
+import { TrendingUp, Users, Bot } from 'lucide-react-native';
 
 import { useTheme } from '../../../design/useTheme';
-import { fontFamily } from '../../../design/typography';
+import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
 
@@ -40,9 +42,25 @@ const MONTHLY = 148.33;
 const YEARLY = 1779.96;
 const ACTIVE_COUNT = 11;
 
-const SKELETON_DUR = 800;
-const COUNT_DUR = 1200;
-const COUNT_DELAY = 600;
+const SKELETON_HOLD = 2000;
+const SKELETON_FADE = 500;
+const COUNT_DUR = 3000;
+const HOLD_DUR = 4000;
+const CYCLE_MS = SKELETON_HOLD + COUNT_DUR + HOLD_DUR;
+
+function formatEur(val: number): string {
+  'worklet';
+  const fixed = val.toFixed(2);
+  const dotIdx = fixed.indexOf('.');
+  const intStr = fixed.substring(0, dotIdx);
+  const decStr = fixed.substring(dotIdx + 1);
+  let formatted = '';
+  for (let i = intStr.length - 1, count = 0; i >= 0; i--, count++) {
+    if (count > 0 && count % 3 === 0) formatted = '.' + formatted;
+    formatted = intStr[i] + formatted;
+  }
+  return formatted + ',' + decStr + '€';
+}
 
 interface Props {
   parallax: SharedValue<number>;
@@ -51,28 +69,50 @@ interface Props {
 export function DashboardPreviewHero({ parallax }: Props) {
   const skeleton = useSharedValue(1);
   const countProgress = useSharedValue(0);
+  const clock = useSharedValue(0);
+
+  const runCycle = () => {
+    'worklet';
+    skeleton.value = 1;
+    countProgress.value = 0;
+
+    skeleton.value = withDelay(
+      SKELETON_HOLD,
+      withTiming(0, { duration: SKELETON_FADE, easing: Easing.out(Easing.cubic) }),
+    );
+    countProgress.value = withDelay(
+      SKELETON_HOLD,
+      withTiming(1, { duration: COUNT_DUR, easing: Easing.out(Easing.cubic) }),
+    );
+  };
 
   useAnimatedReaction(
     () => Math.abs(parallax.value) < 0.5,
     (active, wasActive) => {
       if (active && !wasActive) {
-        skeleton.value = 1;
-        countProgress.value = 0;
-
-        skeleton.value = withTiming(0, {
-          duration: SKELETON_DUR,
-          easing: Easing.out(Easing.cubic),
-        });
-        countProgress.value = withDelay(
-          COUNT_DELAY,
-          withTiming(1, {
-            duration: COUNT_DUR,
-            easing: Easing.out(Easing.cubic),
-          }),
+        runCycle();
+        clock.value = 0;
+        clock.value = withRepeat(
+          withSequence(
+            withTiming(1, { duration: CYCLE_MS }),
+            withTiming(0, { duration: 0 }),
+          ),
+          -1,
+          false,
         );
       } else if (!active && wasActive) {
         skeleton.value = 1;
         countProgress.value = 0;
+        clock.value = 0;
+      }
+    },
+  );
+
+  useAnimatedReaction(
+    () => clock.value,
+    (v, prev) => {
+      if (prev !== null && prev > 0.5 && v < 0.1) {
+        runCycle();
       }
     },
   );
@@ -105,23 +145,20 @@ export function DashboardPreviewHero({ parallax }: Props) {
 
   const monthlyProps = useAnimatedProps(() => {
     const val = countProgress.value * MONTHLY;
-    return { text: val.toFixed(2).replace('.', ',') + '€' } as any;
+    return { text: formatEur(val) } as any;
   });
 
   const yearlyProps = useAnimatedProps(() => {
     const val = countProgress.value * YEARLY;
-    const formatted = val.toFixed(2).replace('.', ',');
-    const parts = formatted.split(',');
-    const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return { text: intPart + ',' + parts[1] + '€' } as any;
+    return { text: formatEur(val) } as any;
   });
 
-  const countProps = useAnimatedProps(() => {
-    const val = Math.round(countProgress.value * ACTIVE_COUNT);
-    return { text: String(val) } as any;
-  });
-
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const labelColor = isDark ? '#8E8E93' : '#616161';
+  const iconBg = isDark ? '#2C2C2E' : '#F5F5F5';
+  const iconColor = isDark ? '#F2F2F7' : '#000000';
+  const catIconBg = isDark ? '#2C2C2E' : '#DDD6FE';
+  const catIconColor = isDark ? '#F2F2F7' : '#4C1D95';
 
   return (
     <Animated.View style={[styles.root, wrapStyle]}>
@@ -132,98 +169,98 @@ export function DashboardPreviewHero({ parallax }: Props) {
         ]}
       >
         {/* Skeleton layer */}
-        <Animated.View style={[styles.skeletonLayer, skeletonStyle]}>
-          <View style={[styles.skelBar, styles.skelGreeting, { backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, styles.skelLabel, { backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, styles.skelBigNum, { backgroundColor: colors.borderLight }]} />
-          <View style={[styles.skelBar, styles.skelLabel, { backgroundColor: colors.borderLight, marginTop: 28 }]} />
-          <View style={[styles.skelBar, styles.skelBigNum, { backgroundColor: colors.borderLight }]} />
-          <View style={styles.skelRow}>
-            <View style={[styles.skelBar, styles.skelStat, { backgroundColor: colors.borderLight }]} />
-            <View style={[styles.skelBar, styles.skelStat, { backgroundColor: colors.borderLight }]} />
-          </View>
-          <View style={styles.skelRow}>
-            <View style={[styles.skelBar, styles.skelStat, { backgroundColor: colors.borderLight }]} />
-            <View style={[styles.skelBar, styles.skelStat, { backgroundColor: colors.borderLight }]} />
-          </View>
+        <Animated.View style={[styles.absLayer, skeletonStyle]}>
+          <View style={[styles.skelBar, { width: 120, height: 18, marginBottom: 18, backgroundColor: colors.borderLight }]} />
+          <View style={[styles.skelBar, { width: 100, height: 20, marginBottom: 6, backgroundColor: colors.borderLight }]} />
+          <View style={[styles.skelBar, { width: 200, height: 38, marginBottom: 6, backgroundColor: colors.borderLight }]} />
+          <View style={[styles.skelBar, { width: 100, height: 20, marginTop: 10, marginBottom: 6, backgroundColor: colors.borderLight }]} />
+          <View style={[styles.skelBar, { width: 220, height: 38, marginBottom: 14, backgroundColor: colors.borderLight }]} />
+          <View style={[styles.skelBar, { width: 180, height: 14, marginBottom: 14, backgroundColor: colors.borderLight }]} />
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={[styles.skelCell, { backgroundColor: colors.borderLight }]} />
+          ))}
         </Animated.View>
 
         {/* Real content layer */}
-        <Animated.View style={[styles.contentLayer, contentStyle]}>
+        <Animated.View style={[styles.absLayer, contentStyle]}>
+          {/* Greeting */}
           <Text style={[styles.greeting, { color: colors.textPrimary }]}>
             Hola, Carlos.
           </Text>
 
-          <Text style={[styles.label, { color: colors.textMuted }]}>
+          {/* Monthly */}
+          <Text style={[styles.heroLabel, { color: labelColor }]}>
             Al mes gastas
           </Text>
           <AnimatedTextInput
             editable={false}
             defaultValue="0,00€"
             animatedProps={monthlyProps}
-            style={[styles.bigNumber, { color: colors.textPrimary }]}
+            style={[styles.heroAmount, { color: colors.textPrimary }]}
             pointerEvents="none"
             underlineColorAndroid="transparent"
           />
 
-          <Text style={[styles.label, styles.labelSecond, { color: colors.textMuted }]}>
+          {/* Annual */}
+          <Text style={[styles.heroLabel, styles.heroLabelSecond, { color: labelColor }]}>
             Eso al año es
           </Text>
           <AnimatedTextInput
             editable={false}
             defaultValue="0,00€"
             animatedProps={yearlyProps}
-            style={[styles.bigNumber, { color: colors.textPrimary }]}
+            style={[styles.heroAmount, { color: colors.textPrimary }]}
             pointerEvents="none"
             underlineColorAndroid="transparent"
           />
 
-          <View style={styles.statsGrid}>
-            <View style={[styles.statCard, { backgroundColor: 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-                Suscripciones activas
-              </Text>
-              <AnimatedTextInput
-                editable={false}
-                defaultValue="0"
-                animatedProps={countProps}
-                style={[styles.statValue, { color: colors.textPrimary }]}
-                pointerEvents="none"
-                underlineColorAndroid="transparent"
-              />
+          {/* Supporting text */}
+          <Text style={[styles.supportText, { color: colors.textPrimary }]}>
+            Tienes <Text style={styles.supportBold}>{ACTIVE_COUNT}</Text> suscripciones.
+          </Text>
+
+          {/* Insight cards (matching InsightCards component) */}
+          <View style={styles.insightList}>
+            <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
+              <View style={[styles.insightIcon, { backgroundColor: iconBg }]}>
+                <TrendingUp size={18} strokeWidth={2} color={iconColor} />
+              </View>
+              <View style={styles.insightInfo}>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Mayor gasto</Text>
+                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>Amazon Prime</Text>
+              </View>
+              <View style={styles.insightRight}>
+                <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>30,00€</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>Otros</Text>
+              </View>
             </View>
-            <View style={[styles.statCard, { backgroundColor: 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-                Próxima renovación
-              </Text>
-              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
-                Notion
-              </Text>
-              <Text style={[styles.statSub, { color: colors.textMuted }]}>
-                En 3 días · 20,00€
-              </Text>
+
+            <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
+              <View style={[styles.insightIcon, { backgroundColor: catIconBg }]}>
+                <Bot size={18} strokeWidth={2} color={catIconColor} />
+              </View>
+              <View style={styles.insightInfo}>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Categoría principal</Text>
+                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>Otros</Text>
+              </View>
+              <View style={styles.insightRight}>
+                <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>53,00€</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>2 suscr.</Text>
+              </View>
             </View>
-            <View style={[styles.statCard, { backgroundColor: 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-                Mayor gasto
-              </Text>
-              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
-                Amazon Prime
-              </Text>
-              <Text style={[styles.statSub, { color: colors.textMuted }]}>
-                30,00€/mes
-              </Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-                Planes compartidos
-              </Text>
-              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
-                1 plan
-              </Text>
-              <Text style={[styles.statSub, { color: colors.textMuted }]}>
-                Ahorrando 8,33€/mes
-              </Text>
+
+            <View style={[styles.insightCell, { backgroundColor: colors.background }]}>
+              <View style={[styles.insightIcon, { backgroundColor: iconBg }]}>
+                <Users size={18} strokeWidth={2} color={iconColor} />
+              </View>
+              <View style={styles.insightInfo}>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Planes compartidos</Text>
+                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>1 plan</Text>
+              </View>
+              <View style={styles.insightRight}>
+                <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>8,33€</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>/mes</Text>
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -255,96 +292,111 @@ const styles = StyleSheet.create({
     borderRadius: radius['2xl'] * 2,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    paddingHorizontal: 18,
-    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingTop: 22,
     ...shadows.cardMd,
   },
-  skeletonLayer: {
+  absLayer: {
     ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: 18,
-    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingTop: 22,
   },
-  contentLayer: {
-    flex: 1,
-  },
+
+  // Skeleton
   skelBar: {
     borderRadius: 6,
   },
-  skelGreeting: {
-    width: 120,
-    height: 20,
-    marginBottom: 20,
+  skelCell: {
+    height: 56,
+    borderRadius: radius.card,
+    marginBottom: 6,
   },
-  skelLabel: {
-    width: 90,
-    height: 14,
-    marginBottom: 8,
-  },
-  skelBigNum: {
-    width: 160,
-    height: 32,
-    marginBottom: 4,
-  },
-  skelRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  skelStat: {
-    flex: 1,
-    height: 70,
-    borderRadius: 12,
-  },
+
+  // Content — SummaryHero replica
   greeting: {
     ...fontFamily.bold,
-    fontSize: 20,
-    marginBottom: 20,
+    fontSize: fontSize[18],
+    marginBottom: 16,
   },
-  label: {
-    ...fontFamily.regular,
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  labelSecond: {
-    marginTop: 24,
-  },
-  bigNumber: {
+  heroLabel: {
     ...fontFamily.extrabold,
-    fontSize: 34,
-    letterSpacing: -1,
+    fontSize: 22,
+    lineHeight: 22 * lineHeight.compact,
+    letterSpacing: letterSpacing.tight,
+  },
+  heroLabelSecond: {
+    marginTop: 8,
+  },
+  heroAmount: {
+    ...fontFamily.extrabold,
+    fontSize: 42,
+    lineHeight: 42 * lineHeight.compact,
+    letterSpacing: letterSpacing.tight,
     padding: 0,
     margin: 0,
-    height: 42,
+    height: 50,
     width: '100%',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 24,
-  },
-  statCard: {
-    width: '48%',
-    borderRadius: 14,
-    padding: 12,
-    flexGrow: 1,
-  },
-  statLabel: {
-    ...fontFamily.regular,
-    fontSize: 10,
-    marginBottom: 4,
-  },
-  statValue: {
+  supportText: {
     ...fontFamily.bold,
-    fontSize: 15,
-    padding: 0,
-    margin: 0,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.normal,
+    marginTop: 8,
+    marginBottom: 12,
   },
-  statSub: {
+  supportBold: {
+    ...fontFamily.bold,
+  },
+
+  // InsightCards replica
+  insightList: {
+    gap: 6,
+  },
+  insightCell: {
+    borderRadius: radius.card,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  insightIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius['3xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  insightInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  insightLabel: {
     ...fontFamily.regular,
-    fontSize: 9,
-    marginTop: 2,
+    fontSize: fontSize[11],
+    lineHeight: fontSize[11] * lineHeight.snug,
+    marginBottom: 1,
   },
+  insightTitle: {
+    ...fontFamily.bold,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
+  },
+  insightRight: {
+    alignItems: 'flex-end',
+  },
+  insightRightTop: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
+  },
+  insightRightBot: {
+    ...fontFamily.regular,
+    fontSize: fontSize[11],
+    lineHeight: fontSize[11] * lineHeight.snug,
+    marginTop: 1,
+  },
+
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: radius['2xl'] * 2,
