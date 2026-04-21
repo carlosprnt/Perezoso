@@ -105,7 +105,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
   // sheet itself is absolutely positioned so actual rendered height
   // can float freely inside this budget.
   const RESERVED_SHEET_HEIGHT = 330;
-  const heroTopInset = insets.top + 40;
+  const heroTopInset = 100;
 
   const renderHero = useMemo(
     () => (slide: SlideMeta, idx: number) => {

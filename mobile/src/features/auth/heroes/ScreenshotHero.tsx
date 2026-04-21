@@ -12,8 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const FRAME_MARGIN_X = 32;
+const FRAME_MARGIN_X = 20;
 const FRAME_WIDTH = SCREEN_W - FRAME_MARGIN_X * 2;
+// Ratio of the source PNGs (1080×2340).
+const IMG_ASPECT = 1080 / 2340;
 
 interface Props {
   source: number;
@@ -50,7 +52,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   img: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: '100%',
-    height: '100%',
+    aspectRatio: IMG_ASPECT,
   },
 });
