@@ -1,7 +1,7 @@
 // Slide 1 hero — a fake subscription list that auto-scrolls slowly
-// up and down, showcasing 10 popular services. Positioned identically
-// to ScreenshotHero so the slide transition feels uniform. Parallax
-// drives 3D rotation + BlurView, matching the other screenshot slides.
+// up and down, showcasing 10 popular services. The header stays fixed
+// while rows scroll beneath it, each scaling 0.95→1 as they enter the
+// visible area for a polished entrance feel.
 
 import React, { useEffect } from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
@@ -35,8 +35,9 @@ const CARD_H = 480;
 
 const ROW_H = 68;
 const HEADER_H = 56;
-const LIST_CONTENT_H = HEADER_H + MOCK_SUBSCRIPTIONS.length * ROW_H;
-const SCROLL_OVERFLOW = LIST_CONTENT_H - CARD_H + 24;
+const VISIBLE_LIST_H = CARD_H - HEADER_H;
+const TOTAL_ROWS_H = MOCK_SUBSCRIPTIONS.length * ROW_H;
+const SCROLL_OVERFLOW = TOTAL_ROWS_H - VISIBLE_LIST_H;
 
 const MAX_ROT_DEG = 22;
 const MAX_BLUR_INTENSITY = 38;
@@ -95,39 +96,38 @@ export function SubscriptionListHero({ parallax }: Props) {
           },
         ]}
       >
-        <Animated.View style={innerScrollStyle}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-              Suscripciones
-            </Text>
-            <Text style={[styles.headerAmount, { color: colors.textSecondary }]}>
-              111,92€/mes
-            </Text>
-          </View>
+        {/* Fixed header */}
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.borderLight,
+            },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Suscripciones
+          </Text>
+          <Text style={[styles.headerAmount, { color: colors.textSecondary }]}>
+            111,92€/mes
+          </Text>
+        </View>
 
-          {/* Rows */}
-          {MOCK_SUBSCRIPTIONS.map((sub) => (
-            <View key={sub.domain} style={[styles.row, { borderBottomColor: colors.borderLight }]}>
-              <Image
-                source={{ uri: logoUrlFromDomain(sub.domain) }}
-                style={styles.logo}
-                resizeMode="contain"
+        {/* Scrolling rows */}
+        <View style={styles.listClip}>
+          <Animated.View style={innerScrollStyle}>
+            {MOCK_SUBSCRIPTIONS.map((sub, i) => (
+              <SubscriptionRow
+                key={sub.domain}
+                sub={sub}
+                index={i}
+                scrollY={scrollY}
+                colors={colors}
               />
-              <View style={styles.rowText}>
-                <Text style={[styles.rowName, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {sub.name}
-                </Text>
-                <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>
-                  Renueva en {sub.renewsIn}
-                </Text>
-              </View>
-              <Text style={[styles.rowPrice, { color: colors.textPrimary }]}>
-                {sub.price}
-              </Text>
-            </View>
-          ))}
-        </Animated.View>
+            ))}
+          </Animated.View>
+        </View>
       </View>
 
       <AnimatedBlurView
@@ -137,6 +137,57 @@ export function SubscriptionListHero({ parallax }: Props) {
         style={styles.blurOverlay}
         pointerEvents="none"
       />
+    </Animated.View>
+  );
+}
+
+interface RowProps {
+  sub: (typeof MOCK_SUBSCRIPTIONS)[number];
+  index: number;
+  scrollY: SharedValue<number>;
+  colors: Record<string, string>;
+}
+
+function SubscriptionRow({ sub, index, scrollY, colors }: RowProps) {
+  const rowStyle = useAnimatedStyle(() => {
+    const rowTop = index * ROW_H + scrollY.value;
+    const distFromTop = rowTop;
+    const distFromBottom = VISIBLE_LIST_H - (rowTop + ROW_H);
+    const edgeDist = Math.min(distFromTop, distFromBottom);
+
+    const s = interpolate(edgeDist, [-ROW_H, 0, ROW_H], [0.92, 0.95, 1], Extrapolation.CLAMP);
+    const o = interpolate(edgeDist, [-ROW_H * 0.5, 0, ROW_H], [0, 0.6, 1], Extrapolation.CLAMP);
+
+    return {
+      transform: [{ scale: s }],
+      opacity: o,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.row,
+        { borderBottomColor: colors.borderLight },
+        rowStyle,
+      ]}
+    >
+      <Image
+        source={{ uri: logoUrlFromDomain(sub.domain) }}
+        style={[styles.logo, { backgroundColor: colors.borderLight }]}
+        resizeMode="contain"
+      />
+      <View style={styles.rowText}>
+        <Text style={[styles.rowName, { color: colors.textPrimary }]} numberOfLines={1}>
+          {sub.name}
+        </Text>
+        <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>
+          Renueva en {sub.renewsIn}
+        </Text>
+      </View>
+      <Text style={[styles.rowPrice, { color: colors.textPrimary }]}>
+        {sub.price}
+      </Text>
     </Animated.View>
   );
 }
@@ -156,7 +207,6 @@ const styles = StyleSheet.create({
     borderRadius: radius['2xl'],
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    paddingHorizontal: 16,
     ...shadows.cardMd,
   },
   header: {
@@ -164,6 +214,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    zIndex: 1,
   },
   headerTitle: {
     ...fontFamily.bold,
@@ -173,18 +226,22 @@ const styles = StyleSheet.create({
     ...fontFamily.semibold,
     fontSize: fontSize[14],
   },
+  listClip: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   row: {
     height: ROW_H,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 12,
+    paddingHorizontal: 16,
   },
   logo: {
     width: 40,
     height: 40,
     borderRadius: radius.lg,
-    backgroundColor: '#F0F0F0',
   },
   rowText: {
     flex: 1,
