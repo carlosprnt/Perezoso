@@ -66,6 +66,7 @@ export function NotificationHero({ parallax }: Props) {
   const btnScale = useSharedValue(1);
   const btnDone = useSharedValue(0);
   const shiftY = useSharedValue(CENTER_OFFSET);
+  const cardY = useSharedValue(0);
   const rowScales = NOTIF_SUBS.map(() => useSharedValue(0));
 
   const runCycle = () => {
@@ -74,6 +75,7 @@ export function NotificationHero({ parallax }: Props) {
     btnDone.value = 0;
     btnScale.value = 1;
     shiftY.value = CENTER_OFFSET;
+    cardY.value = 0;
 
     // Button tap
     btnScale.value = withDelay(
@@ -85,10 +87,16 @@ export function NotificationHero({ parallax }: Props) {
     );
     btnDone.value = withDelay(TAP_AT + 150, withTiming(1, { duration: 150 }));
 
-    // Shift content up
+    // Shift content up inside card
     shiftY.value = withDelay(
       TAP_AT + 100,
       withTiming(0, { duration: 350, easing: Easing.out(Easing.cubic) }),
+    );
+
+    // Move entire card up to make room for subscription rows
+    cardY.value = withDelay(
+      TAP_AT + 100,
+      withTiming(-100, { duration: 450, easing: Easing.out(Easing.cubic) }),
     );
 
     // Staggered row reveals
@@ -137,6 +145,7 @@ export function NotificationHero({ parallax }: Props) {
         btnDone.value = 0;
         btnScale.value = 1;
         shiftY.value = CENTER_OFFSET;
+        cardY.value = 0;
         clock.value = 0;
       }
     },
@@ -160,6 +169,7 @@ export function NotificationHero({ parallax }: Props) {
       transform: [
         { perspective: 1200 },
         { translateX: p * 40 },
+        { translateY: cardY.value },
         { rotateY: `${p * MAX_ROT_DEG}deg` },
         { scale: interpolate(abs, [0, 1], [1, 0.94], Extrapolation.CLAMP) },
       ],

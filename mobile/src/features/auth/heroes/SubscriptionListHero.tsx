@@ -154,11 +154,10 @@ function SubscriptionRow({ sub, index, scrollY, colors }: RowProps) {
     const distFromTop = rowTop;
 
     const s = interpolate(distFromTop, [-ROW_H, 0, ROW_H], [0.92, 0.95, 1], Extrapolation.CLAMP);
-    const o = interpolate(distFromTop, [-ROW_H * 0.5, 0, ROW_H], [0, 0.6, 1], Extrapolation.CLAMP);
 
     return {
       transform: [{ scale: s }],
-      opacity: o,
+      opacity: 1,
     };
   });
 
