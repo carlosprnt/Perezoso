@@ -20,7 +20,7 @@
 //   - FloatingNav space at bottom
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Share } from 'react-native';
 import { Calendar } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
@@ -165,6 +165,21 @@ export function DashboardScreen() {
     }
   }, [reveal, openPaywall, isPlusActive]);
 
+  const handleShareData = useCallback(() => {
+    if (isEmpty) return;
+    reveal.close();
+    const monthly = formatAmount(stats.monthlyTotal, stats.currency);
+    const annual = formatAmount(stats.annualTotal, stats.currency);
+    const shared = stats.sharedCount;
+    const savings = formatAmount(stats.savingsMonthly, stats.currency);
+    let msg = `Hola, tengo ${stats.totalCount} suscripciones activas. Estoy gastando ${monthly} al mes, lo que al año es ${annual}.`;
+    if (shared > 0) {
+      msg += ` Comparto ${shared} suscripci${shared === 1 ? 'ón' : 'ones'} lo que me hace ahorrar ${savings}.`;
+    }
+    msg += ' Toda la información es de Perezoso App.';
+    Share.share({ message: msg }).catch(() => {});
+  }, [isEmpty, reveal, stats]);
+
   // ReminderCards "Ver oportunidades" → open the savings suggestions
   // list sheet. Lives in its own globally-mounted Modal so the
   // dashboard scroll position and reveal state are untouched.
@@ -262,8 +277,9 @@ export function DashboardScreen() {
       <UnderlyingProfileLayer
         progress={reveal.progress}
         isPlusActive={isPlusActive}
+        shareDisabled={isEmpty}
         onSettings={handleOpenSettings}
-        onShareData={reveal.close}
+        onShareData={handleShareData}
         onManagePlus={handleManagePlus}
         onLogout={handleLogout}
       />

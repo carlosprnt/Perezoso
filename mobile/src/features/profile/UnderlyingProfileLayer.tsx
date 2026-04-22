@@ -54,6 +54,7 @@ interface Props {
   /** Whether the user currently has Perezoso Plus. Drives the Plus block
    *  copy + CTA — active users see "Gestionar", free users see "Mejorar". */
   isPlusActive?: boolean;
+  shareDisabled?: boolean;
   onSettings?: () => void;
   onShareData?: () => void;
   onManagePlus?: () => void;
@@ -63,6 +64,7 @@ interface Props {
 export function UnderlyingProfileLayer({
   progress,
   isPlusActive = false,
+  shareDisabled = false,
   onSettings,
   onShareData,
   onManagePlus,
@@ -115,6 +117,7 @@ export function UnderlyingProfileLayer({
             icon={<Share2 size={22} color="#FFFFFF" strokeWidth={2} />}
             label="Compartir datos"
             onPress={onShareData}
+            disabled={shareDisabled}
           />
         </View>
 
@@ -182,22 +185,26 @@ function DarkTile({
   icon,
   label,
   onPress,
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
-      onPress={() => { haptic.selection(); onPress?.(); }}
+      onPress={() => { if (disabled) return; haptic.selection(); onPress?.(); }}
       style={({ pressed }) => [
         styles.tile,
-        pressed && styles.tilePressed,
+        pressed && !disabled && styles.tilePressed,
+        disabled && styles.tileDisabled,
       ]}
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
     >
-      <View style={styles.tileIconWrap}>{icon}</View>
-      <Text style={styles.tileLabel} numberOfLines={2}>
+      <View style={[styles.tileIconWrap, disabled && { opacity: 0.35 }]}>{icon}</View>
+      <Text style={[styles.tileLabel, disabled && { opacity: 0.35 }]} numberOfLines={2}>
         {label}
       </Text>
     </Pressable>
@@ -232,6 +239,9 @@ const styles = StyleSheet.create({
   },
   tilePressed: {
     backgroundColor: '#1F1F22',
+  },
+  tileDisabled: {
+    opacity: 0.5,
   },
   tileIconWrap: {
     opacity: 0.95,

@@ -269,46 +269,38 @@ export function PaywallSheet() {
               ))}
             </View>
 
-            {/* ── 4. Plans ────────────────────────────────────── */}
-            <View style={styles.plansSection}>
+            {/* ── 4. Plans (side by side) ──────────────────── */}
+            <View style={styles.plansRow}>
               {/* Annual — recommended */}
               <Pressable
                 onPress={() => { haptic.selection(); setPlan('annual'); }}
                 style={[
-                  styles.planCard,
+                  styles.planCol,
                   plan === 'annual' ? styles.planActive : styles.planIdle,
                 ]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: plan === 'annual' }}
                 accessibilityLabel="Plan anual"
               >
-                <View style={styles.planHeader}>
+                <View style={styles.planColHeader}>
                   <View style={styles.planRadio}>
                     {plan === 'annual' && <View style={styles.planRadioDot} />}
                   </View>
-                  <View style={styles.planInfo}>
-                    <View style={styles.planLabelRow}>
-                      <Text style={[styles.planLabel, plan === 'annual' && styles.planLabelActive]}>
-                        Anual
-                      </Text>
-                      <View style={styles.popularBadge}>
-                        <Text style={styles.popularBadgeText}>Más popular</Text>
-                      </View>
-                    </View>
-                    <Text style={[styles.planPrice, plan === 'annual' && styles.planPriceActive]}>
-                      {annualPrice} / año
-                    </Text>
+                  <View style={styles.popularBadge}>
+                    <Text style={styles.popularBadgeText}>Popular</Text>
                   </View>
                 </View>
-
-                <View style={styles.planFooter}>
-                  <Text style={styles.planPerMonth}>
-                    {annualPerMonth}/mes
-                  </Text>
+                <Text style={[styles.planColLabel, plan === 'annual' && styles.planLabelActive]}>
+                  Anual
+                </Text>
+                <Text style={[styles.planColPrice, plan === 'annual' && styles.planPriceActive]}>
+                  {annualPrice}
+                </Text>
+                <Text style={styles.planColPeriod}>/ año</Text>
+                <View style={styles.planColFooter}>
+                  <Text style={styles.planPerMonth}>{annualPerMonth}/mes</Text>
                   <View style={styles.savingsBadge}>
-                    <Text style={styles.savingsBadgeText}>
-                      Ahorra {savingsPercent}%
-                    </Text>
+                    <Text style={styles.savingsBadgeText}>-{savingsPercent}%</Text>
                   </View>
                 </View>
               </Pressable>
@@ -317,26 +309,25 @@ export function PaywallSheet() {
               <Pressable
                 onPress={() => { haptic.selection(); setPlan('monthly'); }}
                 style={[
-                  styles.planCard,
+                  styles.planCol,
                   plan === 'monthly' ? styles.planActive : styles.planIdle,
                 ]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: plan === 'monthly' }}
                 accessibilityLabel="Plan mensual"
               >
-                <View style={styles.planHeader}>
+                <View style={styles.planColHeader}>
                   <View style={styles.planRadio}>
                     {plan === 'monthly' && <View style={styles.planRadioDot} />}
                   </View>
-                  <View style={styles.planInfo}>
-                    <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>
-                      Mensual
-                    </Text>
-                    <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>
-                      {monthlyPrice} / mes
-                    </Text>
-                  </View>
                 </View>
+                <Text style={[styles.planColLabel, plan === 'monthly' && styles.planLabelActive]}>
+                  Mensual
+                </Text>
+                <Text style={[styles.planColPrice, plan === 'monthly' && styles.planPriceActive]}>
+                  {monthlyPrice}
+                </Text>
+                <Text style={styles.planColPeriod}>/ mes</Text>
               </Pressable>
             </View>
 
@@ -450,7 +441,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 20,
     paddingBottom: 20,
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   headline: {
     ...fontFamily.bold,
@@ -458,7 +449,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     letterSpacing: -0.4,
-    lineHeight: fontSize[24] * 1.2,
+    lineHeight: fontSize[24] * 1.25,
     marginBottom: 10,
   },
   subheadline: {
@@ -506,15 +497,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // 4. Plans
-  plansSection: {
+  // 4. Plans (side-by-side columns)
+  plansRow: {
+    flexDirection: 'row',
     gap: 10,
     paddingBottom: 20,
   },
-  planCard: {
+  planCol: {
+    flex: 1,
     borderRadius: 16,
     borderWidth: 2,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 14,
   },
   planActive: {
@@ -525,10 +518,11 @@ const styles = StyleSheet.create({
     borderColor: '#E8E8E8',
     backgroundColor: '#FFFFFF',
   },
-  planHeader: {
+  planColHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   planRadio: {
     width: 22,
@@ -545,31 +539,37 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#000000',
   },
-  planInfo: {
-    flex: 1,
-  },
-  planLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  planLabel: {
+  planColLabel: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.1,
+    marginBottom: 2,
   },
   planLabelActive: {
     color: '#000000',
   },
-  planPrice: {
-    ...fontFamily.regular,
-    fontSize: fontSize[14],
+  planColPrice: {
+    ...fontFamily.bold,
+    fontSize: fontSize[20],
     color: '#8E8E93',
-    marginTop: 2,
+    letterSpacing: -0.3,
   },
   planPriceActive: {
-    color: '#4A4A4A',
+    color: '#000000',
+  },
+  planColPeriod: {
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    color: '#8E8E93',
+    marginBottom: 4,
+  },
+  planColFooter: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E8E8E8',
+    gap: 6,
   },
 
   popularBadge: {
@@ -585,16 +585,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  planFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E8E8E8',
-    marginLeft: 34,
-  },
   planPerMonth: {
     ...fontFamily.regular,
     fontSize: fontSize[13],
@@ -605,6 +595,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
+    alignSelf: 'flex-start',
   },
   savingsBadgeText: {
     ...fontFamily.semibold,
