@@ -36,9 +36,12 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, Check, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
@@ -203,31 +206,50 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
   );
 }
 
-// ─── Period button with spring bounce ───────────────────────────────
-function PeriodButton({ label, selected, onPress, compact }: { label: string; selected: boolean; onPress: () => void; compact?: boolean }) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+// ─── Renewal period toggle with vertical slide animation ────────────
+const TOGGLE_H = 28;
+
+function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; onToggle: () => void; compact?: boolean }) {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  const [displayLabel, setDisplayLabel] = useState(isMonthly ? 'Mes' : 'Año');
+
+  const updateLabel = useCallback((monthly: boolean) => {
+    setDisplayLabel(monthly ? 'Mes' : 'Año');
+  }, []);
+
+  const animateToggle = useCallback(() => {
+    haptic.selection();
+    const nextIsMonthly = !isMonthly;
+    translateY.value = withTiming(TOGGLE_H, { duration: 150, easing: Easing.in(Easing.quad) });
+    opacity.value = withTiming(0, { duration: 150 }, () => {
+      runOnJS(updateLabel)(nextIsMonthly);
+      translateY.value = -TOGGLE_H;
+      opacity.value = 0;
+      translateY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.quad) });
+      opacity.value = withTiming(1, { duration: 200 });
+    });
+    onToggle();
+  }, [isMonthly, onToggle, translateY, opacity, updateLabel]);
+
+  const labelAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
   }));
-  const boxSize = compact ? 20 : 22;
+
+  const h = compact ? 20 : TOGGLE_H;
+
   return (
-    <Pressable
-      onPress={() => { haptic.selection(); onPress(); }}
-      onPressIn={() => { scale.value = withSpring(0.94, { damping: 15, stiffness: 300 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 8, stiffness: 200 }); }}
-      style={{ flex: 1 }}
-    >
-      <Animated.View style={[styles.periodBtn, compact && { paddingVertical: 10 }, animStyle]}>
-        {selected ? (
-          <View style={[styles.checkboxFilled, { width: boxSize, height: boxSize, borderRadius: boxSize / 4 }]}>
-            <Check size={compact ? 12 : 14} color="#FFFFFF" strokeWidth={3} />
-          </View>
-        ) : (
-          <View style={[styles.checkboxEmpty, { width: boxSize, height: boxSize, borderRadius: boxSize / 4 }]} />
-        )}
-        <Text style={[styles.periodBtnText, compact && { fontSize: fontSize[14] }]}>{label}</Text>
-      </Animated.View>
-    </Pressable>
+    <View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }]}>
+      <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>Renovación</Text>
+      <Pressable onPress={animateToggle} hitSlop={12}>
+        <View style={[styles.renewalValueWrap, { height: h }]}>
+          <Animated.Text style={[styles.renewalValue, compact && { fontSize: fontSize[16] }, labelAnimStyle]}>
+            {displayLabel}
+          </Animated.Text>
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -498,20 +520,14 @@ export function CreateSubscriptionSheet() {
                 </View>
 
                 {/* ── Billing period ── */}
-                <View style={styles.periodRow}>
-                  <PeriodButton
-                    label="Mes"
-                    selected={form.billingPeriod === 'Monthly'}
-                    onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Monthly' }))}
-                    compact={kbHeight > 0}
-                  />
-                  <PeriodButton
-                    label="Año"
-                    selected={form.billingPeriod === 'Yearly'}
-                    onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Yearly' }))}
-                    compact={kbHeight > 0}
-                  />
-                </View>
+                <RenewalToggle
+                  isMonthly={form.billingPeriod === 'Monthly'}
+                  onToggle={() => setForm((f) => ({
+                    ...f,
+                    billingPeriod: f.billingPeriod === 'Monthly' ? 'Yearly' : 'Monthly',
+                  }))}
+                  compact={kbHeight > 0}
+                />
 
                 <View style={{ flex: 1 }} />
 
@@ -995,36 +1011,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Period buttons (Mes / Año)
-  periodRow: {
+  // Renewal toggle row
+  renewalRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  periodBtn: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#F2F2F7',
     borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 16,
   },
-  periodBtnText: {
-    ...fontFamily.semibold,
+  renewalRowLabel: {
+    ...fontFamily.medium,
     fontSize: fontSize[16],
-    color: '#000000',
+    color: '#8E8E93',
     letterSpacing: -0.2,
   },
-  checkboxFilled: {
-    backgroundColor: '#000000',
-    alignItems: 'center',
+  renewalValueWrap: {
+    height: TOGGLE_H,
+    overflow: 'hidden',
     justifyContent: 'center',
   },
-  checkboxEmpty: {
-    borderWidth: 2,
-    borderColor: '#000000',
+  renewalValue: {
+    ...fontFamily.bold,
+    fontSize: fontSize[20],
+    color: '#000000',
+    letterSpacing: -0.4,
   },
 
   // iOS-style drag handle — small gray pill anchored to the top of the sheet.

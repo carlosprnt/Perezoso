@@ -8,6 +8,13 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  Easing,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamily, fontSize } from '../../../design/typography';
 import { haptic } from '../../../lib/haptics';
@@ -66,6 +73,7 @@ interface Props {
 export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }: Props) {
   const prevIdx = useRef(0);
   const [halfWidth, setHalfWidth] = useState(0);
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dates = useMemo(() => buildDates(), []);
   const ticks = useMemo(() => buildTicks(dates.length), [dates.length]);
@@ -79,6 +87,13 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
     setHalfWidth(e.nativeEvent.layout.width / 2);
   }, []);
 
+  // Tick scale: shrinks while scrolling, springs back when idle
+  const tickScale = useSharedValue(1);
+
+  const tickAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleY: tickScale.value }],
+  }));
+
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const x = e.nativeEvent.contentOffset.x;
@@ -89,8 +104,15 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
         onChange(dates[clamped]);
         haptic.selection();
       }
+      // Shrink ticks while scrolling
+      tickScale.value = withTiming(0.6, { duration: 100, easing: Easing.out(Easing.quad) });
+      // Reset idle timer
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      scrollTimeout.current = setTimeout(() => {
+        tickScale.value = withSpring(1, { damping: 12, stiffness: 180 });
+      }, 120);
     },
-    [onChange, dates],
+    [onChange, dates, tickScale],
   );
 
   const monthName = MONTHS_ES[value.getMonth()];
@@ -116,25 +138,27 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
       <View style={[styles.rulerWrap, { height: rulerH }]} onLayout={handleLayout}>
         {halfWidth > 0 && (
           <>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={DAY_SPACING}
-              decelerationRate="fast"
-              scrollEventThrottle={16}
-              onScroll={handleScroll}
-              contentOffset={{ x: currentIdx * DAY_SPACING, y: 0 }}
-              contentContainerStyle={{
-                paddingHorizontal: halfWidth,
-                alignItems: 'flex-end',
-              }}
-            >
-              {ticks.map((_, i) => (
-                <View key={i} style={styles.tickCol}>
-                  <View style={[styles.tick, { height: tickH }]} />
-                </View>
-              ))}
-            </ScrollView>
+            <Animated.View style={[{ flexDirection: 'row' }, tickAnimStyle]}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={DAY_SPACING}
+                decelerationRate="fast"
+                scrollEventThrottle={16}
+                onScroll={handleScroll}
+                contentOffset={{ x: currentIdx * DAY_SPACING, y: 0 }}
+                contentContainerStyle={{
+                  paddingHorizontal: halfWidth,
+                  alignItems: 'flex-end',
+                }}
+              >
+                {ticks.map((_, i) => (
+                  <View key={i} style={styles.tickCol}>
+                    <View style={[styles.tick, { height: tickH }]} />
+                  </View>
+                ))}
+              </ScrollView>
+            </Animated.View>
 
             <View style={styles.indicatorWrap} pointerEvents="none">
               <View style={[styles.indicator, { height: indicatorH }]} />
@@ -198,6 +222,7 @@ const styles = StyleSheet.create({
   rulerWrap: {
     width: '100%',
     height: 64,
+    overflow: 'hidden',
   },
   tickCol: {
     width: TICK_W,
