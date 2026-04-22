@@ -174,13 +174,17 @@ export function DashboardScreen() {
   // confirm via a green success toast. The store action returns how many
   // subscriptions were touched so the toast can tailor the copy.
   const handleActivateReminder = useCallback(() => {
+    if (!isPlusActive) {
+      openPaywall('renewal_reminders');
+      return;
+    }
     const count = enableRemindersOnAnnuals();
     const message =
       count === 1
         ? 'Avisos activados para tu suscripci\u00F3n anual'
         : `Avisos activados para tus ${count} suscripciones anuales`;
     useToastStore.getState().show('success', message);
-  }, [enableRemindersOnAnnuals]);
+  }, [enableRemindersOnAnnuals, isPlusActive, openPaywall]);
 
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".

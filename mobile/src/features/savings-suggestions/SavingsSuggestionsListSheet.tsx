@@ -53,6 +53,7 @@ import { deriveSavingsSuggestions } from './deriveSuggestions';
 import { SavingsSuggestionDetailSheet } from './SavingsSuggestionDetailSheet';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -65,10 +66,13 @@ export function SavingsSuggestionsListSheet() {
   const openDetail  = useSavingsSuggestionsStore((s) => s.openDetail);
 
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const isPlusActive  = useSubscriptionsStore((s) => s.isPlusActive);
   const suggestions = React.useMemo(
     () => deriveSavingsSuggestions(subscriptions),
     [subscriptions],
   );
+  const visibleSuggestions = isPlusActive ? suggestions : suggestions.slice(0, 2);
+  const hasLockedSuggestions = !isPlusActive && suggestions.length > 2;
 
   const [mounted, setMounted] = useState(isOpen);
 
@@ -195,13 +199,34 @@ export function SavingsSuggestionsListSheet() {
                 </Text>
               </View>
             ) : (
-              suggestions.map((s) => (
-                <SuggestionCard
-                  key={s.id}
-                  suggestion={s}
-                  onViewMore={() => openDetail(s)}
-                />
-              ))
+              <>
+                {visibleSuggestions.map((s) => (
+                  <SuggestionCard
+                    key={s.id}
+                    suggestion={s}
+                    onViewMore={() => openDetail(s)}
+                  />
+                ))}
+                {hasLockedSuggestions && (
+                  <Pressable
+                    onPress={() => {
+                      closeList();
+                      usePaywallStore.getState().open('savings_recommendations');
+                    }}
+                    style={({ pressed }) => [
+                      styles.proCard,
+                      pressed && { opacity: 0.85 },
+                    ]}
+                  >
+                    <Text style={styles.proCardTitle}>
+                      +{suggestions.length - 2} {suggestions.length - 2 === 1 ? 'sugerencia más' : 'sugerencias más'}
+                    </Text>
+                    <Text style={styles.proCardBody}>
+                      Hazte Pro para desbloquear todas las recomendaciones de ahorro
+                    </Text>
+                  </Pressable>
+                )}
+              </>
             )}
           </ScrollView>
         </Reanimated.View>
@@ -407,6 +432,25 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
+  },
+  proCard: {
+    backgroundColor: '#000000',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  proCardTitle: {
+    ...fontFamily.bold,
+    fontSize: fontSize[16],
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  proCardBody: {
+    ...fontFamily.regular,
+    fontSize: fontSize[14],
+    color: '#AEAEB2',
+    textAlign: 'center',
+    lineHeight: fontSize[14] * 1.4,
   },
   emptyState: {
     paddingVertical: 48,
