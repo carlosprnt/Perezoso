@@ -96,11 +96,11 @@ export default function RootLayout() {
         <SubscriptionDetailSheet />
         <SettingsSheet />
         <SavingsSuggestionsListSheet />
-        <PaywallSheet />
         <GmailImportSheet />
         <PaymentsCalendarModal />
         {/* SavingsSuggestionDetailSheet is nested inside the list sheet
             so iOS can cleanly layer it on top — see that file. */}
+        <PaywallSheet />
         <Toast />
         <SubscriptionCreatedCelebration />
       </SafeAreaProvider>
