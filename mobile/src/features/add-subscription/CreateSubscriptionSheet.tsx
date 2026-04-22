@@ -697,7 +697,6 @@ export function CreateSubscriptionSheet() {
                     value={form.endEnabled}
                     onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                    thumbColor="#FFFFFF"
                   />
                 </View>
                 {form.endEnabled && (
@@ -739,7 +738,6 @@ export function CreateSubscriptionSheet() {
                       setForm((f) => ({ ...f, reminderEnabled: v }));
                     }}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                    thumbColor="#FFFFFF"
                   />
                 </View>
                 {form.reminderEnabled && (
@@ -766,7 +764,6 @@ export function CreateSubscriptionSheet() {
                     value={form.shared}
                     onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                    thumbColor="#FFFFFF"
                   />
                 </View>
                 {form.shared && (
