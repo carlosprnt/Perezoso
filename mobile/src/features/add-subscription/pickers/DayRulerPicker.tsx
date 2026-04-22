@@ -109,8 +109,8 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
       // Reset idle timer
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
       scrollTimeout.current = setTimeout(() => {
-        tickScale.value = withSpring(1, { damping: 12, stiffness: 180 });
-      }, 120);
+        tickScale.value = withSpring(1, { damping: 22, stiffness: 320 });
+      }, 80);
     },
     [onChange, dates, tickScale],
   );
@@ -148,7 +148,7 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
                 onScroll={handleScroll}
                 contentOffset={{ x: currentIdx * DAY_SPACING, y: 0 }}
                 contentContainerStyle={{
-                  paddingHorizontal: halfWidth,
+                  paddingHorizontal: halfWidth - TICK_W / 2,
                   alignItems: 'flex-end',
                 }}
               >

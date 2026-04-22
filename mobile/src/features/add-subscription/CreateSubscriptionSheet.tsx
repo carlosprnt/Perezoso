@@ -467,11 +467,11 @@ export function CreateSubscriptionSheet() {
   }, [form, renewalDate, doSubmit]);
 
   const enterStep2 = useCallback(() => {
-    setStep(2);
     step2Opacity.value = 0;
-    step2Scale.value = 1.03;
-    step2Opacity.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.cubic) });
-    step2Scale.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.cubic) });
+    step2Scale.value = 1.02;
+    setStep(2);
+    step2Opacity.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
+    step2Scale.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
     step1Opacity.value = 1;
     step1TranslateY.value = 0;
     step1Scale.value = 1;
