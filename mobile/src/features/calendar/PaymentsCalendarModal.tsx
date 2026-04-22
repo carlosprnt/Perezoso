@@ -122,9 +122,14 @@ export function PaymentsCalendarModal() {
   const animatedCount  = useCountUp(totalCount, 450);
 
   // ── Month navigation ───────────────────────────────────────────────
+  const openCalendarPaywall = useCallback(() => {
+    close();
+    setTimeout(() => usePaywallStore.getState().open('future_calendar'), 300);
+  }, [close]);
+
   const prevMonth = useCallback(() => {
     if (!useSubscriptionsStore.getState().isPlusActive) {
-      usePaywallStore.getState().open('future_calendar');
+      openCalendarPaywall();
       return;
     }
     setDayDetail(null);
@@ -135,11 +140,11 @@ export function PaymentsCalendarModal() {
       }
       return m - 1;
     });
-  }, []);
+  }, [openCalendarPaywall]);
 
   const nextMonth = useCallback(() => {
     if (!useSubscriptionsStore.getState().isPlusActive) {
-      usePaywallStore.getState().open('future_calendar');
+      openCalendarPaywall();
       return;
     }
     setDayDetail(null);
@@ -150,7 +155,7 @@ export function PaymentsCalendarModal() {
       }
       return m + 1;
     });
-  }, []);
+  }, [openCalendarPaywall]);
 
   // ── Unified sheet pan ──────────────────────────────────────────────
   // A single pan gesture covers the whole sheet:
