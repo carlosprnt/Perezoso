@@ -187,6 +187,7 @@ export function PaywallSheet() {
       visible={mounted}
       transparent
       statusBarTranslucent
+      presentationStyle="overFullScreen"
       animationType="none"
       onRequestClose={close}
     >
