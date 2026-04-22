@@ -37,6 +37,8 @@ import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { DayRulerPicker } from './pickers/DayRulerPicker';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
+import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
+import type { Currency } from '../settings/CurrencySheet';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -55,12 +57,6 @@ import type {
 // ─── Label → store-key mappings ──────────────────────────────────────
 // The form exposes localized / title-case labels for UX; the store
 // keeps normalized lowercase keys (matches what presets + web use).
-const CURRENCY_CODE: Record<string, string> = {
-  '€': 'EUR',
-  '$': 'USD',
-  'US$': 'USD',
-  '£': 'GBP',
-};
 const BILLING_KEY: Record<string, SubBillingPeriod> = {
   Monthly: 'monthly',
   Yearly: 'yearly',
@@ -102,7 +98,7 @@ type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
 type Status = 'Activa' | 'Pausada' | 'Cancelada' | 'Finalizado';
 type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
-type PickerKey = 'currency' | 'billing' | 'category' | 'status' | 'reminder' | null;
+type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface FormState {
   name: string;
@@ -125,7 +121,6 @@ interface FormState {
 }
 
 // ─── Constants ───────────────────────────────────────────────────────
-const CURRENCIES = ['€', '$', '£', 'US$'] as const;
 const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Quarterly', 'Weekly', 'Custom'];
 const BASE_CATEGORIES = [
   'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
@@ -137,22 +132,11 @@ function nextMonth(d: Date): Date {
   n.setMonth(n.getMonth() + 1);
   return n;
 }
-function nextPaymentDateFromDay(day: number): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const y = today.getFullYear();
-  const m = today.getMonth();
-  const daysThisMonth = new Date(y, m + 1, 0).getDate();
-  const candidate = new Date(y, m, Math.min(day, daysThisMonth));
-  if (candidate >= today) return candidate;
-  const daysNext = new Date(y, m + 2, 0).getDate();
-  return new Date(y, m + 1, Math.min(day, daysNext));
-}
 function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
   const today = new Date();
   return {
     name: prefill?.name ?? '',
-    currency: '€',
+    currency: 'EUR',
     price: '',
     startDate: today,
     nextPaymentDate: nextMonth(today),
@@ -223,19 +207,22 @@ export function CreateSubscriptionSheet() {
   const allCategories = [...BASE_CATEGORIES, ...tags.map((t) => t.name)];
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [renewalDay, setRenewalDay] = useState(() => new Date().getDate());
+  const [renewalDate, setRenewalDate] = useState<Date>(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+  });
   const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
   const initialFormRef = useRef<FormState>(makeInitialForm(null));
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
+  const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+  const [renewalDatePickerOpen, setRenewalDatePickerOpen] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
-  const currencyRef = useRef<View>(null);
   const billingRef = useRef<View>(null);
   const categoryRef = useRef<View>(null);
   const statusRef = useRef<View>(null);
@@ -254,8 +241,11 @@ export function CreateSubscriptionSheet() {
       initialFormRef.current = fresh;
       setForm(fresh);
       setStep(1);
-      setRenewalDay(new Date().getDate());
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      setRenewalDate(today);
       setError(null);
+      setCurrencySheetOpen(false);
+      setRenewalDatePickerOpen(false);
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
@@ -332,7 +322,7 @@ export function CreateSubscriptionSheet() {
         logo_url: f.logoUrl || null,
         category: CATEGORY_KEY[f.category] ?? f.category,
         price_amount: priceNum,
-        currency: CURRENCY_CODE[f.currency] ?? f.currency,
+        currency: f.currency,
         billing_period: billingKey,
         billing_interval_count: 1,
         next_billing_date: f.nextPaymentDate.toISOString().split('T')[0],
@@ -361,7 +351,7 @@ export function CreateSubscriptionSheet() {
         useSubscriptionCelebrationStore.getState().show({
           name: f.name,
           price: f.price,
-          currency: f.currency,
+          currency: currencySymbol(f.currency),
           billingPeriod: f.billingPeriod,
           category: f.category,
           logoUrl: f.logoUrl || undefined,
@@ -376,15 +366,13 @@ export function CreateSubscriptionSheet() {
   const handleSubmit = useCallback(() => doSubmit(form), [form, doSubmit]);
 
   const handleQuickSave = useCallback(() => {
-    const nextDate = nextPaymentDateFromDay(renewalDay);
-    doSubmit({ ...form, nextPaymentDate: nextDate });
-  }, [form, renewalDay, doSubmit]);
+    doSubmit({ ...form, nextPaymentDate: renewalDate });
+  }, [form, renewalDate, doSubmit]);
 
   const goToMoreOptions = useCallback(() => {
-    const nextDate = nextPaymentDateFromDay(renewalDay);
-    setForm((f) => ({ ...f, nextPaymentDate: nextDate }));
+    setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
     setStep(2);
-  }, [renewalDay]);
+  }, [renewalDate]);
 
   // ─────────────────────────────────────────────────────────────────
   return (
@@ -432,21 +420,18 @@ export function CreateSubscriptionSheet() {
                     onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
                     placeholder="Nombre de suscripción"
                     placeholderTextColor="#C7C7CC"
-                    returnKeyType="next"
+                    returnKeyType="done"
                     autoCorrect={false}
-                    autoFocus
                   />
                   <View style={styles.quickPriceRow}>
-                    <View ref={currencyRef} collapsable={false}>
-                      <Pressable
-                        style={styles.quickCurrencyPill}
-                        onPress={() => openPickerAt(currencyRef, 'currency')}
-                        hitSlop={8}
-                      >
-                        <Text style={styles.quickCurrencyText}>{form.currency}</Text>
-                        <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      style={styles.quickCurrencyPill}
+                      onPress={() => setCurrencySheetOpen(true)}
+                      hitSlop={8}
+                    >
+                      <Text style={styles.quickCurrencyText}>{currencySymbol(form.currency)}</Text>
+                      <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
+                    </Pressable>
                     <TextInput
                       style={styles.quickPriceInput}
                       value={form.price}
@@ -461,7 +446,11 @@ export function CreateSubscriptionSheet() {
 
                 <View style={{ flex: 1 }} />
 
-                <DayRulerPicker value={renewalDay} onChange={setRenewalDay} />
+                <DayRulerPicker
+                  value={renewalDate}
+                  onChange={setRenewalDate}
+                  onTapLabel={() => setRenewalDatePickerOpen(true)}
+                />
               </View>
 
               <View style={styles.footer}>
@@ -529,17 +518,14 @@ export function CreateSubscriptionSheet() {
                   autoCorrect={false}
                 />
                 <View style={styles.priceRow}>
-                  {/* Currency pill — wrapper View for anchor measurement */}
-                  <View ref={currencyRef} collapsable={false}>
-                    <Pressable
-                      style={styles.currencyPill}
-                      onPress={() => openPickerAt(currencyRef, 'currency')}
-                      hitSlop={8}
-                    >
-                      <Text style={styles.currencyText}>{form.currency}</Text>
-                      <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
-                    </Pressable>
-                  </View>
+                  <Pressable
+                    style={styles.currencyPill}
+                    onPress={() => setCurrencySheetOpen(true)}
+                    hitSlop={8}
+                  >
+                    <Text style={styles.currencyText}>{currencySymbol(form.currency)}</Text>
+                    <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
+                  </Pressable>
                   <TextInput
                     style={styles.priceInput}
                     value={form.price}
@@ -815,15 +801,25 @@ export function CreateSubscriptionSheet() {
         onClose={() => setOpenDate(null)}
       />
 
-      {/* ── Anchored pull-down menus ── */}
-      <FloatingOptionMenu
-        visible={openPicker === 'currency'}
-        anchor={pickerAnchor}
-        options={[...CURRENCIES]}
-        selected={form.currency}
-        onSelect={(v) => setForm((f) => ({ ...f, currency: v }))}
-        onClose={() => setOpenPicker(null)}
+      {/* ── Renewal date picker (quick-add label tap) ── */}
+      <NativeDatePickerSheet
+        visible={renewalDatePickerOpen}
+        value={renewalDate}
+        title="Próxima renovación"
+        minimumDate={(() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()}
+        onChange={(d) => setRenewalDate(d)}
+        onClose={() => setRenewalDatePickerOpen(false)}
       />
+
+      {/* ── Currency sheet (shared for step 1 + step 2) ── */}
+      <CurrencySheet
+        visible={currencySheetOpen}
+        onClose={() => setCurrencySheetOpen(false)}
+        selectedCode={form.currency}
+        onSelectCurrency={(c) => setForm((f) => ({ ...f, currency: c.code }))}
+      />
+
+      {/* ── Anchored pull-down menus ── */}
       <FloatingOptionMenu
         visible={openPicker === 'billing'}
         anchor={pickerAnchor}
@@ -890,9 +886,9 @@ const styles = StyleSheet.create({
   },
   quickNameInput: {
     ...fontFamily.bold,
-    fontSize: fontSize[24],
+    fontSize: fontSize[32],
     color: '#000000',
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
     marginBottom: 16,
     padding: 0,
   },
@@ -912,15 +908,15 @@ const styles = StyleSheet.create({
   },
   quickCurrencyText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[18],
+    fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.1,
   },
   quickPriceInput: {
     ...fontFamily.semibold,
-    fontSize: fontSize[24],
+    fontSize: fontSize[32],
     color: '#000000',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     padding: 0,
     flex: 1,
   },

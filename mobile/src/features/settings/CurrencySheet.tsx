@@ -28,9 +28,13 @@ import { usePreferencesStore } from './useSettingsStore';
 interface Props {
   visible: boolean;
   onClose: () => void;
+  /** When provided, drives selection state externally (by currency code). */
+  selectedCode?: string;
+  /** When provided, called on selection instead of updating the store. */
+  onSelectCurrency?: (currency: Currency) => void;
 }
 
-interface Currency {
+export interface Currency {
   code: string;  // EUR, USD…
   name: string;  // Euro, US Dollar…
   symbol: string; // €, $, £…
@@ -76,7 +80,14 @@ const ALL_CURRENCIES: Currency[] = [
   { code: 'ZAR', name: 'South African Rand', symbol: 'R', label: 'R ZAR' },
 ];
 
+export { ALL_CURRENCIES };
+
 const BY_CODE = new Map(ALL_CURRENCIES.map((c) => [c.code, c]));
+
+export function currencySymbol(code: string): string {
+  return BY_CODE.get(code)?.symbol ?? code;
+}
+
 const MOST_USED: Currency[] = MOST_USED_CODES
   .map((code) => BY_CODE.get(code))
   .filter((c): c is Currency => !!c);
@@ -90,9 +101,9 @@ function matches(c: Currency, q: string) {
   );
 }
 
-export function CurrencySheet({ visible, onClose }: Props) {
+export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency }: Props) {
   const { isDark } = useTheme();
-  const currency = usePreferencesStore((s) => s.currency);
+  const storeCurrency = usePreferencesStore((s) => s.currency);
   const setCurrency = usePreferencesStore((s) => s.setCurrency);
 
   const [query, setQuery] = useState('');
@@ -103,9 +114,18 @@ export function CurrencySheet({ visible, onClose }: Props) {
   );
   const showMostUsed = query.trim().length === 0;
 
+  const isSelected = (c: Currency) => {
+    if (selectedCode !== undefined) return c.code === selectedCode;
+    return storeCurrency === c.label;
+  };
+
   const handleSelect = (c: Currency) => {
     haptic.selection();
-    setCurrency(c.label);
+    if (onSelectCurrency) {
+      onSelectCurrency(c);
+    } else {
+      setCurrency(c.label);
+    }
     setQuery('');
     onClose();
   };
@@ -168,7 +188,7 @@ export function CurrencySheet({ visible, onClose }: Props) {
               <Row
                 key={`mu-${c.code}`}
                 currency={c}
-                selected={currency === c.label}
+                selected={isSelected(c)}
                 onPress={() => handleSelect(c)}
                 isLast={idx === MOST_USED.length - 1}
                 codeColor={codeColor}
@@ -193,7 +213,7 @@ export function CurrencySheet({ visible, onClose }: Props) {
             <Row
               key={c.code}
               currency={c}
-              selected={currency === c.label}
+              selected={isSelected(c)}
               onPress={() => handleSelect(c)}
               isLast={idx === filtered.length - 1}
               codeColor={codeColor}

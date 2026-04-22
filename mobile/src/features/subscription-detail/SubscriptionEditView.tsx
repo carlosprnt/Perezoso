@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
+import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
 import { CATEGORY_PICKER } from './helpers';
@@ -38,7 +39,7 @@ import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
 
 type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
-type PickerKey = 'currency' | 'billing' | 'category' | 'status' | 'reminder' | null;
+type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface EditDraft {
   name: string;
@@ -61,8 +62,6 @@ interface EditDraft {
 }
 
 // ─── Constants ───────────────────────────────────────────────────────
-
-const CURRENCIES = ['€', '$', '£', 'US$'] as const;
 
 const BILLING_OPTIONS = ['Monthly', 'Yearly', 'Quarterly', 'Weekly'] as const;
 type BillingLabel = typeof BILLING_OPTIONS[number];
@@ -102,24 +101,13 @@ function nextYear(d: Date): Date {
   return new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
 }
 
-function currencyToSymbol(c: string): string {
-  if (c === 'EUR') return '€';
-  if (c === 'USD') return '$';
-  return c;
-}
-function symbolToCurrency(s: string): string {
-  if (s === '€') return 'EUR';
-  if (s === '$') return 'USD';
-  return s;
-}
-
 // ─── Draft helpers ────────────────────────────────────────────────────
 
 function makeDraft(sub: Subscription): EditDraft {
   const today = new Date();
   return {
     name: sub.name,
-    currency: currencyToSymbol(sub.currency),
+    currency: sub.currency,
     price: sub.price_amount.toFixed(2).replace('.', ','),
     startDate: sub.start_date ? new Date(sub.start_date) : new Date(sub.created_at),
     nextPaymentDate: new Date(sub.next_billing_date),
@@ -207,10 +195,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
+  const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
 
   const isDirty = useCallback(() => !draftEqual(draft, initialDraft.current), [draft]);
 
-  const currencyRef = useRef<View>(null);
   const billingRef = useRef<View>(null);
   const categoryRef = useRef<View>(null);
   const statusRef = useRef<View>(null);
@@ -275,7 +263,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       ...sub,
       name: draft.name.trim(),
       price_amount: priceNum,
-      currency: symbolToCurrency(draft.currency),
+      currency: draft.currency,
       billing_period: draft.billingPeriod,
       next_billing_date: draft.nextPaymentDate.toISOString().split('T')[0],
       start_date: draft.startDate.toISOString().split('T')[0],
@@ -346,16 +334,14 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               autoCorrect={false}
             />
             <View style={styles.priceRow}>
-              <View ref={currencyRef} collapsable={false}>
-                <Pressable
-                  style={styles.currencyPill}
-                  onPress={() => openPickerAt(currencyRef, 'currency')}
-                  hitSlop={8}
-                >
-                  <Text style={styles.currencyText}>{draft.currency}</Text>
-                  <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
-                </Pressable>
-              </View>
+              <Pressable
+                style={styles.currencyPill}
+                onPress={() => setCurrencySheetOpen(true)}
+                hitSlop={8}
+              >
+                <Text style={styles.currencyText}>{currencySymbol(draft.currency)}</Text>
+                <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
+              </Pressable>
               <TextInput
                 style={styles.priceInput}
                 value={draft.price}
@@ -632,15 +618,15 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
         onClose={() => setOpenDate(null)}
       />
 
-      {/* ── Floating menus ── */}
-      <FloatingOptionMenu
-        visible={openPicker === 'currency'}
-        anchor={pickerAnchor}
-        options={[...CURRENCIES]}
-        selected={draft.currency}
-        onSelect={(v) => setDraft((f) => ({ ...f, currency: v }))}
-        onClose={() => setOpenPicker(null)}
+      {/* ── Currency sheet ── */}
+      <CurrencySheet
+        visible={currencySheetOpen}
+        onClose={() => setCurrencySheetOpen(false)}
+        selectedCode={draft.currency}
+        onSelectCurrency={(c) => setDraft((f) => ({ ...f, currency: c.code }))}
       />
+
+      {/* ── Floating menus ── */}
       <FloatingOptionMenu
         visible={openPicker === 'billing'}
         anchor={pickerAnchor}
