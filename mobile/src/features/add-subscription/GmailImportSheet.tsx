@@ -250,19 +250,18 @@ export function GmailImportSheet() {
 
             <View style={[styles.explainFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
               <Pressable
-                onPress={handleContinue}
-                style={({ pressed }) => [
+                disabled
+                style={[
                   styles.ctaBtn,
-                  { backgroundColor: '#000000' },
-                  pressed && { opacity: 0.85 },
+                  { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' },
                 ]}
               >
-                <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.ctaText, { color: isDark ? '#636366' : '#8E8E93' }]}>
                   Conectar y buscar suscripciones
                 </Text>
               </Pressable>
               <Text style={[styles.footerNote, { color: textSecondary }]}>
-                Se abrirá Google para autorizar el acceso de solo lectura
+                Servicio no disponible actualmente
               </Text>
             </View>
           </View>
@@ -482,15 +481,15 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   heroSearch: {
     position: 'absolute',
   },
 
   // Explain phase
-  explainContainer: { flex: 1, justifyContent: 'space-between' },
-  explainContent: { paddingHorizontal: 20, paddingTop: 20, alignItems: 'center' },
+  explainContainer: {},
+  explainContent: { paddingHorizontal: 20, paddingTop: 16, alignItems: 'center' },
   explainTitle: {
     ...fontFamily.bold,
     fontSize: fontSize[20],
@@ -503,7 +502,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     textAlign: 'center',
     lineHeight: fontSize[15] * 1.5,
-    marginBottom: 28,
+    marginBottom: 20,
     paddingHorizontal: 8,
   },
   bulletList: { gap: 14, width: '100%' },
@@ -522,7 +521,7 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: fontSize[15] * 1.4,
   },
-  explainFooter: { paddingHorizontal: 20, paddingTop: 16 },
+  explainFooter: { paddingHorizontal: 20, paddingTop: 20 },
   footerNote: {
     ...fontFamily.regular,
     fontSize: 11,

@@ -19,7 +19,7 @@ export interface PaywallTriggerMeta {
 export const PAYWALL_COPY: Record<PaywallTrigger, PaywallTriggerMeta> = {
   subscription_limit: {
     headline: 'Has llegado al límite',
-    subheadline: 'Con Pro, añade todas las suscripciones que necesites sin restricciones.',
+    subheadline: 'Tu plan permite hasta 15 suscripciones. Con Pro, añade todas las que necesites.',
     highlightBenefit: 'unlimited_subscriptions',
   },
   future_calendar: {
@@ -43,15 +43,15 @@ export const PAYWALL_COPY: Record<PaywallTrigger, PaywallTriggerMeta> = {
     highlightBenefit: 'custom_categories',
   },
   general: {
-    headline: 'Nunca vuelvas a olvidar\nuna renovación',
-    subheadline: 'Gestiona todas tus suscripciones sin límites, recibe avisos antes de cada cobro y planifica mejor tus gastos.',
+    headline: 'Desbloquea todo\ncon Pro',
+    subheadline: 'Tu plan cubre lo esencial. Pro elimina límites y desbloquea funciones avanzadas.',
   },
 };
 
 export const PAYWALL_BENEFITS = [
-  { id: 'unlimited_subscriptions', text: 'Suscripciones ilimitadas' },
-  { id: 'reminders',               text: 'Avisos antes de renovar' },
-  { id: 'future_calendar',         text: 'Calendario completo de cobros' },
-  { id: 'savings',                 text: 'Recomendaciones para ahorrar' },
-  { id: 'custom_categories',       text: 'Categorías personalizadas' },
+  { id: 'unlimited_subscriptions', title: 'Suscripciones ilimitadas',      subtitle: 'Sin el límite de 15 del plan normal' },
+  { id: 'reminders',               title: 'Avisos antes de renovar',       subtitle: 'Alertas antes de cada cobro automático' },
+  { id: 'future_calendar',         title: 'Calendario completo de cobros', subtitle: 'Visualiza todos tus pagos futuros' },
+  { id: 'savings',                 title: 'Recomendaciones para ahorrar',  subtitle: 'Consejos personalizados para gastar menos' },
+  { id: 'custom_categories',       title: 'Categorías personalizadas',     subtitle: 'Organiza tus suscripciones a tu manera' },
 ] as const;

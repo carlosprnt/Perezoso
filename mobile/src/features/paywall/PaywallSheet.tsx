@@ -246,12 +246,15 @@ export function PaywallSheet() {
 
           {/* ── 3. Benefits ─────────────────────────────────── */}
           <View style={styles.benefitsSection}>
-            {PAYWALL_BENEFITS.map((b) => (
+            {PAYWALL_BENEFITS.map((b, idx) => (
               <View key={b.id} style={styles.benefitRow}>
-                <View style={styles.benefitCheck}>
+                <View style={[styles.benefitCheck, idx === 0 && styles.benefitCheckHero]}>
                   <Check size={10} color="#FFFFFF" strokeWidth={3} />
                 </View>
-                <Text style={styles.benefitText}>{b.text}</Text>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{b.title}</Text>
+                  <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
+                </View>
               </View>
             ))}
           </View>
@@ -459,12 +462,12 @@ const styles = StyleSheet.create({
 
   // 3. Benefits
   benefitsSection: {
-    gap: 12,
+    gap: 14,
     paddingBottom: 24,
   },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
   },
   benefitCheck: {
@@ -474,13 +477,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 1,
   },
-  benefitText: {
-    ...fontFamily.medium,
+  benefitCheckHero: {
+    backgroundColor: '#16A34A',
+  },
+  benefitContent: {
+    flex: 1,
+  },
+  benefitTitle: {
+    ...fontFamily.semibold,
     fontSize: fontSize[15],
     color: '#1A1A1A',
     letterSpacing: -0.1,
-    flex: 1,
+  },
+  benefitSubtitle: {
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    color: '#8E8E93',
+    marginTop: 2,
   },
 
   // 4. Plans
