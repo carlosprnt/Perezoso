@@ -16,7 +16,7 @@ import { Bell, TrendingUp, Package, Users, AlertCircle } from 'lucide-react-nati
 import { fontFamily, fontSize, lineHeight } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
-import { MOCK_DASHBOARD, MOCK_RENEWALS_STATS } from '../constants';
+import { MOCK_RENEWALS_STATS } from '../constants';
 import { PhoneFrame } from './PhoneFrame';
 
 interface Props {

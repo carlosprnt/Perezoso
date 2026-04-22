@@ -10,7 +10,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Lock } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
-import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
+import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { shadows } from '../../design/shadows';
 import { LogoAvatar } from '../../components/LogoAvatar';
@@ -237,7 +237,7 @@ const lockedStyles = StyleSheet.create({
   },
   avatarOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 9999,
+    borderRadius: radius.full,
   },
   ctaRow: {
     alignItems: 'center',

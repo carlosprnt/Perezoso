@@ -336,7 +336,6 @@ export function AddSubscriptionOverlay() {
                     // guarantees the white sheet is requested to render
                     // even if close() has any side-effect that would
                     // suppress later state updates.
-                    console.log('[AddSubscriptionOverlay] row tap →', p.name);
                     useCreateSubscriptionStore.getState().open({
                       name: p.name,
                       logoUrl: logoUrlFromDomain(p.domain),
@@ -384,7 +383,6 @@ export function AddSubscriptionOverlay() {
                   pressed && { opacity: 0.85 },
                 ]}
                 onPress={() => {
-                  console.log('[AddSubscriptionOverlay] manual tap');
                   useCreateSubscriptionStore.getState().open();
                   close();
                 }}

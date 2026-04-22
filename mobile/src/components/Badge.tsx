@@ -8,7 +8,7 @@
 // CategoryBadge: inline pill showing category label with colored background.
 
 import React from 'react';
-import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { fontFamily, fontSize, lineHeight } from '../design/typography';
 import { radius } from '../design/radius';
 import { borderWidth } from '../design/borders';

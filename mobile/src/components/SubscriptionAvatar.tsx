@@ -9,7 +9,7 @@
 // Initials: deterministic pastel, same border
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, Image, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { View, Text, Image, type ViewStyle, type StyleProp } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { fontFamily, fontSize } from '../design/typography';
 import { radius } from '../design/radius';

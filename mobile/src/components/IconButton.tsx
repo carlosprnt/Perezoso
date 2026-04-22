@@ -4,7 +4,7 @@
 // Used in BottomSheet close, settings actions, etc.
 
 import React, { type ReactNode } from 'react';
-import { StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { type ViewStyle, type StyleProp } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { radius } from '../design/radius';
 import { Pressable } from './Pressable';

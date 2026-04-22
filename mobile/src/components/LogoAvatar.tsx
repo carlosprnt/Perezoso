@@ -12,7 +12,7 @@
 // Logo URLs must be PNG/JPEG (not SVG) — use Google Favicons API
 
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { View, Text, Image, type ViewStyle, type StyleProp } from 'react-native';
 import { fontFamily, fontSize } from '../design/typography';
 import { radius } from '../design/radius';
 import { shadows } from '../design/shadows';

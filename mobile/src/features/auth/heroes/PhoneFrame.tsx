@@ -8,7 +8,6 @@ import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 import { fontFamily } from '../../../design/typography';
-import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
 
 const { width: SCREEN_W } = Dimensions.get('window');

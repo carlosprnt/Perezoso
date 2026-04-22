@@ -59,7 +59,6 @@ import {
   NAV_COMPACT_DURATION,
 } from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
-import { STATUS_LABELS } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)

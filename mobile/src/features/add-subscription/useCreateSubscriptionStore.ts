@@ -32,11 +32,9 @@ export const useCreateSubscriptionStore = create<CreateSubscriptionStore>((set) 
   isOpen: false,
   prefill: null,
   open: (prefill) => {
-    console.log('[CreateSubscriptionStore] open()', prefill);
     set({ isOpen: true, prefill: prefill ?? null });
   },
   close: () => {
-    console.log('[CreateSubscriptionStore] close()');
     set({ isOpen: false });
   },
 }));

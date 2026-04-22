@@ -2,7 +2,7 @@
 // from bottom to top, each scaling 0.95→1. The card container slides
 // upward as items appear. Only animates while the slide is visible.
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,

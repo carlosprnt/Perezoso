@@ -137,7 +137,6 @@ export function GmailImportSheet() {
       const detected = detectSubscriptions(messages);
       setResults(detected);
     } catch (err) {
-      console.error('[GmailImport] error:', err);
       Alert.alert('Error', 'No se pudo buscar en Gmail. Inténtalo de nuevo.');
       setPhase('explain');
     }
