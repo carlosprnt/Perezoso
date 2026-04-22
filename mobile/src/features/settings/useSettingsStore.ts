@@ -68,17 +68,12 @@ interface TagsStore {
   removeTag: (id: string) => void;
 }
 
-const MOCK_TAGS: Tag[] = [
-  { id: 't-delivery', name: 'Delivery' },
-  { id: 't-hogar',    name: 'Hogar' },
-];
-
 export const useTagsStore = create<TagsStore>((set) => ({
   isOpen: false,
   openSheet: () => set({ isOpen: true }),
   closeSheet: () => set({ isOpen: false }),
 
-  tags: MOCK_TAGS,
+  tags: [],
   addTag: (name) =>
     set((s) => {
       const trimmed = name.trim();
