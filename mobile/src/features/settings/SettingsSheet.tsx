@@ -106,8 +106,9 @@ export function SettingsSheet() {
       openManageSubscriptions();
       return;
     }
-    openPaywall('general');
-  }, [isPlusActive, openPaywall]);
+    close();
+    setTimeout(() => openPaywall('general'), 400);
+  }, [isPlusActive, openPaywall, close]);
 
   const handleCurrency = useCallback(() => setCurrencySheetOpen(true), []);
 
