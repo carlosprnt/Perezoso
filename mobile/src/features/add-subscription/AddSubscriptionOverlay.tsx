@@ -56,6 +56,7 @@ import { X } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
+import { useGmailImportStore } from './useGmailImportStore';
 import { fontFamily, fontSize } from '../../design/typography';
 import { zIndex } from '../../design/zIndex';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
@@ -369,7 +370,8 @@ export function AddSubscriptionOverlay() {
                   pressed && { opacity: 0.8 },
                 ]}
                 onPress={() => {
-                  // TODO: Gmail import flow
+                  useGmailImportStore.getState().open();
+                  close();
                 }}
               >
                 <Text style={styles.footerBtnSecondaryText}>

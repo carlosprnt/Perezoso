@@ -20,6 +20,7 @@ import { SubscriptionDetailSheet } from '../src/features/subscription-detail/Sub
 import { SettingsSheet } from '../src/features/settings/SettingsSheet';
 import { SavingsSuggestionsListSheet } from '../src/features/savings-suggestions/SavingsSuggestionsListSheet';
 import { PaywallSheet } from '../src/features/paywall/PaywallSheet';
+import { GmailImportSheet } from '../src/features/add-subscription/GmailImportSheet';
 import { PaymentsCalendarModal } from '../src/features/calendar/PaymentsCalendarModal';
 import { useAuthStore } from '../src/features/auth/useAuthStore';
 
@@ -96,6 +97,7 @@ export default function RootLayout() {
         <SettingsSheet />
         <SavingsSuggestionsListSheet />
         <PaywallSheet />
+        <GmailImportSheet />
         <PaymentsCalendarModal />
         {/* SavingsSuggestionDetailSheet is nested inside the list sheet
             so iOS can cleanly layer it on top — see that file. */}
