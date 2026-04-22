@@ -31,6 +31,7 @@ import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePic
 import { useTagsStore } from '../settings/useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -433,7 +434,8 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 value={draft.reminderEnabled}
                 onValueChange={(v) => {
                   if (v && !isPlusActive) {
-                    usePaywallStore.getState().open('renewal_reminders');
+                    useSubscriptionDetailStore.getState().close();
+                    setTimeout(() => usePaywallStore.getState().open('renewal_reminders'), 400);
                     return;
                   }
                   setDraft((f) => ({ ...f, reminderEnabled: v }));

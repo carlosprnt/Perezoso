@@ -509,7 +509,8 @@ export function CreateSubscriptionSheet() {
                     value={form.reminderEnabled}
                     onValueChange={(v) => {
                       if (v && !isPlusActive) {
-                        usePaywallStore.getState().open('renewal_reminders');
+                        closeStore();
+                        setTimeout(() => usePaywallStore.getState().open('renewal_reminders'), 400);
                         return;
                       }
                       setForm((f) => ({ ...f, reminderEnabled: v }));

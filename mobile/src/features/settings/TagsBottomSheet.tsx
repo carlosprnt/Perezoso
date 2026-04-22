@@ -59,7 +59,7 @@ import {
   SETTINGS_PALETTE as C,
   SettingsSectionCard,
 } from './components';
-import { useTagsStore } from './useSettingsStore';
+import { useTagsStore, useSettingsStore } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 
@@ -143,7 +143,9 @@ export function TagsBottomSheet() {
     if (!trimmed) return;
     const isPro = useSubscriptionsStore.getState().isPlusActive;
     if (!isPro && tags.length >= 2) {
-      usePaywallStore.getState().open('custom_categories');
+      closeSheet();
+      useSettingsStore.getState().close();
+      setTimeout(() => usePaywallStore.getState().open('custom_categories'), 400);
       return;
     }
     addTag(trimmed);
