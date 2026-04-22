@@ -143,7 +143,8 @@ export function TagsBottomSheet() {
     if (!trimmed) return;
     const isPro = useSubscriptionsStore.getState().isPlusActive;
     if (!isPro && tags.length >= 2) {
-      usePaywallStore.getState().open('custom_categories');
+      closeSheet();
+      setTimeout(() => usePaywallStore.getState().open('custom_categories'), 350);
       return;
     }
     addTag(trimmed);
