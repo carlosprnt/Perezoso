@@ -35,6 +35,7 @@ import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
+import { DayRulerPicker } from './pickers/DayRulerPicker';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
@@ -136,6 +137,17 @@ function nextMonth(d: Date): Date {
   n.setMonth(n.getMonth() + 1);
   return n;
 }
+function nextPaymentDateFromDay(day: number): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const y = today.getFullYear();
+  const m = today.getMonth();
+  const daysThisMonth = new Date(y, m + 1, 0).getDate();
+  const candidate = new Date(y, m, Math.min(day, daysThisMonth));
+  if (candidate >= today) return candidate;
+  const daysNext = new Date(y, m + 2, 0).getDate();
+  return new Date(y, m + 1, Math.min(day, daysNext));
+}
 function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
   const today = new Date();
   return {
@@ -210,6 +222,8 @@ export function CreateSubscriptionSheet() {
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const allCategories = [...BASE_CATEGORIES, ...tags.map((t) => t.name)];
 
+  const [step, setStep] = useState<1 | 2>(1);
+  const [renewalDay, setRenewalDay] = useState(() => new Date().getDate());
   const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
   const initialFormRef = useRef<FormState>(makeInitialForm(null));
 
@@ -239,6 +253,8 @@ export function CreateSubscriptionSheet() {
       const fresh = makeInitialForm(prefill);
       initialFormRef.current = fresh;
       setForm(fresh);
+      setStep(1);
+      setRenewalDay(new Date().getDate());
       setError(null);
       setIsSubmitting(false);
       setOpenDate(null);
@@ -289,14 +305,14 @@ export function CreateSubscriptionSheet() {
   const incShared = useCallback(() =>
     setForm((f) => ({ ...f, sharedCount: Math.min(10, f.sharedCount + 1) })), []);
 
-  // ── Submit ────────────────────────────────────────────────────────
-  const handleSubmit = useCallback(async () => {
-    if (!form.name.trim()) {
+  // ── Submit (shared) ────────────────────────────────────────────────
+  const doSubmit = useCallback(async (f: FormState) => {
+    if (!f.name.trim()) {
       setError('El nombre de la suscripción es obligatorio.');
       return;
     }
-    const priceNum = parseFloat(form.price.replace(',', '.'));
-    if (!form.price.trim() || isNaN(priceNum) || priceNum <= 0) {
+    const priceNum = parseFloat(f.price.replace(',', '.'));
+    if (!f.price.trim() || isNaN(priceNum) || priceNum <= 0) {
       setError('Introduce un precio válido.');
       return;
     }
@@ -304,63 +320,71 @@ export function CreateSubscriptionSheet() {
     haptic.light();
     setIsSubmitting(true);
     try {
-
-      // Persist the new subscription in the global store so both the
-      // dashboard and subscriptions screens leave their empty states
-      // and render the populated layouts from the next render.
-      const billingKey = BILLING_KEY[form.billingPeriod] ?? 'monthly';
+      const billingKey = BILLING_KEY[f.billingPeriod] ?? 'monthly';
       const monthly = monthlyEquivalent(priceNum, billingKey);
-      const myMonthly = form.shared && form.sharedCount > 1
-        ? monthly / form.sharedCount
+      const myMonthly = f.shared && f.sharedCount > 1
+        ? monthly / f.sharedCount
         : monthly;
       const nowISO = new Date().toISOString();
       const newSub: Subscription = {
         id: `local-${Date.now()}`,
-        name: form.name.trim(),
-        logo_url: form.logoUrl || null,
-        category: CATEGORY_KEY[form.category] ?? form.category,
+        name: f.name.trim(),
+        logo_url: f.logoUrl || null,
+        category: CATEGORY_KEY[f.category] ?? f.category,
         price_amount: priceNum,
-        currency: CURRENCY_CODE[form.currency] ?? form.currency,
+        currency: CURRENCY_CODE[f.currency] ?? f.currency,
         billing_period: billingKey,
         billing_interval_count: 1,
-        next_billing_date: form.nextPaymentDate.toISOString().split('T')[0],
-        status: STATUS_KEY[form.status] ?? 'active',
-        is_shared: form.shared,
-        shared_with_count: form.shared ? form.sharedCount : 0,
+        next_billing_date: f.nextPaymentDate.toISOString().split('T')[0],
+        status: STATUS_KEY[f.status] ?? 'active',
+        is_shared: f.shared,
+        shared_with_count: f.shared ? f.sharedCount : 0,
         card_color: null,
         created_at: nowISO,
         updated_at: nowISO,
         monthly_equivalent_cost: Number(monthly.toFixed(2)),
         my_monthly_cost: Number(myMonthly.toFixed(2)),
-        reminderEnabled: form.reminderEnabled,
-        reminderDays: form.reminderDays,
-        notes: form.notes || undefined,
-        start_date: form.startDate.toISOString().split('T')[0],
-        end_date: form.endEnabled
-          ? form.endDate.toISOString().split('T')[0]
+        reminderEnabled: f.reminderEnabled,
+        reminderDays: f.reminderDays,
+        notes: f.notes || undefined,
+        start_date: f.startDate.toISOString().split('T')[0],
+        end_date: f.endEnabled
+          ? f.endDate.toISOString().split('T')[0]
           : undefined,
-        payment_method: form.paymentMethod || undefined,
+        payment_method: f.paymentMethod || undefined,
       };
       await useSubscriptionsStore.getState().addSubscription(newSub);
 
       setIsSubmitting(false);
       closeStore();
-      // Wait for Modal slide-out (~380ms) before showing celebration
       setTimeout(() => {
         useSubscriptionCelebrationStore.getState().show({
-          name: form.name,
-          price: form.price,
-          currency: form.currency,
-          billingPeriod: form.billingPeriod,
-          category: form.category,
-          logoUrl: form.logoUrl || undefined,
+          name: f.name,
+          price: f.price,
+          currency: f.currency,
+          billingPeriod: f.billingPeriod,
+          category: f.category,
+          logoUrl: f.logoUrl || undefined,
         });
       }, 380);
     } catch {
       setIsSubmitting(false);
       setError('No se pudo crear la suscripción. Inténtalo de nuevo.');
     }
-  }, [form, closeStore]);
+  }, [closeStore]);
+
+  const handleSubmit = useCallback(() => doSubmit(form), [form, doSubmit]);
+
+  const handleQuickSave = useCallback(() => {
+    const nextDate = nextPaymentDateFromDay(renewalDay);
+    doSubmit({ ...form, nextPaymentDate: nextDate });
+  }, [form, renewalDay, doSubmit]);
+
+  const goToMoreOptions = useCallback(() => {
+    const nextDate = nextPaymentDateFromDay(renewalDay);
+    setForm((f) => ({ ...f, nextPaymentDate: nextDate }));
+    setStep(2);
+  }, [renewalDay]);
 
   // ─────────────────────────────────────────────────────────────────
   return (
@@ -381,6 +405,91 @@ export function CreateSubscriptionSheet() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+          {step === 1 ? (
+            <>
+              {/* ── Step 1: Quick Add ── */}
+              <View style={styles.handleWrap}>
+                <View style={styles.handle} />
+              </View>
+              <View style={styles.quickHeader}>
+                <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
+                  <X size={15} color="#3C3C43" strokeWidth={2.5} />
+                </Pressable>
+              </View>
+
+              {error && (
+                <View style={styles.errorBanner}>
+                  <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              <View style={styles.quickBody}>
+                <View style={styles.quickInputCard}>
+                  <TextInput
+                    style={styles.quickNameInput}
+                    value={form.name}
+                    onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
+                    placeholder="Nombre de suscripción"
+                    placeholderTextColor="#C7C7CC"
+                    returnKeyType="next"
+                    autoCorrect={false}
+                    autoFocus
+                  />
+                  <View style={styles.quickPriceRow}>
+                    <View ref={currencyRef} collapsable={false}>
+                      <Pressable
+                        style={styles.quickCurrencyPill}
+                        onPress={() => openPickerAt(currencyRef, 'currency')}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.quickCurrencyText}>{form.currency}</Text>
+                        <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
+                      </Pressable>
+                    </View>
+                    <TextInput
+                      style={styles.quickPriceInput}
+                      value={form.price}
+                      onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
+                      placeholder="0.00"
+                      placeholderTextColor="#C7C7CC"
+                      keyboardType="decimal-pad"
+                      returnKeyType="done"
+                    />
+                  </View>
+                </View>
+
+                <View style={{ flex: 1 }} />
+
+                <DayRulerPicker value={renewalDay} onChange={setRenewalDay} />
+              </View>
+
+              <View style={styles.footer}>
+                <Pressable
+                  style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
+                  onPress={goToMoreOptions}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.cancelBtnText}>Más opciones</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.createBtn,
+                    { flex: 1 },
+                    (pressed || isSubmitting) && { opacity: 0.85 },
+                  ]}
+                  onPress={handleQuickSave}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? <ActivityIndicator color="#FFFFFF" size="small" />
+                    : <Text style={styles.createBtnText}>Guardar</Text>
+                  }
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <>
           {/* ── iOS-style drag handle + header (title + X) ── */}
             <View style={styles.handleWrap}>
               <View style={styles.handle} />
@@ -676,6 +785,8 @@ export function CreateSubscriptionSheet() {
                 }
               </Pressable>
             </View>
+            </>
+          )}
         </KeyboardAvoidingView>
       </View>
 
@@ -757,6 +868,61 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingTop: 6,
+  },
+
+  // Step 1: Quick Add
+  quickHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+  },
+  quickBody: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  quickInputCard: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 20,
+  },
+  quickNameInput: {
+    ...fontFamily.bold,
+    fontSize: fontSize[24],
+    color: '#000000',
+    letterSpacing: -0.4,
+    marginBottom: 16,
+    padding: 0,
+  },
+  quickPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  quickCurrencyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  quickCurrencyText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[18],
+    color: '#000000',
+    letterSpacing: -0.1,
+  },
+  quickPriceInput: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[24],
+    color: '#000000',
+    letterSpacing: -0.3,
+    padding: 0,
+    flex: 1,
   },
 
   // iOS-style drag handle — small gray pill anchored to the top of the sheet.
