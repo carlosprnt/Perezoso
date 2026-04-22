@@ -19,7 +19,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Modal,
   Platform,
   Pressable,
@@ -30,8 +32,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, Check, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
@@ -196,6 +203,27 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
   );
 }
 
+// ─── Period button with spring bounce ───────────────────────────────
+function PeriodButton({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+  return (
+    <Pressable
+      onPress={() => { haptic.selection(); onPress(); }}
+      onPressIn={() => { scale.value = withSpring(0.94, { damping: 15, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 8, stiffness: 200 }); }}
+      style={{ flex: 1 }}
+    >
+      <Animated.View style={[styles.periodBtn, animStyle]}>
+        {selected && <Check size={18} color="#000000" strokeWidth={2.5} />}
+        <Text style={styles.periodBtnText}>{label}</Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────
 export function CreateSubscriptionSheet() {
   const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
@@ -208,7 +236,7 @@ export function CreateSubscriptionSheet() {
 
   const [step, setStep] = useState<1 | 2>(1);
   const [renewalDate, setRenewalDate] = useState<Date>(() => {
-    const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setMonth(d.getMonth() + 1); return d;
   });
   const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
   const initialFormRef = useRef<FormState>(makeInitialForm(null));
@@ -218,6 +246,7 @@ export function CreateSubscriptionSheet() {
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [renewalDatePickerOpen, setRenewalDatePickerOpen] = useState(false);
+  const [kbHeight, setKbHeight] = useState(0);
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -241,16 +270,30 @@ export function CreateSubscriptionSheet() {
       initialFormRef.current = fresh;
       setForm(fresh);
       setStep(1);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      setRenewalDate(today);
+      const nextMonth = new Date(); nextMonth.setHours(0, 0, 0, 0); nextMonth.setMonth(nextMonth.getMonth() + 1);
+      setRenewalDate(nextMonth);
       setError(null);
       setCurrencySheetOpen(false);
       setRenewalDatePickerOpen(false);
+      setKbHeight(0);
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
     }
   }, [isOpen, prefill]);
+
+  // ── Keyboard tracking (step 1 — pageSheet needs manual handling) ──
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardWillShow', (e) => {
+      LayoutAnimation.configureNext(LayoutAnimation.create(e.duration, LayoutAnimation.Types.keyboard, LayoutAnimation.Properties.opacity));
+      setKbHeight(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener('keyboardWillHide', (e) => {
+      LayoutAnimation.configureNext(LayoutAnimation.create(e.duration, LayoutAnimation.Types.keyboard, LayoutAnimation.Properties.opacity));
+      setKbHeight(0);
+    });
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   // ── Confirm + close ───────────────────────────────────────────────
   const requestClose = useCallback(() => {
@@ -389,12 +432,8 @@ export function CreateSubscriptionSheet() {
           { paddingBottom: insets.bottom > 0 ? 14 : 10 },
         ]}
       >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
           {step === 1 ? (
-            <>
+            <View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom }]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
@@ -450,6 +489,20 @@ export function CreateSubscriptionSheet() {
                   </View>
                 </View>
 
+                {/* ── Billing period ── */}
+                <View style={styles.periodRow}>
+                  <PeriodButton
+                    label="Mes"
+                    selected={form.billingPeriod === 'Monthly'}
+                    onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Monthly' }))}
+                  />
+                  <PeriodButton
+                    label="Año"
+                    selected={form.billingPeriod === 'Yearly'}
+                    onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Yearly' }))}
+                  />
+                </View>
+
                 <View style={{ flex: 1 }} />
 
                 <DayRulerPicker
@@ -482,9 +535,12 @@ export function CreateSubscriptionSheet() {
                   }
                 </Pressable>
               </View>
-            </>
+            </View>
           ) : (
-            <>
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
           {/* ── iOS-style drag handle + header (title + X) ── */}
             <View style={styles.handleWrap}>
               <View style={styles.handle} />
@@ -777,9 +833,8 @@ export function CreateSubscriptionSheet() {
                 }
               </Pressable>
             </View>
-            </>
+            </KeyboardAvoidingView>
           )}
-        </KeyboardAvoidingView>
       </View>
 
       {/* ── Nested date pickers ── */}
@@ -929,6 +984,28 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
     padding: 0,
     flex: 1,
+  },
+
+  // Period buttons (Mes / Año)
+  periodRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  periodBtn: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 20,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  periodBtnText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#000000',
+    letterSpacing: -0.2,
   },
 
   // iOS-style drag handle — small gray pill anchored to the top of the sheet.

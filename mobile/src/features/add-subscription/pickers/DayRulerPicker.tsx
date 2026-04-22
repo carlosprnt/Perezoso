@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -8,6 +8,12 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamily, fontSize } from '../../../design/typography';
 import { haptic } from '../../../lib/haptics';
@@ -95,16 +101,37 @@ export function DayRulerPicker({ value, onChange, onTapLabel }: Props) {
     [onChange, dates],
   );
 
+  // Blur-fade animation on day/month change
+  const textOpacity = useSharedValue(1);
+  const textScale = useSharedValue(1);
+  const prevDateKey = useRef(`${value.getDate()}-${value.getMonth()}`);
+
+  useEffect(() => {
+    const key = `${value.getDate()}-${value.getMonth()}`;
+    if (key !== prevDateKey.current) {
+      prevDateKey.current = key;
+      textOpacity.value = 0.15;
+      textScale.value = 0.92;
+      textOpacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
+      textScale.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) });
+    }
+  }, [value, textOpacity, textScale]);
+
+  const dateAnimStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ scale: textScale.value }],
+  }));
+
   const monthName = MONTHS_ES[value.getMonth()];
   const capitalMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   return (
     <View style={styles.container}>
       <Pressable onPress={onTapLabel} style={styles.dateTapArea}>
-        <View style={styles.dateRow}>
+        <Animated.View style={[styles.dateRow, dateAnimStyle]}>
           <Text style={styles.dayNumber}>{value.getDate()}</Text>
           <Text style={styles.monthLabel}>{capitalMonth}</Text>
-        </View>
+        </Animated.View>
         <Text style={styles.renewalLabel}>Próxima renovación</Text>
       </Pressable>
 
