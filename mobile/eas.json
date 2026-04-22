@@ -26,5 +26,13 @@
       "channel": "production",
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "carlosprnt@icloud.com",
+        "ascAppId": "6744066889"
+      }
+    }
   }
 }
