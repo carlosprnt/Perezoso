@@ -807,6 +807,7 @@ export function CreateSubscriptionSheet() {
         value={renewalDate}
         title="Próxima renovación"
         minimumDate={(() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()}
+        maximumDate={(() => { const d = new Date(); d.setHours(0,0,0,0); d.setMonth(d.getMonth() + 2); return d; })()}
         onChange={(d) => setRenewalDate(d)}
         onClose={() => setRenewalDatePickerOpen(false)}
       />
@@ -881,42 +882,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderRadius: 20,
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 20,
+    paddingTop: 20,
+    paddingBottom: 22,
   },
   quickNameInput: {
     ...fontFamily.bold,
-    fontSize: fontSize[32],
+    fontSize: fontSize[45],
     color: '#000000',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
     marginBottom: 16,
     padding: 0,
   },
   quickPriceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   quickCurrencyPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     backgroundColor: '#E5E5EA',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   quickCurrencyText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[20],
+    fontSize: fontSize[24],
     color: '#000000',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   quickPriceInput: {
     ...fontFamily.semibold,
-    fontSize: fontSize[32],
+    fontSize: fontSize[45],
     color: '#000000',
-    letterSpacing: -0.4,
+    letterSpacing: -1,
     padding: 0,
     flex: 1,
   },

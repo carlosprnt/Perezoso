@@ -30,6 +30,7 @@ interface Props {
   onClose: () => void;
   title?: string;
   minimumDate?: Date;
+  maximumDate?: Date;
 }
 
 const ENTER_MS = 240;
@@ -42,6 +43,7 @@ export function NativeDatePickerSheet({
   onClose,
   title = 'Seleccionar fecha',
   minimumDate,
+  maximumDate,
 }: Props) {
   const [tempValue, setTempValue] = useState<Date>(value);
   // Render-gate separate from `visible` so we can play the exit animation
@@ -142,6 +144,7 @@ export function NativeDatePickerSheet({
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
                 onChange={handlePickerChange}
                 minimumDate={minimumDate}
+                maximumDate={maximumDate}
                 locale="es-ES"
                 themeVariant="light"
                 accentColor="#000000"

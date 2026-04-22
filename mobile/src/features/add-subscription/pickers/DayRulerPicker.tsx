@@ -13,13 +13,13 @@ import { fontFamily, fontSize } from '../../../design/typography';
 import { haptic } from '../../../lib/haptics';
 
 const TICKS_PER_DAY = 4;
-const TICK_W = 6;
+const TICK_W = 8;
 const DAY_SPACING = TICKS_PER_DAY * TICK_W;
 
-const TICK_HEIGHT = 14;
-const TICK_THICKNESS = 1.5;
+const TICK_HEIGHT = 32;
+const TICK_THICKNESS = 2;
 const TICK_COLOR = '#C7C7CC';
-const FADE_WIDTH = 60;
+const FADE_WIDTH = 80;
 
 const MONTHS_ES = [
   'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -38,7 +38,7 @@ function buildDates(): Date[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const end = new Date(today);
-  end.setMonth(end.getMonth() + 1);
+  end.setMonth(end.getMonth() + 2);
   const dates: Date[] = [];
   const cursor = new Date(today);
   while (cursor <= end) {
@@ -95,13 +95,18 @@ export function DayRulerPicker({ value, onChange, onTapLabel }: Props) {
     [onChange, dates],
   );
 
+  const monthName = MONTHS_ES[value.getMonth()];
+  const capitalMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.dayNumber}>{value.getDate()}</Text>
-      <Pressable onPress={onTapLabel} hitSlop={8}>
-        <Text style={styles.monthLabel}>de {MONTHS_ES[value.getMonth()]}</Text>
+      <Pressable onPress={onTapLabel} style={styles.dateTapArea}>
+        <View style={styles.dateRow}>
+          <Text style={styles.dayNumber}>{value.getDate()}</Text>
+          <Text style={styles.monthLabel}>{capitalMonth}</Text>
+        </View>
+        <Text style={styles.renewalLabel}>Próxima renovación</Text>
       </Pressable>
-      <Text style={styles.renewalLabel}>Próxima renovación</Text>
 
       <View style={styles.rulerWrap} onLayout={handleLayout}>
         {halfWidth > 0 && (
@@ -156,6 +161,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
   },
+  dateTapArea: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 10,
+  },
   dayNumber: {
     ...fontFamily.bold,
     fontSize: fontSize[50],
@@ -163,22 +178,21 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   monthLabel: {
-    ...fontFamily.regular,
-    fontSize: fontSize[18],
+    ...fontFamily.semibold,
+    fontSize: fontSize[24],
     color: '#000000',
-    letterSpacing: -0.2,
-    marginTop: 2,
+    letterSpacing: -0.4,
   },
   renewalLabel: {
-    ...fontFamily.regular,
-    fontSize: fontSize[13],
+    ...fontFamily.medium,
+    fontSize: fontSize[16],
     color: '#8E8E93',
-    marginTop: 4,
-    marginBottom: 28,
+    marginTop: 2,
+    marginBottom: 24,
   },
   rulerWrap: {
     width: '100%',
-    height: 44,
+    height: 56,
   },
   tickCol: {
     width: TICK_W,
@@ -197,7 +211,7 @@ const styles = StyleSheet.create({
   },
   indicator: {
     width: 3,
-    height: 38,
+    height: 48,
     backgroundColor: '#FF3B30',
     borderRadius: 1.5,
   },
