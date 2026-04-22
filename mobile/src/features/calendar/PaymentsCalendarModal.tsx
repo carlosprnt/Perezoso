@@ -39,6 +39,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily } from '../../design/typography';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 import { formatAmount } from '../subscription-detail/helpers';
 import { haptic } from '../../lib/haptics';
 
@@ -122,6 +123,10 @@ export function PaymentsCalendarModal() {
 
   // ── Month navigation ───────────────────────────────────────────────
   const prevMonth = useCallback(() => {
+    if (!useSubscriptionsStore.getState().isPlusActive) {
+      usePaywallStore.getState().open('future_calendar');
+      return;
+    }
     setDayDetail(null);
     setMonth((m) => {
       if (m === 0) {
@@ -133,6 +138,10 @@ export function PaymentsCalendarModal() {
   }, []);
 
   const nextMonth = useCallback(() => {
+    if (!useSubscriptionsStore.getState().isPlusActive) {
+      usePaywallStore.getState().open('future_calendar');
+      return;
+    }
     setDayDetail(null);
     setMonth((m) => {
       if (m === 11) {

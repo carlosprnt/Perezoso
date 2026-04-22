@@ -13,6 +13,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -228,126 +229,134 @@ export function PaywallSheet() {
             </View>
           </GestureDetector>
 
-          {/* ── 1. Branding ─────────────────────────────────── */}
-          <View style={styles.brandingSection}>
-            <View style={styles.logoContainer}>
-              <Image source={LOGO} style={styles.logoImg} resizeMode="cover" />
-            </View>
-            <View style={styles.proBadge}>
-              <Text style={styles.proBadgeText}>PRO</Text>
-            </View>
-          </View>
-
-          {/* ── 2. Headline ─────────────────────────────────── */}
-          <View style={styles.headlineSection}>
-            <Text style={styles.headline}>{copy.headline}</Text>
-            <Text style={styles.subheadline}>{copy.subheadline}</Text>
-          </View>
-
-          {/* ── 3. Benefits ─────────────────────────────────── */}
-          <View style={styles.benefitsSection}>
-            {PAYWALL_BENEFITS.map((b, idx) => (
-              <View key={b.id} style={styles.benefitRow}>
-                <View style={[styles.benefitCheck, idx === 0 && styles.benefitCheckHero]}>
-                  <Check size={10} color="#FFFFFF" strokeWidth={3} />
-                </View>
-                <View style={styles.benefitContent}>
-                  <Text style={styles.benefitTitle}>{b.title}</Text>
-                  <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* ── 4. Plans ────────────────────────────────────── */}
-          <View style={styles.plansSection}>
-            {/* Annual — recommended */}
-            <Pressable
-              onPress={() => { haptic.selection(); setPlan('annual'); }}
-              style={[
-                styles.planCard,
-                plan === 'annual' ? styles.planActive : styles.planIdle,
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: plan === 'annual' }}
-              accessibilityLabel="Plan anual"
-            >
-              <View style={styles.planHeader}>
-                <View style={styles.planRadio}>
-                  {plan === 'annual' && <View style={styles.planRadioDot} />}
-                </View>
-                <View style={styles.planInfo}>
-                  <View style={styles.planLabelRow}>
-                    <Text style={[styles.planLabel, plan === 'annual' && styles.planLabelActive]}>
-                      Anual
-                    </Text>
-                    <View style={styles.popularBadge}>
-                      <Text style={styles.popularBadgeText}>Más popular</Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.planPrice, plan === 'annual' && styles.planPriceActive]}>
-                    {annualPrice} / año
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.planFooter}>
-                <Text style={styles.planPerMonth}>
-                  {annualPerMonth}/mes
-                </Text>
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsBadgeText}>
-                    Ahorra {savingsPercent}%
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-
-            {/* Monthly */}
-            <Pressable
-              onPress={() => { haptic.selection(); setPlan('monthly'); }}
-              style={[
-                styles.planCard,
-                plan === 'monthly' ? styles.planActive : styles.planIdle,
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: plan === 'monthly' }}
-              accessibilityLabel="Plan mensual"
-            >
-              <View style={styles.planHeader}>
-                <View style={styles.planRadio}>
-                  {plan === 'monthly' && <View style={styles.planRadioDot} />}
-                </View>
-                <View style={styles.planInfo}>
-                  <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>
-                    Mensual
-                  </Text>
-                  <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>
-                    {monthlyPrice} / mes
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          </View>
-
-          {/* ── 5. CTA ──────────────────────────────────────── */}
-          <Pressable
-            onPress={handlePurchase}
-            disabled={purchasing}
-            style={({ pressed }) => [
-              styles.ctaBtn,
-              (pressed || purchasing) && { opacity: 0.88 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={ctaLabel}
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 4 }}
           >
-            <Text style={styles.ctaText}>{ctaLabel}</Text>
-          </Pressable>
+            {/* ── 1. Branding ─────────────────────────────────── */}
+            <View style={styles.brandingSection}>
+              <View style={styles.logoContainer}>
+                <Image source={LOGO} style={styles.logoImg} resizeMode="cover" />
+              </View>
+              <View style={styles.proBadge}>
+                <Text style={styles.proBadgeText}>PRO</Text>
+              </View>
+            </View>
 
-          {/* ── 6. Trust microcopy ──────────────────────────── */}
-          <Text style={styles.trustText}>
-            Cancela cuando quieras desde Ajustes
-          </Text>
+            {/* ── 2. Headline ─────────────────────────────────── */}
+            <View style={styles.headlineSection}>
+              <Text style={[styles.headline, !copy.subheadline && { marginBottom: 0 }]}>{copy.headline}</Text>
+              {copy.subheadline ? (
+                <Text style={styles.subheadline}>{copy.subheadline}</Text>
+              ) : null}
+            </View>
+
+            {/* ── 3. Benefits ─────────────────────────────────── */}
+            <View style={styles.benefitsSection}>
+              {PAYWALL_BENEFITS.map((b, idx) => (
+                <View key={b.id} style={styles.benefitRow}>
+                  <View style={styles.benefitCheck}>
+                    <Check size={10} color="#FFFFFF" strokeWidth={3} />
+                  </View>
+                  <View style={styles.benefitContent}>
+                    <Text style={styles.benefitTitle}>{b.title}</Text>
+                    <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            {/* ── 4. Plans ────────────────────────────────────── */}
+            <View style={styles.plansSection}>
+              {/* Annual — recommended */}
+              <Pressable
+                onPress={() => { haptic.selection(); setPlan('annual'); }}
+                style={[
+                  styles.planCard,
+                  plan === 'annual' ? styles.planActive : styles.planIdle,
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: plan === 'annual' }}
+                accessibilityLabel="Plan anual"
+              >
+                <View style={styles.planHeader}>
+                  <View style={styles.planRadio}>
+                    {plan === 'annual' && <View style={styles.planRadioDot} />}
+                  </View>
+                  <View style={styles.planInfo}>
+                    <View style={styles.planLabelRow}>
+                      <Text style={[styles.planLabel, plan === 'annual' && styles.planLabelActive]}>
+                        Anual
+                      </Text>
+                      <View style={styles.popularBadge}>
+                        <Text style={styles.popularBadgeText}>Más popular</Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.planPrice, plan === 'annual' && styles.planPriceActive]}>
+                      {annualPrice} / año
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.planFooter}>
+                  <Text style={styles.planPerMonth}>
+                    {annualPerMonth}/mes
+                  </Text>
+                  <View style={styles.savingsBadge}>
+                    <Text style={styles.savingsBadgeText}>
+                      Ahorra {savingsPercent}%
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+
+              {/* Monthly */}
+              <Pressable
+                onPress={() => { haptic.selection(); setPlan('monthly'); }}
+                style={[
+                  styles.planCard,
+                  plan === 'monthly' ? styles.planActive : styles.planIdle,
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: plan === 'monthly' }}
+                accessibilityLabel="Plan mensual"
+              >
+                <View style={styles.planHeader}>
+                  <View style={styles.planRadio}>
+                    {plan === 'monthly' && <View style={styles.planRadioDot} />}
+                  </View>
+                  <View style={styles.planInfo}>
+                    <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>
+                      Mensual
+                    </Text>
+                    <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>
+                      {monthlyPrice} / mes
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            </View>
+
+            {/* ── 5. CTA ──────────────────────────────────────── */}
+            <Pressable
+              onPress={handlePurchase}
+              disabled={purchasing}
+              style={({ pressed }) => [
+                styles.ctaBtn,
+                (pressed || purchasing) && { opacity: 0.88 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={ctaLabel}
+            >
+              <Text style={styles.ctaText}>{ctaLabel}</Text>
+            </Pressable>
+
+            {/* ── 6. Trust microcopy ──────────────────────────── */}
+            <Text style={styles.trustText}>
+              Cancela cuando quieras desde Ajustes
+            </Text>
+          </ScrollView>
         </Reanimated.View>
       </View>
     </Modal>
@@ -478,9 +487,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
-  },
-  benefitCheckHero: {
-    backgroundColor: '#16A34A',
   },
   benefitContent: {
     flex: 1,
