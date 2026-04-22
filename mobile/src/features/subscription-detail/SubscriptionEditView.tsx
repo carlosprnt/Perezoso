@@ -28,6 +28,9 @@ import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
 import { CATEGORY_PICKER } from './helpers';
 import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePickerSheet';
+import { useTagsStore } from '../settings/useSettingsStore';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -74,18 +77,20 @@ const BILLING_KEY_TO_LABEL: Record<BillingPeriod, BillingLabel> = {
   weekly: 'Weekly',
 };
 
-const STATUS_OPTIONS = ['Activa', 'Pausada', 'Cancelada', 'Prueba'] as const;
+const STATUS_OPTIONS = ['Activa', 'Pausada', 'Cancelada', 'Finalizado', 'Prueba'] as const;
 type StatusLabel = typeof STATUS_OPTIONS[number];
 const STATUS_LABEL_TO_KEY: Record<StatusLabel, SubscriptionStatus> = {
   Activa: 'active',
   Pausada: 'paused',
   Cancelada: 'cancelled',
+  Finalizado: 'ended',
   Prueba: 'trial',
 };
-const STATUS_KEY_TO_LABEL: Record<SubscriptionStatus, StatusLabel> = {
+const STATUS_KEY_TO_LABEL: Record<string, StatusLabel> = {
   active: 'Activa',
   paused: 'Pausada',
   cancelled: 'Cancelada',
+  ended: 'Finalizado',
   trial: 'Prueba',
 };
 
@@ -191,6 +196,12 @@ interface Props {
 
 export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props) {
   const insets = useSafeAreaInsets();
+  const tags = useTagsStore((s) => s.tags);
+  const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const allCategoryOptions = [
+    ...CATEGORY_PICKER,
+    ...tags.map((t) => ({ value: t.name as Category, label: t.name })),
+  ];
 
   const initialDraft = useRef<EditDraft>(makeDraft(sub));
   const [draft, setDraft] = useState<EditDraft>(() => makeDraft(sub));
@@ -407,7 +418,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Text style={styles.rowLabel}>Categoría</Text>
               <View ref={categoryRef} collapsable={false}>
                 <DropdownBtn
-                  value={CATEGORY_PICKER.find((o) => o.value === draft.category)?.label ?? draft.category}
+                  value={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
                   onPress={() => openPickerAt(categoryRef, 'category')}
                 />
               </View>
@@ -420,7 +431,13 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
               <Switch
                 value={draft.reminderEnabled}
-                onValueChange={(v) => setDraft((f) => ({ ...f, reminderEnabled: v }))}
+                onValueChange={(v) => {
+                  if (v && !isPlusActive) {
+                    usePaywallStore.getState().open('renewal_reminders');
+                    return;
+                  }
+                  setDraft((f) => ({ ...f, reminderEnabled: v }));
+                }}
                 trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                 thumbColor="#FFFFFF"
               />
@@ -639,10 +656,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       <FloatingOptionMenu
         visible={openPicker === 'category'}
         anchor={pickerAnchor}
-        options={CATEGORY_PICKER.map((o) => o.label)}
-        selected={CATEGORY_PICKER.find((o) => o.value === draft.category)?.label ?? ''}
+        options={allCategoryOptions.map((o) => o.label)}
+        selected={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
         onSelect={(label) => {
-          const found = CATEGORY_PICKER.find((o) => o.label === label);
+          const found = allCategoryOptions.find((o) => o.label === label);
           if (found) setDraft((f) => ({ ...f, category: found.value }));
         }}
         onClose={() => setOpenPicker(null)}

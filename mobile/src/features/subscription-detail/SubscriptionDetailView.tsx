@@ -270,7 +270,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
             <DataRow
               icon={<Tag size={iconSize} color={iconColor} strokeWidth={2} />}
               label="Categoría"
-              value={CATEGORY_LABELS[sub.category]}
+              value={CATEGORY_LABELS[sub.category] ?? sub.category}
               valueBold
             />
             {sub.is_shared && (

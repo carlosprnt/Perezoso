@@ -60,6 +60,8 @@ import {
   SettingsSectionCard,
 } from './components';
 import { useTagsStore } from './useSettingsStore';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -139,9 +141,14 @@ export function TagsBottomSheet() {
   const handleAdd = useCallback(() => {
     const trimmed = newTag.trim();
     if (!trimmed) return;
+    const isPro = useSubscriptionsStore.getState().isPlusActive;
+    if (!isPro && tags.length >= 1) {
+      usePaywallStore.getState().open('custom_categories');
+      return;
+    }
     addTag(trimmed);
     setNewTag('');
-  }, [newTag, addTag]);
+  }, [newTag, addTag, tags.length]);
 
   const handleRemove = useCallback(
     (id: string, name: string) => {

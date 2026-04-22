@@ -84,12 +84,13 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   const days = daysUntilDate(sub.next_billing_date);
   const progress = billingProgress(sub.billing_period, sub.billing_interval_count, sub.next_billing_date);
 
-  const statusColor = {
+  const statusColor = ({
     active: colors.statusActive,
     trial: colors.statusTrial,
     paused: colors.statusPaused,
     cancelled: colors.statusCancelled,
-  }[sub.status];
+    ended: colors.statusCancelled,
+  } as Record<string, string>)[sub.status];
 
   const progressBarBg = isDark ? '#2C2C2E' : '#F0F0F0';
   const progressBarFill = isDark ? '#4ADE80' : '#16A34A';
@@ -119,7 +120,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           </Text>
           <View style={styles.metaRow}>
             <Text style={[styles.category, { color: colors.textMuted }]}>
-              {CATEGORY_LABELS[sub.category]}
+              {CATEGORY_LABELS[sub.category] ?? sub.category}
             </Text>
             {sub.is_shared && (
               <Text style={[styles.shared, { color: colors.textMuted }]}>

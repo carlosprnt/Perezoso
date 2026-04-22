@@ -1,10 +1,11 @@
 // Subscription data types — matching web app's data structures
 
-export type SubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'trial';
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'trial' | 'ended';
 export type BillingPeriod = 'monthly' | 'yearly' | 'quarterly' | 'weekly';
 export type Category =
   | 'streaming' | 'music' | 'productivity' | 'cloud' | 'ai'
-  | 'health' | 'gaming' | 'education' | 'mobility' | 'home' | 'other';
+  | 'health' | 'gaming' | 'education' | 'mobility' | 'home' | 'other'
+  | (string & {});
 
 export interface Subscription {
   id: string;
@@ -43,7 +44,7 @@ export type SortMode =
   | 'price_low'
   | 'recently_added';
 
-export const CATEGORY_LABELS: Record<Category, string> = {
+export const CATEGORY_LABELS: Record<string, string> = {
   streaming: 'Streaming',
   music: 'Música',
   productivity: 'Productividad',
@@ -57,9 +58,10 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   other: 'Otros',
 };
 
-export const STATUS_LABELS: Record<SubscriptionStatus, string> = {
+export const STATUS_LABELS: Record<string, string> = {
   active: 'Activa',
   trial: 'Prueba',
   paused: 'Pausada',
   cancelled: 'Cancelada',
+  ended: 'Finalizado',
 };

@@ -39,6 +39,8 @@ import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionM
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { useTagsStore } from '../settings/useSettingsStore';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import type {
   BillingPeriod as SubBillingPeriod,
@@ -76,6 +78,7 @@ const STATUS_KEY: Record<string, SubscriptionStatus> = {
   Activa: 'active',
   Pausada: 'paused',
   Cancelada: 'cancelled',
+  Finalizado: 'ended',
 };
 
 // Convert the form price + billing period into a normalized monthly
@@ -93,15 +96,7 @@ function monthlyEquivalent(priceAmount: number, billingKey: SubBillingPeriod): n
 
 // ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
-type Category =
-  | 'Streaming'
-  | 'Música'
-  | 'Productividad'
-  | 'Cloud'
-  | 'IA'
-  | 'Gaming'
-  | 'Otros';
-type Status = 'Activa' | 'Pausada' | 'Cancelada';
+type Status = 'Activa' | 'Pausada' | 'Cancelada' | 'Finalizado';
 type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'currency' | 'billing' | 'category' | 'status' | 'reminder' | null;
@@ -115,7 +110,7 @@ interface FormState {
   billingPeriod: BillingPeriod;
   endEnabled: boolean;
   endDate: Date;
-  category: Category;
+  category: string;
   status: Status;
   reminderEnabled: boolean;
   reminderDays: ReminderDays;
@@ -129,10 +124,10 @@ interface FormState {
 // ─── Constants ───────────────────────────────────────────────────────
 const CURRENCIES = ['€', '$', '£', 'US$'] as const;
 const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Quarterly', 'Weekly', 'Custom'];
-const CATEGORIES: Category[] = [
+const BASE_CATEGORIES = [
   'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
 ];
-const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada'];
+const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada', 'Finalizado'];
 const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
 const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
@@ -155,7 +150,7 @@ function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: 
     billingPeriod: 'Monthly',
     endEnabled: false,
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
-    category: (prefill?.category as Category) ?? 'Streaming',
+    category: prefill?.category ?? 'Streaming',
     status: 'Activa',
     reminderEnabled: false,
     reminderDays: '1 día antes',
@@ -214,6 +209,9 @@ export function CreateSubscriptionSheet() {
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
   const closeStore = useCreateSubscriptionStore((s) => s.close);
   const insets = useSafeAreaInsets();
+  const tags = useTagsStore((s) => s.tags);
+  const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const allCategories = [...BASE_CATEGORIES, ...tags.map((t) => t.name)];
 
   const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
   const initialFormRef = useRef<FormState>(makeInitialForm(null));
@@ -323,7 +321,7 @@ export function CreateSubscriptionSheet() {
         id: `local-${Date.now()}`,
         name: form.name.trim(),
         logo_url: form.logoUrl || null,
-        category: CATEGORY_KEY[form.category] ?? 'other',
+        category: CATEGORY_KEY[form.category] ?? form.category,
         price_amount: priceNum,
         currency: CURRENCY_CODE[form.currency] ?? form.currency,
         billing_period: billingKey,
@@ -509,7 +507,13 @@ export function CreateSubscriptionSheet() {
                   <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
                   <Switch
                     value={form.reminderEnabled}
-                    onValueChange={(v) => setForm((f) => ({ ...f, reminderEnabled: v }))}
+                    onValueChange={(v) => {
+                      if (v && !isPlusActive) {
+                        usePaywallStore.getState().open('renewal_reminders');
+                        return;
+                      }
+                      setForm((f) => ({ ...f, reminderEnabled: v }));
+                    }}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                     thumbColor="#FFFFFF"
                   />
@@ -722,9 +726,9 @@ export function CreateSubscriptionSheet() {
       <FloatingOptionMenu
         visible={openPicker === 'category'}
         anchor={pickerAnchor}
-        options={CATEGORIES}
+        options={allCategories}
         selected={form.category}
-        onSelect={(v) => setForm((f) => ({ ...f, category: v as Category }))}
+        onSelect={(v) => setForm((f) => ({ ...f, category: v }))}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu

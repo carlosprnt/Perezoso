@@ -87,8 +87,9 @@ const FILTER_LABELS: Record<FilterValue, string> = {
   trial: 'En prueba',
   paused: 'Pausadas',
   cancelled: 'Canceladas',
+  ended: 'Finalizadas',
 };
-const FILTER_OPTIONS: FilterValue[] = ['all', 'active', 'trial', 'paused', 'cancelled'];
+const FILTER_OPTIONS: FilterValue[] = ['all', 'active', 'trial', 'paused', 'cancelled', 'ended'];
 
 // ─── Sort function ────────────────────────────────────────────────
 function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[] {
