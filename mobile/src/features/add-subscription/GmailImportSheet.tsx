@@ -3,10 +3,11 @@
 //
 // Three phases, all rendered inside a single native pageSheet:
 //   1. explain  — explains what the feature does (privacy-first copy)
+//                 with animated magnifying glass over mail icon
 //   2. loading  — OAuth + Gmail search in progress
 //   3. results  — list of detected subscriptions with select/deselect
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +19,15 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+  Easing,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Check,
@@ -32,7 +42,7 @@ import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
 import { useGmailImportStore } from './useGmailImportStore';
 import { useGmailAuth, searchSubscriptionEmails } from '../../services/gmail';
-import { detectSubscriptions, type DetectedSubscription } from './gmailDetection';
+import { detectSubscriptions } from './gmailDetection';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useToastStore } from '../../components/useToastStore';
 import type { Category, BillingPeriod } from '../subscriptions/types';
@@ -44,8 +54,65 @@ const BILLING_LABELS: Record<BillingPeriod, string> = {
   weekly: 'Semana',
 };
 
+// ── Animated search-over-mail icon ──────────────────────────────────
+function SearchMailIcon({ color, bgColor }: { color: string; bgColor: string }) {
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    translateX.value = withRepeat(
+      withSequence(
+        withTiming(10, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-8, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+        withTiming(6, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+    translateY.value = withRepeat(
+      withSequence(
+        withTiming(-6, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+        withTiming(8, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-4, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+    scale.value = withRepeat(
+      withSequence(
+        withDelay(400, withTiming(1.15, { duration: 300, easing: Easing.out(Easing.ease) })),
+        withTiming(1, { duration: 300, easing: Easing.in(Easing.ease) }),
+        withDelay(1600, withTiming(1, { duration: 0 })),
+      ),
+      -1,
+      false,
+    );
+  }, [translateX, translateY, scale]);
+
+  const searchStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  return (
+    <View style={[styles.heroIcon, { backgroundColor: bgColor }]}>
+      <Mail size={32} color={color} strokeWidth={1.5} style={{ opacity: 0.4 }} />
+      <Animated.View style={[styles.heroSearch, searchStyle]}>
+        <Search size={22} color={color} strokeWidth={2.5} />
+      </Animated.View>
+    </View>
+  );
+}
+
+// ── Main sheet ──────────────────────────────────────────────────────
 export function GmailImportSheet() {
-  const { isDark, colors } = useTheme();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const isOpen = useGmailImportStore((s) => s.isOpen);
   const phase = useGmailImportStore((s) => s.phase);
@@ -59,7 +126,6 @@ export function GmailImportSheet() {
   const { request, response, promptAsync } = useGmailAuth();
   const searchTriggered = useRef(false);
 
-  // When OAuth completes, search Gmail
   useEffect(() => {
     if (
       response?.type === 'success' &&
@@ -83,11 +149,8 @@ export function GmailImportSheet() {
     }
   }, [response, setPhase, setResults, close]);
 
-  // Reset ref when sheet closes
   useEffect(() => {
-    if (!isOpen) {
-      searchTriggered.current = false;
-    }
+    if (!isOpen) searchTriggered.current = false;
   }, [isOpen]);
 
   const handleContinue = useCallback(async () => {
@@ -159,7 +222,13 @@ export function GmailImportSheet() {
         </View>
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, { color: textPrimary }]}>
-            {phase === 'explain' ? 'Buscar en Gmail' : phase === 'loading' ? 'Buscando...' : 'Suscripciones encontradas'}
+            {phase === 'explain'
+              ? 'Buscar en Gmail'
+              : phase === 'loading'
+                ? 'Buscando...'
+                : phase === 'empty'
+                  ? 'Sin resultados'
+                  : 'Suscripciones encontradas'}
           </Text>
           <Pressable
             style={[styles.closeBtn, { backgroundColor: isDark ? '#2C2C2E' : '#EBEBF0' }]}
@@ -174,9 +243,7 @@ export function GmailImportSheet() {
         {phase === 'explain' && (
           <View style={styles.explainContainer}>
             <View style={styles.explainContent}>
-              <View style={[styles.iconCircle, { backgroundColor: surfaceBg }]}>
-                <Mail size={28} color={textPrimary} strokeWidth={1.8} />
-              </View>
+              <SearchMailIcon color={textPrimary} bgColor={surfaceBg} />
 
               <Text style={[styles.explainTitle, { color: textPrimary }]}>
                 Encuentra tus suscripciones automáticamente
@@ -207,12 +274,12 @@ export function GmailImportSheet() {
                 disabled={!request}
                 style={({ pressed }) => [
                   styles.ctaBtn,
-                  { backgroundColor: textPrimary },
+                  { backgroundColor: '#000000' },
                   (pressed || !request) && { opacity: 0.85 },
                 ]}
               >
-                <Text style={[styles.ctaText, { color: bg }]}>
-                  Conectar con Google
+                <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>
+                  Conectar y buscar suscripciones
                 </Text>
               </Pressable>
               <Text style={[styles.footerNote, { color: textSecondary }]}>
@@ -225,7 +292,7 @@ export function GmailImportSheet() {
         {/* ── Phase: Loading ─────────────────────────────── */}
         {phase === 'loading' && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={textPrimary} />
+            <SearchMailIcon color={textPrimary} bgColor={surfaceBg} />
             <Text style={[styles.loadingText, { color: textPrimary }]}>
               Buscando suscripciones en tu Gmail...
             </Text>
@@ -238,7 +305,7 @@ export function GmailImportSheet() {
         {/* ── Phase: Empty ───────────────────────────────── */}
         {phase === 'empty' && (
           <View style={styles.loadingContainer}>
-            <View style={[styles.iconCircle, { backgroundColor: surfaceBg }]}>
+            <View style={[styles.heroIcon, { backgroundColor: surfaceBg }]}>
               <Search size={28} color={textSecondary} strokeWidth={1.8} />
             </View>
             <Text style={[styles.loadingText, { color: textPrimary }]}>
@@ -251,11 +318,11 @@ export function GmailImportSheet() {
               onPress={close}
               style={({ pressed }) => [
                 styles.ctaBtn,
-                { backgroundColor: textPrimary, marginTop: 24, width: '80%' },
+                { backgroundColor: '#000000', marginTop: 24, width: '80%' },
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <Text style={[styles.ctaText, { color: bg }]}>Entendido</Text>
+              <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>Entendido</Text>
             </Pressable>
           </View>
         )}
@@ -286,7 +353,6 @@ export function GmailImportSheet() {
                       toggleSelected(sub.id);
                     }}
                   >
-                    {/* Checkbox */}
                     <View
                       style={[
                         styles.checkbox,
@@ -299,7 +365,6 @@ export function GmailImportSheet() {
                       {isSelected && <Check size={12} color={checkColor} strokeWidth={3} />}
                     </View>
 
-                    {/* Logo */}
                     <View style={[styles.logoBox, { backgroundColor: surfaceBg }]}>
                       {sub.logoUrl ? (
                         <Image source={{ uri: sub.logoUrl }} style={styles.logoImg} resizeMode="contain" />
@@ -310,7 +375,6 @@ export function GmailImportSheet() {
                       )}
                     </View>
 
-                    {/* Info */}
                     <View style={styles.resultInfo}>
                       <Text style={[styles.resultName, { color: textPrimary }]} numberOfLines={1}>
                         {sub.name}
@@ -322,7 +386,6 @@ export function GmailImportSheet() {
                       </Text>
                     </View>
 
-                    {/* Confidence */}
                     <View
                       style={[
                         styles.confidenceBadge,
@@ -347,7 +410,6 @@ export function GmailImportSheet() {
               })}
             </ScrollView>
 
-            {/* Floating import button */}
             <View
               style={[
                 styles.importFooter,
@@ -364,7 +426,7 @@ export function GmailImportSheet() {
                 style={({ pressed }) => [
                   styles.ctaBtn,
                   {
-                    backgroundColor: selected.size > 0 ? textPrimary : uncheckedBg,
+                    backgroundColor: selected.size > 0 ? '#000000' : uncheckedBg,
                   },
                   pressed && { opacity: 0.85 },
                 ]}
@@ -372,7 +434,7 @@ export function GmailImportSheet() {
                 <Text
                   style={[
                     styles.ctaText,
-                    { color: selected.size > 0 ? bg : textSecondary },
+                    { color: selected.size > 0 ? '#FFFFFF' : textSecondary },
                   ]}
                 >
                   {selected.size > 0
@@ -434,17 +496,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  // Hero icon — mail with animated search
+  heroIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  heroSearch: {
+    position: 'absolute',
+  },
+
   // Explain phase
   explainContainer: { flex: 1, justifyContent: 'space-between' },
   explainContent: { paddingHorizontal: 20, paddingTop: 20, alignItems: 'center' },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
   explainTitle: {
     ...fontFamily.bold,
     fontSize: fontSize[20],

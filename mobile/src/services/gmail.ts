@@ -1,47 +1,34 @@
 // Gmail API client — OAuth + message search.
 //
-// Uses expo-auth-session for the Google OAuth implicit grant flow
-// (responseType: "token") so the access token comes back directly
-// without a backend token exchange.
+// Uses expo-auth-session Google provider for the OAuth flow.
+// Requires a real Google Cloud OAuth 2.0 Client ID.
 //
-// The token is short-lived (~1 hour) which is fine — we only need it
-// for a single search session.
+// Setup:
+//   1. Go to console.cloud.google.com → APIs & Services → Credentials
+//   2. Create OAuth 2.0 Client ID (type: "Web application")
+//   3. Add authorized redirect URI: https://auth.expo.io/@carlosprnt/perezoso
+//   4. Enable the Gmail API in APIs & Services → Library
+//   5. Paste the client ID below
 
-import * as AuthSession from 'expo-auth-session';
+import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
 // ── Google OAuth config ─────────────────────────────────────────────
-// Web client ID from Google Cloud Console. The Expo auth proxy handles
-// the redirect so a "Web application" type client ID works on all
-// platforms.
-//
-// Replace with your real client ID from:
-//   console.cloud.google.com → APIs & Services → Credentials
-const GOOGLE_CLIENT_ID =
-  '7ed0ce73-b35a-49c7-90c7-8737f808e530.apps.googleusercontent.com';
+// Web client ID — get yours from Google Cloud Console.
+// iOS client ID — optional, for native Google Sign-In on iOS builds.
+const WEB_CLIENT_ID = ''; // TODO: paste your Web client ID here
+const IOS_CLIENT_ID = ''; // TODO: paste your iOS client ID here (optional)
 
 const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
-};
-
 export function useGmailAuth() {
-  const redirectUri = AuthSession.makeRedirectUri({ preferLocalhost: false });
-
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: GOOGLE_CLIENT_ID,
-      scopes: [GMAIL_SCOPE],
-      responseType: AuthSession.ResponseType.Token,
-      redirectUri,
-    },
-    discovery,
-  );
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: WEB_CLIENT_ID || undefined,
+    iosClientId: IOS_CLIENT_ID || undefined,
+    scopes: [GMAIL_SCOPE],
+  });
 
   return { request, response, promptAsync };
 }
