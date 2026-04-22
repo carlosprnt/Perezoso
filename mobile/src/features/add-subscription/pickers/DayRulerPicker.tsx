@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -8,12 +8,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamily, fontSize } from '../../../design/typography';
 import { haptic } from '../../../lib/haptics';
@@ -99,42 +93,21 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
     [onChange, dates],
   );
 
-  // Blur-fade animation on day/month change
-  const textOpacity = useSharedValue(1);
-  const textScale = useSharedValue(1);
-  const prevDateKey = useRef(`${value.getDate()}-${value.getMonth()}`);
-
-  useEffect(() => {
-    const key = `${value.getDate()}-${value.getMonth()}`;
-    if (key !== prevDateKey.current) {
-      prevDateKey.current = key;
-      textOpacity.value = 0.15;
-      textScale.value = 0.92;
-      textOpacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
-      textScale.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) });
-    }
-  }, [value, textOpacity, textScale]);
-
-  const dateAnimStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-    transform: [{ scale: textScale.value }],
-  }));
-
   const monthName = MONTHS_ES[value.getMonth()];
   const capitalMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   const dateFontSize = compact ? fontSize[32] : fontSize[50];
-  const tickH = compact ? 20 : 32;
-  const indicatorH = compact ? 28 : 48;
-  const rulerH = compact ? 34 : 56;
+  const tickH = compact ? 24 : 44;
+  const indicatorH = compact ? 32 : 56;
+  const rulerH = compact ? 40 : 64;
 
   return (
     <View style={[styles.container, compact && { paddingTop: 2 }]}>
       <Pressable onPress={onTapLabel} style={[styles.dateTapArea, compact && { paddingVertical: 4 }]}>
-        <Animated.View style={[styles.dateRow, dateAnimStyle]}>
+        <View style={styles.dateRow}>
           <Text style={[styles.dayNumber, { fontSize: dateFontSize }]}>{value.getDate()}</Text>
           <Text style={[styles.monthLabel, { fontSize: dateFontSize }]}>{capitalMonth}</Text>
-        </Animated.View>
+        </View>
         <Text style={[styles.renewalLabel, compact && { fontSize: fontSize[13], marginBottom: 12 }]}>
           Próxima renovación
         </Text>
@@ -201,7 +174,7 @@ const styles = StyleSheet.create({
   dateRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 10,
+    gap: 12,
   },
   dayNumber: {
     ...fontFamily.bold,
@@ -224,7 +197,7 @@ const styles = StyleSheet.create({
   },
   rulerWrap: {
     width: '100%',
-    height: 56,
+    height: 64,
   },
   tickCol: {
     width: TICK_W,
@@ -232,7 +205,7 @@ const styles = StyleSheet.create({
   },
   tick: {
     width: 2,
-    height: 32,
+    height: 44,
     backgroundColor: TICK_COLOR,
     borderRadius: 1,
   },
@@ -243,7 +216,7 @@ const styles = StyleSheet.create({
   },
   indicator: {
     width: 3,
-    height: 48,
+    height: 56,
     backgroundColor: '#FF3B30',
     borderRadius: 1.5,
   },

@@ -209,6 +209,7 @@ function PeriodButton({ label, selected, onPress, compact }: { label: string; se
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+  const boxSize = compact ? 20 : 22;
   return (
     <Pressable
       onPress={() => { haptic.selection(); onPress(); }}
@@ -217,7 +218,13 @@ function PeriodButton({ label, selected, onPress, compact }: { label: string; se
       style={{ flex: 1 }}
     >
       <Animated.View style={[styles.periodBtn, compact && { paddingVertical: 10 }, animStyle]}>
-        {selected && <Check size={compact ? 15 : 18} color="#000000" strokeWidth={2.5} />}
+        {selected ? (
+          <View style={[styles.checkboxFilled, { width: boxSize, height: boxSize, borderRadius: boxSize / 4 }]}>
+            <Check size={compact ? 12 : 14} color="#FFFFFF" strokeWidth={3} />
+          </View>
+        ) : (
+          <View style={[styles.checkboxEmpty, { width: boxSize, height: boxSize, borderRadius: boxSize / 4 }]} />
+        )}
         <Text style={[styles.periodBtnText, compact && { fontSize: fontSize[14] }]}>{label}</Text>
       </Animated.View>
     </Pressable>
@@ -871,8 +878,6 @@ export function CreateSubscriptionSheet() {
         visible={renewalDatePickerOpen}
         value={renewalDate}
         title="Próxima renovación"
-        minimumDate={(() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()}
-        maximumDate={(() => { const d = new Date(); d.setHours(0,0,0,0); d.setMonth(d.getMonth() + 2); return d; })()}
         onChange={(d) => setRenewalDate(d)}
         onClose={() => setRenewalDatePickerOpen(false)}
       />
@@ -1000,16 +1005,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderRadius: 20,
     paddingVertical: 18,
+    paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    justifyContent: 'flex-start',
+    gap: 10,
   },
   periodBtnText: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,
+  },
+  checkboxFilled: {
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxEmpty: {
+    borderWidth: 2,
+    borderColor: '#000000',
   },
 
   // iOS-style drag handle — small gray pill anchored to the top of the sheet.
