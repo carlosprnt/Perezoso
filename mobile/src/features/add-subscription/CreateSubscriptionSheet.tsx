@@ -280,6 +280,26 @@ export function CreateSubscriptionSheet() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Step transition animation ─────────────────────────────────────
+  const step1Opacity = useSharedValue(1);
+  const step1TranslateY = useSharedValue(0);
+  const step1Scale = useSharedValue(1);
+  const step2Opacity = useSharedValue(1);
+  const step2Scale = useSharedValue(1);
+
+  const step1AnimStyle = useAnimatedStyle(() => ({
+    opacity: step1Opacity.value,
+    transform: [
+      { translateY: step1TranslateY.value },
+      { scale: step1Scale.value },
+    ],
+  }));
+
+  const step2AnimStyle = useAnimatedStyle(() => ({
+    opacity: step2Opacity.value,
+    transform: [{ scale: step2Scale.value }],
+  }));
+
   // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
   const billingRef = useRef<View>(null);
   const categoryRef = useRef<View>(null);
@@ -308,6 +328,11 @@ export function CreateSubscriptionSheet() {
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
+      step1Opacity.value = 1;
+      step1TranslateY.value = 0;
+      step1Scale.value = 1;
+      step2Opacity.value = 1;
+      step2Scale.value = 1;
     }
   }, [isOpen, prefill]);
 
@@ -441,10 +466,26 @@ export function CreateSubscriptionSheet() {
     doSubmit({ ...form, nextPaymentDate: renewalDate });
   }, [form, renewalDate, doSubmit]);
 
+  const enterStep2 = useCallback(() => {
+    setStep(2);
+    step2Opacity.value = 0;
+    step2Scale.value = 1.03;
+    step2Opacity.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.cubic) });
+    step2Scale.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.cubic) });
+    step1Opacity.value = 1;
+    step1TranslateY.value = 0;
+    step1Scale.value = 1;
+  }, [step1Opacity, step1TranslateY, step1Scale, step2Opacity, step2Scale]);
+
   const goToMoreOptions = useCallback(() => {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
-    setStep(2);
-  }, [renewalDate]);
+    Keyboard.dismiss();
+    step1Opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.quad) });
+    step1TranslateY.value = withTiming(-40, { duration: 180, easing: Easing.in(Easing.quad) });
+    step1Scale.value = withTiming(0.97, { duration: 180, easing: Easing.in(Easing.quad) }, (finished) => {
+      if (finished) runOnJS(enterStep2)();
+    });
+  }, [renewalDate, step1Opacity, step1TranslateY, step1Scale, enterStep2]);
 
   // ─────────────────────────────────────────────────────────────────
   return (
@@ -462,7 +503,7 @@ export function CreateSubscriptionSheet() {
         ]}
       >
           {step === 1 ? (
-            <View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom }]}>
+            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom }, step1AnimStyle]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
@@ -562,8 +603,9 @@ export function CreateSubscriptionSheet() {
                   }
                 </Pressable>
               </View>
-            </View>
+            </Animated.View>
           ) : (
+            <Animated.View style={[{ flex: 1 }, step2AnimStyle]}>
             <KeyboardAvoidingView
               style={{ flex: 1 }}
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -861,6 +903,7 @@ export function CreateSubscriptionSheet() {
               </Pressable>
             </View>
             </KeyboardAvoidingView>
+            </Animated.View>
           )}
       </View>
 
