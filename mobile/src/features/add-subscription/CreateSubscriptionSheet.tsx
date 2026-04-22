@@ -468,10 +468,10 @@ export function CreateSubscriptionSheet() {
 
   const enterStep2 = useCallback(() => {
     step2Opacity.value = 0;
-    step2Scale.value = 1.02;
+    step2Scale.value = 0.99;
     setStep(2);
-    step2Opacity.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
-    step2Scale.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
+    step2Opacity.value = withTiming(1, { duration: 500, easing: Easing.bezierFn(0.25, 0.1, 0.25, 1) });
+    step2Scale.value = withTiming(1, { duration: 500, easing: Easing.bezierFn(0.25, 0.1, 0.25, 1) });
     step1Opacity.value = 1;
     step1TranslateY.value = 0;
     step1Scale.value = 1;
@@ -480,9 +480,9 @@ export function CreateSubscriptionSheet() {
   const goToMoreOptions = useCallback(() => {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
     Keyboard.dismiss();
-    step1Opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.quad) });
-    step1TranslateY.value = withTiming(-40, { duration: 180, easing: Easing.in(Easing.quad) });
-    step1Scale.value = withTiming(0.97, { duration: 180, easing: Easing.in(Easing.quad) }, (finished) => {
+    step1Opacity.value = withTiming(0, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) });
+    step1TranslateY.value = withTiming(-20, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) });
+    step1Scale.value = withTiming(0.98, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) }, (finished) => {
       if (finished) runOnJS(enterStep2)();
     });
   }, [renewalDate, step1Opacity, step1TranslateY, step1Scale, enterStep2]);

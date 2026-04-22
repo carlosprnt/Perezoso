@@ -138,7 +138,7 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
       <View style={[styles.rulerWrap, { height: rulerH }]} onLayout={handleLayout}>
         {halfWidth > 0 && (
           <>
-            <Animated.View style={[{ flexDirection: 'row' }, tickAnimStyle]}>
+            <Animated.View style={[StyleSheet.absoluteFillObject, tickAnimStyle]}>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -148,7 +148,8 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
                 onScroll={handleScroll}
                 contentOffset={{ x: currentIdx * DAY_SPACING, y: 0 }}
                 contentContainerStyle={{
-                  paddingHorizontal: halfWidth - TICK_W / 2,
+                  paddingLeft: halfWidth - TICK_W / 2,
+                  paddingRight: halfWidth,
                   alignItems: 'flex-end',
                 }}
               >
