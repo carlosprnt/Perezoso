@@ -1,12 +1,8 @@
-// PaywallSheet — mobile port of the web's paywall.
+// PaywallSheet — premium paywall bottom sheet.
 //
-// Opened via usePaywallStore.getState().open(trigger). Displays the
-// contextual headline + subhead for the trigger, the shared benefits
-// list, an annual / monthly plan toggle, and a "Continuar con Pro" CTA.
-//
-// Purchase integration is stubbed — tapping "Continuar con Pro" shows
-// an informational alert. RevenueCat wiring can land later behind the
-// same store interface.
+// Opened via usePaywallStore.open(trigger). Structured for maximum
+// conversion clarity: branding → headline → benefits → plans → CTA.
+// Annual plan is visually promoted as the default.
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -17,7 +13,6 @@ import {
   Image,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -37,6 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { haptic } from '../../lib/haptics';
 import { usePaywallStore } from './usePaywallStore';
 import { PAYWALL_BENEFITS, PAYWALL_COPY } from './paywallTriggers';
 import {
@@ -46,28 +42,23 @@ import {
   type RCPackage,
 } from '../../services/purchases';
 
-const LOGO_SOURCE = require('../../../assets/logo.png');
+const LOGO = require('../../../assets/logo.png');
+const { height: SCREEN_H } = Dimensions.get('window');
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Derive the "per month" string shown under the annual plan from the
-// package's numeric price + currency so it stays correct in any
-// storefront. Falls back to a plain two-decimal EUR format if Intl
-// fails on the runtime (some older Hermes builds).
-function formatMonthly(amount: number, currency: string): string {
+function formatPerMonth(amount: number, currency: string): string {
   try {
-    return `${new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-ES', {
       style: 'currency',
       currency,
       maximumFractionDigits: 2,
-    }).format(amount)}/mes`;
+    }).format(amount);
   } catch {
-    return `${amount.toFixed(2)}\u00A0${currency}/mes`;
+    return `${amount.toFixed(2)} ${currency}`;
   }
 }
 
-const ENTER_MS = 300;
-const EXIT_MS = 220;
+const ENTER_MS = 320;
+const EXIT_MS = 240;
 
 type Plan = 'annual' | 'monthly';
 
@@ -83,17 +74,13 @@ export function PaywallSheet() {
   const [purchasing, setPurchasing] = useState(false);
 
   const insets = useSafeAreaInsets();
-  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const translateY = useSharedValue(SCREEN_H);
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
-  // Fetch the current offering whenever the paywall opens. RC caches
-  // internally, so re-opening after the first load is instant.
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    getCurrentOffering().then((o) => {
-      if (!cancelled) setOffering(o);
-    });
+    getCurrentOffering().then((o) => { if (!cancelled) setOffering(o); });
     return () => { cancelled = true; };
   }, [isOpen]);
 
@@ -101,7 +88,7 @@ export function PaywallSheet() {
     if (isOpen) {
       setMounted(true);
       setPlan('annual');
-      translateY.value = SCREEN_HEIGHT;
+      translateY.value = SCREEN_H;
       translateY.value = withTiming(0, { duration: ENTER_MS });
       Animated.timing(backdropOpacity, {
         toValue: 1,
@@ -110,7 +97,7 @@ export function PaywallSheet() {
         useNativeDriver: true,
       }).start();
     } else if (mounted) {
-      translateY.value = withTiming(SCREEN_HEIGHT, { duration: EXIT_MS }, (fin) => {
+      translateY.value = withTiming(SCREEN_H, { duration: EXIT_MS }, (fin) => {
         if (fin) runOnJS(setMounted)(false);
       });
       Animated.timing(backdropOpacity, {
@@ -126,17 +113,14 @@ export function PaywallSheet() {
   const panGesture = Gesture.Pan()
     .onUpdate((e) => {
       'worklet';
-      if (e.translationY > 0) {
-        translateY.value = e.translationY;
-      } else {
-        translateY.value = e.translationY * 0.12;
-      }
+      translateY.value = e.translationY > 0
+        ? e.translationY
+        : e.translationY * 0.12;
     })
     .onEnd((e) => {
       'worklet';
-      const shouldDismiss = e.translationY > 120 || e.velocityY > 700;
-      if (shouldDismiss) {
-        translateY.value = withTiming(SCREEN_HEIGHT, { duration: EXIT_MS });
+      if (e.translationY > 120 || e.velocityY > 700) {
+        translateY.value = withTiming(SCREEN_H, { duration: EXIT_MS });
         runOnJS(close)();
       } else {
         translateY.value = withTiming(0, { duration: 200 });
@@ -149,40 +133,53 @@ export function PaywallSheet() {
 
   if (!mounted) return null;
 
-  // Fallback strings used when the RC SDK isn't loaded yet (Expo Go /
-  // first render before the offering resolves). Keep them aligned with
-  // the dashboard so the layout doesn't jump when real data lands.
+  // ── Pricing data (RC or fallback) ────────────────────────────────
   const annualPkg  = offering?.annual;
   const monthlyPkg = offering?.monthly;
-  const annualPrice  = annualPkg?.product.priceString  ?? '19,99\u20AC / a\u00F1o';
-  const monthlyPrice = monthlyPkg?.product.priceString ?? '2,99\u20AC / mes';
-  // Monthly-equivalent for the annual plan, computed so it stays right
-  // whatever currency RC returns.
-  const annualPerMonth = annualPkg?.product.price
-    ? formatMonthly(annualPkg.product.price / 12, annualPkg.product.currencyCode)
-    : '1,66\u20AC/mes';
 
+  const annualPrice  = annualPkg?.product.priceString  ?? '19,99 €';
+  const monthlyPrice = monthlyPkg?.product.priceString ?? '2,99 €';
+
+  const annualPerMonth = annualPkg?.product.price
+    ? formatPerMonth(annualPkg.product.price / 12, annualPkg.product.currencyCode)
+    : '1,67 €';
+
+  const savingsPercent = (() => {
+    if (annualPkg?.product.price && monthlyPkg?.product.price) {
+      const yearly = monthlyPkg.product.price * 12;
+      return Math.round((1 - annualPkg.product.price / yearly) * 100);
+    }
+    return 44;
+  })();
+
+  // ── Purchase handler ─────────────────────────────────────────────
   const handlePurchase = async () => {
     const pkg: RCPackage | undefined = plan === 'annual' ? annualPkg : monthlyPkg;
     if (!pkg) {
       Alert.alert(
         'No disponible',
-        'Los planes de suscripci\u00F3n a\u00FAn no est\u00E1n configurados. Int\u00E9ntalo m\u00E1s tarde.',
+        'Los planes de suscripción aún no están configurados. Inténtalo más tarde.',
       );
       return;
     }
+    haptic.light();
     setPurchasing(true);
     const res = await purchasePackage(pkg);
     setPurchasing(false);
     if (res.cancelled) return;
     if (!res.ok) {
-      Alert.alert('No se pudo completar la compra', res.error ?? 'Int\u00E9ntalo de nuevo');
+      Alert.alert('No se pudo completar la compra', res.error ?? 'Inténtalo de nuevo');
       return;
     }
-    // The customer-info listener in the subscriptions store flips
-    // isPlusActive automatically — we just close the sheet.
+    haptic.success();
     close();
   };
+
+  const ctaLabel = purchasing
+    ? 'Procesando...'
+    : plan === 'annual'
+      ? 'Elegir plan anual'
+      : 'Elegir plan mensual';
 
   return (
     <Modal
@@ -192,12 +189,9 @@ export function PaywallSheet() {
       animationType="none"
       onRequestClose={close}
     >
+      {/* Backdrop */}
       <Animated.View
-        style={[
-          StyleSheet.absoluteFillObject,
-          styles.backdrop,
-          { opacity: backdropOpacity },
-        ]}
+        style={[StyleSheet.absoluteFillObject, styles.backdrop, { opacity: backdropOpacity }]}
       >
         <Pressable
           style={StyleSheet.absoluteFillObject}
@@ -210,16 +204,16 @@ export function PaywallSheet() {
         <Reanimated.View
           style={[
             styles.sheet,
-            { paddingBottom: Math.max(insets.bottom, 16) + 12 },
+            { paddingBottom: Math.max(insets.bottom, 20) + 8 },
             sheetStyle,
           ]}
         >
+          {/* ── Handle + close ──────────────────────────────── */}
           <GestureDetector gesture={panGesture}>
             <View>
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
               </View>
-
               <View style={styles.closeRow}>
                 <Pressable
                   style={styles.closeBtn}
@@ -228,226 +222,252 @@ export function PaywallSheet() {
                   accessibilityRole="button"
                   accessibilityLabel="Cerrar"
                 >
-                  <X size={15} color="#3C3C43" strokeWidth={2.5} />
+                  <X size={14} color="#3C3C43" strokeWidth={2.5} />
                 </Pressable>
               </View>
             </View>
           </GestureDetector>
 
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Logo + headline */}
-            <View style={styles.headerRow}>
-              <View style={styles.logoBox}>
-                <Image source={LOGO_SOURCE} style={styles.logoImg} resizeMode="cover" />
-              </View>
-              <View style={styles.headerTextCol}>
-                <Text style={styles.brand}>Perezoso Pro</Text>
-                <Text style={styles.headline} numberOfLines={2}>{copy.headline}</Text>
-                <Text style={styles.subheadline} numberOfLines={2}>{copy.subheadline}</Text>
-              </View>
+          {/* ── 1. Branding ─────────────────────────────────── */}
+          <View style={styles.brandingSection}>
+            <View style={styles.logoContainer}>
+              <Image source={LOGO} style={styles.logoImg} resizeMode="cover" />
             </View>
+            <View style={styles.proBadge}>
+              <Text style={styles.proBadgeText}>PRO</Text>
+            </View>
+          </View>
 
-            {/* Benefits */}
-            <View style={styles.benefitsCol}>
-              {PAYWALL_BENEFITS.map((b) => (
-                <View key={b.id} style={styles.benefitRow}>
-                  <View style={styles.benefitDot}>
-                    <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                  </View>
-                  <Text style={styles.benefitText}>{b.text}</Text>
+          {/* ── 2. Headline ─────────────────────────────────── */}
+          <View style={styles.headlineSection}>
+            <Text style={styles.headline}>{copy.headline}</Text>
+            <Text style={styles.subheadline}>{copy.subheadline}</Text>
+          </View>
+
+          {/* ── 3. Benefits ─────────────────────────────────── */}
+          <View style={styles.benefitsSection}>
+            {PAYWALL_BENEFITS.map((b) => (
+              <View key={b.id} style={styles.benefitRow}>
+                <View style={styles.benefitCheck}>
+                  <Check size={10} color="#FFFFFF" strokeWidth={3} />
                 </View>
-              ))}
-            </View>
+                <Text style={styles.benefitText}>{b.text}</Text>
+              </View>
+            ))}
+          </View>
 
-            {/* Plan toggle */}
-            <View style={styles.plansRow}>
-              <PlanCard
-                selected={plan === 'annual'}
-                onPress={() => setPlan('annual')}
-                label="Anual"
-                price={annualPrice}
-                badge="M\u00E1s popular"
-                perMonth={annualPerMonth}
-              />
-              <PlanCard
-                selected={plan === 'monthly'}
-                onPress={() => setPlan('monthly')}
-                label="Mensual"
-                price={monthlyPrice}
-              />
-            </View>
-
-            {/* CTA */}
+          {/* ── 4. Plans ────────────────────────────────────── */}
+          <View style={styles.plansSection}>
+            {/* Annual — recommended */}
             <Pressable
-              onPress={handlePurchase}
-              disabled={purchasing}
-              style={({ pressed }) => [
-                styles.ctaBtn,
-                (pressed || purchasing) && { opacity: 0.85 },
+              onPress={() => { haptic.selection(); setPlan('annual'); }}
+              style={[
+                styles.planCard,
+                plan === 'annual' ? styles.planActive : styles.planIdle,
               ]}
               accessibilityRole="button"
-              accessibilityLabel="Continuar con Pro"
+              accessibilityState={{ selected: plan === 'annual' }}
+              accessibilityLabel="Plan anual"
             >
-              <Text style={styles.ctaText}>
-                {purchasing ? 'Procesando...' : 'Continuar con Pro'}
-              </Text>
+              <View style={styles.planHeader}>
+                <View style={styles.planRadio}>
+                  {plan === 'annual' && <View style={styles.planRadioDot} />}
+                </View>
+                <View style={styles.planInfo}>
+                  <View style={styles.planLabelRow}>
+                    <Text style={[styles.planLabel, plan === 'annual' && styles.planLabelActive]}>
+                      Anual
+                    </Text>
+                    <View style={styles.popularBadge}>
+                      <Text style={styles.popularBadgeText}>Más popular</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.planPrice, plan === 'annual' && styles.planPriceActive]}>
+                    {annualPrice} / año
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.planFooter}>
+                <Text style={styles.planPerMonth}>
+                  {annualPerMonth}/mes
+                </Text>
+                <View style={styles.savingsBadge}>
+                  <Text style={styles.savingsBadgeText}>
+                    Ahorra {savingsPercent}%
+                  </Text>
+                </View>
+              </View>
             </Pressable>
 
-            <Text style={styles.footer}>
-              Cancela en cualquier momento desde Ajustes
-            </Text>
-          </ScrollView>
+            {/* Monthly */}
+            <Pressable
+              onPress={() => { haptic.selection(); setPlan('monthly'); }}
+              style={[
+                styles.planCard,
+                plan === 'monthly' ? styles.planActive : styles.planIdle,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: plan === 'monthly' }}
+              accessibilityLabel="Plan mensual"
+            >
+              <View style={styles.planHeader}>
+                <View style={styles.planRadio}>
+                  {plan === 'monthly' && <View style={styles.planRadioDot} />}
+                </View>
+                <View style={styles.planInfo}>
+                  <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>
+                    Mensual
+                  </Text>
+                  <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>
+                    {monthlyPrice} / mes
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          </View>
+
+          {/* ── 5. CTA ──────────────────────────────────────── */}
+          <Pressable
+            onPress={handlePurchase}
+            disabled={purchasing}
+            style={({ pressed }) => [
+              styles.ctaBtn,
+              (pressed || purchasing) && { opacity: 0.88 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={ctaLabel}
+          >
+            <Text style={styles.ctaText}>{ctaLabel}</Text>
+          </Pressable>
+
+          {/* ── 6. Trust microcopy ──────────────────────────── */}
+          <Text style={styles.trustText}>
+            Cancela cuando quieras desde Ajustes
+          </Text>
         </Reanimated.View>
       </View>
     </Modal>
   );
 }
 
-interface PlanCardProps {
-  selected: boolean;
-  onPress: () => void;
-  label: string;
-  price: string;
-  badge?: string;
-  perMonth?: string;
-}
-
-function PlanCard({ selected, onPress, label, price, badge, perMonth }: PlanCardProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.planCard,
-        selected ? styles.planCardSelected : styles.planCardIdle,
-        pressed && { opacity: 0.85 },
-      ]}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      accessibilityLabel={label}
-    >
-      <Text style={styles.planLabel}>{label}</Text>
-      <Text style={styles.planPrice}>{price}</Text>
-      {perMonth ? <Text style={styles.planPerMonth}>{perMonth}</Text> : null}
-      {badge && (
-        <View style={styles.planBadge}>
-          <Text style={styles.planBadgeText}>{badge}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
+// ── Styles ──────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   sheetWrap: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
-    maxHeight: SCREEN_HEIGHT * 0.92,
+    maxHeight: SCREEN_H * 0.92,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 20,
-    paddingTop: 4,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 24,
     shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: -8 },
-    elevation: 28,
+    shadowOpacity: 0.18,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: -10 },
+    elevation: 32,
   },
 
+  // Handle + close
   handleWrap: {
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 4,
   },
   handle: {
-    width: 40,
+    width: 36,
     height: 5,
     borderRadius: 9999,
-    backgroundColor: '#D4D4D4',
+    backgroundColor: '#D8D8DC',
   },
   closeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingTop: 4,
-    paddingBottom: 2,
+    paddingTop: 2,
+    paddingBottom: 0,
   },
   closeBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  scroll: { flexGrow: 0 },
-  scrollContent: {
-    paddingTop: 4,
-    paddingBottom: 12,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
+  // 1. Branding
+  brandingSection: {
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 22,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  logoBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  logoContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F2F2F7',
+    marginBottom: 8,
   },
   logoImg: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
   },
-  headerTextCol: {
-    flex: 1,
+  proBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
   },
-  brand: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[13],
-    color: '#616161',
-    letterSpacing: -0.05,
-    marginBottom: 2,
+  proBadgeText: {
+    ...fontFamily.bold,
+    fontSize: 11,
+    color: '#FFFFFF',
+    letterSpacing: 1.5,
+  },
+
+  // 2. Headline
+  headlineSection: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 4,
   },
   headline: {
     ...fontFamily.bold,
-    fontSize: fontSize[18],
+    fontSize: fontSize[24],
     color: '#000000',
-    letterSpacing: -0.2,
-    lineHeight: fontSize[18] * 1.2,
+    textAlign: 'center',
+    letterSpacing: -0.4,
+    lineHeight: fontSize[24] * 1.2,
+    marginBottom: 10,
   },
   subheadline: {
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    color: '#616161',
-    letterSpacing: -0.05,
-    lineHeight: fontSize[13] * 1.3,
-    marginTop: 2,
+    fontSize: fontSize[15],
+    color: '#6B6B6B',
+    textAlign: 'center',
+    lineHeight: fontSize[15] * 1.45,
+    letterSpacing: -0.1,
+    paddingHorizontal: 4,
   },
 
-  benefitsCol: {
-    gap: 10,
-    marginBottom: 22,
+  // 3. Benefits
+  benefitsSection: {
+    gap: 12,
+    paddingBottom: 24,
   },
   benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  benefitDot: {
+  benefitCheck: {
     width: 20,
     height: 20,
     borderRadius: 9999,
@@ -456,83 +476,141 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   benefitText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
-    color: '#000000',
+    color: '#1A1A1A',
     letterSpacing: -0.1,
     flex: 1,
   },
 
-  plansRow: {
-    flexDirection: 'row',
+  // 4. Plans
+  plansSection: {
     gap: 10,
-    marginBottom: 16,
+    paddingBottom: 20,
   },
   planCard: {
-    flex: 1,
     borderRadius: 16,
     borderWidth: 2,
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  planCardIdle: {
+  planActive: {
+    borderColor: '#000000',
+    backgroundColor: '#FAFAFA',
+  },
+  planIdle: {
     borderColor: '#E8E8E8',
     backgroundColor: '#FFFFFF',
   },
-  planCardSelected: {
-    borderColor: '#000000',
-    backgroundColor: '#F5F5F5',
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  planBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 9999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginTop: 6,
+  planRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#D4D4D4',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  planBadgeText: {
-    ...fontFamily.semibold,
-    fontSize: 10,
-    color: '#000000',
-    letterSpacing: 0,
+  planRadioDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#000000',
+  },
+  planInfo: {
+    flex: 1,
+  },
+  planLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   planLabel: {
     ...fontFamily.semibold,
-    fontSize: fontSize[13],
+    fontSize: fontSize[16],
+    color: '#8E8E93',
+    letterSpacing: -0.1,
+  },
+  planLabelActive: {
     color: '#000000',
   },
   planPrice: {
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    color: '#000000',
+    fontSize: fontSize[14],
+    color: '#8E8E93',
     marginTop: 2,
+  },
+  planPriceActive: {
+    color: '#4A4A4A',
+  },
+
+  popularBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  popularBadgeText: {
+    ...fontFamily.semibold,
+    fontSize: 10,
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+
+  planFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E8E8E8',
+    marginLeft: 34,
   },
   planPerMonth: {
     ...fontFamily.regular,
+    fontSize: fontSize[13],
+    color: '#6B6B6B',
+  },
+  savingsBadge: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  savingsBadgeText: {
+    ...fontFamily.semibold,
     fontSize: 11,
-    color: '#616161',
-    marginTop: 2,
+    color: '#16A34A',
+    letterSpacing: 0.1,
   },
 
+  // 5. CTA
   ctaBtn: {
-    height: 52,
+    height: 54,
     borderRadius: 9999,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
   },
   ctaText: {
     ...fontFamily.semibold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
-    letterSpacing: -0.1,
+    letterSpacing: -0.15,
   },
-  footer: {
+
+  // 6. Trust
+  trustText: {
     ...fontFamily.regular,
-    fontSize: 11,
-    color: '#8E8E93',
+    fontSize: 12,
+    color: '#AEAEB2',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 12,
   },
 });
