@@ -12,6 +12,7 @@
 // in the app (e.g. filters) without importing any sheet-specific flags.
 
 import { create } from 'zustand';
+import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 
 // ─── Settings sheet ──────────────────────────────────────────────────
 
@@ -87,7 +88,18 @@ export const useTagsStore = create<TagsStore>((set) => ({
       };
     }),
   removeTag: (id) =>
-    set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
+    set((s) => {
+      const tag = s.tags.find((t) => t.id === id);
+      if (tag) {
+        const subStore = useSubscriptionsStore.getState();
+        subStore.subscriptions
+          .filter((sub) => sub.category === tag.name)
+          .forEach((sub) => {
+            subStore.updateSubscription({ ...sub, category: 'other' });
+          });
+      }
+      return { tags: s.tags.filter((t) => t.id !== id) };
+    }),
 }));
 
 // ─── Demo preset sheet (open/close) ──────────────────────────────────
