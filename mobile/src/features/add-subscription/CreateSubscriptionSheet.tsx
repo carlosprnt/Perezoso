@@ -412,13 +412,19 @@ export function CreateSubscriptionSheet() {
                 </View>
               )}
 
-              <View style={styles.quickBody}>
+              <ScrollView
+                style={styles.quickBody}
+                contentContainerStyle={styles.quickBodyContent}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                showsVerticalScrollIndicator={false}
+              >
                 <View style={styles.quickInputCard}>
                   <TextInput
                     style={styles.quickNameInput}
                     value={form.name}
                     onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
-                    placeholder="Nombre de suscripción"
+                    placeholder="Suscripción"
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
                     autoCorrect={false}
@@ -451,7 +457,7 @@ export function CreateSubscriptionSheet() {
                   onChange={setRenewalDate}
                   onTapLabel={() => setRenewalDatePickerOpen(true)}
                 />
-              </View>
+              </ScrollView>
 
               <View style={styles.footer}>
                 <Pressable
@@ -878,6 +884,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
+  quickBodyContent: {
+    flexGrow: 1,
+  },
   quickInputCard: {
     backgroundColor: '#F2F2F7',
     borderRadius: 20,
@@ -887,37 +896,37 @@ const styles = StyleSheet.create({
   },
   quickNameInput: {
     ...fontFamily.bold,
-    fontSize: fontSize[45],
+    fontSize: fontSize[32],
     color: '#000000',
-    letterSpacing: -1,
-    marginBottom: 16,
+    letterSpacing: -0.6,
+    marginBottom: 14,
     padding: 0,
   },
   quickPriceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
   quickCurrencyPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: '#E5E5EA',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   quickCurrencyText: {
     ...fontFamily.semibold,
-    fontSize: fontSize[24],
+    fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.2,
   },
   quickPriceInput: {
     ...fontFamily.semibold,
-    fontSize: fontSize[45],
+    fontSize: fontSize[32],
     color: '#000000',
-    letterSpacing: -1,
+    letterSpacing: -0.6,
     padding: 0,
     flex: 1,
   },

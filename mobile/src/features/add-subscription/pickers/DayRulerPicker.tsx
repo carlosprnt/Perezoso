@@ -178,10 +178,10 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   monthLabel: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[24],
+    ...fontFamily.bold,
+    fontSize: fontSize[50],
     color: '#000000',
-    letterSpacing: -0.4,
+    letterSpacing: -2,
   },
   renewalLabel: {
     ...fontFamily.medium,
