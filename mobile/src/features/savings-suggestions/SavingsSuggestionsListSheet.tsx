@@ -210,7 +210,6 @@ export function SavingsSuggestionsListSheet() {
                 {hasLockedSuggestions && (
                   <Pressable
                     onPress={() => {
-                      closeList();
                       usePaywallStore.getState().open('savings_recommendations');
                     }}
                     style={({ pressed }) => [

@@ -79,7 +79,7 @@ interface ReminderItem {
 interface ReminderCardsProps {
   annualCount: number;
   savingsCount: number;
-  onActivateReminder?: () => void;
+  onActivateReminder?: () => boolean;
   onViewSavings?: () => void;
 }
 
@@ -327,8 +327,8 @@ export function ReminderCards({
     // stays hidden until a new annual sub is added (see
     // subscriptionsStore.addSubscription clearing this id).
     const handleReminderCta = () => {
-      onActivateReminder?.();
-      dismiss('reminder');
+      const activated = onActivateReminder?.() ?? true;
+      if (activated) dismiss('reminder');
     };
     allItems.push({
       id: 'reminder',
