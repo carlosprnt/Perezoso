@@ -31,6 +31,7 @@ import Animated, {
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 
 // ─── Palette (colocated — kept tight, iOS-literal) ──────────────────
 const C = {
@@ -454,7 +455,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 52,
     height: 52,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -511,7 +512,7 @@ const styles = StyleSheet.create({
   subBtn: {
     height: 38,
     paddingHorizontal: 16,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',

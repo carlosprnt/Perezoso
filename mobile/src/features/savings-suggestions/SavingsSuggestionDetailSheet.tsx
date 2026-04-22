@@ -41,6 +41,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sparkles, X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { shadows } from '../../design/shadows';
 import { SETTINGS_PALETTE as C } from '../settings/components';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
 import type { SavingsSuggestion } from './deriveSuggestions';
@@ -303,11 +305,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingHorizontal: 18,
     paddingTop: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 24,
+    ...shadows.sheet,
   },
 
   // Header
@@ -319,7 +317,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#D4D4D4',
   },
   header: {
@@ -409,7 +407,7 @@ const styles = StyleSheet.create({
   savingsIcon: {
     width: 40,
     height: 40,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#C9EAD0',
     alignItems: 'center',
     justifyContent: 'center',

@@ -54,6 +54,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, Tag as TagIcon, X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { shadows } from '../../design/shadows';
 import {
   IconTile,
   SETTINGS_PALETTE as C,
@@ -333,12 +335,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingHorizontal: 18,
     paddingTop: 6,
-    // iOS-style upward shadow
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 24,
+    ...shadows.sheet,
   },
 
   handleWrap: {
@@ -349,7 +346,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#D4D4D4',
   },
 

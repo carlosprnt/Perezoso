@@ -51,6 +51,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { revealProgress } from './useDashboardReveal';
 import { fontFamily } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

@@ -64,6 +64,18 @@ export const shadows = {
 
   /** Bottom sheet top edge — 0 -12px 40px rgba(0,0,0,0.22) */
   sheetTop: shadow(0, -12, 40, '#000000', 0.22, 16),
+
+  /** Standard bottom sheet — direct style (not Platform.select) for sheets
+   *  that set shadowColor/shadowOpacity/shadowRadius/shadowOffset/elevation
+   *  verbatim (the shadow() helper halves blurRadius for iOS, but these
+   *  sheets already use the raw iOS values). */
+  sheet: {
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 24,
+  } as ShadowStyle,
 } as const;
 
 export type ShadowToken = keyof typeof shadows;

@@ -37,6 +37,7 @@ import {
 } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
 import { useGmailImportStore } from './useGmailImportStore';
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
 
   handleWrap: { alignItems: 'center', paddingTop: 10, paddingBottom: 4 },
-  handle: { width: 40, height: 5, borderRadius: 9999 },
+  handle: { width: 40, height: 5, borderRadius: radius.full },
 
   headerRow: {
     flexDirection: 'row',
@@ -595,7 +596,7 @@ const styles = StyleSheet.create({
 
   ctaBtn: {
     height: 52,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },

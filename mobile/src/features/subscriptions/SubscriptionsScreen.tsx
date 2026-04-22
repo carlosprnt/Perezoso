@@ -423,7 +423,7 @@ export function SubscriptionsScreen() {
       height: h,
       width: w,
       opacity: interpolate(progress, [0, 0.08], [0, 1], Extrapolation.CLAMP),
-      borderRadius: 9999,
+      borderRadius: radius.full,
       transform: [{ translateY: interpolate(progress, [0, 1], [0, 40], Extrapolation.CLAMP) }],
       backgroundColor: `rgb(${bg},${bg},${bg})`,
     };

@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   primaryBtn: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 9999,
+    borderRadius: radius.full,
   },
   primaryBtnText: {
     ...fontFamily.bold,

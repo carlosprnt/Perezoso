@@ -16,54 +16,13 @@ import { shadows } from '../../design/shadows';
 import { LogoAvatar } from '../../components/LogoAvatar';
 import { Pressable } from '../../components/Pressable';
 import { haptic } from '../../lib/haptics';
+import { formatPrice, billingLabel, daysUntilDate, renewalText, formatBillingDate } from '../../lib/formatting';
 import type { Subscription } from './types';
 import { CATEGORY_LABELS, STATUS_LABELS } from './types';
 
 interface WalletCardProps {
   subscription: Subscription;
   onPress?: () => void;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  const parts = amount.toFixed(2).split('.');
-  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  const decPart = parts[1];
-  const symbol = currency === 'US$' ? 'US$' : '\u20AC';
-  return `${intPart},${decPart}${symbol}`;
-}
-
-function billingLabel(period: string): string {
-  switch (period) {
-    case 'monthly': return 'Mes';
-    case 'yearly': return 'Año';
-    case 'quarterly': return 'Trimestre';
-    case 'weekly': return 'Semana';
-    default: return '';
-  }
-}
-
-function daysUntilDate(dateStr: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr);
-  target.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.ceil((target.getTime() - today.getTime()) / 86400000));
-}
-
-function renewalText(days: number): string {
-  if (days === 0) return 'Hoy';
-  if (days === 1) return 'Mañana';
-  return `En ${days} días`;
-}
-
-const MONTHS_ES_SHORT = [
-  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
-];
-
-function formatBillingDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getDate()} ${MONTHS_ES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 /** Billing progress: fraction of the billing cycle elapsed */

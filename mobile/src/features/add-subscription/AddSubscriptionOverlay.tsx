@@ -58,6 +58,7 @@ import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { useGmailImportStore } from './useGmailImportStore';
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { zIndex } from '../../design/zIndex';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import { haptic } from '../../lib/haptics';
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.28)',
   },
   // ── Header ──────────────────────────────────────────────
@@ -502,7 +503,7 @@ const styles = StyleSheet.create({
   footerBtnSecondary: {
     flex: 1,
     height: 48,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.10)',
     flexDirection: 'row',
     alignItems: 'center',
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
   footerBtnPrimary: {
     flex: 1,
     height: 48,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',

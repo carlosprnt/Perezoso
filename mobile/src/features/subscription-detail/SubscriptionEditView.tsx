@@ -27,6 +27,7 @@ import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionM
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
 import { CATEGORY_PICKER } from './helpers';
+import { formatDate } from '../../lib/formatting';
 import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePickerSheet';
 import { useTagsStore } from '../settings/useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -97,10 +98,6 @@ const STATUS_KEY_TO_LABEL: Record<string, StatusLabel> = {
 
 const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
 
-const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-function formatDate(d: Date): string {
-  return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
-}
 function nextYear(d: Date): Date {
   return new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
 }

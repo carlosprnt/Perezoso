@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   dot: {
     width: 10,
     height: 10,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     flexShrink: 0,
   },
   catName: {

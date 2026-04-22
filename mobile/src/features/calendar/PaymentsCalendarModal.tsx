@@ -38,6 +38,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../design/useTheme';
 import { fontFamily } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { shadows } from '../../design/shadows';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { formatAmount } from '../subscription-detail/helpers';
@@ -393,11 +395,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 24,
+    ...shadows.sheet,
     overflow: 'hidden',
   },
   sheetBody: {
@@ -414,7 +412,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
   },
   headerPad: {
     paddingTop: 6,

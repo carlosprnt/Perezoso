@@ -34,6 +34,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings, Share2, LogOut } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { ThemeToggleButton } from '../../components/ThemeToggleButton';
 import { GlowBorder } from '../settings/components';
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
   plusBtn: {
     height: 40,
     paddingHorizontal: 20,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     justifyContent: 'center',

@@ -36,6 +36,7 @@ import { X } from 'lucide-react-native';
 
 import { useTheme } from '../design/useTheme';
 import { fontFamily, fontSize } from '../design/typography';
+import { radius } from '../design/radius';
 import { decelerate, swipeDismiss, snapBack } from '../motion/easing';
 import { duration, velocity as vel } from '../motion/timing';
 
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    borderRadius: 9999,
+    borderRadius: radius.full,
   },
   header: {
     flexDirection: 'row',

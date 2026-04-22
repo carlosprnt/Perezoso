@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   },
   ctaBtn: {
     height: 36,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,

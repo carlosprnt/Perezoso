@@ -34,6 +34,7 @@ import {
 import { haptic } from '../../lib/haptics';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { useTheme } from '../../design/useTheme';
 import {
   DestructiveCard,
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
   },
   header: {
     flexDirection: 'row',

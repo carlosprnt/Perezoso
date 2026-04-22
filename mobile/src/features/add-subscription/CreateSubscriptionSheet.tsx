@@ -38,10 +38,12 @@ import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useTagsStore } from '../settings/useSettingsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
+import { formatDate } from '../../lib/formatting';
 import type {
   BillingPeriod as SubBillingPeriod,
   Category as SubCategory,
@@ -129,11 +131,6 @@ const BASE_CATEGORIES = [
 ];
 const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada', 'Finalizado'];
 const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
-const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-
-function formatDate(d: Date): string {
-  return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
-}
 function nextMonth(d: Date): Date {
   const n = new Date(d);
   n.setMonth(n.getMonth() + 1);
@@ -771,7 +768,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#D4D4D4',
   },
 
@@ -904,7 +901,7 @@ const styles = StyleSheet.create({
 
   datePill: {
     backgroundColor: '#F2F2F7',
-    borderRadius: 9999,
+    borderRadius: radius.full,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -1011,7 +1008,7 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     height: 52,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     borderWidth: 1.5,
     borderColor: '#E5E5EA',
     backgroundColor: '#FFFFFF',
@@ -1027,7 +1024,7 @@ const styles = StyleSheet.create({
   createBtn: {
     flex: 2,
     height: 52,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',

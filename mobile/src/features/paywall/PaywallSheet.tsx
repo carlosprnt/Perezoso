@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, X } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { usePaywallStore } from './usePaywallStore';
 import { PAYWALL_BENEFITS, PAYWALL_COPY } from './paywallTriggers';
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 36,
     height: 5,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#D8D8DC',
   },
   closeRow: {
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
   benefitCheck: {
     width: 20,
     height: 20,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
@@ -573,7 +574,7 @@ const styles = StyleSheet.create({
 
   popularBadge: {
     backgroundColor: '#000000',
-    borderRadius: 9999,
+    borderRadius: radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
   },
   savingsBadge: {
     backgroundColor: '#ECFDF5',
-    borderRadius: 9999,
+    borderRadius: radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
@@ -615,7 +616,7 @@ const styles = StyleSheet.create({
   // 5. CTA
   ctaBtn: {
     height: 54,
-    borderRadius: 9999,
+    borderRadius: radius.full,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
