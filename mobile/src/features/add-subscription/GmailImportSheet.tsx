@@ -7,9 +7,8 @@
 //   2. loading  — OAuth + Gmail search in progress
 //   3. results  — list of detected subscriptions with select/deselect
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Modal,
@@ -41,7 +40,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
 import { useGmailImportStore } from './useGmailImportStore';
-import { useGmailAuth, searchSubscriptionEmails } from '../../services/gmail';
+import { promptGmailAuth, searchSubscriptionEmails } from '../../services/gmail';
 import { detectSubscriptions } from './gmailDetection';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useToastStore } from '../../components/useToastStore';
@@ -123,45 +122,26 @@ export function GmailImportSheet() {
   const setResults = useGmailImportStore((s) => s.setResults);
   const toggleSelected = useGmailImportStore((s) => s.toggleSelected);
 
-  const { request, response, promptAsync } = useGmailAuth();
-  const searchTriggered = useRef(false);
-
-  useEffect(() => {
-    if (
-      response?.type === 'success' &&
-      response.authentication?.accessToken &&
-      !searchTriggered.current
-    ) {
-      searchTriggered.current = true;
-      const token = response.authentication.accessToken;
-      setPhase('loading');
-
-      searchSubscriptionEmails(token)
-        .then((messages) => {
-          const detected = detectSubscriptions(messages);
-          setResults(detected);
-        })
-        .catch((err) => {
-          console.error('[GmailImport] search error:', err);
-          Alert.alert('Error', 'No se pudo buscar en Gmail. Inténtalo de nuevo.');
-          close();
-        });
-    }
-  }, [response, setPhase, setResults, close]);
-
-  useEffect(() => {
-    if (!isOpen) searchTriggered.current = false;
-  }, [isOpen]);
-
   const handleContinue = useCallback(async () => {
-    if (!request) {
-      Alert.alert('Error', 'Google Sign-In no está disponible en este momento.');
-      return;
-    }
     haptic.light();
     setPhase('loading');
-    await promptAsync();
-  }, [request, promptAsync, setPhase]);
+
+    try {
+      const token = await promptGmailAuth();
+      if (!token) {
+        setPhase('explain');
+        return;
+      }
+
+      const messages = await searchSubscriptionEmails(token);
+      const detected = detectSubscriptions(messages);
+      setResults(detected);
+    } catch (err) {
+      console.error('[GmailImport] error:', err);
+      Alert.alert('Error', 'No se pudo buscar en Gmail. Inténtalo de nuevo.');
+      setPhase('explain');
+    }
+  }, [setPhase, setResults]);
 
   const handleImport = useCallback(async () => {
     const toImport = results.filter((r) => selected.has(r.id));
@@ -271,11 +251,10 @@ export function GmailImportSheet() {
             <View style={[styles.explainFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
               <Pressable
                 onPress={handleContinue}
-                disabled={!request}
                 style={({ pressed }) => [
                   styles.ctaBtn,
                   { backgroundColor: '#000000' },
-                  (pressed || !request) && { opacity: 0.85 },
+                  pressed && { opacity: 0.85 },
                 ]}
               >
                 <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>

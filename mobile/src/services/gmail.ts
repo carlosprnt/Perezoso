@@ -1,22 +1,16 @@
 // Gmail API client — OAuth + message search.
 //
-// Uses expo-auth-session Google provider for the OAuth flow.
-// Requires a real Google Cloud OAuth 2.0 Client ID.
-//
-// Setup:
-//   1. Go to console.cloud.google.com → APIs & Services → Credentials
-//   2. Create OAuth 2.0 Client ID (type: "Web application")
-//   3. Add authorized redirect URI: https://auth.expo.io/@carlosprnt/perezoso
-//   4. Enable the Gmail API in APIs & Services → Library
-//   5. Paste the client ID below
+// Uses expo-auth-session imperatively (no hooks, no module-level side
+// effects) so it doesn't interfere with the main Supabase auth flow.
+// The auth session is only created when the user explicitly taps
+// "Conectar y buscar suscripciones".
 
 import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 
-WebBrowser.maybeCompleteAuthSession();
-
+// ── Google OAuth config ─────────────────────────────────────────────
+// Web client ID from Google Cloud Console (type: "Web application").
+// Add redirect URI: https://auth.expo.io/@carlosprnt/perezoso
 const WEB_CLIENT_ID = '';
-const IOS_CLIENT_ID = '';
 
 const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 
@@ -26,27 +20,23 @@ const discovery: AuthSession.DiscoveryDocument = {
   revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
 };
 
-export function useGmailAuth() {
-  const clientId = WEB_CLIENT_ID || IOS_CLIENT_ID;
+export async function promptGmailAuth(): Promise<string | null> {
+  if (!WEB_CLIENT_ID) return null;
+
   const redirectUri = AuthSession.makeRedirectUri({ preferLocalhost: false });
+  const request = new AuthSession.AuthRequest({
+    clientId: WEB_CLIENT_ID,
+    scopes: [GMAIL_SCOPE],
+    responseType: AuthSession.ResponseType.Token,
+    redirectUri,
+  });
 
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    clientId
-      ? {
-          clientId,
-          scopes: [GMAIL_SCOPE],
-          responseType: AuthSession.ResponseType.Token,
-          redirectUri,
-        }
-      : { clientId: 'placeholder', scopes: [], redirectUri },
-    discovery,
-  );
+  const result = await request.promptAsync(discovery);
 
-  return {
-    request: clientId ? request : null,
-    response,
-    promptAsync,
-  };
+  if (result.type === 'success' && result.authentication?.accessToken) {
+    return result.authentication.accessToken;
+  }
+  return null;
 }
 
 // ── Gmail API types ─────────────────────────────────────────────────
