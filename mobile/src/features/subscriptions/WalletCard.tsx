@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Lock } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
@@ -180,6 +181,73 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
     </Pressable>
   );
 }
+
+export const FREE_SUBSCRIPTION_LIMIT = 15;
+
+interface LockedWalletCardProps {
+  subscription: Subscription;
+  onPress?: () => void;
+}
+
+export function LockedWalletCard({ subscription: sub, onPress }: LockedWalletCardProps) {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <Pressable
+      onPress={() => { haptic.selection(); onPress?.(); }}
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? '#1C1C1E' : '#F8F8FA',
+          borderColor: isDark ? '#2C2C2E' : '#E8E8E8',
+        },
+        shadows.cardSm,
+      ]}
+    >
+      <View style={styles.topRow}>
+        <View style={lockedStyles.avatarWrap}>
+          <LogoAvatar name={sub.name} logoUrl={sub.logo_url} size="lg" />
+          <View style={[lockedStyles.avatarOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)' }]} />
+        </View>
+        <View style={styles.info}>
+          <Text
+            style={[styles.name, { color: isDark ? '#48484A' : '#AEAEB2' }]}
+            numberOfLines={1}
+          >
+            {sub.name}
+          </Text>
+          <Text style={[styles.category, { color: isDark ? '#3A3A3C' : '#C7C7CC' }]}>
+            Suscripción bloqueada
+          </Text>
+        </View>
+        <Lock size={18} color={isDark ? '#48484A' : '#AEAEB2'} strokeWidth={2.2} />
+      </View>
+      <View style={lockedStyles.ctaRow}>
+        <Text style={[lockedStyles.ctaText, { color: isDark ? '#8E8E93' : '#6B6B6B' }]}>
+          Hazte Pro para desbloquear
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const lockedStyles = StyleSheet.create({
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatarOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 9999,
+  },
+  ctaRow: {
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  ctaText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+  },
+});
 
 const styles = StyleSheet.create({
   card: {

@@ -44,7 +44,8 @@ import { haptic } from '../../lib/haptics';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
 
-import { WalletCard } from './WalletCard';
+import { WalletCard, LockedWalletCard, FREE_SUBSCRIPTION_LIMIT } from './WalletCard';
+import { usePaywallStore } from '../paywall/usePaywallStore';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -310,6 +311,7 @@ export function SubscriptionsScreen() {
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const openCalendar = useCalendarStore((s) => s.open);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const storeLoading = useSubscriptionsStore((s) => s.loading);
   const isFirstLoad = storeLoading && subscriptions.length === 0;
   const scrollY = useSharedValue(0);
@@ -373,6 +375,14 @@ export function SubscriptionsScreen() {
       setPeriodLoading(false);
     }, PERIOD_TOGGLE_MS);
   }, [periodLoading]);
+
+  const lockedIds = useMemo(() => {
+    if (isPlusActive || subscriptions.length <= FREE_SUBSCRIPTION_LIMIT) return new Set<string>();
+    const byCreation = [...subscriptions].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+    return new Set(byCreation.slice(FREE_SUBSCRIPTION_LIMIT).map((s) => s.id));
+  }, [subscriptions, isPlusActive]);
 
   const filtered = useMemo(() => {
     let subs = subscriptions;
@@ -680,7 +690,14 @@ export function SubscriptionsScreen() {
               triggerY={triggerY}
               stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
             >
-              <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
+              {lockedIds.has(sub.id) ? (
+                <LockedWalletCard
+                  subscription={sub}
+                  onPress={() => usePaywallStore.getState().open('subscription_limit')}
+                />
+              ) : (
+                <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
+              )}
             </ScrollCard>
           ))}
 
