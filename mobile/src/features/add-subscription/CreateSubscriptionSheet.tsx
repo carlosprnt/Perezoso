@@ -204,7 +204,7 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
 }
 
 // ─── Period button with spring bounce ───────────────────────────────
-function PeriodButton({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+function PeriodButton({ label, selected, onPress, compact }: { label: string; selected: boolean; onPress: () => void; compact?: boolean }) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -216,9 +216,9 @@ function PeriodButton({ label, selected, onPress }: { label: string; selected: b
       onPressOut={() => { scale.value = withSpring(1, { damping: 8, stiffness: 200 }); }}
       style={{ flex: 1 }}
     >
-      <Animated.View style={[styles.periodBtn, animStyle]}>
-        {selected && <Check size={18} color="#000000" strokeWidth={2.5} />}
-        <Text style={styles.periodBtnText}>{label}</Text>
+      <Animated.View style={[styles.periodBtn, compact && { paddingVertical: 10 }, animStyle]}>
+        {selected && <Check size={compact ? 15 : 18} color="#000000" strokeWidth={2.5} />}
+        <Text style={[styles.periodBtnText, compact && { fontSize: fontSize[14] }]}>{label}</Text>
       </Animated.View>
     </Pressable>
   );
@@ -467,6 +467,7 @@ export function CreateSubscriptionSheet() {
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
                     autoCorrect={false}
+                    autoFocus
                   />
                   <View style={styles.quickPriceRow}>
                     <Pressable
@@ -495,11 +496,13 @@ export function CreateSubscriptionSheet() {
                     label="Mes"
                     selected={form.billingPeriod === 'Monthly'}
                     onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Monthly' }))}
+                    compact={kbHeight > 0}
                   />
                   <PeriodButton
                     label="Año"
                     selected={form.billingPeriod === 'Yearly'}
                     onPress={() => setForm((f) => ({ ...f, billingPeriod: 'Yearly' }))}
+                    compact={kbHeight > 0}
                   />
                 </View>
 
@@ -509,6 +512,7 @@ export function CreateSubscriptionSheet() {
                   value={renewalDate}
                   onChange={setRenewalDate}
                   onTapLabel={() => setRenewalDatePickerOpen(true)}
+                  compact={kbHeight > 0}
                 />
               </ScrollView>
 

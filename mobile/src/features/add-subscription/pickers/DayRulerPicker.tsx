@@ -21,9 +21,6 @@ import { haptic } from '../../../lib/haptics';
 const TICKS_PER_DAY = 4;
 const TICK_W = 8;
 const DAY_SPACING = TICKS_PER_DAY * TICK_W;
-
-const TICK_HEIGHT = 32;
-const TICK_THICKNESS = 2;
 const TICK_COLOR = '#C7C7CC';
 const FADE_WIDTH = 80;
 
@@ -69,9 +66,10 @@ interface Props {
   value: Date;
   onChange: (date: Date) => void;
   onTapLabel?: () => void;
+  compact?: boolean;
 }
 
-export function DayRulerPicker({ value, onChange, onTapLabel }: Props) {
+export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }: Props) {
   const prevIdx = useRef(0);
   const [halfWidth, setHalfWidth] = useState(0);
 
@@ -125,17 +123,24 @@ export function DayRulerPicker({ value, onChange, onTapLabel }: Props) {
   const monthName = MONTHS_ES[value.getMonth()];
   const capitalMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
+  const dateFontSize = compact ? fontSize[32] : fontSize[50];
+  const tickH = compact ? 20 : 32;
+  const indicatorH = compact ? 28 : 48;
+  const rulerH = compact ? 34 : 56;
+
   return (
-    <View style={styles.container}>
-      <Pressable onPress={onTapLabel} style={styles.dateTapArea}>
+    <View style={[styles.container, compact && { paddingTop: 2 }]}>
+      <Pressable onPress={onTapLabel} style={[styles.dateTapArea, compact && { paddingVertical: 4 }]}>
         <Animated.View style={[styles.dateRow, dateAnimStyle]}>
-          <Text style={styles.dayNumber}>{value.getDate()}</Text>
-          <Text style={styles.monthLabel}>{capitalMonth}</Text>
+          <Text style={[styles.dayNumber, { fontSize: dateFontSize }]}>{value.getDate()}</Text>
+          <Text style={[styles.monthLabel, { fontSize: dateFontSize }]}>{capitalMonth}</Text>
         </Animated.View>
-        <Text style={styles.renewalLabel}>Próxima renovación</Text>
+        <Text style={[styles.renewalLabel, compact && { fontSize: fontSize[13], marginBottom: 12 }]}>
+          Próxima renovación
+        </Text>
       </Pressable>
 
-      <View style={styles.rulerWrap} onLayout={handleLayout}>
+      <View style={[styles.rulerWrap, { height: rulerH }]} onLayout={handleLayout}>
         {halfWidth > 0 && (
           <>
             <ScrollView
@@ -153,13 +158,13 @@ export function DayRulerPicker({ value, onChange, onTapLabel }: Props) {
             >
               {ticks.map((_, i) => (
                 <View key={i} style={styles.tickCol}>
-                  <View style={styles.tick} />
+                  <View style={[styles.tick, { height: tickH }]} />
                 </View>
               ))}
             </ScrollView>
 
             <View style={styles.indicatorWrap} pointerEvents="none">
-              <View style={styles.indicator} />
+              <View style={[styles.indicator, { height: indicatorH }]} />
             </View>
 
             <LinearGradient
@@ -226,10 +231,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tick: {
-    width: TICK_THICKNESS,
-    height: TICK_HEIGHT,
+    width: 2,
+    height: 32,
     backgroundColor: TICK_COLOR,
-    borderRadius: TICK_THICKNESS / 2,
+    borderRadius: 1,
   },
   indicatorWrap: {
     ...StyleSheet.absoluteFillObject,
