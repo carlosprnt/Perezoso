@@ -21,8 +21,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
-import { Picker } from '@react-native-picker/picker';
+import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+
+import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
@@ -38,6 +39,7 @@ import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
 
 type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
+type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface EditDraft {
   name: string;
@@ -158,6 +160,15 @@ function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
   );
 }
 
+function DropdownBtn({ value, onPress }: { value: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
+      <Text style={styles.dropdownText}>{value}</Text>
+      <ChevronsUpDown size={14} color="#8E8E93" strokeWidth={2.5} />
+    </Pressable>
+  );
+}
+
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -182,9 +193,26 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const [draft, setDraft] = useState<EditDraft>(() => makeDraft(sub));
   const [error, setError] = useState<string | null>(null);
   const [openDate, setOpenDate] = useState<DateKey>(null);
+  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
+  const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
 
   const isDirty = useCallback(() => !draftEqual(draft, initialDraft.current), [draft]);
+
+  const billingRef = useRef<View>(null);
+  const categoryRef = useRef<View>(null);
+  const statusRef = useRef<View>(null);
+  const reminderRef = useRef<View>(null);
+
+  const openPickerAt = useCallback(
+    (ref: React.RefObject<View | null>, key: Exclude<PickerKey, null>) => {
+      ref.current?.measureInWindow((x, y, width, height) => {
+        setPickerAnchor({ x, y, width, height });
+        setOpenPicker(key);
+      });
+    },
+    [],
+  );
 
   const decShared = useCallback(
     () => setDraft((f) => ({ ...f, sharedCount: Math.max(2, f.sharedCount - 1) })), [],
@@ -340,15 +368,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             <FormDivider />
             <View style={styles.row}>
               <Text style={styles.rowLabel}>Periodo de cobro</Text>
-              <Picker
-                selectedValue={draft.billingPeriod}
-                onValueChange={(v) => setDraft((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
-                style={styles.nativePicker}
-              >
-                {BILLING_OPTIONS.map((b) => (
-                  <Picker.Item key={b} label={b} value={BILLING_LABEL_TO_KEY[b]} />
-                ))}
-              </Picker>
+              <View ref={billingRef} collapsable={false}>
+                <DropdownBtn
+                  value={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
+                  onPress={() => openPickerAt(billingRef, 'billing')}
+                />
+              </View>
             </View>
             <FormDivider />
             <View style={styles.row}>
@@ -374,15 +399,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           <View style={styles.group}>
             <View style={styles.row}>
               <Text style={styles.rowLabel}>Categoría</Text>
-              <Picker
-                selectedValue={draft.category}
-                onValueChange={(v) => setDraft((f) => ({ ...f, category: v as Category }))}
-                style={styles.nativePicker}
-              >
-                {allCategoryOptions.map((c) => (
-                  <Picker.Item key={c.value} label={c.label} value={c.value} />
-                ))}
-              </Picker>
+              <View ref={categoryRef} collapsable={false}>
+                <DropdownBtn
+                  value={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
+                  onPress={() => openPickerAt(categoryRef, 'category')}
+                />
+              </View>
             </View>
           </View>
 
@@ -408,15 +430,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
-                  <Picker
-                    selectedValue={draft.reminderDays}
-                    onValueChange={(v) => setDraft((f) => ({ ...f, reminderDays: v as ReminderDays }))}
-                    style={styles.nativePicker}
-                  >
-                    {REMINDER_OPTIONS.map((r) => (
-                      <Picker.Item key={r} label={r} value={r} />
-                    ))}
-                  </Picker>
+                  <View ref={reminderRef} collapsable={false}>
+                    <DropdownBtn
+                      value={draft.reminderDays}
+                      onPress={() => openPickerAt(reminderRef, 'reminder')}
+                    />
+                  </View>
                 </View>
               </>
             )}
@@ -519,15 +538,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           <View style={styles.group}>
             <View style={styles.row}>
               <Text style={styles.rowLabel}>Estado</Text>
-              <Picker
-                selectedValue={draft.status}
-                onValueChange={(v) => setDraft((f) => ({ ...f, status: v as SubscriptionStatus }))}
-                style={styles.nativePicker}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <Picker.Item key={s} label={s} value={STATUS_LABEL_TO_KEY[s]} />
-                ))}
-              </Picker>
+              <View ref={statusRef} collapsable={false}>
+                <DropdownBtn
+                  value={STATUS_KEY_TO_LABEL[draft.status]}
+                  onPress={() => openPickerAt(statusRef, 'status')}
+                />
+              </View>
             </View>
             <FormDivider />
             <View style={styles.notesRow}>
@@ -607,6 +623,48 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
         onSelectCurrency={(c) => setDraft((f) => ({ ...f, currency: c.code }))}
       />
 
+      {/* ── Floating menus ── */}
+      <FloatingOptionMenu
+        visible={openPicker === 'billing'}
+        anchor={pickerAnchor}
+        options={[...BILLING_OPTIONS]}
+        selected={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
+        onSelect={(label) => {
+          const key = BILLING_LABEL_TO_KEY[label as BillingLabel];
+          if (key) setDraft((f) => ({ ...f, billingPeriod: key }));
+        }}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'category'}
+        anchor={pickerAnchor}
+        options={allCategoryOptions.map((o) => o.label)}
+        selected={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
+        onSelect={(label) => {
+          const found = allCategoryOptions.find((o) => o.label === label);
+          if (found) setDraft((f) => ({ ...f, category: found.value }));
+        }}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'status'}
+        anchor={pickerAnchor}
+        options={[...STATUS_OPTIONS]}
+        selected={STATUS_KEY_TO_LABEL[draft.status]}
+        onSelect={(label) => {
+          const key = STATUS_LABEL_TO_KEY[label as StatusLabel];
+          if (key) setDraft((f) => ({ ...f, status: key }));
+        }}
+        onClose={() => setOpenPicker(null)}
+      />
+      <FloatingOptionMenu
+        visible={openPicker === 'reminder'}
+        anchor={pickerAnchor}
+        options={REMINDER_OPTIONS}
+        selected={draft.reminderDays}
+        onSelect={(v) => setDraft((f) => ({ ...f, reminderDays: v as ReminderDays }))}
+        onClose={() => setOpenPicker(null)}
+      />
     </View>
   );
 }
@@ -779,9 +837,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
-  // Native picker
-  nativePicker: {
-    width: 160,
+  // Dropdown
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dropdownText: {
+    ...fontFamily.regular,
+    fontSize: fontSize[16],
+    color: '#000000',
+    letterSpacing: -0.1,
   },
 
   // Stepper
