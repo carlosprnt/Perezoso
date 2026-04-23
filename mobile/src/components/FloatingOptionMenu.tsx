@@ -1,13 +1,9 @@
 // FloatingOptionMenu — iOS-native UIMenu pull-down.
 //
 // Floats anchored to the trigger's measured position (like a UIMenu /
-// pull-down button). Light frosted-glass card, checkmark on the left
-// for the selected option, hairline dividers between rows. Scale +
-// opacity animation emerging from the anchor point — matches the
-// native iOS system menu appearance.
-//
-// Callers must pass `anchor` (measured via View.measureInWindow on the
-// trigger). If anchor is null the menu won't render.
+// pull-down button). Frosted-glass card, checkmark on the left for the
+// selected option, hairline dividers between rows. Scale + opacity
+// animation emerging from the anchor point. Supports light and dark mode.
 
 import React, { useEffect, useRef } from 'react';
 import {
@@ -24,6 +20,7 @@ import { BlurView } from 'expo-blur';
 import { Check } from 'lucide-react-native';
 
 import { fontFamily, fontSize } from '../design/typography';
+import { useTheme } from '../design/useTheme';
 
 export interface MenuAnchor {
   x: number;
@@ -57,6 +54,7 @@ export function FloatingOptionMenu({
   onSelect,
   onClose,
 }: Props) {
+  const { isDark } = useTheme();
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.9)).current;
 
@@ -82,8 +80,6 @@ export function FloatingOptionMenu({
     }
   }, [visible, opacity, scale]);
 
-  // Compute menu position relative to the anchor. Prefer below; flip
-  // above if not enough room.
   let menuTop = 0;
   let menuLeft = 0;
   let originTop = true;
@@ -97,8 +93,6 @@ export function FloatingOptionMenu({
       menuTop = anchor.y - estimatedHeight - V_GAP;
       originTop = false;
     }
-    // Align menu's right edge to trigger's right edge when possible,
-    // clamped inside screen padding. Looks like an iOS pull-down.
     const desiredRight = anchor.x + anchor.width;
     const desiredLeft = desiredRight - MENU_MIN_WIDTH;
     menuLeft = Math.max(
@@ -106,6 +100,16 @@ export function FloatingOptionMenu({
       Math.min(desiredLeft, SCREEN_W - MENU_MIN_WIDTH - H_EDGE_PAD),
     );
   }
+
+  const fillBg = isDark ? 'rgba(44,44,46,0.82)' : 'rgba(255,255,255,0.56)';
+  const borderClr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.55)';
+  const rimTop = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.9)';
+  const rimSide = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.55)';
+  const dividerClr = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(60,60,67,0.22)';
+  const pressedBg = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+  const textClr = isDark ? '#FFFFFF' : '#000000';
+  const checkClr = isDark ? '#FFFFFF' : '#000000';
+  const blurTint = isDark ? 'dark' : 'light';
 
   return (
     <Modal
@@ -116,7 +120,6 @@ export function FloatingOptionMenu({
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
-      {/* Tap anywhere outside to dismiss — no dim overlay (iOS UIMenu). */}
       <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
 
       {anchor && (
@@ -131,7 +134,6 @@ export function FloatingOptionMenu({
               opacity,
               transform: [
                 { scale },
-                // Slight Y offset so menu feels like it emerges from anchor.
                 {
                   translateY: scale.interpolate({
                     inputRange: [0.9, 1],
@@ -142,10 +144,15 @@ export function FloatingOptionMenu({
             },
           ]}
         >
-          <BlurView intensity={90} tint="light" style={styles.menuBlur}>
-            <View style={styles.menuFill}>
-              {/* Inner bright edge — the "glass rim" of iOS 26 Liquid Glass. */}
-              <View pointerEvents="none" style={styles.menuGlassEdge} />
+          <BlurView intensity={isDark ? 60 : 90} tint={blurTint} style={styles.menuBlur}>
+            <View style={[styles.menuFill, { backgroundColor: fillBg, borderColor: borderClr }]}>
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.menuGlassEdge,
+                  { borderTopColor: rimTop, borderLeftColor: rimSide, borderRightColor: rimSide },
+                ]}
+              />
               {options.map((opt, idx) => {
                 const isSelected = opt === selected;
                 const isLast = idx === options.length - 1;
@@ -158,16 +165,16 @@ export function FloatingOptionMenu({
                     }}
                     style={({ pressed }) => [
                       styles.row,
-                      !isLast && styles.rowDivider,
-                      pressed && styles.rowPressed,
+                      !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: dividerClr },
+                      pressed && { backgroundColor: pressedBg },
                     ]}
                   >
                     <View style={styles.rowCheck}>
                       {isSelected && (
-                        <Check size={15} color="#000000" strokeWidth={2.5} />
+                        <Check size={15} color={checkClr} strokeWidth={2.5} />
                       )}
                     </View>
-                    <Text style={styles.rowText} numberOfLines={1}>
+                    <Text style={[styles.rowText, { color: textClr }]} numberOfLines={1}>
                       {opt}
                     </Text>
                   </Pressable>
@@ -183,9 +190,6 @@ export function FloatingOptionMenu({
 
 const styles = StyleSheet.create({
   menu: {
-    // iOS 26 "Liquid Glass": deep blur, translucent white wash, thin
-    // bright outer stroke, soft diffuse shadow. Rounded corners a touch
-    // softer than pre-26 (16 instead of 13).
     position: 'absolute',
     minWidth: MENU_MIN_WIDTH,
     borderRadius: 16,
@@ -201,24 +205,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   menuFill: {
-    // Glassy white wash — a touch more transparent than before so the
-    // blur reads through and the surface looks "wet".
-    backgroundColor: 'rgba(255,255,255,0.56)',
-    // Subtle outer stroke — the glass edge itself.
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.55)',
     borderRadius: 16,
   },
   menuGlassEdge: {
-    // Bright inner rim: a thin white highlight along the top of the
-    // menu to mimic the refractive edge on iOS 26 Liquid Glass.
     ...StyleSheet.absoluteFillObject,
     borderTopWidth: 0.75,
-    borderTopColor: 'rgba(255,255,255,0.9)',
     borderLeftWidth: 0.5,
-    borderLeftColor: 'rgba(255,255,255,0.55)',
     borderRightWidth: 0.5,
-    borderRightColor: 'rgba(255,255,255,0.55)',
     borderRadius: 16,
   },
   row: {
@@ -229,13 +223,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     gap: 10,
   },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.22)',
-  },
-  rowPressed: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
-  },
   rowCheck: {
     width: 18,
     alignItems: 'center',
@@ -244,7 +231,6 @@ const styles = StyleSheet.create({
   rowText: {
     ...fontFamily.regular,
     fontSize: fontSize[16],
-    color: '#000000',
     letterSpacing: -0.1,
     flex: 1,
   },

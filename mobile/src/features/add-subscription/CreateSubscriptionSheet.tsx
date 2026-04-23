@@ -43,7 +43,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
@@ -221,7 +221,7 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
   return (
     <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
       <Text style={styles.dropdownText}>{value}</Text>
-      <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
+      <ChevronsUpDown size={14} color="#8E8E93" strokeWidth={2.5} />
     </Pressable>
   );
 }
