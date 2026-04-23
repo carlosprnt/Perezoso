@@ -11,36 +11,16 @@ export type SlideId =
 
 export interface SlideMeta {
   id: SlideId;
-  title: string;
-  body: string;
+  titleKey: string;
+  bodyKey: string;
 }
 
 export const ONBOARDING_SLIDES: readonly SlideMeta[] = [
-  {
-    id: 'floating-logos',
-    title: 'Todas tus suscripciones en un solo sitio',
-    body: 'Cuánto pagas al mes, qué se renueva esta semana y dónde puedes ahorrar.',
-  },
-  {
-    id: 'renewals-dashboard',
-    title: 'Anticípate a cada renovación',
-    body: 'Consulta tus próximos cobros y recibe avisos antes de que se renueven.',
-  },
-  {
-    id: 'calendar',
-    title: 'Calendario con próximas renovaciones',
-    body: 'Visualiza de un vistazo todo lo que se va a cobrar en los próximos días y meses.',
-  },
-  {
-    id: 'savings',
-    title: 'Insights de gasto y sugerencias de ahorro',
-    body: 'Descubre patrones y recomendaciones para reducir lo que pagas cada mes sin renunciar a lo que importa.',
-  },
-  {
-    id: 'final-login',
-    title: 'Empieza ahora',
-    body: 'Inicia sesión y vuelca todas tus suscripciones en un solo sitio.',
-  },
+  { id: 'floating-logos', titleKey: 'onboarding.slide1.title', bodyKey: 'onboarding.slide1.body' },
+  { id: 'renewals-dashboard', titleKey: 'onboarding.slide2.title', bodyKey: 'onboarding.slide2.body' },
+  { id: 'calendar', titleKey: 'onboarding.slide3.title', bodyKey: 'onboarding.slide3.body' },
+  { id: 'savings', titleKey: 'onboarding.slide4.title', bodyKey: 'onboarding.slide4.body' },
+  { id: 'final-login', titleKey: 'onboarding.slide5.title', bodyKey: 'onboarding.slide5.body' },
 ] as const;
 
 export const LAST_SLIDE_INDEX = ONBOARDING_SLIDES.length - 1;
@@ -51,10 +31,10 @@ export const ACCENT_PRIMARY = '#3D3BF3';
 
 // ─── Legal copy ───────────────────────────────────────────────────
 export const LEGAL = {
-  prefix: 'Al continuar aceptas nuestros ',
-  terms: 'Términos',
-  middle: ' y la ',
-  privacy: 'Política de privacidad',
+  prefix: 'onboarding.legalPrefix',
+  terms: 'onboarding.terms',
+  middle: 'onboarding.legalMiddle',
+  privacy: 'onboarding.privacy',
   suffix: '.',
 } as const;
 

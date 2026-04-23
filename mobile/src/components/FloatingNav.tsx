@@ -47,6 +47,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from '../design/useTheme';
 import { floatingNav } from '../design/layout';
 import { zIndex } from '../design/zIndex';
+import { useT } from '../lib/i18n/LocaleProvider';
 import { useAddSubscriptionStore } from '../features/add-subscription/useAddSubscriptionStore';
 import { useSubscriptionsStore } from '../stores/subscriptionsStore';
 import {
@@ -103,6 +104,7 @@ const SPRING = { damping: 32, stiffness: 420, mass: 0.8 };
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function FloatingNav() {
+  const t = useT();
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
@@ -298,7 +300,7 @@ export function FloatingNav() {
           <AnimatedPressable
             style={[styles.plusButton, { backgroundColor: plusBg }, plusButtonStyle]}
             onPress={openAddSubscription}
-            accessibilityLabel="Crear nueva suscripción"
+            accessibilityLabel={t('nav.createSubscription')}
           >
             <Plus size={20} strokeWidth={2.5} color={plusIconColor} />
           </AnimatedPressable>

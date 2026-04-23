@@ -31,10 +31,10 @@ export function daysUntil(isoDate: string): number {
 }
 
 /** Human copy: "Hoy" / "Mañana" / "En 14 días". */
-export function daysLabel(days: number): string {
-  if (days === 0) return 'Hoy';
-  if (days === 1) return 'Mañana';
-  return `En ${days} días`;
+export function daysLabel(days: number, t: (key: string, opts?: any) => string): string {
+  if (days === 0) return t('detail.today');
+  if (days === 1) return t('detail.tomorrow');
+  return t('detail.inDays', { days });
 }
 
 const CYCLE_DAYS: Record<BillingPeriod, number> = {
@@ -105,11 +105,25 @@ export const BILLING_PERIOD_LABELS: Record<BillingPeriod, string> = {
   weekly: 'Semanal',
 };
 
+export const BILLING_PERIOD_LABEL_KEYS: Record<BillingPeriod, string> = {
+  monthly: 'detail.billing.monthly',
+  yearly: 'detail.billing.yearly',
+  quarterly: 'detail.billing.quarterly',
+  weekly: 'detail.billing.weekly',
+};
+
 export const BILLING_SUFFIX: Record<BillingPeriod, string> = {
   monthly: '/mes',
   yearly: '/año',
   quarterly: '/trimestre',
   weekly: '/semana',
+};
+
+export const BILLING_SUFFIX_KEYS: Record<BillingPeriod, string> = {
+  monthly: 'detail.billingSuffix.monthly',
+  yearly: 'detail.billingSuffix.yearly',
+  quarterly: 'detail.billingSuffix.quarterly',
+  weekly: 'detail.billingSuffix.weekly',
 };
 
 // ─── Tint / gradient ─────────────────────────────────────────────────
@@ -178,18 +192,18 @@ export function withAlpha(hex: string, alpha: number): string {
 
 // ─── Category dropdown options ──────────────────────────────────────
 
-export const CATEGORY_PICKER: { value: Category; label: string }[] = [
-  { value: 'streaming', label: 'Streaming' },
-  { value: 'music', label: 'Música' },
-  { value: 'productivity', label: 'Productividad' },
-  { value: 'cloud', label: 'Cloud' },
-  { value: 'ai', label: 'IA' },
-  { value: 'health', label: 'Salud' },
-  { value: 'gaming', label: 'Gaming' },
-  { value: 'education', label: 'Educación' },
-  { value: 'mobility', label: 'Movilidad' },
-  { value: 'home', label: 'Hogar' },
-  { value: 'other', label: 'Otros' },
+export const CATEGORY_PICKER: { value: Category; labelKey: string }[] = [
+  { value: 'streaming', labelKey: 'category.streaming' },
+  { value: 'music', labelKey: 'category.music' },
+  { value: 'productivity', labelKey: 'category.productivity' },
+  { value: 'cloud', labelKey: 'category.cloud' },
+  { value: 'ai', labelKey: 'category.ai' },
+  { value: 'health', labelKey: 'category.health' },
+  { value: 'gaming', labelKey: 'category.gaming' },
+  { value: 'education', labelKey: 'category.education' },
+  { value: 'mobility', labelKey: 'category.mobility' },
+  { value: 'home', labelKey: 'category.home' },
+  { value: 'other', labelKey: 'category.other' },
 ];
 
 export const BILLING_PERIOD_PICKER: { value: BillingPeriod; label: string }[] = [

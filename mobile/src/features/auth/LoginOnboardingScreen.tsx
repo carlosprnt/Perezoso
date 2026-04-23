@@ -35,6 +35,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { HalfSheet } from '../../components/HalfSheet';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 import {
   ONBOARDING_SLIDES,
@@ -64,6 +65,7 @@ export interface LoginOnboardingHandlers {
 
 export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
   const { colors, isDark } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<Animated.ScrollView>(null);
 
@@ -187,8 +189,8 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
 
       {/* Bottom sheet (persistent) ──────── */}
       <OnboardingBottomSheet
-        title={activeSlide.title}
-        body={activeSlide.body}
+        title={t(activeSlide.titleKey)}
+        body={t(activeSlide.bodyKey)}
         index={pageIndex}
         page={page}
         count={ONBOARDING_SLIDES.length}
@@ -229,10 +231,10 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
                 pressed && { opacity: 0.8 },
               ]}
               accessibilityRole="button"
-              accessibilityLabel="Iniciar sesión"
+              accessibilityLabel={t('onboarding.login')}
             >
               <Text style={[styles.secondaryBtnText, { color: colors.textPrimary }]}>
-                Iniciar sesión
+                {t('onboarding.login')}
               </Text>
             </Pressable>
             <Pressable
@@ -243,10 +245,10 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
                 pressed && { opacity: 0.85 },
               ]}
               accessibilityRole="button"
-              accessibilityLabel="Continuar"
+              accessibilityLabel={t('onboarding.continue')}
             >
               <Text style={[styles.primaryBtnText, { color: colors.background }]}>
-                Continuar
+                {t('onboarding.continue')}
               </Text>
               <LoopingArrow color={colors.background} />
             </Pressable>
@@ -258,7 +260,7 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
       <HalfSheet
         isOpen={loginSheetOpen}
         onClose={onCloseLoginSheet}
-        title="Iniciar sesión"
+        title={t('onboarding.login')}
         heightFraction={0.30}
       >
         <View style={styles.loginSheetContent}>
@@ -274,19 +276,19 @@ export function LoginOnboardingScreen(handlers: LoginOnboardingHandlers = {}) {
             appleDisabled={false}
           />
           <Text style={[styles.legalText, { color: colors.textMuted }]}>
-            Al continuar, aceptas los{' '}
+            {t('onboarding.legalPrefix')}
             <Text
               style={styles.legalLink}
               onPress={handlers.onPressTerms}
             >
-              Términos de uso
+              {t('onboarding.terms')}
             </Text>
-            {' y la '}
+            {t('onboarding.legalMiddle')}
             <Text
               style={styles.legalLink}
               onPress={handlers.onPressPrivacy}
             >
-              Política de privacidad
+              {t('onboarding.privacy')}
             </Text>
             .
           </Text>

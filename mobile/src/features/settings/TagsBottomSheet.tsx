@@ -64,6 +64,7 @@ import {
 import { useTagsStore, useSettingsStore } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -71,6 +72,7 @@ const ENTER_MS = 280;
 const EXIT_MS = 220;
 
 export function TagsBottomSheet() {
+  const t = useT();
   const isOpen = useTagsStore((s) => s.isOpen);
   const closeSheet = useTagsStore((s) => s.closeSheet);
   const tags = useTagsStore((s) => s.tags);
@@ -157,12 +159,12 @@ export function TagsBottomSheet() {
   const handleRemove = useCallback(
     (id: string, name: string) => {
       Alert.alert(
-        'Eliminar etiqueta',
-        `¿Seguro que quieres eliminar "${name}"? Esta acción no se puede deshacer.`,
+        t('tags.deleteTitle'),
+        t('tags.deleteBody', { name }),
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Eliminar',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: () => removeTag(id),
           },
@@ -193,7 +195,7 @@ export function TagsBottomSheet() {
         <Pressable
           style={StyleSheet.absoluteFillObject}
           onPress={closeSheet}
-          accessibilityLabel="Cerrar gestión de etiquetas"
+          accessibilityLabel={t('tags.closeManager')}
         />
       </Animated.View>
 
@@ -218,20 +220,20 @@ export function TagsBottomSheet() {
 
               {/* Header */}
               <View style={styles.header}>
-                <Text style={styles.title}>Etiquetas</Text>
+                <Text style={styles.title}>{t('tags.title')}</Text>
                 <Pressable
                   style={styles.closeBtn}
                   onPress={closeSheet}
                   hitSlop={10}
                   accessibilityRole="button"
-                  accessibilityLabel="Cerrar"
+                  accessibilityLabel={t('common.close')}
                 >
                   <X size={15} color="#3C3C43" strokeWidth={2.5} />
                 </Pressable>
               </View>
 
               <Text style={styles.subtitle}>
-                Crea etiquetas para organizar tus suscripciones.
+                {t('tags.subtitle')}
               </Text>
 
               {/* List of existing tags */}
@@ -240,8 +242,8 @@ export function TagsBottomSheet() {
                   style={styles.listCard}
                   dividerInset={64}
                 >
-                  {tags.map((t) => (
-                    <View key={t.id} style={styles.tagRow}>
+                  {tags.map((tag) => (
+                    <View key={tag.id} style={styles.tagRow}>
                       <IconTile>
                         <TagIcon
                           size={16}
@@ -253,17 +255,17 @@ export function TagsBottomSheet() {
                         style={styles.tagName}
                         numberOfLines={1}
                       >
-                        {t.name}
+                        {tag.name}
                       </Text>
                       <Pressable
-                        onPress={() => handleRemove(t.id, t.name)}
+                        onPress={() => handleRemove(tag.id, tag.name)}
                         hitSlop={10}
                         style={({ pressed }) => [
                           styles.tagRemove,
                           pressed && { opacity: 0.5 },
                         ]}
                         accessibilityRole="button"
-                        accessibilityLabel={`Eliminar etiqueta ${t.name}`}
+                        accessibilityLabel={t('tags.deleteLabel', { name: tag.name })}
                       >
                         <X
                           size={16}
@@ -285,7 +287,7 @@ export function TagsBottomSheet() {
                   style={styles.addInput}
                   value={newTag}
                   onChangeText={setNewTag}
-                  placeholder="Nueva etiqueta"
+                  placeholder={t('tags.newPlaceholder')}
                   placeholderTextColor={C.textMuted}
                   returnKeyType="done"
                   onSubmitEditing={handleAdd}
@@ -302,15 +304,15 @@ export function TagsBottomSheet() {
                     pressed && { opacity: 0.6 },
                   ]}
                   accessibilityRole="button"
-                  accessibilityLabel="Añadir etiqueta"
+                  accessibilityLabel={t('tags.addLabel')}
                 >
-                  <Text style={styles.addCtaText}>Añadir</Text>
+                  <Text style={styles.addCtaText}>{t('tags.add')}</Text>
                 </Pressable>
               </View>
 
               {tags.length === 0 && (
                 <Text style={styles.emptyHint}>
-                  Aún no hay etiquetas. Crea la primera arriba.
+                  {t('tags.empty')}
                 </Text>
               )}
             </Reanimated.View>

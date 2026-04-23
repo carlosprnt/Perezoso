@@ -34,10 +34,11 @@ import { useTagsStore } from '../settings/useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
-type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
+type ReminderDays = '1' | '3' | '7';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
@@ -78,24 +79,21 @@ const BILLING_KEY_TO_LABEL: Record<BillingPeriod, BillingLabel> = {
   weekly: 'Weekly',
 };
 
-const STATUS_OPTIONS = ['Activa', 'Pausada', 'Cancelada', 'Finalizado', 'Prueba'] as const;
-type StatusLabel = typeof STATUS_OPTIONS[number];
-const STATUS_LABEL_TO_KEY: Record<StatusLabel, SubscriptionStatus> = {
-  Activa: 'active',
-  Pausada: 'paused',
-  Cancelada: 'cancelled',
-  Finalizado: 'ended',
-  Prueba: 'trial',
+const STATUS_KEYS: Record<string, string> = {
+  active: 'form.status.active',
+  paused: 'form.status.paused',
+  cancelled: 'form.status.cancelled',
+  ended: 'form.status.ended',
+  trial: 'form.status.trial',
 };
-const STATUS_KEY_TO_LABEL: Record<string, StatusLabel> = {
-  active: 'Activa',
-  paused: 'Pausada',
-  cancelled: 'Cancelada',
-  ended: 'Finalizado',
-  trial: 'Prueba',
-};
+const STATUS_VALUES = ['active', 'paused', 'cancelled', 'ended', 'trial'] as const;
 
-const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
+const REMINDER_KEYS: Record<string, string> = {
+  '1': 'form.reminder.1day',
+  '3': 'form.reminder.3days',
+  '7': 'form.reminder.7days',
+};
+const REMINDER_VALUES = ['1', '3', '7'] as const;
 
 function nextYear(d: Date): Date {
   return new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
@@ -117,7 +115,7 @@ function makeDraft(sub: Subscription): EditDraft {
     category: sub.category,
     status: sub.status,
     reminderEnabled: sub.reminderEnabled ?? false,
-    reminderDays: sub.reminderDays ?? '1 día antes',
+    reminderDays: sub.reminderDays ?? '1',
     shared: sub.is_shared,
     sharedCount: Math.max(2, sub.shared_with_count),
     paymentMethod: sub.payment_method ?? '',
@@ -184,9 +182,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const insets = useSafeAreaInsets();
   const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const t = useT();
   const allCategoryOptions = [
-    ...CATEGORY_PICKER,
-    ...tags.map((t) => ({ value: t.name as Category, label: t.name })),
+    ...CATEGORY_PICKER.map((o) => ({ value: o.value, label: t(o.labelKey) })),
+    ...tags.map((tag) => ({ value: tag.name as Category, label: tag.name })),
   ];
 
   const initialDraft = useRef<EditDraft>(makeDraft(sub));
@@ -224,37 +223,37 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const handleCancel = useCallback(() => {
     if (isDirty()) {
       Alert.alert(
-        'Cambios sin guardar',
-        '¿Seguro que quieres salir? Perderás los cambios.',
+        t('form.unsavedChanges'),
+        t('form.unsavedBody'),
         [
-          { text: 'Seguir editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: onCancel },
+          { text: t('form.keepEditing'), style: 'cancel' },
+          { text: t('form.discard'), style: 'destructive', onPress: onCancel },
         ],
       );
     } else {
       onCancel();
     }
-  }, [isDirty, onCancel]);
+  }, [isDirty, onCancel, t]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
-      'Eliminar suscripción',
-      '¿Seguro que quieres eliminar esta suscripción? Esta acción no se puede deshacer.',
+      t('form.deleteTitle'),
+      t('form.deleteBody'),
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: onDelete },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.delete'), style: 'destructive', onPress: onDelete },
       ],
     );
-  }, [onDelete]);
+  }, [onDelete, t]);
 
   const handleSave = useCallback(() => {
     if (!draft.name.trim()) {
-      setError('El nombre de la suscripción es obligatorio.');
+      setError(t('form.nameRequired'));
       return;
     }
     const priceNum = parseFloat(draft.price.replace(',', '.'));
     if (!draft.price.trim() || isNaN(priceNum) || priceNum <= 0) {
-      setError('Introduce un precio válido.');
+      setError(t('form.invalidPrice'));
       return;
     }
     setError(null);
@@ -300,7 +299,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           <View style={styles.handle} />
         </View>
         <View style={styles.header}>
-          <Text style={styles.title}>Editar suscripción</Text>
+          <Text style={styles.title}>{t('form.editTitle')}</Text>
           <Pressable style={styles.closeBtn} onPress={handleCancel} hitSlop={10}>
             <X size={15} color="#3C3C43" strokeWidth={2.5} />
           </Pressable>
@@ -327,8 +326,8 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             <TextInput
               style={styles.platformName}
               value={draft.name}
-              onChangeText={(t) => setDraft((f) => ({ ...f, name: t }))}
-              placeholder="Nombre de la suscripción"
+              onChangeText={(txt) => setDraft((f) => ({ ...f, name: txt }))}
+              placeholder={t('form.namePlaceholder')}
               placeholderTextColor="#C7C7CC"
               returnKeyType="done"
               autoCorrect={false}
@@ -345,7 +344,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <TextInput
                 style={styles.priceInput}
                 value={draft.price}
-                onChangeText={(t) => setDraft((f) => ({ ...f, price: t }))}
+                onChangeText={(txt) => setDraft((f) => ({ ...f, price: txt }))}
                 placeholder="0.00"
                 placeholderTextColor="#C7C7CC"
                 keyboardType="decimal-pad"
@@ -357,17 +356,17 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Dates + billing */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Inicio de suscripción</Text>
+              <Text style={styles.rowLabel}>{t('form.startDate')}</Text>
               <DatePillBtn date={draft.startDate} onPress={() => setOpenDate('start')} />
             </View>
             <FormDivider />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
+              <Text style={styles.rowLabel}>{t('form.nextPayment')}</Text>
               <DatePillBtn date={draft.nextPaymentDate} onPress={() => setOpenDate('next')} />
             </View>
             <FormDivider />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Periodo de cobro</Text>
+              <Text style={styles.rowLabel}>{t('form.billingPeriod')}</Text>
               <View ref={billingRef} collapsable={false}>
                 <DropdownBtn
                   value={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
@@ -377,7 +376,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             </View>
             <FormDivider />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Fin de la suscripción</Text>
+              <Text style={styles.rowLabel}>{t('form.endSubscription')}</Text>
               <Switch
                 value={draft.endEnabled}
                 onValueChange={(v) => setDraft((f) => ({ ...f, endEnabled: v }))}
@@ -388,7 +387,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Fecha de fin</Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.endDateLabel')}</Text>
                   <DatePillBtn date={draft.endDate} onPress={() => setOpenDate('end')} />
                 </View>
               </>
@@ -398,7 +397,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Category */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Categoría</Text>
+              <Text style={styles.rowLabel}>{t('form.category')}</Text>
               <View ref={categoryRef} collapsable={false}>
                 <DropdownBtn
                   value={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
@@ -412,7 +411,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           <View style={styles.group}>
             <View style={styles.row}>
               <View style={styles.rowLabelWithBadge}>
-                <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
+                <Text style={styles.rowLabel}>{t('form.enableReminder')}</Text>
                 {!isPlusActive && (
                   <View style={styles.proBadge}>
                     <Text style={styles.proBadgeText}>Pro</Text>
@@ -433,10 +432,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.notifyMe')}</Text>
                   <View ref={reminderRef} collapsable={false}>
                     <DropdownBtn
-                      value={draft.reminderDays}
+                      value={t(REMINDER_KEYS[draft.reminderDays])}
                       onPress={() => openPickerAt(reminderRef, 'reminder')}
                     />
                   </View>
@@ -448,7 +447,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Shared */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Suscripción compartida</Text>
+              <Text style={styles.rowLabel}>{t('form.sharedSubscription')}</Text>
               <Switch
                 value={draft.shared}
                 onValueChange={(v) => setDraft((f) => ({ ...f, shared: v }))}
@@ -459,7 +458,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Total personas</Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.totalPeople')}</Text>
                   <View style={styles.stepper}>
                     <Pressable
                       onPress={decShared}
@@ -495,11 +494,11 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Payment method */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Método de pago</Text>
+              <Text style={styles.rowLabel}>{t('form.paymentMethod')}</Text>
               <TextInput
                 style={styles.inlineInput}
                 value={draft.paymentMethod}
-                onChangeText={(t) => setDraft((f) => ({ ...f, paymentMethod: t }))}
+                onChangeText={(txt) => setDraft((f) => ({ ...f, paymentMethod: txt }))}
                 placeholder="Visa, PayPal..."
                 placeholderTextColor="#C7C7CC"
                 returnKeyType="done"
@@ -512,12 +511,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Logo URL */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>URL del logo</Text>
+              <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
               <View style={styles.urlRow}>
                 <TextInput
                   style={styles.urlInput}
                   value={draft.logoUrl}
-                  onChangeText={(t) => setDraft((f) => ({ ...f, logoUrl: t }))}
+                  onChangeText={(txt) => setDraft((f) => ({ ...f, logoUrl: txt }))}
                   placeholder="https://..."
                   placeholderTextColor="#C7C7CC"
                   keyboardType="url"
@@ -541,22 +540,22 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           {/* Status + Notes */}
           <View style={styles.group}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Estado</Text>
+              <Text style={styles.rowLabel}>{t('form.status')}</Text>
               <View ref={statusRef} collapsable={false}>
                 <DropdownBtn
-                  value={STATUS_KEY_TO_LABEL[draft.status]}
+                  value={t(STATUS_KEYS[draft.status])}
                   onPress={() => openPickerAt(statusRef, 'status')}
                 />
               </View>
             </View>
             <FormDivider />
             <View style={styles.notesRow}>
-              <Text style={styles.rowLabel}>Notas</Text>
+              <Text style={styles.rowLabel}>{t('form.notes')}</Text>
               <TextInput
                 style={styles.notesInput}
                 value={draft.notes}
-                onChangeText={(t) => setDraft((f) => ({ ...f, notes: t }))}
-                placeholder="Añadir opcional"
+                onChangeText={(txt) => setDraft((f) => ({ ...f, notes: txt }))}
+                placeholder={t('form.notesPlaceholder')}
                 placeholderTextColor="#C7C7CC"
                 multiline
                 textAlignVertical="top"
@@ -578,7 +577,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 pressed && { opacity: 0.55 },
               ]}
             >
-              <Text style={styles.destructiveText}>Eliminar suscripción</Text>
+              <Text style={styles.destructiveText}>{t('form.deleteSubscription')}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -589,7 +588,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.85 }]}
             onPress={handleSave}
           >
-            <Text style={styles.saveBtnText}>Guardar cambios</Text>
+            <Text style={styles.saveBtnText}>{t('form.saveChanges')}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -598,14 +597,14 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       <NativeDatePickerSheet
         visible={openDate === 'start'}
         value={draft.startDate}
-        title="Inicio de suscripción"
+        title={t('form.startDate')}
         onChange={(d) => setDraft((f) => ({ ...f, startDate: d }))}
         onClose={() => setOpenDate(null)}
       />
       <NativeDatePickerSheet
         visible={openDate === 'next'}
         value={draft.nextPaymentDate}
-        title="Próxima fecha de pago"
+        title={t('form.nextPayment')}
         minimumDate={draft.startDate}
         onChange={(d) => setDraft((f) => ({ ...f, nextPaymentDate: d }))}
         onClose={() => setOpenDate(null)}
@@ -613,7 +612,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       <NativeDatePickerSheet
         visible={openDate === 'end'}
         value={draft.endDate}
-        title="Fecha de fin"
+        title={t('form.endDateLabel')}
         minimumDate={draft.startDate}
         onChange={(d) => setDraft((f) => ({ ...f, endDate: d }))}
         onClose={() => setOpenDate(null)}
@@ -653,20 +652,23 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       <FloatingOptionMenu
         visible={openPicker === 'status'}
         anchor={pickerAnchor}
-        options={[...STATUS_OPTIONS]}
-        selected={STATUS_KEY_TO_LABEL[draft.status]}
+        options={STATUS_VALUES.map((v) => t(STATUS_KEYS[v]))}
+        selected={t(STATUS_KEYS[draft.status])}
         onSelect={(label) => {
-          const key = STATUS_LABEL_TO_KEY[label as StatusLabel];
-          if (key) setDraft((f) => ({ ...f, status: key }));
+          const found = STATUS_VALUES.find((v) => t(STATUS_KEYS[v]) === label);
+          if (found) setDraft((f) => ({ ...f, status: found as SubscriptionStatus }));
         }}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'reminder'}
         anchor={pickerAnchor}
-        options={REMINDER_OPTIONS}
-        selected={draft.reminderDays}
-        onSelect={(v) => setDraft((f) => ({ ...f, reminderDays: v as ReminderDays }))}
+        options={REMINDER_VALUES.map((v) => t(REMINDER_KEYS[v]))}
+        selected={t(REMINDER_KEYS[draft.reminderDays])}
+        onSelect={(label) => {
+          const found = REMINDER_VALUES.find((v) => t(REMINDER_KEYS[v]) === label);
+          if (found) setDraft((f) => ({ ...f, reminderDays: found as ReminderDays }));
+        }}
         onClose={() => setOpenPicker(null)}
       />
     </View>

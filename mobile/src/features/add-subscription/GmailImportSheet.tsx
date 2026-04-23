@@ -45,13 +45,14 @@ import { promptGmailAuth, searchSubscriptionEmails } from '../../services/gmail'
 import { detectSubscriptions } from './gmailDetection';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useToastStore } from '../../components/useToastStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type { Category, BillingPeriod } from '../subscriptions/types';
 
-const BILLING_LABELS: Record<BillingPeriod, string> = {
-  monthly: 'Mes',
-  yearly: 'Año',
-  quarterly: 'Trimestre',
-  weekly: 'Semana',
+const BILLING_LABEL_KEYS: Record<BillingPeriod, string> = {
+  monthly: 'gmail.billing.month',
+  yearly: 'gmail.billing.year',
+  quarterly: 'gmail.billing.quarter',
+  weekly: 'gmail.billing.week',
 };
 
 // ── Animated search-over-mail icon ──────────────────────────────────
@@ -112,6 +113,7 @@ function SearchMailIcon({ color, bgColor }: { color: string; bgColor: string }) 
 
 // ── Main sheet ──────────────────────────────────────────────────────
 export function GmailImportSheet() {
+  const t = useT();
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const isOpen = useGmailImportStore((s) => s.isOpen);
@@ -138,7 +140,7 @@ export function GmailImportSheet() {
       const detected = detectSubscriptions(messages);
       setResults(detected);
     } catch (err) {
-      Alert.alert('Error', 'No se pudo buscar en Gmail. Inténtalo de nuevo.');
+      Alert.alert('Error', t('gmail.searchError'));
       setPhase('explain');
     }
   }, [setPhase, setResults]);
@@ -172,7 +174,7 @@ export function GmailImportSheet() {
       .getState()
       .show(
         'success',
-        `${toImport.length} ${toImport.length === 1 ? 'suscripción añadida' : 'suscripciones añadidas'}`,
+        `${toImport.length} ${toImport.length === 1 ? t('gmail.addedOne') : t('gmail.addedMany')}`,
       );
   }, [results, selected, close]);
 
@@ -203,12 +205,12 @@ export function GmailImportSheet() {
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, { color: textPrimary }]}>
             {phase === 'explain'
-              ? 'Buscar en Gmail'
+              ? t('gmail.searchTitle')
               : phase === 'loading'
-                ? 'Buscando...'
+                ? t('gmail.searching')
                 : phase === 'empty'
-                  ? 'Sin resultados'
-                  : 'Suscripciones encontradas'}
+                  ? t('gmail.noResults')
+                  : t('gmail.found')}
           </Text>
           <Pressable
             style={[styles.closeBtn, { backgroundColor: isDark ? '#2C2C2E' : '#EBEBF0' }]}
@@ -226,22 +228,22 @@ export function GmailImportSheet() {
               <SearchMailIcon color={textPrimary} bgColor={surfaceBg} />
 
               <Text style={[styles.explainTitle, { color: textPrimary }]}>
-                Encuentra tus suscripciones automáticamente
+                {t('gmail.explainTitle')}
               </Text>
               <Text style={[styles.explainBody, { color: textSecondary }]}>
-                Analizamos los correos de tu Gmail del último año para detectar recibos y confirmaciones de suscripciones.
+                {t('gmail.explainBody')}
               </Text>
 
               <View style={styles.bulletList}>
                 <BulletPoint
                   icon={<Search size={16} color={textPrimary} strokeWidth={2} />}
-                  text="Buscamos recibos, facturas y confirmaciones de pago"
+                  text={t('gmail.bulletSearch')}
                   color={textPrimary}
                   bgColor={surfaceBg}
                 />
                 <BulletPoint
                   icon={<ShieldCheck size={16} color={textPrimary} strokeWidth={2} />}
-                  text="No almacenamos ni leemos tus correos. Solo identificamos remitentes conocidos"
+                  text={t('gmail.bulletPrivacy')}
                   color={textPrimary}
                   bgColor={surfaceBg}
                 />
@@ -257,11 +259,11 @@ export function GmailImportSheet() {
                 ]}
               >
                 <Text style={[styles.ctaText, { color: isDark ? '#636366' : '#8E8E93' }]}>
-                  Conectar y buscar suscripciones
+                  {t('gmail.connectBtn')}
                 </Text>
               </Pressable>
               <Text style={[styles.footerNote, { color: textSecondary }]}>
-                Servicio no disponible actualmente
+                {t('gmail.unavailable')}
               </Text>
             </View>
           </View>
@@ -272,10 +274,10 @@ export function GmailImportSheet() {
           <View style={styles.loadingContainer}>
             <SearchMailIcon color={textPrimary} bgColor={surfaceBg} />
             <Text style={[styles.loadingText, { color: textPrimary }]}>
-              Buscando suscripciones en tu Gmail...
+              {t('gmail.searchingBody')}
             </Text>
             <Text style={[styles.loadingSubtext, { color: textSecondary }]}>
-              Esto puede tardar unos segundos
+              {t('gmail.searchingSubtext')}
             </Text>
           </View>
         )}
@@ -287,10 +289,10 @@ export function GmailImportSheet() {
               <Search size={28} color={textSecondary} strokeWidth={1.8} />
             </View>
             <Text style={[styles.loadingText, { color: textPrimary }]}>
-              No encontramos suscripciones
+              {t('gmail.noSubscriptions')}
             </Text>
             <Text style={[styles.loadingSubtext, { color: textSecondary }]}>
-              No hemos detectado recibos de suscripciones en tus correos del último año
+              {t('gmail.noSubscriptionsBody')}
             </Text>
             <Pressable
               onPress={close}
@@ -300,7 +302,7 @@ export function GmailImportSheet() {
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>Entendido</Text>
+              <Text style={[styles.ctaText, { color: '#FFFFFF' }]}>{t('gmail.understood')}</Text>
             </Pressable>
           </View>
         )}
@@ -309,7 +311,7 @@ export function GmailImportSheet() {
         {phase === 'results' && (
           <>
             <Text style={[styles.resultsSubtitle, { color: textSecondary }]}>
-              Selecciona las que quieras añadir ({selected.size} de {results.length})
+              {t('gmail.selectPrompt', { selected: selected.size, total: results.length })}
             </Text>
 
             <ScrollView
@@ -359,7 +361,7 @@ export function GmailImportSheet() {
                       </Text>
                       <Text style={[styles.resultMeta, { color: textSecondary }]} numberOfLines={1}>
                         {sub.price_amount != null
-                          ? `${sub.price_amount.toFixed(2).replace('.', ',')}${sub.currency === 'EUR' ? '€' : sub.currency === 'USD' ? '$' : sub.currency} · ${BILLING_LABELS[sub.billing_period]}`
+                          ? `${sub.price_amount.toFixed(2).replace('.', ',')}${sub.currency === 'EUR' ? '€' : sub.currency === 'USD' ? '$' : sub.currency} · ${t(BILLING_LABEL_KEYS[sub.billing_period])}`
                           : sub.source_hint}
                       </Text>
                     </View>
@@ -416,8 +418,8 @@ export function GmailImportSheet() {
                   ]}
                 >
                   {selected.size > 0
-                    ? `Añadir ${selected.size} ${selected.size === 1 ? 'suscripción' : 'suscripciones'}`
-                    : 'Selecciona al menos una'}
+                    ? t('gmail.addCount_other', { count: selected.size })
+                    : t('gmail.selectAtLeast')}
                 </Text>
               </Pressable>
             </View>

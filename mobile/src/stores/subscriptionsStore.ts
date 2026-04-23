@@ -162,7 +162,7 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
         return {
           ...sub,
           reminderEnabled: true,
-          reminderDays: '7 d\u00EDas antes',
+          reminderDays: '7',
         };
       }),
     }));

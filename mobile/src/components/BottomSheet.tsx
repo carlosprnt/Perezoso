@@ -47,6 +47,7 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../design/useTheme';
+import { useT } from '../lib/i18n/LocaleProvider';
 import { radius } from '../design/radius';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../design/typography';
 import { zIndex as zTokens } from '../design/zIndex';
@@ -94,6 +95,7 @@ export function BottomSheet({
   height = 'tall',
   sheetZIndex = zTokens.sheetContent,
 }: BottomSheetProps) {
+  const t = useT();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const maxHeight = SCREEN_HEIGHT * HEIGHT_FRACTION[height];
@@ -388,11 +390,12 @@ function IconCloseButton({
   isDark: boolean;
   onPress: () => void;
 }) {
+  const t = useT();
   const { Pressable: RNPressable } = require('react-native');
   return (
     <RNPressable
       onPress={onPress}
-      accessibilityLabel="Cerrar"
+      accessibilityLabel={t('common.close')}
       accessibilityRole="button"
       style={[
         sheetStyles.closeButton,

@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 import { PaginationDots } from './PaginationDots';
 import { LEGAL } from './constants';
@@ -54,6 +55,7 @@ export function OnboardingBottomSheet({
   onSwipeRight,
 }: Props) {
   const { colors } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
 
   const textStyle = useAnimatedStyle(() => {
@@ -119,19 +121,19 @@ export function OnboardingBottomSheet({
         {showLegal && (
           <Animated.View entering={FadeIn.duration(400).delay(260)}>
             <Text style={[styles.legal, { color: colors.textMuted }]}>
-              {LEGAL.prefix}
+              {t(LEGAL.prefix)}
               <Text
                 style={[styles.legalLink, { color: colors.textSecondary }]}
                 onPress={onPressTerms}
               >
-                {LEGAL.terms}
+                {t(LEGAL.terms)}
               </Text>
-              {LEGAL.middle}
+              {t(LEGAL.middle)}
               <Text
                 style={[styles.legalLink, { color: colors.textSecondary }]}
                 onPress={onPressPrivacy}
               >
-                {LEGAL.privacy}
+                {t(LEGAL.privacy)}
               </Text>
               {LEGAL.suffix}
             </Text>

@@ -25,6 +25,7 @@ import Animated, {
 import {
   useSubscriptionDetailStore,
 } from './useSubscriptionDetailStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { SubscriptionDetailView } from './SubscriptionDetailView';
 import { SubscriptionEditView } from './SubscriptionEditView';
 import { Toast } from '../../components/Toast';
@@ -35,6 +36,7 @@ import type { Subscription } from '../subscriptions/types';
 const FADE_MS = 160;
 
 export function SubscriptionDetailSheet() {
+  const t = useT();
   const isOpen       = useSubscriptionDetailStore((s) => s.isOpen);
   const mode         = useSubscriptionDetailStore((s) => s.mode);
   const sub          = useSubscriptionDetailStore((s) => s.subscription);
@@ -75,11 +77,11 @@ export function SubscriptionDetailSheet() {
       await useSubscriptionsStore.getState().updateSubscription(updated);
       updateSub(updated);
       close();
-      useToastStore.getState().show('success', 'Suscripción actualizada');
+      useToastStore.getState().show('success', t('detail.updated'));
     } catch {
-      useToastStore.getState().show('error', 'Error al guardar cambios');
+      useToastStore.getState().show('error', t('detail.saveError'));
     }
-  }, [updateSub, close]);
+  }, [updateSub, close, t]);
 
   const handleDelete = useCallback(() => {
     deleteSub();

@@ -60,6 +60,7 @@ import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type {
   BillingPeriod as SubBillingPeriod,
   Category as SubCategory,
@@ -85,29 +86,43 @@ function matchPlatformLogo(name: string): string {
 const PRICE_ACCESSORY_ID = 'price-input-hide-bar';
 
 // ─── Label → store-key mappings ──────────────────────────────────────
-// The form exposes localized / title-case labels for UX; the store
-// keeps normalized lowercase keys (matches what presets + web use).
+// The form now keeps normalized lowercase keys internally;
+// display labels come from i18n via t().
 const BILLING_KEY: Record<string, SubBillingPeriod> = {
-  Monthly: 'monthly',
-  Yearly: 'yearly',
-  Quarterly: 'quarterly',
-  Weekly: 'weekly',
-  Custom: 'monthly',
+  monthly: 'monthly',
+  yearly: 'yearly',
+  quarterly: 'quarterly',
+  weekly: 'weekly',
+  custom: 'monthly',
 };
-const CATEGORY_KEY: Record<string, SubCategory> = {
-  Streaming: 'streaming',
-  'Música': 'music',
-  Productividad: 'productivity',
-  Cloud: 'cloud',
-  IA: 'ai',
-  Gaming: 'gaming',
-  Otros: 'other',
+
+// Display-key maps: internal key → i18n translation key
+const BILLING_DISPLAY_KEYS: Record<string, string> = {
+  monthly: 'form.billing.monthly',
+  yearly: 'form.billing.yearly',
+  quarterly: 'form.billing.quarterly',
+  weekly: 'form.billing.weekly',
+  custom: 'form.billing.custom',
 };
-const STATUS_KEY: Record<string, SubscriptionStatus> = {
-  Activa: 'active',
-  Pausada: 'paused',
-  Cancelada: 'cancelled',
-  Finalizado: 'ended',
+const STATUS_DISPLAY_KEYS: Record<string, string> = {
+  active: 'form.status.active',
+  paused: 'form.status.paused',
+  cancelled: 'form.status.cancelled',
+  ended: 'form.status.ended',
+};
+const CATEGORY_DISPLAY_KEYS: Record<string, string> = {
+  streaming: 'category.streaming',
+  music: 'category.music',
+  productivity: 'category.productivity',
+  cloud: 'category.cloud',
+  ai: 'category.ai',
+  gaming: 'category.gaming',
+  other: 'category.other',
+};
+const REMINDER_DISPLAY_KEYS: Record<string, string> = {
+  '1': 'form.reminder.1day',
+  '3': 'form.reminder.3days',
+  '7': 'form.reminder.7days',
 };
 
 // Convert the form price + billing period into a normalized monthly
@@ -124,9 +139,9 @@ function monthlyEquivalent(priceAmount: number, billingKey: SubBillingPeriod): n
 }
 
 // ─── Types ───────────────────────────────────────────────────────────
-type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
-type Status = 'Activa' | 'Pausada' | 'Cancelada' | 'Finalizado';
-type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
+type BillingPeriod = 'monthly' | 'yearly' | 'quarterly' | 'weekly' | 'custom';
+type Status = 'active' | 'paused' | 'cancelled' | 'ended';
+type ReminderDays = '1' | '3' | '7';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
@@ -151,12 +166,12 @@ interface FormState {
 }
 
 // ─── Constants ───────────────────────────────────────────────────────
-const BILLING_PERIODS: BillingPeriod[] = ['Monthly', 'Yearly', 'Quarterly', 'Weekly', 'Custom'];
+const BILLING_PERIODS: BillingPeriod[] = ['monthly', 'yearly', 'quarterly', 'weekly', 'custom'];
 const BASE_CATEGORIES = [
-  'Streaming', 'Música', 'Productividad', 'Cloud', 'IA', 'Gaming', 'Otros',
+  'streaming', 'music', 'productivity', 'cloud', 'ai', 'gaming', 'other',
 ];
-const STATUSES: Status[] = ['Activa', 'Pausada', 'Cancelada', 'Finalizado'];
-const REMINDER_OPTIONS: ReminderDays[] = ['1 día antes', '3 días antes', '7 días antes'];
+const STATUSES: Status[] = ['active', 'paused', 'cancelled', 'ended'];
+const REMINDER_OPTIONS: ReminderDays[] = ['1', '3', '7'];
 function nextMonth(d: Date): Date {
   const n = new Date(d);
   n.setMonth(n.getMonth() + 1);
@@ -170,13 +185,13 @@ function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: 
     price: '',
     startDate: today,
     nextPaymentDate: nextMonth(today),
-    billingPeriod: 'Monthly',
+    billingPeriod: 'monthly',
     endEnabled: false,
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
-    category: prefill?.category ?? 'Streaming',
-    status: 'Activa',
+    category: prefill?.category ?? 'streaming',
+    status: 'active',
     reminderEnabled: false,
-    reminderDays: '1 día antes',
+    reminderDays: '1',
     shared: false,
     sharedCount: 2,
     paymentMethod: '',
@@ -230,13 +245,15 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
 const TOGGLE_H = 28;
 
 function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; onToggle: () => void; compact?: boolean }) {
+  const t = useT();
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
   const containerScale = useSharedValue(1);
-  const [displayLabel, setDisplayLabel] = useState(isMonthly ? 'Mes' : 'Año');
+  // displayLabel is no longer used — we derive the text from isMonthly + t()
+  const [displayKey, setDisplayKey] = useState(isMonthly);
 
   const updateLabel = useCallback((monthly: boolean) => {
-    setDisplayLabel(monthly ? 'Mes' : 'Año');
+    setDisplayKey(monthly);
   }, []);
 
   const animateToggle = useCallback(() => {
@@ -271,10 +288,10 @@ function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; o
   return (
     <Pressable onPress={animateToggle}>
       <Animated.View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }, containerAnimStyle]}>
-        <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>Renovación</Text>
+        <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>{t('form.renewal')}</Text>
         <View style={[styles.renewalValueWrap, { height: h }]}>
           <Animated.Text style={[styles.renewalValue, compact && { fontSize: fontSize[16] }, labelAnimStyle]}>
-            {displayLabel}
+            {displayKey ? t('form.renewalMonth') : t('form.renewalYear')}
           </Animated.Text>
         </View>
       </Animated.View>
@@ -290,7 +307,31 @@ export function CreateSubscriptionSheet() {
   const insets = useSafeAreaInsets();
   const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
-  const allCategories = [...BASE_CATEGORIES, ...tags.map((t) => t.name)];
+  const t = useT();
+  const allCategoryKeys = [...BASE_CATEGORIES, ...tags.map((tg) => tg.name)];
+
+  // Translated option arrays for FloatingOptionMenu
+  const billingOptions = BILLING_PERIODS.map((k) => t(BILLING_DISPLAY_KEYS[k] ?? k));
+  const billingLabelToKey = Object.fromEntries(
+    BILLING_PERIODS.map((k) => [t(BILLING_DISPLAY_KEYS[k] ?? k), k]),
+  ) as Record<string, BillingPeriod>;
+
+  const categoryOptions = allCategoryKeys.map((k) =>
+    CATEGORY_DISPLAY_KEYS[k] ? t(CATEGORY_DISPLAY_KEYS[k]) : k,
+  );
+  const categoryLabelToKey = Object.fromEntries(
+    allCategoryKeys.map((k) => [CATEGORY_DISPLAY_KEYS[k] ? t(CATEGORY_DISPLAY_KEYS[k]) : k, k]),
+  ) as Record<string, string>;
+
+  const statusOptions = STATUSES.map((k) => t(STATUS_DISPLAY_KEYS[k] ?? k));
+  const statusLabelToKey = Object.fromEntries(
+    STATUSES.map((k) => [t(STATUS_DISPLAY_KEYS[k] ?? k), k]),
+  ) as Record<string, Status>;
+
+  const reminderOptions = REMINDER_OPTIONS.map((k) => t(REMINDER_DISPLAY_KEYS[k] ?? k));
+  const reminderLabelToKey = Object.fromEntries(
+    REMINDER_OPTIONS.map((k) => [t(REMINDER_DISPLAY_KEYS[k] ?? k), k]),
+  ) as Record<string, ReminderDays>;
 
   const [step, setStep] = useState<1 | 2>(1);
   const [renewalDate, setRenewalDate] = useState<Date>(() => {
@@ -370,17 +411,17 @@ export function CreateSubscriptionSheet() {
   const requestClose = useCallback(() => {
     if (isDirty()) {
       Alert.alert(
-        'Descartar cambios',
-        '¿Seguro que quieres salir? Perderás los datos introducidos.',
+        t('form.discardChanges'),
+        t('form.discardBody'),
         [
-          { text: 'Seguir editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: closeStore },
+          { text: t('form.keepEditing'), style: 'cancel' },
+          { text: t('form.discard'), style: 'destructive', onPress: closeStore },
         ],
       );
     } else {
       closeStore();
     }
-  }, [isDirty, closeStore]);
+  }, [isDirty, closeStore, t]);
 
   // ── Native sheet dismissal sync ───────────────────────────────────
   // Fires after the user swipes the iOS pageSheet down. The store must
@@ -411,12 +452,12 @@ export function CreateSubscriptionSheet() {
   // ── Submit (shared) ────────────────────────────────────────────────
   const doSubmit = useCallback(async (f: FormState) => {
     if (!f.name.trim()) {
-      setError('El nombre de la suscripción es obligatorio.');
+      setError(t('form.nameRequired'));
       return;
     }
     const priceNum = parseFloat(f.price.replace(',', '.'));
     if (!f.price.trim() || isNaN(priceNum) || priceNum <= 0) {
-      setError('Introduce un precio válido.');
+      setError(t('form.invalidPrice'));
       return;
     }
     setError(null);
@@ -433,13 +474,13 @@ export function CreateSubscriptionSheet() {
         id: `local-${Date.now()}`,
         name: f.name.trim(),
         logo_url: f.logoUrl || null,
-        category: CATEGORY_KEY[f.category] ?? f.category,
+        category: f.category,
         price_amount: priceNum,
         currency: f.currency,
         billing_period: billingKey,
         billing_interval_count: 1,
         next_billing_date: f.nextPaymentDate.toISOString().split('T')[0],
-        status: STATUS_KEY[f.status] ?? 'active',
+        status: f.status,
         is_shared: f.shared,
         shared_with_count: f.shared ? f.sharedCount : 0,
         card_color: null,
@@ -472,9 +513,9 @@ export function CreateSubscriptionSheet() {
       }, 380);
     } catch {
       setIsSubmitting(false);
-      setError('No se pudo crear la suscripción. Inténtalo de nuevo.');
+      setError(t('form.createError'));
     }
-  }, [closeStore]);
+  }, [closeStore, t]);
 
   const handleSubmit = useCallback(() => doSubmit(form), [form, doSubmit]);
 
@@ -547,7 +588,7 @@ export function CreateSubscriptionSheet() {
                       const logo = matchPlatformLogo(t);
                       setForm((f) => ({ ...f, name: t, logoUrl: logo }));
                     }}
-                    placeholder="Suscripción"
+                    placeholder={t('form.subscriptionPlaceholder')}
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
                     autoCorrect={false}
@@ -576,10 +617,10 @@ export function CreateSubscriptionSheet() {
 
                 {/* ── Billing period ── */}
                 <RenewalToggle
-                  isMonthly={form.billingPeriod === 'Monthly'}
+                  isMonthly={form.billingPeriod === 'monthly'}
                   onToggle={() => setForm((f) => ({
                     ...f,
-                    billingPeriod: f.billingPeriod === 'Monthly' ? 'Yearly' : 'Monthly',
+                    billingPeriod: f.billingPeriod === 'monthly' ? 'yearly' : 'monthly',
                   }))}
                   compact={kbHeight > 0}
                 />
@@ -600,7 +641,7 @@ export function CreateSubscriptionSheet() {
                   onPress={goToMoreOptions}
                   disabled={isSubmitting}
                 >
-                  <Text style={styles.cancelBtnText}>Más opciones</Text>
+                  <Text style={styles.cancelBtnText}>{t('form.moreOptions')}</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [
@@ -613,7 +654,7 @@ export function CreateSubscriptionSheet() {
                 >
                   {isSubmitting
                     ? <ActivityIndicator color="#FFFFFF" size="small" />
-                    : <Text style={styles.createBtnText}>Guardar</Text>
+                    : <Text style={styles.createBtnText}>{t('common.save')}</Text>
                   }
                 </Pressable>
               </View>
@@ -629,7 +670,7 @@ export function CreateSubscriptionSheet() {
               <View style={styles.handle} />
             </View>
             <View style={styles.header}>
-              <Text style={styles.title}>Crear nueva suscripción</Text>
+              <Text style={styles.title}>{t('form.createTitle')}</Text>
               <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
                 <X size={15} color="#3C3C43" strokeWidth={2.5} />
               </Pressable>
@@ -660,7 +701,7 @@ export function CreateSubscriptionSheet() {
                     const logo = matchPlatformLogo(t);
                     setForm((f) => ({ ...f, name: t, logoUrl: logo }));
                   }}
-                  placeholder="Nombre de la suscripción"
+                  placeholder={t('form.namePlaceholder')}
                   placeholderTextColor="#C7C7CC"
                   returnKeyType="done"
                   autoCorrect={false}
@@ -689,27 +730,27 @@ export function CreateSubscriptionSheet() {
               {/* Dates + billing */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Inicio de suscripción</Text>
+                  <Text style={styles.rowLabel}>{t('form.startDate')}</Text>
                   <DatePillBtn date={form.startDate} onPress={() => setOpenDate('start')} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Próxima fecha de pago</Text>
+                  <Text style={styles.rowLabel}>{t('form.nextPayment')}</Text>
                   <DatePillBtn date={form.nextPaymentDate} onPress={() => setOpenDate('next')} />
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Periodo de cobro</Text>
+                  <Text style={styles.rowLabel}>{t('form.billingPeriod')}</Text>
                   <View ref={billingRef} collapsable={false}>
                     <DropdownBtn
-                      value={form.billingPeriod}
+                      value={t(BILLING_DISPLAY_KEYS[form.billingPeriod] ?? 'form.billing.monthly')}
                       onPress={() => openPickerAt(billingRef, 'billing')}
                     />
                   </View>
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Fin de la suscripción</Text>
+                  <Text style={styles.rowLabel}>{t('form.endSubscription')}</Text>
                   <Switch
                     value={form.endEnabled}
                     onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
@@ -720,7 +761,7 @@ export function CreateSubscriptionSheet() {
                   <>
                     <FormDivider />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Fecha de fin</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.endDateLabel')}</Text>
                       <DatePillBtn date={form.endDate} onPress={() => setOpenDate('end')} />
                     </View>
                   </>
@@ -730,10 +771,10 @@ export function CreateSubscriptionSheet() {
               {/* Category */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Categoría</Text>
+                  <Text style={styles.rowLabel}>{t('form.category')}</Text>
                   <View ref={categoryRef} collapsable={false}>
                     <DropdownBtn
-                      value={form.category}
+                      value={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
                       onPress={() => openPickerAt(categoryRef, 'category')}
                     />
                   </View>
@@ -744,7 +785,7 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <View style={styles.rowLabelWithBadge}>
-                    <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
+                    <Text style={styles.rowLabel}>{t('form.enableReminder')}</Text>
                     {!isPlusActive && (
                       <View style={styles.proBadge}>
                         <Text style={styles.proBadgeText}>Pro</Text>
@@ -765,10 +806,10 @@ export function CreateSubscriptionSheet() {
                   <>
                     <FormDivider />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.notifyMe')}</Text>
                       <View ref={reminderRef} collapsable={false}>
                         <DropdownBtn
-                          value={form.reminderDays}
+                          value={t(REMINDER_DISPLAY_KEYS[form.reminderDays] ?? 'form.reminder.1day')}
                           onPress={() => openPickerAt(reminderRef, 'reminder')}
                         />
                       </View>
@@ -780,7 +821,7 @@ export function CreateSubscriptionSheet() {
               {/* Shared */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Suscripción compartida</Text>
+                  <Text style={styles.rowLabel}>{t('form.sharedSubscription')}</Text>
                   <Switch
                     value={form.shared}
                     onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
@@ -791,7 +832,7 @@ export function CreateSubscriptionSheet() {
                   <>
                     <FormDivider />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Total personas</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.totalPeople')}</Text>
                       <View style={styles.stepper}>
                         <Pressable
                           onPress={decShared}
@@ -827,12 +868,12 @@ export function CreateSubscriptionSheet() {
               {/* Payment method */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Método de pago</Text>
+                  <Text style={styles.rowLabel}>{t('form.paymentMethod')}</Text>
                   <TextInput
                     style={styles.inlineInput}
                     value={form.paymentMethod}
                     onChangeText={(t) => setForm((f) => ({ ...f, paymentMethod: t }))}
-                    placeholder="Visa, PayPal..."
+                    placeholder={t('form.paymentPlaceholder')}
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
                     autoCorrect={false}
@@ -844,7 +885,7 @@ export function CreateSubscriptionSheet() {
               {/* Logo URL */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>URL del logo</Text>
+                  <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
                   <View style={styles.urlRow}>
                     <TextInput
                       style={styles.urlInput}
@@ -873,22 +914,22 @@ export function CreateSubscriptionSheet() {
               {/* Status + Notes (bottom block) */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Estado</Text>
+                  <Text style={styles.rowLabel}>{t('form.status')}</Text>
                   <View ref={statusRef} collapsable={false}>
                     <DropdownBtn
-                      value={form.status}
+                      value={t(STATUS_DISPLAY_KEYS[form.status] ?? 'form.status.active')}
                       onPress={() => openPickerAt(statusRef, 'status')}
                     />
                   </View>
                 </View>
                 <FormDivider />
                 <View style={styles.notesRow}>
-                  <Text style={styles.rowLabel}>Notas</Text>
+                  <Text style={styles.rowLabel}>{t('form.notes')}</Text>
                   <TextInput
                     style={styles.notesInput}
                     value={form.notes}
                     onChangeText={(t) => setForm((f) => ({ ...f, notes: t }))}
-                    placeholder="Añadir opcional"
+                    placeholder={t('form.notesPlaceholder')}
                     placeholderTextColor="#C7C7CC"
                     multiline
                     textAlignVertical="top"
@@ -904,7 +945,7 @@ export function CreateSubscriptionSheet() {
                 onPress={requestClose}
                 disabled={isSubmitting}
               >
-                <Text style={styles.cancelBtnText}>Cancelar</Text>
+                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
@@ -916,7 +957,7 @@ export function CreateSubscriptionSheet() {
               >
                 {isSubmitting
                   ? <ActivityIndicator color="#FFFFFF" size="small" />
-                  : <Text style={styles.createBtnText}>Crear suscripción</Text>
+                  : <Text style={styles.createBtnText}>{t('form.createSubscription')}</Text>
                 }
               </Pressable>
             </View>
@@ -929,14 +970,14 @@ export function CreateSubscriptionSheet() {
       <NativeDatePickerSheet
         visible={openDate === 'start'}
         value={form.startDate}
-        title="Inicio de suscripción"
+        title={t('form.startDate')}
         onChange={(d) => setForm((f) => ({ ...f, startDate: d }))}
         onClose={() => setOpenDate(null)}
       />
       <NativeDatePickerSheet
         visible={openDate === 'next'}
         value={form.nextPaymentDate}
-        title="Próxima fecha de pago"
+        title={t('form.nextPayment')}
         minimumDate={form.startDate}
         onChange={(d) => setForm((f) => ({ ...f, nextPaymentDate: d }))}
         onClose={() => setOpenDate(null)}
@@ -944,7 +985,7 @@ export function CreateSubscriptionSheet() {
       <NativeDatePickerSheet
         visible={openDate === 'end'}
         value={form.endDate}
-        title="Fecha de fin"
+        title={t('form.endDateLabel')}
         minimumDate={form.startDate}
         onChange={(d) => setForm((f) => ({ ...f, endDate: d }))}
         onClose={() => setOpenDate(null)}
@@ -954,7 +995,7 @@ export function CreateSubscriptionSheet() {
       <NativeDatePickerSheet
         visible={renewalDatePickerOpen}
         value={renewalDate}
-        title="Próxima renovación"
+        title={t('form.nextRenewal')}
         onChange={(d) => setRenewalDate(d)}
         onClose={() => setRenewalDatePickerOpen(false)}
       />
@@ -971,33 +1012,33 @@ export function CreateSubscriptionSheet() {
       <FloatingOptionMenu
         visible={openPicker === 'billing'}
         anchor={pickerAnchor}
-        options={BILLING_PERIODS}
-        selected={form.billingPeriod}
-        onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
+        options={billingOptions}
+        selected={t(BILLING_DISPLAY_KEYS[form.billingPeriod] ?? 'form.billing.monthly')}
+        onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: billingLabelToKey[v] ?? 'monthly' }))}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'category'}
         anchor={pickerAnchor}
-        options={allCategories}
-        selected={form.category}
-        onSelect={(v) => setForm((f) => ({ ...f, category: v }))}
+        options={categoryOptions}
+        selected={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
+        onSelect={(v) => setForm((f) => ({ ...f, category: categoryLabelToKey[v] ?? v }))}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'status'}
         anchor={pickerAnchor}
-        options={STATUSES}
-        selected={form.status}
-        onSelect={(v) => setForm((f) => ({ ...f, status: v as Status }))}
+        options={statusOptions}
+        selected={t(STATUS_DISPLAY_KEYS[form.status] ?? 'form.status.active')}
+        onSelect={(v) => setForm((f) => ({ ...f, status: statusLabelToKey[v] ?? 'active' }))}
         onClose={() => setOpenPicker(null)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'reminder'}
         anchor={pickerAnchor}
-        options={REMINDER_OPTIONS}
-        selected={form.reminderDays}
-        onSelect={(v) => setForm((f) => ({ ...f, reminderDays: v as ReminderDays }))}
+        options={reminderOptions}
+        selected={t(REMINDER_DISPLAY_KEYS[form.reminderDays] ?? 'form.reminder.1day')}
+        onSelect={(v) => setForm((f) => ({ ...f, reminderDays: reminderLabelToKey[v] ?? '1' }))}
         onClose={() => setOpenPicker(null)}
       />
     </Modal>

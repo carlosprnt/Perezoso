@@ -107,8 +107,8 @@ export function SettingsSheet() {
 
   // ── Handlers ─────────────────────────────────────────────────────────
   const comingSoon = useCallback((label: string) => {
-    Alert.alert(label, 'Próximamente disponible.');
-  }, []);
+    Alert.alert(label, t('common.comingSoon'));
+  }, [t]);
 
   const handleManagePlus = useCallback(() => {
     if (isPlusActive) {
@@ -126,13 +126,13 @@ export function SettingsSheet() {
   }, [appearance, setAppearance]);
 
   const handleDemo = useCallback(() => openDemo(), [openDemo]);
-  const handleReview = useCallback(() => comingSoon('Dejar una reseña'), [comingSoon]);
+  const handleReview = useCallback(() => comingSoon(t('settings.review')), [comingSoon, t]);
 
   const handleShare = useCallback(() => {
     Share.share({
-      message: 'Perezoso — la forma perezosa de controlar tus suscripciones. https://perezoso.app',
+      message: t('settings.shareMessage'),
     }).catch(() => {});
-  }, []);
+  }, [t]);
 
   const handleTwitter = useCallback(() => {
     Linking.openURL('https://twitter.com/carlosprnt').catch(() =>
@@ -154,17 +154,17 @@ export function SettingsSheet() {
 
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(
-      'Eliminar cuenta',
-      'Se eliminarán todos tus datos y suscripciones. Esta acción no se puede deshacer.',
+      t('settings.deleteTitle'),
+      t('settings.deleteBody'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Eliminar cuenta',
+          text: t('settings.deleteConfirm'),
           style: 'destructive',
           onPress: async () => {
             const res = await deleteAccount();
             if (!res.ok) {
-              Alert.alert('No se pudo eliminar', res.error ?? 'Error desconocido');
+              Alert.alert(t('settings.deleteFailed'), res.error ?? t('settings.unknownError'));
               return;
             }
             close();
@@ -172,7 +172,7 @@ export function SettingsSheet() {
         },
       ],
     );
-  }, [deleteAccount, close]);
+  }, [deleteAccount, close, t]);
 
   // Demo visible only for carlosprnt@gmail.com
   const showDemo = profileEmail === 'carlosprnt@gmail.com';
@@ -249,7 +249,7 @@ export function SettingsSheet() {
                     },
                     pressed && { opacity: 0.7 },
                   ]}
-                  accessibilityLabel="Restaurar tarjetas de notificaciones"
+                  accessibilityLabel={t('settings.restoreCardsLabel')}
                 >
                   <RotateCcw size={17} color={isDark ? '#FFFFFF' : '#0F0F10'} strokeWidth={2.2} />
                   <Text style={[styles.resetBtnFullText, { color: isDark ? '#FFFFFF' : '#0F0F10' }]}>

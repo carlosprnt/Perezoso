@@ -35,6 +35,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 
 import { useTheme } from '../design/useTheme';
+import { useT } from '../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize } from '../design/typography';
 import { radius } from '../design/radius';
 import { decelerate, swipeDismiss, snapBack } from '../motion/easing';
@@ -63,6 +64,7 @@ export function HalfSheet({
   heightFraction = 0.55,
   showCloseButton = false,
 }: HalfSheetProps) {
+  const t = useT();
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const sheetMaxHeight = SCREEN_HEIGHT * heightFraction;
@@ -219,7 +221,7 @@ export function HalfSheet({
                   pressed && { opacity: 0.7 },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar"
+                accessibilityLabel={t('common.close')}
               >
                 <X size={15} color={closeBtnColor} strokeWidth={2.5} />
               </Pressable>

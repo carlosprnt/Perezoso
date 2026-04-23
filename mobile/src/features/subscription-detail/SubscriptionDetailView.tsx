@@ -29,6 +29,7 @@ import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/ty
 import { radius } from '../../design/radius';
 import { STATUS_LABELS, CATEGORY_LABELS } from '../subscriptions/types';
 import type { Subscription } from '../subscriptions/types';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import {
   heroGradientColors,
   formatAmount,
@@ -82,6 +83,7 @@ interface Props {
 export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const t = useT();
 
   // ── Derived values ──────────────────────────────────────────────
   const monthly = toMonthly(sub.price_amount, sub.billing_period, sub.billing_interval_count);
@@ -190,7 +192,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
                 <Text style={[styles.priceBig, { color: colors.textPrimary }]}>
                   {formatAmount(monthly, sub.currency)}
                 </Text>
-                <Text style={[styles.priceCaption, { color: colors.textMuted }]}>Al mes</Text>
+                <Text style={[styles.priceCaption, { color: colors.textMuted }]}>{t('detail.perMonth')}</Text>
               </View>
 
               {/* Vertical separator */}
@@ -201,7 +203,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
                 <Text style={[styles.priceBig, { color: colors.textPrimary }]}>
                   {formatAmount(yearly, sub.currency)}
                 </Text>
-                <Text style={[styles.priceCaption, { color: colors.textMuted }]}>Anualmente</Text>
+                <Text style={[styles.priceCaption, { color: colors.textMuted }]}>{t('detail.annually')}</Text>
               </View>
             </View>
           </View>
@@ -210,19 +212,19 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
           <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             <DataRow
               icon={<CalendarDays size={iconSize} color={iconColor} strokeWidth={2} />}
-              label="Siguiente cobro"
+              label={t('detail.nextCharge')}
               value={formatDateShort(nextDate)}
             />
             <RowDivider />
             <DataRow
               icon={<CreditCard size={iconSize} color={iconColor} strokeWidth={2} />}
-              label="Importe del cobro"
+              label={t('detail.chargeAmount')}
               value={billingAmountFmt}
             />
             <RowDivider />
             <DataRow
               icon={<RefreshCw size={iconSize} color={iconColor} strokeWidth={2} />}
-              label="Frecuencia de cobro"
+              label={t('detail.chargeFrequency')}
               value={BILLING_PERIOD_LABELS[sub.billing_period]}
               valueBold
             />
@@ -231,10 +233,10 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
           {/* 3. Billing progress card */}
           <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
-              TIEMPO HASTA EL SIGUIENTE COBRO
+              {t('detail.timeUntilCharge')}
             </Text>
             <View style={styles.progressDates}>
-              <Text style={[styles.progressDateText, { color: colors.textMuted }]}>Hoy</Text>
+              <Text style={[styles.progressDateText, { color: colors.textMuted }]}>{t('detail.today')}</Text>
               <Text style={[styles.progressDateText, { color: colors.textMuted }]}>
                 {formatDateShort(nextDate)}
               </Text>
@@ -251,7 +253,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               />
             </View>
             <Text style={[styles.progressDaysLeft, { color: colors.textPrimary }]}>
-              {daysLabel(daysLeft)}
+              {daysLabel(daysLeft, t)}
             </Text>
           </View>
 
@@ -263,13 +265,13 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
                   ? <Bell size={iconSize} color={iconColor} strokeWidth={2} />
                   : <BellOff size={iconSize} color={iconColor} strokeWidth={2} />
               }
-              label="Aviso de renovación"
-              value={sub.reminderEnabled ? (sub.reminderDays ?? '1 día antes') : 'Sin aviso'}
+              label={t('detail.renewalAlert')}
+              value={sub.reminderEnabled ? t({ '1': 'form.reminder.1day', '3': 'form.reminder.3days', '7': 'form.reminder.7days' }[sub.reminderDays ?? '1'] ?? 'form.reminder.1day') : t('detail.noAlert')}
             />
             <RowDivider />
             <DataRow
               icon={<Tag size={iconSize} color={iconColor} strokeWidth={2} />}
-              label="Categoría"
+              label={t('form.category')}
               value={CATEGORY_LABELS[sub.category] ?? sub.category}
               valueBold
             />
@@ -278,8 +280,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
                 <RowDivider />
                 <DataRow
                   icon={<Tag size={iconSize} color={iconColor} strokeWidth={2} />}
-                  label="Compartida con"
-                  value={`${sub.shared_with_count} personas`}
+                  label={t('detail.sharedWith')}
+                  value={t('detail.people', { count: sub.shared_with_count })}
                   valueBold
                 />
               </>
@@ -294,7 +296,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
           style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.85 }]}
           onPress={handleEdit}
         >
-          <Text style={styles.editBtnText}>Editar suscripción</Text>
+          <Text style={styles.editBtnText}>{t('detail.editSubscription')}</Text>
         </Pressable>
       </View>
     </View>

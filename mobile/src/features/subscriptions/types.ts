@@ -28,7 +28,7 @@ export interface Subscription {
   my_monthly_cost: number;
   // Optional reminder metadata (populated on load / after edit)
   reminderEnabled?: boolean;
-  reminderDays?: '1 día antes' | '3 días antes' | '7 días antes';
+  reminderDays?: '1' | '3' | '7';
   // Optional notes
   notes?: string;
   // Optional edit-form metadata — not yet persisted server-side but

@@ -24,6 +24,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
 import { usePreferencesStore } from './useSettingsStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 interface Props {
   visible: boolean;
@@ -102,6 +103,7 @@ function matches(c: Currency, q: string) {
 }
 
 export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency }: Props) {
+  const t = useT();
   const { isDark } = useTheme();
   const storeCurrency = usePreferencesStore((s) => s.currency);
   const setCurrency = usePreferencesStore((s) => s.setCurrency);
@@ -151,8 +153,8 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
     <HalfSheet
       isOpen={visible}
       onClose={handleClose}
-      title="Selecciona la moneda"
-      subtitle="Elige la moneda por defecto para tus suscripciones"
+      title={t('currency.title')}
+      subtitle={t('currency.subtitle')}
       heightFraction={0.72}
     >
       {/* Sticky search */}
@@ -162,7 +164,7 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Buscar"
+            placeholder={t('currency.search')}
             placeholderTextColor={placeholderColor}
             autoCorrect={false}
             autoCapitalize="none"
