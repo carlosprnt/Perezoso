@@ -231,6 +231,7 @@ const TOGGLE_H = 28;
 function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; onToggle: () => void; compact?: boolean }) {
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
+  const containerScale = useSharedValue(1);
   const [displayLabel, setDisplayLabel] = useState(isMonthly ? 'Mes' : 'Año');
 
   const updateLabel = useCallback((monthly: boolean) => {
@@ -240,6 +241,10 @@ function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; o
   const animateToggle = useCallback(() => {
     haptic.selection();
     const nextIsMonthly = !isMonthly;
+    containerScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+    setTimeout(() => {
+      containerScale.value = withSpring(1, { damping: 10, stiffness: 200 });
+    }, 120);
     translateY.value = withTiming(TOGGLE_H, { duration: 150, easing: Easing.in(Easing.quad) });
     opacity.value = withTiming(0, { duration: 150 }, () => {
       runOnJS(updateLabel)(nextIsMonthly);
@@ -249,26 +254,30 @@ function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; o
       opacity.value = withTiming(1, { duration: 200 });
     });
     onToggle();
-  }, [isMonthly, onToggle, translateY, opacity, updateLabel]);
+  }, [isMonthly, onToggle, translateY, opacity, containerScale, updateLabel]);
 
   const labelAnimStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     opacity: opacity.value,
   }));
 
+  const containerAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: containerScale.value }],
+  }));
+
   const h = compact ? 20 : TOGGLE_H;
 
   return (
-    <View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }]}>
-      <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>Renovación</Text>
-      <Pressable onPress={animateToggle} hitSlop={12}>
+    <Pressable onPress={animateToggle}>
+      <Animated.View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }, containerAnimStyle]}>
+        <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>Renovación</Text>
         <View style={[styles.renewalValueWrap, { height: h }]}>
           <Animated.Text style={[styles.renewalValue, compact && { fontSize: fontSize[16] }, labelAnimStyle]}>
             {displayLabel}
           </Animated.Text>
         </View>
-      </Pressable>
-    </View>
+      </Animated.View>
+    </Pressable>
   );
 }
 
