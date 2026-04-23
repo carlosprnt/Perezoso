@@ -53,7 +53,7 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Search, Mail, Store } from 'lucide-react-native';
+import { X, Mail, Store } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
@@ -427,9 +427,8 @@ export function AddSubscriptionOverlay() {
                   ]}
                   onPress={() => setShowFindSubs(true)}
                 >
-                  <Search size={16} color="#FFFFFF" strokeWidth={2.5} />
                   <Text style={styles.footerBtnSecondaryText}>
-                    {t('findSubs.title')}
+                    {t('findSubs.search')}
                   </Text>
                 </Pressable>
                 <Pressable
