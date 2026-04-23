@@ -177,8 +177,17 @@ function withWidgetExtension(config) {
       );
     }
 
-    // Configure widget target build settings
+    // Read DEVELOPMENT_TEAM from the main target so the widget uses the same one
     const configs = project.pbxXCBuildConfigurationSection();
+    let devTeam = null;
+    for (const key in configs) {
+      const cfg = configs[key];
+      if (cfg.buildSettings?.DEVELOPMENT_TEAM && !devTeam) {
+        devTeam = cfg.buildSettings.DEVELOPMENT_TEAM;
+      }
+    }
+
+    // Configure widget target build settings
     for (const key in configs) {
       const cfg = configs[key];
       if (cfg.buildSettings?.PRODUCT_BUNDLE_IDENTIFIER === `"${widgetBundleId}"` ||
@@ -187,6 +196,8 @@ function withWidgetExtension(config) {
           SWIFT_VERSION: "5.0",
           IPHONEOS_DEPLOYMENT_TARGET: DEPLOYMENT_TARGET,
           CODE_SIGN_ENTITLEMENTS: `${WIDGET_NAME}/${WIDGET_NAME}.entitlements`,
+          CODE_SIGN_STYLE: "Automatic",
+          ...(devTeam ? { DEVELOPMENT_TEAM: devTeam } : {}),
           TARGETED_DEVICE_FAMILY: '"1"',
           GENERATE_INFOPLIST_FILE: "YES",
           MARKETING_VERSION: "1.0",
