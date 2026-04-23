@@ -57,6 +57,7 @@ export const resources = {
       'create.renewal.year': 'Año',
       'create.nextRenewal': 'Próxima renovación',
       'create.moreOptions': 'Más opciones',
+      'create.addManually': 'Añadir manualmente',
       'create.save': 'Guardar',
       'create.submit': 'Crear suscripción',
       'create.startDate': 'Inicio de suscripción',
@@ -284,6 +285,15 @@ export const resources = {
       'form.reminder.3days': '3 días antes',
       'form.reminder.7days': '7 días antes',
 
+      // ── Find subscriptions sheet ──
+      'findSubs.title': 'Buscar suscripciones',
+      'findSubs.subtitle': 'Encuentra suscripciones que ya estás pagando',
+      'findSubs.gmail': 'Buscar en Gmail',
+      'findSubs.gmailDesc': 'Analiza tus correos para encontrar recibos de suscripciones',
+      'findSubs.gmailSoon': 'Próximamente',
+      'findSubs.appStore': 'Buscar en App Store',
+      'findSubs.appStoreDesc': 'Revisa tus suscripciones activas en la App Store',
+
       // ── Gmail import ──
       'gmail.searchTitle': 'Buscar en Gmail',
       'gmail.searching': 'Buscando...',
@@ -505,6 +515,7 @@ export const resources = {
       'create.renewal.year': 'Year',
       'create.nextRenewal': 'Next renewal',
       'create.moreOptions': 'More options',
+      'create.addManually': 'Add manually',
       'create.save': 'Save',
       'create.submit': 'Create subscription',
       'create.startDate': 'Subscription start',
@@ -758,6 +769,15 @@ export const resources = {
       'form.reminder.1day': '1 day before',
       'form.reminder.3days': '3 days before',
       'form.reminder.7days': '7 days before',
+
+      // ── Find subscriptions sheet ──
+      'findSubs.title': 'Find subscriptions',
+      'findSubs.subtitle': 'Find subscriptions you are already paying for',
+      'findSubs.gmail': 'Search Gmail',
+      'findSubs.gmailDesc': 'Scan your emails to find subscription receipts',
+      'findSubs.gmailSoon': 'Coming soon',
+      'findSubs.appStore': 'Search App Store',
+      'findSubs.appStoreDesc': 'Review your active App Store subscriptions',
 
       // ── Gmail import ──
       'gmail.searchTitle': 'Search Gmail',

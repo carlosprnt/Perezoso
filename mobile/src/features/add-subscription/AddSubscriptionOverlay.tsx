@@ -33,6 +33,7 @@ import {
   Pressable,
   Dimensions,
   Image,
+  Linking,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
@@ -52,12 +53,12 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { X, Search, Mail, Store } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
-import { useGmailImportStore } from './useGmailImportStore';
 import { fontFamily, fontSize } from '../../design/typography';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { radius } from '../../design/radius';
 import { zIndex } from '../../design/zIndex';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
@@ -122,13 +123,17 @@ const SHEET_RADIUS = 48;
 const DISMISS_DISTANCE = 80;
 const DISMISS_VELOCITY = 400;
 
+const APP_STORE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
+
 export function AddSubscriptionOverlay() {
   const insets = useSafeAreaInsets();
+  const t = useT();
   const isOpen = useAddSubscriptionStore((s) => s.isOpen);
   const triggerRect = useAddSubscriptionStore((s) => s.triggerRect);
   const close = useAddSubscriptionStore((s) => s.close);
 
   const [mounted, setMounted] = useState(false);
+  const [showFindSubs, setShowFindSubs] = useState(false);
   const [interactive, setInteractive] = useState(false);
   const progress = useSharedValue(0);
   // swipeY tracks the user's vertical drag distance during a pull-to-dismiss
@@ -172,6 +177,7 @@ export function AddSubscriptionOverlay() {
       });
     } else {
       setInteractive(false);
+      setShowFindSubs(false);
       progress.value = withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) runOnJS(setMounted)(false);
       });
@@ -302,12 +308,12 @@ export function AddSubscriptionOverlay() {
               </View>
             {/* ─── Header ── */}
               <View style={styles.header}>
-                <Text style={styles.title}>Crear nueva suscripción</Text>
+                <Text style={styles.title}>{t('create.title')}</Text>
                 <Pressable
                   style={styles.closeBtn}
                   onPress={close}
                   hitSlop={8}
-                  accessibilityLabel="Cerrar"
+                  accessibilityLabel={t('common.close')}
                 >
                   <X size={16} color="#FFFFFF" strokeWidth={2.5} />
                 </Pressable>
@@ -358,41 +364,90 @@ export function AddSubscriptionOverlay() {
             </GestureDetector>
 
             {/* ─── Footer actions ──────────────────────────────── */}
-            <View
-              style={[
-                styles.footer,
-                { paddingBottom: 22 },
-              ]}
-            >
-              <Pressable
-                style={({ pressed }) => [
-                  styles.footerBtnSecondary,
-                  pressed && { opacity: 0.8 },
+            {showFindSubs ? (
+              <View style={[styles.findSubsPanel, { paddingBottom: 22 }]}>
+                <View style={styles.findSubsHeader}>
+                  <Pressable onPress={() => setShowFindSubs(false)} hitSlop={8}>
+                    <Text style={styles.findSubsBack}>←</Text>
+                  </Pressable>
+                  <Text style={styles.findSubsTitle}>{t('findSubs.title')}</Text>
+                  <View style={{ width: 24 }} />
+                </View>
+
+                {/* Gmail — disabled */}
+                <Pressable style={[styles.findSubsRow, styles.findSubsRowDisabled]} disabled>
+                  <View style={styles.findSubsIconWrap}>
+                    <Mail size={18} color="rgba(255,255,255,0.3)" strokeWidth={2} />
+                  </View>
+                  <View style={styles.findSubsTextCol}>
+                    <View style={styles.findSubsLabelRow}>
+                      <Text style={[styles.findSubsRowTitle, { color: 'rgba(255,255,255,0.3)' }]}>
+                        {t('findSubs.gmail')}
+                      </Text>
+                      <View style={styles.findSubsBadge}>
+                        <Text style={styles.findSubsBadgeText}>{t('findSubs.gmailSoon')}</Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.findSubsRowDesc, { color: 'rgba(255,255,255,0.2)' }]}>
+                      {t('findSubs.gmailDesc')}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                {/* App Store — active */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.findSubsRow,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => {
+                    Linking.openURL(APP_STORE_SUBSCRIPTIONS_URL).catch(() => {});
+                  }}
+                >
+                  <View style={styles.findSubsIconWrap}>
+                    <Store size={18} color="#FFFFFF" strokeWidth={2} />
+                  </View>
+                  <View style={styles.findSubsTextCol}>
+                    <Text style={styles.findSubsRowTitle}>{t('findSubs.appStore')}</Text>
+                    <Text style={styles.findSubsRowDesc}>{t('findSubs.appStoreDesc')}</Text>
+                  </View>
+                </Pressable>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.footer,
+                  { paddingBottom: 22 },
                 ]}
-                onPress={() => {
-                  useGmailImportStore.getState().open();
-                  close();
-                }}
               >
-                <Text style={styles.footerBtnSecondaryText}>
-                  Buscar en Gmail
-                </Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.footerBtnPrimary,
-                  pressed && { opacity: 0.85 },
-                ]}
-                onPress={() => {
-                  useCreateSubscriptionStore.getState().open();
-                  close();
-                }}
-              >
-                <Text style={styles.footerBtnPrimaryText}>
-                  Añadir manualmente
-                </Text>
-              </Pressable>
-            </View>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.footerBtnSecondary,
+                    pressed && { opacity: 0.8 },
+                  ]}
+                  onPress={() => setShowFindSubs(true)}
+                >
+                  <Search size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text style={styles.footerBtnSecondaryText}>
+                    {t('findSubs.title')}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.footerBtnPrimary,
+                    pressed && { opacity: 0.85 },
+                  ]}
+                  onPress={() => {
+                    useCreateSubscriptionStore.getState().open();
+                    close();
+                  }}
+                >
+                  <Text style={styles.footerBtnPrimaryText}>
+                    {t('create.addManually')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
             </View>
             </GestureDetector>
           </Animated.View>
@@ -531,5 +586,80 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
+  },
+  // ── Find subscriptions panel ───────────────────────────
+  findSubsPanel: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    gap: 8,
+  },
+  findSubsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  findSubsBack: {
+    ...fontFamily.medium,
+    fontSize: fontSize[20],
+    color: '#FFFFFF',
+  },
+  findSubsTitle: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  findSubsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  findSubsRowDisabled: {
+    opacity: 0.45,
+  },
+  findSubsIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  findSubsTextCol: {
+    flex: 1,
+  },
+  findSubsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  findSubsRowTitle: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[14],
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+  findSubsRowDesc: {
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 2,
+  },
+  findSubsBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  findSubsBadgeText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[11],
+    color: 'rgba(255,255,255,0.35)',
   },
 });
