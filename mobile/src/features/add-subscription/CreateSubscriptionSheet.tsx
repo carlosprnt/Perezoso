@@ -19,6 +19,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
@@ -310,26 +311,14 @@ export function CreateSubscriptionSheet() {
 
   // ── Step transition animation ─────────────────────────────────────
   const step1Opacity = useSharedValue(1);
-  const step1TranslateY = useSharedValue(0);
-  const step1Scale = useSharedValue(1);
-  const step2Opacity = useSharedValue(1);
-  const step2Scale = useSharedValue(1);
   const step2TranslateY = useSharedValue(0);
 
   const step1AnimStyle = useAnimatedStyle(() => ({
     opacity: step1Opacity.value,
-    transform: [
-      { translateY: step1TranslateY.value },
-      { scale: step1Scale.value },
-    ],
   }));
 
   const step2AnimStyle = useAnimatedStyle(() => ({
-    opacity: step2Opacity.value,
-    transform: [
-      { translateY: step2TranslateY.value },
-      { scale: step2Scale.value },
-    ],
+    transform: [{ translateY: step2TranslateY.value }],
   }));
 
   // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
@@ -361,10 +350,6 @@ export function CreateSubscriptionSheet() {
       setOpenDate(null);
       setOpenPicker(null);
       step1Opacity.value = 1;
-      step1TranslateY.value = 0;
-      step1Scale.value = 1;
-      step2Opacity.value = 1;
-      step2Scale.value = 1;
       step2TranslateY.value = 0;
     }
   }, [isOpen, prefill]);
@@ -500,26 +485,17 @@ export function CreateSubscriptionSheet() {
   }, [form, renewalDate, doSubmit]);
 
   const enterStep2 = useCallback(() => {
-    step2Opacity.value = 0;
-    step2Scale.value = 0.99;
-    step2TranslateY.value = 30;
+    const screenH = Dimensions.get('window').height;
+    step2TranslateY.value = screenH;
     setStep(2);
-    const ease = Easing.bezierFn(0.4, 0, 0.2, 1);
-    step2Opacity.value = withTiming(1, { duration: 1000, easing: ease });
-    step2Scale.value = withTiming(1, { duration: 1000, easing: ease });
-    step2TranslateY.value = withTiming(0, { duration: 1000, easing: ease });
-    step1Opacity.value = 1;
-    step1TranslateY.value = 0;
-    step1Scale.value = 1;
-  }, [step1Opacity, step1TranslateY, step1Scale, step2Opacity, step2Scale, step2TranslateY]);
+    step2TranslateY.value = withTiming(0, { duration: 420, easing: Easing.bezierFn(0.2, 0.9, 0.3, 1) });
+  }, [step2TranslateY]);
 
   const goToMoreOptions = useCallback(() => {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
     Keyboard.dismiss();
-    const exitEase = Easing.bezierFn(0.2, 0, 0.8, 1);
-    step1Opacity.value = withTiming(0, { duration: 1500, easing: exitEase }, (finished) => {
-      if (finished) runOnJS(enterStep2)();
-    });
+    step1Opacity.value = withTiming(0, { duration: 1000, easing: Easing.bezierFn(0.2, 0, 0.8, 1) });
+    setTimeout(() => enterStep2(), 800);
   }, [renewalDate, step1Opacity, enterStep2]);
 
   // ─────────────────────────────────────────────────────────────────
