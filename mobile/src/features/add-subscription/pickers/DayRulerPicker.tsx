@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   indicator: {
     width: 3,
     height: 56,
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#000000',
     borderRadius: 1.5,
   },
   fadeLeft: {
