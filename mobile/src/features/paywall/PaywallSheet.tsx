@@ -37,6 +37,7 @@ import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { usePaywallStore } from './usePaywallStore';
 import { PAYWALL_BENEFITS, PAYWALL_COPY } from './paywallTriggers';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import {
   getCurrentOffering,
   purchasePackage,
@@ -69,6 +70,7 @@ export function PaywallSheet() {
   const close   = usePaywallStore((s) => s.close);
   const trigger = usePaywallStore((s) => s.trigger);
   const copy    = PAYWALL_COPY[trigger];
+  const t       = useT();
 
   const [plan, setPlan] = useState<Plan>('annual');
   const [mounted, setMounted] = useState(isOpen);
@@ -159,8 +161,8 @@ export function PaywallSheet() {
     const pkg: RCPackage | undefined = plan === 'annual' ? annualPkg : monthlyPkg;
     if (!pkg) {
       Alert.alert(
-        'No disponible',
-        'Los planes de suscripción aún no están configurados. Inténtalo más tarde.',
+        t('paywall.notAvailable'),
+        t('paywall.notConfigured'),
       );
       return;
     }
@@ -170,7 +172,7 @@ export function PaywallSheet() {
     setPurchasing(false);
     if (res.cancelled) return;
     if (!res.ok) {
-      Alert.alert('No se pudo completar la compra', res.error ?? 'Inténtalo de nuevo');
+      Alert.alert(t('paywall.purchaseFailed'), res.error ?? t('paywall.tryAgain'));
       return;
     }
     haptic.success();
@@ -178,10 +180,10 @@ export function PaywallSheet() {
   };
 
   const ctaLabel = purchasing
-    ? 'Procesando...'
+    ? t('paywall.processing')
     : plan === 'annual'
-      ? 'Elegir plan anual'
-      : 'Elegir plan mensual';
+      ? t('paywall.chooseAnnual')
+      : t('paywall.chooseMonthly');
 
   return (
     <Modal
@@ -199,7 +201,7 @@ export function PaywallSheet() {
         <Pressable
           style={StyleSheet.absoluteFillObject}
           onPress={close}
-          accessibilityLabel="Cerrar paywall"
+          accessibilityLabel={t('paywall.closePaywall')}
         />
       </Animated.View>
 
@@ -223,7 +225,7 @@ export function PaywallSheet() {
                   onPress={close}
                   hitSlop={10}
                   accessibilityRole="button"
-                  accessibilityLabel="Cerrar"
+                  accessibilityLabel={t('paywall.close')}
                 >
                   <X size={14} color="#3C3C43" strokeWidth={2.5} />
                 </Pressable>
@@ -248,9 +250,9 @@ export function PaywallSheet() {
 
             {/* ── 2. Headline ─────────────────────────────────── */}
             <View style={styles.headlineSection}>
-              <Text style={[styles.headline, !copy.subheadline && { marginBottom: 0 }]}>{copy.headline}</Text>
-              {copy.subheadline ? (
-                <Text style={styles.subheadline}>{copy.subheadline}</Text>
+              <Text style={[styles.headline, !copy.subheadlineKey && { marginBottom: 0 }]}>{t(copy.headlineKey)}</Text>
+              {copy.subheadlineKey ? (
+                <Text style={styles.subheadline}>{t(copy.subheadlineKey)}</Text>
               ) : null}
             </View>
 
@@ -262,8 +264,8 @@ export function PaywallSheet() {
                     <Check size={10} color="#FFFFFF" strokeWidth={3} />
                   </View>
                   <View style={styles.benefitContent}>
-                    <Text style={styles.benefitTitle}>{b.title}</Text>
-                    <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
+                    <Text style={styles.benefitTitle}>{t(b.titleKey)}</Text>
+                    <Text style={styles.benefitSubtitle}>{t(b.subtitleKey)}</Text>
                   </View>
                 </View>
               ))}
@@ -280,25 +282,25 @@ export function PaywallSheet() {
                 ]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: plan === 'annual' }}
-                accessibilityLabel="Plan anual"
+                accessibilityLabel={t('paywall.annualPlan')}
               >
                 <View style={styles.planColHeader}>
                   <View style={styles.planRadio}>
                     {plan === 'annual' && <View style={styles.planRadioDot} />}
                   </View>
                   <View style={styles.popularBadge}>
-                    <Text style={styles.popularBadgeText}>Popular</Text>
+                    <Text style={styles.popularBadgeText}>{t('paywall.popular')}</Text>
                   </View>
                 </View>
                 <Text style={[styles.planColLabel, plan === 'annual' && styles.planLabelActive]}>
-                  Anual
+                  {t('paywall.annual')}
                 </Text>
                 <Text style={[styles.planColPrice, plan === 'annual' && styles.planPriceActive]}>
                   {annualPrice}
                 </Text>
-                <Text style={styles.planColPeriod}>/ año</Text>
+                <Text style={styles.planColPeriod}>{t('paywall.perYear')}</Text>
                 <View style={styles.planColFooter}>
-                  <Text style={styles.planPerMonth}>{annualPerMonth}/mes</Text>
+                  <Text style={styles.planPerMonth}>{annualPerMonth}{t('paywall.perMonthShort')}</Text>
                   <View style={styles.savingsBadge}>
                     <Text style={styles.savingsBadgeText}>-{savingsPercent}%</Text>
                   </View>
@@ -314,7 +316,7 @@ export function PaywallSheet() {
                 ]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: plan === 'monthly' }}
-                accessibilityLabel="Plan mensual"
+                accessibilityLabel={t('paywall.monthlyPlan')}
               >
                 <View style={styles.planColHeader}>
                   <View style={styles.planRadio}>
@@ -322,12 +324,12 @@ export function PaywallSheet() {
                   </View>
                 </View>
                 <Text style={[styles.planColLabel, plan === 'monthly' && styles.planLabelActive]}>
-                  Mensual
+                  {t('paywall.monthly')}
                 </Text>
                 <Text style={[styles.planColPrice, plan === 'monthly' && styles.planPriceActive]}>
                   {monthlyPrice}
                 </Text>
-                <Text style={styles.planColPeriod}>/ mes</Text>
+                <Text style={styles.planColPeriod}>{t('paywall.perMonth')}</Text>
               </Pressable>
             </View>
 
@@ -347,7 +349,7 @@ export function PaywallSheet() {
 
             {/* ── 6. Trust microcopy ──────────────────────────── */}
             <Text style={styles.trustText}>
-              Cancela cuando quieras desde Ajustes
+              {t('paywall.trustText')}
             </Text>
           </ScrollView>
         </Reanimated.View>

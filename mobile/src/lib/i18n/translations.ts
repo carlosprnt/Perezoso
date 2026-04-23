@@ -165,6 +165,10 @@ export const resources = {
       'profile.managePro': 'Gestionar suscripción Perezoso Pro',
       'profile.upgradePro': 'Mejorar a Perezoso Pro',
       'profile.openMenu': 'Abrir / cerrar menú de perfil',
+      'profile.proSubActive': 'Suscripción activa',
+      'profile.proSubInactive': 'Desbloquea todas las funcionalidades',
+      'profile.manage': 'Gestionar',
+      'profile.upgrade': 'Mejorar',
 
       // ── Paywall ──
       'paywall.headline': 'Ser PRO te da\ncontrol absoluto',
@@ -442,6 +446,10 @@ export const resources = {
       'profile.managePro': 'Manage Perezoso Pro subscription',
       'profile.upgradePro': 'Upgrade to Perezoso Pro',
       'profile.openMenu': 'Open / close profile menu',
+      'profile.proSubActive': 'Active subscription',
+      'profile.proSubInactive': 'Unlock all features',
+      'profile.manage': 'Manage',
+      'profile.upgrade': 'Upgrade',
 
       'subscriptions.title': 'My subscriptions',
       'subscriptions.showCalendar': 'Show calendar',

@@ -1,6 +1,5 @@
 // Paywall trigger metadata — drives contextual copy in the paywall sheet.
-// Each trigger maps to a headline + subheadline shown at the top.
-// The general trigger uses the default value-focused copy.
+// Each trigger maps to translation keys for headline + subheadline.
 
 export type PaywallTrigger =
   | 'subscription_limit'
@@ -11,47 +10,53 @@ export type PaywallTrigger =
   | 'general';
 
 export interface PaywallTriggerMeta {
-  headline: string;
-  subheadline: string;
+  headlineKey: string;
+  subheadlineKey: string;
   highlightBenefit?: string;
 }
 
 export const PAYWALL_COPY: Record<PaywallTrigger, PaywallTriggerMeta> = {
   subscription_limit: {
-    headline: 'Has llegado al límite',
-    subheadline: 'Tu plan permite hasta 15 suscripciones. Con Pro, añade todas las que necesites.',
+    headlineKey: 'paywall.trigger.subscriptionLimit.headline',
+    subheadlineKey: 'paywall.trigger.subscriptionLimit.subheadline',
     highlightBenefit: 'unlimited_subscriptions',
   },
   future_calendar: {
-    headline: 'Anticípate a tus cobros',
-    subheadline: 'Visualiza los próximos meses en el calendario y planifica mejor tus gastos.',
+    headlineKey: 'paywall.trigger.futureCalendar.headline',
+    subheadlineKey: 'paywall.trigger.futureCalendar.subheadline',
     highlightBenefit: 'future_calendar',
   },
   savings_recommendations: {
-    headline: 'Ahorra más cada mes',
-    subheadline: 'Desbloquea todas las recomendaciones personalizadas para reducir tus gastos.',
+    headlineKey: 'paywall.trigger.savings.headline',
+    subheadlineKey: 'paywall.trigger.savings.subheadline',
     highlightBenefit: 'savings',
   },
   renewal_reminders: {
-    headline: 'No te pillen por sorpresa',
-    subheadline: 'Activa avisos antes de cada renovación para decidir si quieres seguir pagando.',
+    headlineKey: 'paywall.trigger.reminders.headline',
+    subheadlineKey: 'paywall.trigger.reminders.subheadline',
     highlightBenefit: 'reminders',
   },
   custom_categories: {
-    headline: 'Organiza a tu manera',
-    subheadline: 'Crea categorías personalizadas y clasifica tus suscripciones como prefieras.',
+    headlineKey: 'paywall.trigger.categories.headline',
+    subheadlineKey: 'paywall.trigger.categories.subheadline',
     highlightBenefit: 'custom_categories',
   },
   general: {
-    headline: 'Ser PRO te da\ncontrol absoluto',
-    subheadline: '',
+    headlineKey: 'paywall.trigger.general.headline',
+    subheadlineKey: '',
   },
 };
 
-export const PAYWALL_BENEFITS = [
-  { id: 'unlimited_subscriptions', title: 'Suscripciones ilimitadas',      subtitle: 'Sin el límite de 15 del plan normal' },
-  { id: 'reminders',               title: 'Avisos antes de renovar',       subtitle: 'Alertas antes de cada cobro automático' },
-  { id: 'future_calendar',         title: 'Calendario completo de cobros', subtitle: 'Visualiza todos tus pagos futuros' },
-  { id: 'savings',                 title: 'Recomendaciones para ahorrar',  subtitle: 'Consejos personalizados para gastar menos' },
-  { id: 'custom_categories',       title: 'Categorías personalizadas',     subtitle: 'Organiza tus suscripciones a tu manera' },
-] as const;
+export interface PaywallBenefitMeta {
+  id: string;
+  titleKey: string;
+  subtitleKey: string;
+}
+
+export const PAYWALL_BENEFITS: PaywallBenefitMeta[] = [
+  { id: 'unlimited_subscriptions', titleKey: 'paywall.benefit.unlimited',   subtitleKey: 'paywall.benefit.unlimitedSub' },
+  { id: 'reminders',               titleKey: 'paywall.benefit.reminders',   subtitleKey: 'paywall.benefit.remindersSub' },
+  { id: 'future_calendar',         titleKey: 'paywall.benefit.calendar',    subtitleKey: 'paywall.benefit.calendarSub' },
+  { id: 'savings',                 titleKey: 'paywall.benefit.savings',     subtitleKey: 'paywall.benefit.savingsSub' },
+  { id: 'custom_categories',       titleKey: 'paywall.benefit.categories',  subtitleKey: 'paywall.benefit.categoriesSub' },
+];

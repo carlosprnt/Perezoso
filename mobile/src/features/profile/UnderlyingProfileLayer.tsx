@@ -38,6 +38,7 @@ import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { ThemeToggleButton } from '../../components/ThemeToggleButton';
 import { GlowBorder } from '../settings/components';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 // Must stay in sync with PEEK_HEIGHT in useDashboardReveal.ts.
 const PEEK_HEIGHT = 120;
@@ -71,6 +72,7 @@ export function UnderlyingProfileLayer({
   onLogout,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const t = useT();
 
   // Root-level animation — mirrors `opacity: bgOpacity` + `y: bgTranslate`
   // on the web's backdrop layer. The entire panel fades in from -30px.
@@ -110,12 +112,12 @@ export function UnderlyingProfileLayer({
         <View style={styles.cardsRow}>
           <DarkTile
             icon={<Settings size={22} color="#FFFFFF" strokeWidth={2} />}
-            label="Ajustes"
+            label={t('profile.settings')}
             onPress={onSettings}
           />
           <DarkTile
             icon={<Share2 size={22} color="#FFFFFF" strokeWidth={2} />}
-            label="Compartir datos"
+            label={t('profile.shareData')}
             onPress={onShareData}
             disabled={shareDisabled}
           />
@@ -126,11 +128,11 @@ export function UnderlyingProfileLayer({
         <GlowBorder borderRadius={18} />
         <View style={styles.plusBlock}>
           <View style={styles.plusTextCol}>
-            <Text style={styles.plusTitle}>Perezoso Pro</Text>
+            <Text style={styles.plusTitle}>{t('profile.perezosoPro')}</Text>
             <Text style={styles.plusSubtitle}>
               {isPlusActive
-                ? 'Suscripci\u00F3n activa'
-                : 'Desbloquea todas las funcionalidades'}
+                ? t('profile.proSubActive')
+                : t('profile.proSubInactive')}
             </Text>
           </View>
           <Pressable
@@ -141,12 +143,12 @@ export function UnderlyingProfileLayer({
             onPress={() => { haptic.selection(); onManagePlus?.(); }}
             accessibilityLabel={
               isPlusActive
-                ? 'Gestionar suscripci\u00F3n Perezoso Pro'
-                : 'Mejorar a Perezoso Pro'
+                ? t('profile.managePro')
+                : t('profile.upgradePro')
             }
           >
             <Text style={styles.plusBtnText}>
-              {isPlusActive ? 'Gestionar' : 'Mejorar'}
+              {isPlusActive ? t('profile.manage') : t('profile.upgrade')}
             </Text>
           </Pressable>
         </View>
@@ -164,11 +166,11 @@ export function UnderlyingProfileLayer({
             ]}
             onPress={() => { haptic.light(); onLogout?.(); }}
             hitSlop={8}
-            accessibilityLabel="Cerrar sesión"
+            accessibilityLabel={t('profile.logout')}
           >
             <LogOut size={18} color="#FCA5A5" strokeWidth={2} />
             <Text style={[styles.bottomBtnText, { color: '#FCA5A5' }]}>
-              Cerrar sesión
+              {t('profile.logout')}
             </Text>
           </Pressable>
           <ThemeToggleButton color="#FFFFFF" />
