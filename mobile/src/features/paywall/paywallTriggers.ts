@@ -43,7 +43,7 @@ export const PAYWALL_COPY: Record<PaywallTrigger, PaywallTriggerMeta> = {
     highlightBenefit: 'custom_categories',
   },
   general: {
-    headline: 'Pro elimina límites\ny desbloquea más',
+    headline: 'Ser PRO te da\ncontrol absoluto',
     subheadline: '',
   },
 };

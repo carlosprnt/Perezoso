@@ -6,7 +6,7 @@
 //    AND the pan-down-to-dismiss gesture. No custom PanResponder, no
 //    custom translateY animation: the sheet behaves exactly like Apple's
 //    own Mail/Calendar/Wallet modals.
-//  · Dropdowns via FloatingOptionMenu (anchored light pull-down, iOS UIMenu)
+//  · Dropdowns via native @react-native-picker/picker (iOS UIMenu style)
 //  · Date fields via NativeDatePickerSheet (iOS inline calendar, floating)
 //  · Dirty-form protection: the explicit Cancel / X button fires an Alert.
 //    Swipe-to-dismiss is a native iOS gesture and can't be cancelled from
@@ -43,12 +43,12 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { DayRulerPicker } from './pickers/DayRulerPicker';
-import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import type { Currency } from '../settings/CurrencySheet';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
@@ -128,7 +128,6 @@ type BillingPeriod = 'Monthly' | 'Yearly' | 'Quarterly' | 'Weekly' | 'Custom';
 type Status = 'Activa' | 'Pausada' | 'Cancelada' | 'Finalizado';
 type ReminderDays = '1 día antes' | '3 días antes' | '7 días antes';
 type DateKey = 'start' | 'next' | 'end' | null;
-type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
 interface FormState {
   name: string;
@@ -217,15 +216,6 @@ function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
   );
 }
 
-function DropdownBtn({ value, onPress }: { value: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
-      <Text style={styles.dropdownText}>{value}</Text>
-      <ChevronsUpDown size={14} color="#8E8E93" strokeWidth={2.5} />
-    </Pressable>
-  );
-}
-
 // ─── Renewal period toggle with vertical slide animation ────────────
 const TOGGLE_H = 28;
 
@@ -300,8 +290,6 @@ export function CreateSubscriptionSheet() {
   const initialFormRef = useRef<FormState>(makeInitialForm(null));
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
-  const [openPicker, setOpenPicker] = useState<PickerKey>(null);
-  const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [renewalDatePickerOpen, setRenewalDatePickerOpen] = useState(false);
   const [kbHeight, setKbHeight] = useState(0);
@@ -321,11 +309,6 @@ export function CreateSubscriptionSheet() {
     transform: [{ translateY: step2TranslateY.value }],
   }));
 
-  // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
-  const billingRef = useRef<View>(null);
-  const categoryRef = useRef<View>(null);
-  const statusRef = useRef<View>(null);
-  const reminderRef = useRef<View>(null);
 
   const isDirty = useCallback(
     () => !formIsEqual(form, initialFormRef.current),
@@ -348,7 +331,6 @@ export function CreateSubscriptionSheet() {
       setKbHeight(0);
       setIsSubmitting(false);
       setOpenDate(null);
-      setOpenPicker(null);
       step1Opacity.value = 1;
       step2TranslateY.value = 0;
     }
@@ -389,20 +371,6 @@ export function CreateSubscriptionSheet() {
   const handleNativeDismiss = useCallback(() => {
     if (isOpen) closeStore();
   }, [isOpen, closeStore]);
-
-  // ── Anchor measurement helpers ────────────────────────────────────
-  const openPickerAt = useCallback(
-    (ref: React.RefObject<View | null>, key: Exclude<PickerKey, null>) => {
-      const node = ref.current;
-      if (node) {
-        node.measureInWindow((x, y, width, height) => {
-          setPickerAnchor({ x, y, width, height });
-          setOpenPicker(key);
-        });
-      }
-    },
-    [],
-  );
 
   // ── Steppers ─────────────────────────────────────────────────────
   const decShared = useCallback(() =>
@@ -702,12 +670,15 @@ export function CreateSubscriptionSheet() {
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Periodo de cobro</Text>
-                  <View ref={billingRef} collapsable={false}>
-                    <DropdownBtn
-                      value={form.billingPeriod}
-                      onPress={() => openPickerAt(billingRef, 'billing')}
-                    />
-                  </View>
+                  <Picker
+                    selectedValue={form.billingPeriod}
+                    onValueChange={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
+                    style={styles.nativePicker}
+                  >
+                    {BILLING_PERIODS.map((p) => (
+                      <Picker.Item key={p} label={p} value={p} />
+                    ))}
+                  </Picker>
                 </View>
                 <FormDivider />
                 <View style={styles.row}>
@@ -733,12 +704,15 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Categoría</Text>
-                  <View ref={categoryRef} collapsable={false}>
-                    <DropdownBtn
-                      value={form.category}
-                      onPress={() => openPickerAt(categoryRef, 'category')}
-                    />
-                  </View>
+                  <Picker
+                    selectedValue={form.category}
+                    onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
+                    style={styles.nativePicker}
+                  >
+                    {allCategories.map((c) => (
+                      <Picker.Item key={c} label={c} value={c} />
+                    ))}
+                  </Picker>
                 </View>
               </View>
 
@@ -764,12 +738,15 @@ export function CreateSubscriptionSheet() {
                     <FormDivider />
                     <View style={styles.row}>
                       <Text style={[styles.rowLabel, styles.rowLabelMuted]}>Avisarme</Text>
-                      <View ref={reminderRef} collapsable={false}>
-                        <DropdownBtn
-                          value={form.reminderDays}
-                          onPress={() => openPickerAt(reminderRef, 'reminder')}
-                        />
-                      </View>
+                      <Picker
+                        selectedValue={form.reminderDays}
+                        onValueChange={(v) => setForm((f) => ({ ...f, reminderDays: v as ReminderDays }))}
+                        style={styles.nativePicker}
+                      >
+                        {REMINDER_OPTIONS.map((r) => (
+                          <Picker.Item key={r} label={r} value={r} />
+                        ))}
+                      </Picker>
                     </View>
                   </>
                 )}
@@ -872,12 +849,15 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>Estado</Text>
-                  <View ref={statusRef} collapsable={false}>
-                    <DropdownBtn
-                      value={form.status}
-                      onPress={() => openPickerAt(statusRef, 'status')}
-                    />
-                  </View>
+                  <Picker
+                    selectedValue={form.status}
+                    onValueChange={(v) => setForm((f) => ({ ...f, status: v as Status }))}
+                    style={styles.nativePicker}
+                  >
+                    {STATUSES.map((s) => (
+                      <Picker.Item key={s} label={s} value={s} />
+                    ))}
+                  </Picker>
                 </View>
                 <FormDivider />
                 <View style={styles.notesRow}>
@@ -965,39 +945,6 @@ export function CreateSubscriptionSheet() {
         onSelectCurrency={(c) => setForm((f) => ({ ...f, currency: c.code }))}
       />
 
-      {/* ── Anchored pull-down menus ── */}
-      <FloatingOptionMenu
-        visible={openPicker === 'billing'}
-        anchor={pickerAnchor}
-        options={BILLING_PERIODS}
-        selected={form.billingPeriod}
-        onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: v as BillingPeriod }))}
-        onClose={() => setOpenPicker(null)}
-      />
-      <FloatingOptionMenu
-        visible={openPicker === 'category'}
-        anchor={pickerAnchor}
-        options={allCategories}
-        selected={form.category}
-        onSelect={(v) => setForm((f) => ({ ...f, category: v }))}
-        onClose={() => setOpenPicker(null)}
-      />
-      <FloatingOptionMenu
-        visible={openPicker === 'status'}
-        anchor={pickerAnchor}
-        options={STATUSES}
-        selected={form.status}
-        onSelect={(v) => setForm((f) => ({ ...f, status: v as Status }))}
-        onClose={() => setOpenPicker(null)}
-      />
-      <FloatingOptionMenu
-        visible={openPicker === 'reminder'}
-        anchor={pickerAnchor}
-        options={REMINDER_OPTIONS}
-        selected={form.reminderDays}
-        onSelect={(v) => setForm((f) => ({ ...f, reminderDays: v as ReminderDays }))}
-        onClose={() => setOpenPicker(null)}
-      />
     </Modal>
 
     {Platform.OS === 'ios' && (
@@ -1259,16 +1206,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
-  dropdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dropdownText: {
-    ...fontFamily.regular,
-    fontSize: fontSize[16],
-    color: '#000000',
-    letterSpacing: -0.1,
+  nativePicker: {
+    width: 160,
   },
 
   stepper: {
