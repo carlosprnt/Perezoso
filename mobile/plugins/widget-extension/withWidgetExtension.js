@@ -1,24 +1,20 @@
-// Expo config plugin — adds the PerezozoWidgets widget extension target
-// to the Xcode project. Also configures:
-//   • App Group entitlement on main target + widget target
-//   • Copies SwiftUI widget source files into the extension
-//   • Links WidgetKit + SwiftUI frameworks
-//   • Adds the native bridge module files to the main target
+// Expo config plugin — adds PerezozoWidgets extension target.
+//
+// Uses withDangerousMod for file operations (runs after ios/ is created)
+// and withXcodeProject for Xcode project manipulation.
 
 const {
   withXcodeProject,
   withEntitlementsPlist,
-  withInfoPlist,
+  withDangerousMod,
 } = require("expo/config-plugins");
 const path = require("path");
 const fs = require("fs");
 
 const APP_GROUP = "group.com.perezoso.app";
-const WIDGET_TARGET_NAME = "PerezozoWidgets";
-const WIDGET_BUNDLE_ID_SUFFIX = ".PerezozoWidgets";
+const WIDGET_NAME = "PerezozoWidgets";
 const DEPLOYMENT_TARGET = "17.0";
 
-// Swift source files that go into the widget extension target
 const WIDGET_SWIFT_FILES = [
   "SharedModels.swift",
   "DesignTokens.swift",
@@ -29,52 +25,46 @@ const WIDGET_SWIFT_FILES = [
   "PerezozoWidgetBundle.swift",
 ];
 
-// Native bridge files that go into the main app target
-const BRIDGE_FILES = [
-  { name: "WidgetDataModule.swift", type: "sourcecode.swift" },
-  { name: "WidgetDataModule.m", type: "sourcecode.c.objc" },
-];
+const BRIDGE_FILES = ["WidgetDataModule.swift", "WidgetDataModule.m"];
 
 function withWidgetExtension(config) {
-  // 1. Add App Group entitlement to main target
-  config = withEntitlementsPlist(config, (config) => {
-    config.modResults["com.apple.security.application-groups"] = [APP_GROUP];
-    return config;
+  // 1. App Group entitlement on main target
+  config = withEntitlementsPlist(config, (c) => {
+    c.modResults["com.apple.security.application-groups"] = [APP_GROUP];
+    return c;
   });
 
-  // 2. Modify Xcode project to add widget extension target
-  config = withXcodeProject(config, (config) => {
-    const project = config.modResults;
-    const mainBundleId = config.ios?.bundleIdentifier ?? "com.perezoso.app";
-    const widgetBundleId = mainBundleId + WIDGET_BUNDLE_ID_SUFFIX;
+  // 2. Copy files into ios/ directory (withDangerousMod runs reliably after ios/ exists)
+  config = withDangerousMod(config, [
+    "ios",
+    (c) => {
+      const projectRoot = c.modRequest.projectRoot;
+      const iosDir = path.join(projectRoot, "ios");
+      const widgetDir = path.join(iosDir, WIDGET_NAME);
+      const srcDir = path.join(projectRoot, "ios-widget", "PerezozoWidgets");
+      const bridgeSrcDir = path.join(projectRoot, "ios-widget");
+      const mainAppName = c.modRequest.projectName || "Perezoso";
+      const mainAppDir = path.join(iosDir, mainAppName);
 
-    const srcDir = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "ios-widget",
-      "PerezozoWidgets"
-    );
-    const bridgeSrcDir = path.resolve(__dirname, "..", "..", "ios-widget");
+      // Create widget directory
+      fs.mkdirSync(widgetDir, { recursive: true });
 
-    // Destination in the ios build folder
-    const iosDir = path.resolve(
-      config.modRequest.platformProjectRoot
-    );
-    const widgetDir = path.join(iosDir, WIDGET_TARGET_NAME);
-
-    // Create widget extension directory and copy files
-    fs.mkdirSync(widgetDir, { recursive: true });
-    for (const file of WIDGET_SWIFT_FILES) {
-      const src = path.join(srcDir, file);
-      const dst = path.join(widgetDir, file);
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, dst);
+      // Copy widget Swift files
+      for (const file of WIDGET_SWIFT_FILES) {
+        const src = path.join(srcDir, file);
+        const dst = path.join(widgetDir, file);
+        if (fs.existsSync(src)) {
+          fs.copyFileSync(src, dst);
+          console.log(`[WidgetPlugin] Copied ${file}`);
+        } else {
+          console.warn(`[WidgetPlugin] Source not found: ${src}`);
+        }
       }
-    }
 
-    // Create widget entitlements file
-    const widgetEntitlements = `<?xml version="1.0" encoding="UTF-8"?>
+      // Write widget entitlements
+      fs.writeFileSync(
+        path.join(widgetDir, `${WIDGET_NAME}.entitlements`),
+        `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -83,14 +73,13 @@ function withWidgetExtension(config) {
         <string>${APP_GROUP}</string>
     </array>
 </dict>
-</plist>`;
-    fs.writeFileSync(
-      path.join(widgetDir, `${WIDGET_TARGET_NAME}.entitlements`),
-      widgetEntitlements
-    );
+</plist>`
+      );
 
-    // Create Info.plist for the widget extension
-    const widgetInfoPlist = `<?xml version="1.0" encoding="UTF-8"?>
+      // Write widget Info.plist
+      fs.writeFileSync(
+        path.join(widgetDir, "Info.plist"),
+        `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -118,43 +107,60 @@ function withWidgetExtension(config) {
         <string>com.apple.widgetkit-extension</string>
     </dict>
 </dict>
-</plist>`;
-    fs.writeFileSync(path.join(widgetDir, "Info.plist"), widgetInfoPlist);
+</plist>`
+      );
 
-    // Copy bridge files to the main app's source directory
-    const mainAppDir = path.join(iosDir, config.modRequest.projectName ?? "Perezoso");
-    for (const bf of BRIDGE_FILES) {
-      const src = path.join(bridgeSrcDir, bf.name);
-      const dst = path.join(mainAppDir, bf.name);
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, dst);
+      // Copy bridge files to main app directory
+      for (const file of BRIDGE_FILES) {
+        const src = path.join(bridgeSrcDir, file);
+        const dst = path.join(mainAppDir, file);
+        if (fs.existsSync(src)) {
+          fs.copyFileSync(src, dst);
+          console.log(`[WidgetPlugin] Copied bridge ${file}`);
+        } else {
+          console.warn(`[WidgetPlugin] Bridge source not found: ${src}`);
+        }
       }
-    }
 
-    // ── Add widget extension target to the Xcode project ──
-    const targetUuid = project.generateUuid();
-    const widgetGroup = project.addPbxGroup(
-      [...WIDGET_SWIFT_FILES, "Info.plist", `${WIDGET_TARGET_NAME}.entitlements`],
-      WIDGET_TARGET_NAME,
-      WIDGET_TARGET_NAME
-    );
+      // Verify files exist
+      const allFiles = [...WIDGET_SWIFT_FILES, "Info.plist", `${WIDGET_NAME}.entitlements`];
+      for (const file of allFiles) {
+        const fp = path.join(widgetDir, file);
+        if (!fs.existsSync(fp)) {
+          console.error(`[WidgetPlugin] MISSING after copy: ${fp}`);
+        }
+      }
 
-    // Add the widget group to the main project group
+      return c;
+    },
+  ]);
+
+  // 3. Add widget target to the Xcode project
+  config = withXcodeProject(config, (c) => {
+    const project = c.modResults;
+    const mainBundleId = c.ios?.bundleIdentifier ?? "com.perezoso.app";
+    const widgetBundleId = mainBundleId + "." + WIDGET_NAME;
+
+    // Add PBX group for widget files
+    const allFiles = [...WIDGET_SWIFT_FILES, "Info.plist", `${WIDGET_NAME}.entitlements`];
+    const widgetGroup = project.addPbxGroup(allFiles, WIDGET_NAME, WIDGET_NAME);
+
+    // Add group to main project
     const mainGroupId = project.getFirstProject().firstProject.mainGroup;
     project.addToPbxGroup(widgetGroup.uuid, mainGroupId);
 
-    // Add widget extension target
+    // Add extension target
     const widgetTarget = project.addTarget(
-      WIDGET_TARGET_NAME,
+      WIDGET_NAME,
       "app_extension",
-      WIDGET_TARGET_NAME,
+      WIDGET_NAME,
       widgetBundleId
     );
 
-    // Add source files to the widget target's build phase
+    // Add Swift source files to the widget target build phase
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
-        `${WIDGET_TARGET_NAME}/${file}`,
+        `${WIDGET_NAME}/${file}`,
         { target: widgetTarget.uuid },
         widgetGroup.uuid
       );
@@ -162,52 +168,46 @@ function withWidgetExtension(config) {
 
     // Add bridge files to main target
     const mainTarget = project.getFirstTarget();
-    for (const bf of BRIDGE_FILES) {
-      const mainAppName = config.modRequest.projectName ?? "Perezoso";
+    const mainAppName = c.modRequest.projectName || "Perezoso";
+    for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        `${mainAppName}/${bf.name}`,
+        `${mainAppName}/${file}`,
         { target: mainTarget.uuid },
         project.getFirstProject().firstProject.mainGroup
       );
     }
 
-    // Set build settings for the widget target
-    const widgetBuildConfigs = project.pbxXCBuildConfigurationSection();
-    for (const key in widgetBuildConfigs) {
-      const config_ = widgetBuildConfigs[key];
-      if (
-        config_.buildSettings &&
-        config_.buildSettings.PRODUCT_BUNDLE_IDENTIFIER === widgetBundleId
-      ) {
-        config_.buildSettings.SWIFT_VERSION = "5.0";
-        config_.buildSettings.IPHONEOS_DEPLOYMENT_TARGET = DEPLOYMENT_TARGET;
-        config_.buildSettings.CODE_SIGN_ENTITLEMENTS = `${WIDGET_TARGET_NAME}/${WIDGET_TARGET_NAME}.entitlements`;
-        config_.buildSettings.TARGETED_DEVICE_FAMILY = '"1"';
-        config_.buildSettings.ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
-        config_.buildSettings.ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "WidgetBackground";
-        config_.buildSettings.GENERATE_INFOPLIST_FILE = "YES";
-        config_.buildSettings.MARKETING_VERSION = "1.0";
-        config_.buildSettings.CURRENT_PROJECT_VERSION = "1";
-        config_.buildSettings.INFOPLIST_FILE = `${WIDGET_TARGET_NAME}/Info.plist`;
-        config_.buildSettings.PRODUCT_NAME = `$(TARGET_NAME)`;
-        config_.buildSettings.INFOPLIST_KEY_CFBundleDisplayName = "Perezoso Widgets";
-        config_.buildSettings.INFOPLIST_KEY_NSHumanReadableCopyright = "";
-        config_.buildSettings.LD_RUNPATH_SEARCH_PATHS = '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"';
-        config_.buildSettings.SKIP_INSTALL = "YES";
+    // Configure widget target build settings
+    const configs = project.pbxXCBuildConfigurationSection();
+    for (const key in configs) {
+      const cfg = configs[key];
+      if (cfg.buildSettings?.PRODUCT_BUNDLE_IDENTIFIER === `"${widgetBundleId}"` ||
+          cfg.buildSettings?.PRODUCT_BUNDLE_IDENTIFIER === widgetBundleId) {
+        Object.assign(cfg.buildSettings, {
+          SWIFT_VERSION: "5.0",
+          IPHONEOS_DEPLOYMENT_TARGET: DEPLOYMENT_TARGET,
+          CODE_SIGN_ENTITLEMENTS: `${WIDGET_NAME}/${WIDGET_NAME}.entitlements`,
+          TARGETED_DEVICE_FAMILY: '"1"',
+          GENERATE_INFOPLIST_FILE: "YES",
+          MARKETING_VERSION: "1.0",
+          CURRENT_PROJECT_VERSION: "1",
+          INFOPLIST_FILE: `${WIDGET_NAME}/Info.plist`,
+          PRODUCT_NAME: "$(TARGET_NAME)",
+          INFOPLIST_KEY_CFBundleDisplayName: '"Perezoso Widgets"',
+          INFOPLIST_KEY_NSHumanReadableCopyright: '""',
+          LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
+          SKIP_INSTALL: "YES",
+          ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
+          ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
+        });
       }
     }
 
-    // Add WidgetKit and SwiftUI framework dependencies
-    project.addFramework("WidgetKit.framework", {
-      target: widgetTarget.uuid,
-      link: true,
-    });
-    project.addFramework("SwiftUI.framework", {
-      target: widgetTarget.uuid,
-      link: true,
-    });
+    // Add WidgetKit and SwiftUI frameworks
+    project.addFramework("WidgetKit.framework", { target: widgetTarget.uuid, link: true });
+    project.addFramework("SwiftUI.framework", { target: widgetTarget.uuid, link: true });
 
-    return config;
+    return c;
   });
 
   return config;
