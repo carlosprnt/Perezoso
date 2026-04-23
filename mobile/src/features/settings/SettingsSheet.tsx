@@ -21,6 +21,7 @@ import {
   Bell,
   Check,
   Coins,
+  Languages,
   Mail,
   RotateCcw,
   Share2,
@@ -46,6 +47,7 @@ import {
 } from './components';
 import { CurrencySheet } from './CurrencySheet';
 import { DemoSheet } from './DemoSheet';
+import { LanguageSheet, languageLabel } from './LanguageSheet';
 import { TagsBottomSheet } from './TagsBottomSheet';
 import {
   useDemoSheetStore,
@@ -58,6 +60,8 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { openManageSubscriptions } from '../../services/purchases';
 import { useReminderDismissalsStore } from '../dashboard/useReminderDismissalsStore';
+import { useLanguageStore } from '../../lib/i18n/useLanguageStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 const TWITTER_HANDLE = '@carlosprnt';
 const CONTACT_EMAIL  = 'hello@carlospariente.com';
@@ -90,7 +94,11 @@ export function SettingsSheet() {
     (s) => Object.keys(s.dismissals).length > 0,
   );
 
+  const currentLang = useLanguageStore((s) => s.language);
+  const t = useT();
+
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+  const [languageSheetOpen, setLanguageSheetOpen] = useState(false);
   const [resetToastVisible, setResetToastVisible] = useState(false);
 
   const insets = useSafeAreaInsets();
@@ -268,22 +276,28 @@ export function SettingsSheet() {
               />
             </SettingsSectionCard>
 
-            {/* 4 — Apariencia */}
+            {/* 4 — Apariencia + Idioma */}
             <View style={styles.gap} />
             <SettingsSectionCard>
               <SettingsRow
                 icon={<Sun size={20} color={iconColor} strokeWidth={2} />}
-                label="Apariencia"
+                label={t('settings.appearance')}
                 value={appearance}
                 onPress={handleAppearance}
                 rightAccessory={
                   <View style={styles.appearanceRight}>
-                    <Text style={[styles.appearanceValue, { color: isDark ? '#8E8E93' : '#8E8E93' }]}>
+                    <Text style={[styles.appearanceValue, { color: '#8E8E93' }]}>
                       {appearance}
                     </Text>
-                    <ArrowUpDown size={16} color={isDark ? '#8E8E93' : '#8E8E93'} strokeWidth={2.2} />
+                    <ArrowUpDown size={16} color="#8E8E93" strokeWidth={2.2} />
                   </View>
                 }
+              />
+              <SettingsRow
+                icon={<Languages size={20} color={iconColor} strokeWidth={2} />}
+                label={t('settings.language')}
+                value={currentLang === 'auto' ? t('language.auto') : languageLabel(currentLang)}
+                onPress={() => setLanguageSheetOpen(true)}
               />
             </SettingsSectionCard>
 
@@ -365,6 +379,10 @@ export function SettingsSheet() {
           <CurrencySheet
             visible={currencySheetOpen}
             onClose={() => setCurrencySheetOpen(false)}
+          />
+          <LanguageSheet
+            visible={languageSheetOpen}
+            onClose={() => setLanguageSheetOpen(false)}
           />
         </View>
       </SettingsPaletteProvider>

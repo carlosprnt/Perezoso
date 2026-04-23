@@ -23,6 +23,7 @@ import { PaywallSheet } from '../src/features/paywall/PaywallSheet';
 import { GmailImportSheet } from '../src/features/add-subscription/GmailImportSheet';
 import { PaymentsCalendarModal } from '../src/features/calendar/PaymentsCalendarModal';
 import { useAuthStore } from '../src/features/auth/useAuthStore';
+import { LocaleProvider } from '../src/lib/i18n/LocaleProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -80,6 +81,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <LocaleProvider>
       <SafeAreaProvider>
         <StatusBar style="dark" />
         {/* Root Stack: exposes the (tabs) and (auth) groups as sibling
@@ -104,6 +106,7 @@ export default function RootLayout() {
         <Toast />
         <SubscriptionCreatedCelebration />
       </SafeAreaProvider>
+      </LocaleProvider>
     </GestureHandlerRootView>
   );
 }
