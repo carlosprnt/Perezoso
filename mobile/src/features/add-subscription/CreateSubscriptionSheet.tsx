@@ -486,10 +486,10 @@ export function CreateSubscriptionSheet() {
 
   const enterStep2 = useCallback(() => {
     const screenH = Dimensions.get('window').height;
-    step1Opacity.value = 0;
     step2TranslateY.value = screenH;
     setStep(2);
     step2TranslateY.value = withTiming(0, { duration: 420, easing: Easing.bezierFn(0.2, 0.9, 0.3, 1) });
+    step1Opacity.value = 1;
   }, [step1Opacity, step2TranslateY]);
 
   const goToMoreOptions = useCallback(() => {
