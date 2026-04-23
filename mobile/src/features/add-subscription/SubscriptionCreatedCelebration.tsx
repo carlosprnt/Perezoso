@@ -56,13 +56,13 @@ export function SubscriptionCreatedCelebration() {
       Animated.timing(cardTranslateY, {
         toValue: 600,
         duration: EXIT_MS,
-        easing: Easing.inOut(Easing.cubic),
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.timing(cardOpacity, {
         toValue: 0,
-        duration: EXIT_MS,
-        easing: Easing.inOut(Easing.cubic),
+        duration: EXIT_MS * 0.5,
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
       Animated.timing(cardScale, {
@@ -73,8 +73,8 @@ export function SubscriptionCreatedCelebration() {
       }),
       Animated.timing(backdropOpacity, {
         toValue: 0,
-        duration: EXIT_MS,
-        easing: Easing.inOut(Easing.cubic),
+        duration: EXIT_MS * 0.65,
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
     ]).start(({ finished }) => {
