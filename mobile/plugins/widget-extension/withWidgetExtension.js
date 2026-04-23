@@ -8,6 +8,8 @@ const {
   withEntitlementsPlist,
   withDangerousMod,
 } = require("expo/config-plugins");
+const { withPodfile } = require("@expo/config-plugins/build/plugins/ios-plugins");
+const { mergeContents } = require("@expo/config-plugins/build/utils/generateCode");
 const path = require("path");
 const fs = require("fs");
 
@@ -218,6 +220,37 @@ function withWidgetExtension(config) {
     project.addFramework("WidgetKit.framework", { target: widgetTarget.uuid, link: true });
     project.addFramework("SwiftUI.framework", { target: widgetTarget.uuid, link: true });
 
+    return c;
+  });
+
+  // 4. Patch Podfile: disable code signing on CocoaPods resource bundle
+  // targets to fix Xcode 14+ "resource bundles are signed by default" error
+  config = withPodfile(config, (c) => {
+    const snippet = [
+      "    installer.pods_project.targets.each do |target|",
+      "      if target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'",
+      "        target.build_configurations.each do |config|",
+      "          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'",
+      "        end",
+      "      end",
+      "    end",
+    ].join("\n");
+
+    if (c.modResults.contents.includes("post_install do |installer|")) {
+      const result = mergeContents({
+        src: c.modResults.contents,
+        newSrc: snippet,
+        tag: "perezoso-widget-codesign",
+        anchor: /post_install do \|installer\|/,
+        offset: 1,
+        comment: "#",
+      });
+      if (result.didMerge) {
+        c.modResults.contents = result.contents;
+      }
+    } else {
+      c.modResults.contents += `\npost_install do |installer|\n${snippet}\nend\n`;
+    }
     return c;
   });
 
