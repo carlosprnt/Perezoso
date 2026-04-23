@@ -192,7 +192,7 @@ function withWidgetExtension(config) {
           MARKETING_VERSION: "1.0",
           CURRENT_PROJECT_VERSION: "1",
           INFOPLIST_FILE: `${WIDGET_NAME}/Info.plist`,
-          PRODUCT_NAME: "$(TARGET_NAME)",
+          PRODUCT_NAME: '"$(TARGET_NAME)"',
           INFOPLIST_KEY_CFBundleDisplayName: '"Perezoso Widgets"',
           INFOPLIST_KEY_NSHumanReadableCopyright: '""',
           LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
