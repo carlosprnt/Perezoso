@@ -507,9 +507,10 @@ export function CreateSubscriptionSheet() {
   const goToMoreOptions = useCallback(() => {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
     Keyboard.dismiss();
-    step1Opacity.value = withTiming(0, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) });
-    step1TranslateY.value = withTiming(-20, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) });
-    step1Scale.value = withTiming(0.98, { duration: 260, easing: Easing.bezierFn(0.4, 0, 1, 1) }, (finished) => {
+    const exitEase = Easing.bezierFn(0.2, 0, 0.8, 1);
+    step1Opacity.value = withTiming(0, { duration: 1000, easing: exitEase });
+    step1TranslateY.value = withTiming(-20, { duration: 1000, easing: exitEase });
+    step1Scale.value = withTiming(0.98, { duration: 1000, easing: exitEase }, (finished) => {
       if (finished) runOnJS(enterStep2)();
     });
   }, [renewalDate, step1Opacity, step1TranslateY, step1Scale, enterStep2]);
@@ -531,7 +532,7 @@ export function CreateSubscriptionSheet() {
         ]}
       >
           {step === 1 ? (
-            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 24 }, step1AnimStyle]}>
+            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 16 }, step1AnimStyle]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
