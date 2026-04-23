@@ -620,7 +620,7 @@ export function CreateSubscriptionSheet() {
               </View>
             </Animated.View>
           ) : (
-            <Animated.View style={[{ flex: 1 }, step2AnimStyle]}>
+            <Animated.View style={[{ flex: 1, backgroundColor: '#FFFFFF' }, step2AnimStyle]}>
             <KeyboardAvoidingView
               style={{ flex: 1 }}
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
