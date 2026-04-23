@@ -23,6 +23,7 @@ import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { categoryColors } from '../../design/colors';
 import { standard } from '../../motion/easing';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type { CategoryRow } from './types';
 
 interface TopCategoriesProps {
@@ -30,19 +31,18 @@ interface TopCategoriesProps {
   currency?: string;
 }
 
-// Category display names
-const CATEGORY_NAMES: Record<string, string> = {
-  streaming: 'Streaming',
-  music: 'M\u00FAsica',
-  productivity: 'Productividad',
-  cloud: 'Cloud',
-  ai: 'IA',
-  health: 'Salud',
-  gaming: 'Gaming',
-  education: 'Educaci\u00F3n',
-  mobility: 'Movilidad',
-  home: 'Hogar',
-  other: 'Resto',
+const CATEGORY_KEYS: Record<string, string> = {
+  streaming: 'category.streaming',
+  music: 'category.music',
+  productivity: 'category.productivity',
+  cloud: 'category.cloud',
+  ai: 'category.ai',
+  health: 'category.health',
+  gaming: 'category.gaming',
+  education: 'category.education',
+  mobility: 'category.mobility',
+  home: 'category.home',
+  other: 'category.rest',
 };
 
 /** Color used on bar segment (primary is always yellow #FEF08A) */
@@ -76,6 +76,7 @@ function formatAmount(amount: number, currency: string): string {
 
 export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesProps) {
   const { colors } = useTheme();
+  const t = useT();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   // Bar mount animation: scaleX 0 -> 1, 500ms, standard easing
@@ -149,7 +150,7 @@ export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesPro
                 style={[styles.catName, { color: colors.textPrimary }]}
                 numberOfLines={1}
               >
-                {CATEGORY_NAMES[cat.category] ?? cat.category}
+                {CATEGORY_KEYS[cat.category] ? t(CATEGORY_KEYS[cat.category]) : cat.category}
               </Text>
 
               {/* Percentage */}

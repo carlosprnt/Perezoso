@@ -53,6 +53,7 @@ import { revealProgress } from './useDashboardReveal';
 import { fontFamily } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
@@ -81,6 +82,7 @@ export function SharedProfileHeader({
   scrollY,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const t = useT();
   const displayName = fullName || firstName;
   const pastel = getAvatarPastel(displayName);
   const [imgFailed, setImgFailed] = useState(false);
@@ -128,13 +130,13 @@ export function SharedProfileHeader({
     >
       <View style={styles.row}>
         <AnimatedText style={[styles.greetingBase, greetingStyle]} numberOfLines={1}>
-          Hola, {firstName}.
+          {t('dashboard.hello', { name: firstName })}
         </AnimatedText>
 
         <Pressable
           onPress={onAvatarPress}
           hitSlop={12}
-          accessibilityLabel="Abrir / cerrar menú de perfil"
+          accessibilityLabel={t('profile.openMenu')}
           accessibilityRole="button"
         >
           {showImage ? (

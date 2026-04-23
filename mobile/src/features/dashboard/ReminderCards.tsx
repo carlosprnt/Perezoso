@@ -55,6 +55,7 @@ import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { shadows } from '../../design/shadows';
 import { Pressable } from '../../components/Pressable';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { useReminderDismissalsStore } from './useReminderDismissalsStore';
 
 const PEEK_OFFSET = 4;
@@ -256,6 +257,7 @@ function CardShell({
   onDismiss?: () => void;
 }) {
   const { colors, isDark } = useTheme();
+  const t = useT();
 
   return (
     <View style={[styles.shell, { backgroundColor: colors.surface }, shadows.cardSm]}>
@@ -283,7 +285,7 @@ function CardShell({
           <View style={styles.dismissBtn}>
             <Text style={[styles.dismissText, {
               color: isDark ? '#636366' : '#8E8E93',
-            }]}>No me interesa</Text>
+            }]}>{t('dashboard.reminder.dismiss')}</Text>
           </View>
         </Pressable>
         <Pressable onPress={() => { haptic.medium(); onCta?.(); }} activeScale={0.97} style={{ flex: 1 }}>
@@ -309,6 +311,7 @@ export function ReminderCards({
   onViewSavings,
 }: ReminderCardsProps) {
   const { colors } = useTheme();
+  const t = useT();
   // Subscribe to the whole dismissals map so the component re-renders
   // the moment a card is dismissed; `isDismissed` is re-derived at
   // render-time from that fresh state.
@@ -337,12 +340,10 @@ export function ReminderCards({
       iconColor: '#1E3A5F',
       body: (
         <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
-          Podr{'\u00ED'}as evitar una{' '}
-          <Text style={styles.bodyBold}>renovaci{'\u00F3'}n anual</Text>
-          {' '}por sorpresa si activas un aviso 7 d{'\u00ED'}as antes.
+          {t('dashboard.reminder.body')}
         </Text>
       ),
-      ctaLabel: 'Av\u00EDsame',
+      ctaLabel: t('dashboard.reminder.cta'),
       onCta: handleReminderCta,
     });
   }
@@ -355,16 +356,16 @@ export function ReminderCards({
       iconColor: '#92400E',
       body: (
         <Text style={[styles.bodyText, { color: colors.textPrimary }]}>
-          Tienes{' '}
+          {t('dashboard.savings.bodyStart')}{' '}
           <Text style={styles.bodyBold}>
             {savingsCount === 1
-              ? '1 oportunidad'
-              : `${savingsCount} oportunidades`}
+              ? t('dashboard.savings.opportunity')
+              : t('dashboard.savings.opportunities', { count: savingsCount })}
           </Text>
-          {' '}de ahorro en tus suscripciones. Desc{'\u00FA'}brelas.
+          {' '}{t('dashboard.savings.bodyEnd')}
         </Text>
       ),
-      ctaLabel: 'Ver oportunidades',
+      ctaLabel: t('dashboard.savings.cta'),
       onCta: onViewSavings,
     });
   }

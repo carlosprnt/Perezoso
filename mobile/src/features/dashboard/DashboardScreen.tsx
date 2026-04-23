@@ -57,6 +57,7 @@ import { DashboardEmptyState } from './DashboardEmptyState';
 
 import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useCalendarStore } from '../calendar/useCalendarStore';
 import { DashboardSkeleton } from '../../components/ScreenSkeletons';
@@ -80,6 +81,7 @@ function StaggeredItem({ index, children }: { index: number; children: React.Rea
 
 export function DashboardScreen() {
   const { colors, isDark } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
 
   const user = useAuthStore((s) => s.user);
@@ -196,8 +198,8 @@ export function DashboardScreen() {
     const count = enableRemindersOnAnnuals();
     const message =
       count === 1
-        ? 'Avisos activados para tu suscripci\u00F3n anual'
-        : `Avisos activados para tus ${count} suscripciones anuales`;
+        ? t('dashboard.reminder.activated')
+        : t('dashboard.reminder.activatedPlural', { count });
     useToastStore.getState().show('success', message);
     return true;
   }, [enableRemindersOnAnnuals, isPlusActive, openPaywall]);
@@ -246,7 +248,7 @@ export function DashboardScreen() {
     <Pressable
       onPress={openCalendar}
       accessibilityRole="button"
-      accessibilityLabel="Ver calendario de pagos"
+      accessibilityLabel={t('dashboard.viewCalendar')}
       hitSlop={8}
       style={({ pressed }) => [
         styles.calendarBtn,
@@ -390,7 +392,7 @@ export function DashboardScreen() {
               <StaggeredItem index={2}>
                 <Card>
                   <CardHeader
-                    title="Próxima renovación"
+                    title={t('dashboard.upcomingRenewal')}
                     action={daysLeftAction}
                   />
                   <UpcomingRenewals renewals={renewals} />
@@ -400,7 +402,7 @@ export function DashboardScreen() {
               {/* Top Categories */}
               <StaggeredItem index={3}>
                 <Card>
-                  <CardHeader title="Categorías con más gasto" />
+                  <CardHeader title={t('dashboard.topCategories')} />
                   <TopCategories
                     categories={categories}
                     currency={stats.currency}
@@ -414,7 +416,7 @@ export function DashboardScreen() {
                 <StaggeredItem index={4}>
                   <View style={{ marginTop: 16 }}>
                     <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                      Suscripciones más caras
+                      {t('dashboard.topExpensive')}
                     </Text>
                     <TopExpensive subscriptions={topExpensive} />
                   </View>

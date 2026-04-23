@@ -11,6 +11,7 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type { UpcomingRenewal } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -19,9 +20,9 @@ interface UpcomingRenewalsProps {
   renewals: UpcomingRenewal[];
 }
 
-function formatDays(days: number): string {
-  if (days === 0) return 'Hoy';
-  return `En ${days} días`;
+function formatDays(days: number, t: (k: string, o?: any) => string): string {
+  if (days === 0) return t('dashboard.renewals.today');
+  return t('dashboard.renewals.inDays', { count: days });
 }
 
 function formatPrice(amount: number, currency: string): string {
@@ -38,13 +39,14 @@ function formatCost(amount: number, currency: string): string {
 
 export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
   const { colors } = useTheme();
+  const t = useT();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const fullList = useSubscriptionsStore((s) => s.subscriptions);
 
   if (renewals.length === 0) {
     return (
       <Text style={[styles.empty, { color: colors.textMuted }]}>
-        No hay renovaciones próximas
+        {t('dashboard.renewals.empty')}
       </Text>
     );
   }
@@ -85,7 +87,7 @@ export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
 
             {/* Days */}
             <Text style={[styles.days, { color: colors.textMuted }]}>
-              {formatDays(renewal.daysUntilRenewal)}
+              {formatDays(renewal.daysUntilRenewal, t)}
             </Text>
           </View>
         </Pressable>

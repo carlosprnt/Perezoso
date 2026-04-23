@@ -14,6 +14,7 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { Pressable } from '../../components/Pressable';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 interface InsightCellProps {
   iconBg: string;
@@ -100,6 +101,7 @@ interface InsightCardsProps {
 
 export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightCardsProps) {
   const { isDark } = useTheme();
+  const t = useT();
   const defaultIconBg = isDark ? '#2C2C2E' : '#F5F5F5';
   const defaultIconColor = isDark ? '#F2F2F7' : '#000000';
   // Category icon: purple bg matching web's ai category
@@ -115,7 +117,7 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
           iconBg={defaultIconBg}
           iconColor={defaultIconColor}
           IconComponent={TrendingUp}
-          label="Mayor gasto"
+          label={t('dashboard.insights.highestCost')}
           title={highestCost.name}
           rightTop={highestCost.amount}
           rightBottom={highestCost.category}
@@ -128,10 +130,10 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
           iconBg={categoryIconBg}
           iconColor={categoryIconColor}
           IconComponent={Bot}
-          label="Categoría principal"
+          label={t('dashboard.insights.topCategory')}
           title={topCategory.name}
           rightTop={topCategory.amount}
-          rightBottom={`${topCategory.count} suscr.`}
+          rightBottom={t('dashboard.insights.subsCount', { count: topCategory.count })}
         />
       ) : null}
 
@@ -141,10 +143,10 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
           iconBg={defaultIconBg}
           iconColor={sharedIconColor}
           IconComponent={Users}
-          label="Planes compartidos"
-          title={sharedPlans.count > 0 ? `${sharedPlans.count} planes` : 'No planes'}
+          label={t('dashboard.insights.sharedPlans')}
+          title={sharedPlans.count > 0 ? t('dashboard.insights.plans', { count: sharedPlans.count }) : t('dashboard.insights.noPlans')}
           rightTop={sharedPlans.savings}
-          rightBottom={sharedPlans.savings ? '/mes' : undefined}
+          rightBottom={sharedPlans.savings ? t('dashboard.perMonth') : undefined}
         />
       ) : null}
     </View>

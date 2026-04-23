@@ -16,6 +16,7 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { Skeleton } from '../../components/Skeleton';
 import { LogoStack } from './LogoStack';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type { DashboardStats } from './types';
 
 // Shimmer duration for the "Reduces X al mes" <-> "al año" transition.
@@ -51,6 +52,7 @@ export function SummaryHero({
   onLogosTap,
 }: SummaryHeroProps) {
   const { colors, isDark } = useTheme();
+  const t = useT();
   const labelColor = isDark ? '#8E8E93' : '#616161';
   const amountColor = colors.textPrimary;
 
@@ -78,7 +80,7 @@ export function SummaryHero({
   const savingsAmount = savingsPeriod === 'monthly'
     ? stats.savingsMonthly
     : stats.savingsMonthly * 12;
-  const savingsLabel = savingsPeriod === 'monthly' ? 'tu gasto al mes' : 'tu gasto al a\u00F1o';
+  const savingsLabel = savingsPeriod === 'monthly' ? t('dashboard.savingsMonthly') : t('dashboard.savingsAnnual');
 
   return (
     <View style={styles.container}>
@@ -96,7 +98,7 @@ export function SummaryHero({
         {/* Monthly */}
         <View style={styles.statementRow}>
           <Text style={[styles.label, { color: labelColor }]}>
-            Al mes gastas
+            {t('dashboard.monthlyLabel')}
           </Text>
           <Text
             style={styles.amountRow}
@@ -113,7 +115,7 @@ export function SummaryHero({
         {/* Annual */}
         <View style={styles.statementRow}>
           <Text style={[styles.label, { color: labelColor }]}>
-            Eso al año es
+            {t('dashboard.annualLabel')}
           </Text>
           <Text
             style={styles.amountRow}
@@ -137,7 +139,7 @@ export function SummaryHero({
           }}
         >
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-            Tienes{' '}
+            {t('dashboard.haveCount')}{' '}
           </Text>
           <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
             {stats.totalCount}
@@ -146,13 +148,13 @@ export function SummaryHero({
             <LogoStack logoUrls={logoUrls} totalCount={stats.totalCount} />
           ) : null}
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-            {logoUrls.length > 0 ? ' ' : ' '}{stats.totalCount === 1 ? 'suscripción' : 'suscripciones'}.
+            {' '}{stats.totalCount === 1 ? t('dashboard.subscription') : t('dashboard.subscriptions')}.
           </Text>
         </Pressable>
         {stats.sharedCount > 0 ? (
           <View style={styles.supportLine}>
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              Compartes{' '}
+              {t('dashboard.shareCount')}{' '}
             </Text>
             <Text style={[styles.supportBold, { color: colors.textPrimary }]}>
               {stats.sharedCount}
@@ -164,7 +166,7 @@ export function SummaryHero({
               />
             ) : null}
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              {' '}suscripciones.
+              {' '}{t('dashboard.subscriptions')}.
             </Text>
           </View>
         ) : null}
@@ -175,12 +177,12 @@ export function SummaryHero({
             accessibilityRole="button"
             accessibilityLabel={
               savingsPeriod === 'monthly'
-                ? 'Mostrar ahorro anual'
-                : 'Mostrar ahorro mensual'
+                ? t('dashboard.showAnnualSavings')
+                : t('dashboard.showMonthlySavings')
             }
           >
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              Reduces{' '}
+              {t('dashboard.reduce')}{' '}
             </Text>
             {savingsLoading ? (
               // Skeleton covers amount + "tu gasto al mes/año" label.

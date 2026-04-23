@@ -39,6 +39,7 @@ import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { useCreateSubscriptionStore } from '../add-subscription/useCreateSubscriptionStore';
 import { SuggestionsList } from '../add-subscription/SuggestionsList';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
@@ -50,6 +51,7 @@ interface Props {
 
 export function DashboardEmptyState({ scrollY }: Props) {
   const { colors, isDark } = useTheme();
+  const t = useT();
 
   const heroGradient: [string, string, string] = isDark
     ? ['#1C1C1E', '#141416', '#0A0A0A']
@@ -147,11 +149,10 @@ export function DashboardEmptyState({ scrollY }: Props) {
           {/* Content sits above the gradient layer. */}
           <View style={styles.heroContent}>
             <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
-              Empieza a ver tus gastos
+              {t('dashboard.empty.title')}
             </Text>
             <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>
-              Añade una suscripción y te mostraremos el gasto mensual, las
-              próximas renovaciones y dónde puedes ahorrar.
+              {t('dashboard.empty.subtitle')}
             </Text>
 
             <Pressable
@@ -162,10 +163,10 @@ export function DashboardEmptyState({ scrollY }: Props) {
                 pressed && { opacity: 0.85 },
               ]}
               accessibilityRole="button"
-              accessibilityLabel="Añadir una suscripción"
+              accessibilityLabel={t('dashboard.empty.cta')}
             >
               <Text style={[styles.primaryBtnText, { color: colors.background }]}>
-                Añadir suscripción
+                {t('dashboard.empty.cta')}
               </Text>
             </Pressable>
           </View>
@@ -186,7 +187,7 @@ export function DashboardEmptyState({ scrollY }: Props) {
 
       {/* Section heading + suggestions. */}
       <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-        Sugerencia de suscripciones
+        {t('dashboard.empty.suggestions')}
       </Text>
       <SuggestionsList scrollY={scrollY} />
     </View>
