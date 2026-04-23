@@ -247,22 +247,30 @@ export function AddSubscriptionOverlay() {
     scrollOffset.value = e.nativeEvent.contentOffset.y;
   }, [scrollOffset]);
 
-  // Swipe-to-dismiss: works from anywhere in the sheet. Only activates
-  // when the ScrollView is at the top (offset ≤ 2) AND dragging down.
-  // This mimics iOS native modal dismiss behavior.
+  // Whether the pan began while the scroll was at the top. Captured in
+  // onBegin so the entire gesture uses a consistent value — avoids the
+  // race between JS-thread scroll events and UI-thread gesture updates.
+  const panStartedAtTop = useSharedValue(false);
+
+  // Swipe-to-dismiss: only activates when the ScrollView is at the top
+  // (offset ≤ 2) AND the user is dragging down.
   const panGesture = Gesture.Pan()
-    .activeOffsetY(10)
+    .activeOffsetY(20)
     .failOffsetY(-10)
+    .onBegin(() => {
+      'worklet';
+      panStartedAtTop.value = scrollOffset.value <= 2;
+    })
     .onUpdate((e) => {
       'worklet';
-      if (scrollOffset.value > 2) return;
+      if (!panStartedAtTop.value) return;
       if (e.translationY > 0) {
         swipeY.value = e.translationY;
       }
     })
     .onEnd((e) => {
       'worklet';
-      if (scrollOffset.value > 2) {
+      if (!panStartedAtTop.value) {
         swipeY.value = withTiming(0, { duration: 260 });
         return;
       }
