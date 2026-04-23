@@ -44,6 +44,7 @@ import { haptic } from '../../lib/haptics';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
 
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { WalletCard, LockedWalletCard, FREE_SUBSCRIPTION_LIMIT } from './WalletCard';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
@@ -67,11 +68,11 @@ import { useSubscriptionDetailStore } from '../subscription-detail/useSubscripti
 const STACK_MARGIN_PX = -72;
 
 // ─── Sort + filter config (labels taken from web) ─────────────────
-const SORT_LABELS: Record<SortMode, string> = {
-  alphabetical: 'Nombre (A\u2013Z)',
-  recently_added: 'Más recientes',
-  price_high: 'Más caras',
-  price_low: 'Más baratas',
+const SORT_KEYS: Record<SortMode, string> = {
+  alphabetical: 'subscriptions.sort.alphabetical',
+  recently_added: 'subscriptions.sort.recent',
+  price_high: 'subscriptions.sort.priceHigh',
+  price_low: 'subscriptions.sort.priceLow',
 };
 const SORT_OPTIONS: SortMode[] = [
   'alphabetical',
@@ -81,13 +82,13 @@ const SORT_OPTIONS: SortMode[] = [
 ];
 
 type FilterValue = SubscriptionStatus | 'all';
-const FILTER_LABELS: Record<FilterValue, string> = {
-  all: 'Todas',
-  active: 'Activas',
-  trial: 'En prueba',
-  paused: 'Pausadas',
-  cancelled: 'Canceladas',
-  ended: 'Finalizadas',
+const FILTER_KEYS: Record<FilterValue, string> = {
+  all: 'subscriptions.filter.all',
+  active: 'subscriptions.filter.active',
+  trial: 'subscriptions.filter.trial',
+  paused: 'subscriptions.filter.paused',
+  cancelled: 'subscriptions.filter.cancelled',
+  ended: 'subscriptions.filter.ended',
 };
 const FILTER_OPTIONS: FilterValue[] = ['all', 'active', 'trial', 'paused', 'cancelled', 'ended'];
 
@@ -306,6 +307,7 @@ function ScrollCard({
 // ─── Screen ───────────────────────────────────────────────────────
 export function SubscriptionsScreen() {
   const { colors, isDark } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const openCalendar = useCalendarStore((s) => s.open);
@@ -401,7 +403,7 @@ export function SubscriptionsScreen() {
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
   const totalForPeriod = period === 'monthly' ? totalMonthly : totalMonthly * 12;
-  const periodLabel = period === 'monthly' ? 'al mes' : 'al a\u00F1o';
+  const periodLabel = period === 'monthly' ? t('subscriptions.perMonth') : t('subscriptions.perYear');
   const amountFormatted = totalForPeriod.toFixed(2).replace('.', ',');
 
   const calendarTriggered = useSharedValue(false);
@@ -522,7 +524,7 @@ export function SubscriptionsScreen() {
         pointerEvents="none"
       >
         <Animated.Text style={[styles.islandBlobText, blobTextStyle]}>
-          Mostrar calendario
+          {t('subscriptions.showCalendar')}
         </Animated.Text>
       </Animated.View>
 
@@ -544,13 +546,13 @@ export function SubscriptionsScreen() {
           <Animated.View style={headerFadeStyle}>
             <View style={styles.titleRow}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>
-                Mis suscripciones
+                {t('subscriptions.title')}
               </Text>
               {!isEmpty && (
                 <Pressable
                   onPress={openCalendar}
                   accessibilityRole="button"
-                  accessibilityLabel="Ver calendario de pagos"
+                  accessibilityLabel={t('dashboard.viewCalendar')}
                   hitSlop={8}
                   style={({ pressed }) => [
                     styles.calendarBtn,
@@ -585,12 +587,12 @@ export function SubscriptionsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={
                   period === 'monthly'
-                    ? 'Mostrar total anual'
-                    : 'Mostrar total mensual'
+                    ? t('subscriptions.showAnnualTotal')
+                    : t('subscriptions.showMonthlyTotal')
                 }
               >
                 <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
-                  Pagas{' '}
+                  {t('subscriptions.youPay')}{' '}
                 </Text>
                 {periodLoading ? (
                   <Skeleton
@@ -615,10 +617,10 @@ export function SubscriptionsScreen() {
                   { color: colors.textPrimary },
                 ]}
               >
-                Tienes {activeCount}{' '}
-                {activeCount === 1 ? 'suscripción ' : 'suscripciones '}
+                {t('subscriptions.youHave')} {activeCount}{' '}
+                {activeCount === 1 ? t('subscriptions.subscription') : t('subscriptions.subscriptions')}{' '}
                 <Text style={{ color: colors.statusActive }}>
-                  {activeCount === 1 ? 'activa' : 'activas'}
+                  {activeCount === 1 ? t('subscriptions.active') : t('subscriptions.activePlural')}
                 </Text>
                 .
               </Text>
@@ -651,10 +653,10 @@ export function SubscriptionsScreen() {
             hitSlop={8}
           >
             <Text style={[styles.dropdownMuted, { color: dropdownMutedColor }]}>
-              Ordenar por:{' '}
+              {t('subscriptions.sortBy')}{' '}
             </Text>
             <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
-              {SORT_LABELS[sortMode]}
+              {t(SORT_KEYS[sortMode])}
             </Text>
             <ChevronsUpDown size={14} strokeWidth={2} color={dropdownMutedColor} />
           </Pressable>
@@ -666,7 +668,7 @@ export function SubscriptionsScreen() {
             hitSlop={8}
           >
             <Text style={[styles.dropdownValue, { color: dropdownTextColor }]}>
-              {filter === 'all' ? 'Filtrar' : FILTER_LABELS[filter]}
+              {filter === 'all' ? t('subscriptions.filter') : t(FILTER_KEYS[filter])}
             </Text>
             <ChevronsUpDown size={14} strokeWidth={2} color={dropdownMutedColor} />
           </Pressable>
@@ -703,7 +705,7 @@ export function SubscriptionsScreen() {
           {filtered.length === 0 && (
             <View style={styles.empty}>
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                No hay suscripciones con este filtro
+                {t('subscriptions.noFilterResults')}
               </Text>
               <Pressable
                 onPress={() => setFilter('all')}
@@ -713,7 +715,7 @@ export function SubscriptionsScreen() {
                 ]}
               >
                 <Text style={[styles.clearBtnText, { color: colors.textPrimary }]}>
-                  Limpiar filtros
+                  {t('subscriptions.clearFilters')}
                 </Text>
               </Pressable>
             </View>
@@ -730,8 +732,8 @@ export function SubscriptionsScreen() {
           triggerLayout={triggerLayout}
           options={
             openMenu === 'sort'
-              ? SORT_OPTIONS.map((m) => ({ value: m, label: SORT_LABELS[m] }))
-              : FILTER_OPTIONS.map((v) => ({ value: v, label: FILTER_LABELS[v] }))
+              ? SORT_OPTIONS.map((m) => ({ value: m, label: t(SORT_KEYS[m]) }))
+              : FILTER_OPTIONS.map((v) => ({ value: v, label: t(FILTER_KEYS[v]) }))
           }
           selected={openMenu === 'sort' ? sortMode : filter}
           align={openMenu === 'sort' ? 'left' : 'right'}

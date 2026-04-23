@@ -44,6 +44,7 @@ import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { formatAmount } from '../subscription-detail/helpers';
 import { haptic } from '../../lib/haptics';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 import { useCalendarStore } from './useCalendarStore';
 import { buildDayMap } from './dateHelpers';
@@ -66,6 +67,7 @@ export function PaymentsCalendarModal() {
   const isOpen        = useCalendarStore((s) => s.isOpen);
   const close         = useCalendarStore((s) => s.close);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const t = useT();
 
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -269,7 +271,7 @@ export function PaymentsCalendarModal() {
         <Pressable
           style={StyleSheet.absoluteFillObject}
           onPress={close}
-          accessibilityLabel="Cerrar calendario"
+          accessibilityLabel={t('calendar.close')}
         />
       </Animated.View>
 
@@ -309,7 +311,7 @@ export function PaymentsCalendarModal() {
                         { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
                       ]}
                     >
-                      {formatAmount(animatedAmount, currency)} total
+                      {formatAmount(animatedAmount, currency)} {t('calendar.total')}
                     </Text>
                     <View
                       style={[
@@ -350,9 +352,9 @@ export function PaymentsCalendarModal() {
       <HalfSheet
         isOpen={dayDetail !== null}
         onClose={closeDayDetail}
-        title={dayDetail ? `${dayDetail.day} de ${MONTH_NAMES[month]}` : ''}
+        title={dayDetail ? t('calendar.dayOf', { day: dayDetail.day, month: t(`calendar.month.${month}`) }) : ''}
         subtitle={dayDetail && dayDetail.subs.length > 1
-          ? `Total: ${formatAmount(dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0), dayDetail.subs[0].currency)}`
+          ? t('calendar.totalAmount', { amount: formatAmount(dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0), dayDetail.subs[0].currency) })
           : undefined}
         heightFraction={0.22 + (dayDetail ? dayDetail.subs.length * 0.06 : 0)}
       >
@@ -381,11 +383,6 @@ export function PaymentsCalendarModal() {
     </Modal>
   );
 }
-
-const MONTH_NAMES = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-];
 
 const styles = StyleSheet.create({
   sheetWrap: {

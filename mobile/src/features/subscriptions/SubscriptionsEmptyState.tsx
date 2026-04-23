@@ -22,6 +22,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import { SuggestionsList } from '../add-subscription/SuggestionsList';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 interface Props {
   scrollY: SharedValue<number>;
@@ -29,6 +30,7 @@ interface Props {
 
 export function SubscriptionsEmptyState({ scrollY }: Props) {
   const { colors } = useTheme();
+  const t = useT();
 
   const introFadeStyle = useAnimatedStyle(() => {
     const p = interpolate(scrollY.value, [0, 120], [0, 1], Extrapolation.CLAMP);
@@ -39,12 +41,11 @@ export function SubscriptionsEmptyState({ scrollY }: Props) {
     <View style={styles.root}>
       <Animated.View style={introFadeStyle}>
         <Text style={[styles.subtitle, { color: colors.textPrimary }]}>
-          Todavía no tienes ninguna. Añade la primera para empezar a ver
-          tu gasto mensual.
+          {t('subscriptions.empty.subtitle')}
         </Text>
 
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          Sugerencia de suscripciones
+          {t('subscriptions.empty.suggestions')}
         </Text>
       </Animated.View>
 
