@@ -495,10 +495,10 @@ export function CreateSubscriptionSheet() {
     step2Scale.value = 0.99;
     step2TranslateY.value = 30;
     setStep(2);
-    const ease = Easing.bezierFn(0.22, 1, 0.36, 1);
-    step2Opacity.value = withTiming(1, { duration: 480, easing: ease });
-    step2Scale.value = withTiming(1, { duration: 480, easing: ease });
-    step2TranslateY.value = withTiming(0, { duration: 480, easing: ease });
+    const ease = Easing.bezierFn(0.4, 0, 0.2, 1);
+    step2Opacity.value = withTiming(1, { duration: 1000, easing: ease });
+    step2Scale.value = withTiming(1, { duration: 1000, easing: ease });
+    step2TranslateY.value = withTiming(0, { duration: 1000, easing: ease });
     step1Opacity.value = 1;
     step1TranslateY.value = 0;
     step1Scale.value = 1;
@@ -531,7 +531,7 @@ export function CreateSubscriptionSheet() {
         ]}
       >
           {step === 1 ? (
-            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 8 }, step1AnimStyle]}>
+            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 24 }, step1AnimStyle]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
