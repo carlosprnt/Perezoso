@@ -23,6 +23,9 @@
         "com.apple.developer.applesignin": [
           "Default",
           "Default"
+        ],
+        "com.apple.security.application-groups": [
+          "group.com.perezoso.app"
         ]
       },
       "infoPlist": {
@@ -47,7 +50,8 @@
         {
           "backgroundColor": "#F7F8FA"
         }
-      ]
+      ],
+      "./plugins/widget-extension/withWidgetExtension"
     ],
     "extra": {
       "router": {},

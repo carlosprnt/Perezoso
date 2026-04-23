@@ -18,6 +18,7 @@
 //      inherit the previous one's cache.
 
 import { create } from 'zustand';
+import { syncWidgetData } from '../lib/widgetData';
 
 import type { Subscription } from '../features/subscriptions/types';
 import {
@@ -213,4 +214,19 @@ useAuthStore.subscribe((state, prev) => {
     unsubscribePurchases = null;
     void purchasesLogOut();
   }
+});
+
+// ── Widget data sync ────────────────────────────────────────────────
+// Push subscription data to the App Group container whenever the list
+// changes so WidgetKit can display up-to-date information.
+let widgetSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+useSubscriptionsStore.subscribe((state, prev) => {
+  if (state.subscriptions === prev.subscriptions) return;
+  if (state.mode === 'demo') return;
+
+  if (widgetSyncTimer) clearTimeout(widgetSyncTimer);
+  widgetSyncTimer = setTimeout(() => {
+    void syncWidgetData(state.subscriptions, 'EUR');
+  }, 500);
 });
