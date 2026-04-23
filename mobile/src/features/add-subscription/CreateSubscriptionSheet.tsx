@@ -19,6 +19,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
   LayoutAnimation,
@@ -57,12 +58,30 @@ import { useTagsStore } from '../settings/useSettingsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
+import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import type {
   BillingPeriod as SubBillingPeriod,
   Category as SubCategory,
   Subscription,
   SubscriptionStatus,
 } from '../subscriptions/types';
+
+// ─── Logo matching ──────────────────────────────────────────────────
+function matchPlatformLogo(name: string): string {
+  const q = name.trim().toLowerCase();
+  if (!q) return '';
+  for (const p of PLATFORMS) {
+    if (p.name.toLowerCase() === q) return logoUrlFromDomain(p.domain);
+    if (p.aliases?.some((a) => a.toLowerCase() === q)) return logoUrlFromDomain(p.domain);
+  }
+  for (const p of PLATFORMS) {
+    if (p.name.toLowerCase().includes(q) || q.includes(p.name.toLowerCase())) return logoUrlFromDomain(p.domain);
+    if (p.aliases?.some((a) => a.toLowerCase().includes(q) || q.includes(a.toLowerCase()))) return logoUrlFromDomain(p.domain);
+  }
+  return '';
+}
+
+const PRICE_ACCESSORY_ID = 'price-input-hide-bar';
 
 // ─── Label → store-key mappings ──────────────────────────────────────
 // The form exposes localized / title-case labels for UX; the store
@@ -286,6 +305,7 @@ export function CreateSubscriptionSheet() {
   const step1Scale = useSharedValue(1);
   const step2Opacity = useSharedValue(1);
   const step2Scale = useSharedValue(1);
+  const step2TranslateY = useSharedValue(0);
 
   const step1AnimStyle = useAnimatedStyle(() => ({
     opacity: step1Opacity.value,
@@ -297,7 +317,10 @@ export function CreateSubscriptionSheet() {
 
   const step2AnimStyle = useAnimatedStyle(() => ({
     opacity: step2Opacity.value,
-    transform: [{ scale: step2Scale.value }],
+    transform: [
+      { translateY: step2TranslateY.value },
+      { scale: step2Scale.value },
+    ],
   }));
 
   // Refs for each dropdown trigger — used for measureInWindow to anchor the menu.
@@ -333,6 +356,7 @@ export function CreateSubscriptionSheet() {
       step1Scale.value = 1;
       step2Opacity.value = 1;
       step2Scale.value = 1;
+      step2TranslateY.value = 0;
     }
   }, [isOpen, prefill]);
 
@@ -469,13 +493,16 @@ export function CreateSubscriptionSheet() {
   const enterStep2 = useCallback(() => {
     step2Opacity.value = 0;
     step2Scale.value = 0.99;
+    step2TranslateY.value = 30;
     setStep(2);
-    step2Opacity.value = withTiming(1, { duration: 500, easing: Easing.bezierFn(0.25, 0.1, 0.25, 1) });
-    step2Scale.value = withTiming(1, { duration: 500, easing: Easing.bezierFn(0.25, 0.1, 0.25, 1) });
+    const ease = Easing.bezierFn(0.22, 1, 0.36, 1);
+    step2Opacity.value = withTiming(1, { duration: 480, easing: ease });
+    step2Scale.value = withTiming(1, { duration: 480, easing: ease });
+    step2TranslateY.value = withTiming(0, { duration: 480, easing: ease });
     step1Opacity.value = 1;
     step1TranslateY.value = 0;
     step1Scale.value = 1;
-  }, [step1Opacity, step1TranslateY, step1Scale, step2Opacity, step2Scale]);
+  }, [step1Opacity, step1TranslateY, step1Scale, step2Opacity, step2Scale, step2TranslateY]);
 
   const goToMoreOptions = useCallback(() => {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
@@ -489,6 +516,7 @@ export function CreateSubscriptionSheet() {
 
   // ─────────────────────────────────────────────────────────────────
   return (
+    <>
     <Modal
       visible={isOpen}
       animationType="slide"
@@ -503,7 +531,7 @@ export function CreateSubscriptionSheet() {
         ]}
       >
           {step === 1 ? (
-            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom }, step1AnimStyle]}>
+            <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 8 }, step1AnimStyle]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
                 <View style={styles.handle} />
@@ -532,7 +560,10 @@ export function CreateSubscriptionSheet() {
                   <TextInput
                     style={styles.quickNameInput}
                     value={form.name}
-                    onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
+                    onChangeText={(t) => {
+                      const logo = matchPlatformLogo(t);
+                      setForm((f) => ({ ...f, name: t, logoUrl: logo }));
+                    }}
                     placeholder="Suscripción"
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
@@ -555,7 +586,7 @@ export function CreateSubscriptionSheet() {
                       placeholder="0.00"
                       placeholderTextColor="#C7C7CC"
                       keyboardType="decimal-pad"
-                      returnKeyType="done"
+                      inputAccessoryViewID={PRICE_ACCESSORY_ID}
                     />
                   </View>
                 </View>
@@ -642,7 +673,10 @@ export function CreateSubscriptionSheet() {
                 <TextInput
                   style={styles.platformName}
                   value={form.name}
-                  onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
+                  onChangeText={(t) => {
+                    const logo = matchPlatformLogo(t);
+                    setForm((f) => ({ ...f, name: t, logoUrl: logo }));
+                  }}
                   placeholder="Nombre de la suscripción"
                   placeholderTextColor="#C7C7CC"
                   returnKeyType="done"
@@ -980,6 +1014,13 @@ export function CreateSubscriptionSheet() {
         onClose={() => setOpenPicker(null)}
       />
     </Modal>
+
+    {Platform.OS === 'ios' && (
+      <InputAccessoryView nativeID={PRICE_ACCESSORY_ID}>
+        <View style={{ height: 0 }} />
+      </InputAccessoryView>
+    )}
+    </>
   );
 }
 
