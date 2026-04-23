@@ -198,7 +198,7 @@ export function SettingsSheet() {
             <View style={[styles.handle, { backgroundColor: handleColor }]} />
           </View>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: titleColor }]}>Ajustes</Text>
+            <Text style={[styles.title, { color: titleColor }]}>{t('settings.title')}</Text>
             <Pressable
               style={({ pressed }) => [
                 styles.closeBtn,
@@ -208,7 +208,7 @@ export function SettingsSheet() {
               onPress={close}
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="Cerrar ajustes"
+              accessibilityLabel={t('settings.close')}
             >
               <X size={15} color={closeBtnColor} strokeWidth={2.5} />
             </Pressable>
@@ -226,8 +226,8 @@ export function SettingsSheet() {
             {/* 1 — Subscription highlight */}
             <SubscriptionCard
               title="Perezoso Pro"
-              status={isPlusActive ? 'Suscripción activa' : 'Desbloquea todas las funcionalidades'}
-              ctaLabel={isPlusActive ? 'Gestionar' : 'Mejorar'}
+              status={isPlusActive ? t('settings.pro.active') : t('settings.pro.unlock')}
+              ctaLabel={isPlusActive ? t('settings.pro.manage') : t('settings.pro.upgrade')}
               onManage={handleManagePlus}
             />
 
@@ -253,7 +253,7 @@ export function SettingsSheet() {
                 >
                   <RotateCcw size={17} color={isDark ? '#FFFFFF' : '#0F0F10'} strokeWidth={2.2} />
                   <Text style={[styles.resetBtnFullText, { color: isDark ? '#FFFFFF' : '#0F0F10' }]}>
-                    Restaurar tarjetas
+                    {t('settings.restoreCards')}
                   </Text>
                 </Pressable>
               </View>
@@ -264,13 +264,13 @@ export function SettingsSheet() {
             <SettingsSectionCard>
               <SettingsRow
                 icon={<Coins size={20} color={iconColor} strokeWidth={2} />}
-                label="Moneda"
+                label={t('settings.currency')}
                 value={currency}
                 onPress={handleCurrency}
               />
               <SettingsRow
                 icon={<Bell size={20} color={iconColor} strokeWidth={2} />}
-                label="Notificaciones"
+                label={t('settings.notifications')}
                 switchValue={notificationsEnabled}
                 onSwitchChange={setNotificationsEnabled}
               />
@@ -320,7 +320,7 @@ export function SettingsSheet() {
             <SettingsSectionCard>
               <SettingsRow
                 icon={<TagIcon size={20} color={iconColor} strokeWidth={2} />}
-                label="Etiquetas"
+                label={t('settings.tags')}
                 value={`${tagsCount}`}
                 onPress={openTags}
               />
@@ -331,12 +331,12 @@ export function SettingsSheet() {
             <SettingsSectionCard>
               <SettingsRow
                 icon={<Star size={20} color={iconColor} strokeWidth={2} />}
-                label={'Dejar una rese\u00F1a'}
+                label={t('settings.review')}
                 onPress={handleReview}
               />
               <SettingsRow
                 icon={<Share2 size={20} color={iconColor} strokeWidth={2} />}
-                label="Compartir con un amigo"
+                label={t('settings.share')}
                 onPress={handleShare}
               />
             </SettingsSectionCard>
@@ -359,7 +359,7 @@ export function SettingsSheet() {
             {/* 9 — Destructive */}
             <View style={styles.gap} />
             <DestructiveCard
-              label="Eliminar cuenta"
+              label={t('settings.deleteAccount')}
               onPress={handleDeleteAccount}
             />
           </ScrollView>
@@ -368,7 +368,7 @@ export function SettingsSheet() {
               content so the user sees feedback without leaving context. */}
           <InlineToast
             visible={resetToastVisible}
-            message="Las sugerencias vuelven a estar visibles"
+            message={t('settings.restoreCards.toast')}
             onHide={() => setResetToastVisible(false)}
             isDark={isDark}
           />

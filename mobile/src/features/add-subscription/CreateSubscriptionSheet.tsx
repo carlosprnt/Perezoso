@@ -743,17 +743,21 @@ export function CreateSubscriptionSheet() {
               {/* Reminder */}
               <View style={styles.group}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
+                  <View style={styles.rowLabelWithBadge}>
+                    <Text style={styles.rowLabel}>Activar recordatorio de pago</Text>
+                    {!isPlusActive && (
+                      <View style={styles.proBadge}>
+                        <Text style={styles.proBadgeText}>Pro</Text>
+                      </View>
+                    )}
+                  </View>
                   <Switch
                     value={form.reminderEnabled}
                     onValueChange={(v) => {
-                      if (v && !isPlusActive) {
-                        closeStore();
-                        setTimeout(() => usePaywallStore.getState().open('renewal_reminders'), 400);
-                        return;
-                      }
+                      if (!isPlusActive) return;
                       setForm((f) => ({ ...f, reminderEnabled: v }));
                     }}
+                    disabled={!isPlusActive}
                     trackColor={{ false: '#E5E5EA', true: '#34C759' }}
                   />
                 </View>
@@ -1242,6 +1246,25 @@ const styles = StyleSheet.create({
   rowLabelMuted: {
     color: '#8E8E93',
     fontSize: fontSize[15],
+  },
+  rowLabelWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
+    paddingRight: 12,
+  },
+  proBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  proBadgeText: {
+    ...fontFamily.bold,
+    fontSize: fontSize[11],
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
 
   datePill: {

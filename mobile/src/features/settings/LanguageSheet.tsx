@@ -11,6 +11,7 @@ import { Check, Search } from 'lucide-react-native';
 
 import { HalfSheet } from '../../components/HalfSheet';
 import { fontFamily, fontSize } from '../../design/typography';
+import { radius } from '../../design/radius';
 import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
 import { useLanguageStore } from '../../lib/i18n/useLanguageStore';
@@ -69,8 +70,8 @@ export function LanguageSheet({ visible, onClose }: Props) {
   const setLanguage = useLanguageStore((s) => s.setLanguage);
 
   const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState(currentLang);
 
-  const autoEntry = ALL_LANGUAGES[0];
   const languageList = ALL_LANGUAGES.slice(1);
 
   const filtered = useMemo(
@@ -79,17 +80,25 @@ export function LanguageSheet({ visible, onClose }: Props) {
   );
   const showAuto = query.trim().length === 0;
 
-  const handleSelect = (code: string) => {
+  const handleTap = (code: string) => {
     haptic.selection();
-    setLanguage(code);
+    setSelected(code);
+  };
+
+  const handleSave = () => {
+    haptic.success();
+    setLanguage(selected);
     setQuery('');
     onClose();
   };
 
   const handleClose = () => {
+    setSelected(currentLang);
     setQuery('');
     onClose();
   };
+
+  const hasChanges = selected !== currentLang;
 
   const bg = isDark ? '#1C1C1E' : '#FFFFFF';
   const inputBg = isDark ? '#2C2C2E' : '#F0F0F2';
@@ -134,7 +143,7 @@ export function LanguageSheet({ visible, onClose }: Props) {
       >
         {showAuto && (
           <Pressable
-            onPress={() => handleSelect('auto')}
+            onPress={() => handleTap('auto')}
             style={({ pressed }) => [
               styles.row,
               { borderBottomColor: dividerColor, borderBottomWidth: StyleSheet.hairlineWidth },
@@ -147,7 +156,7 @@ export function LanguageSheet({ visible, onClose }: Props) {
               </Text>
             </View>
             <View style={styles.rowRight}>
-              {currentLang === 'auto' ? (
+              {selected === 'auto' ? (
                 <Check size={18} color={checkColor} strokeWidth={2.6} />
               ) : (
                 <View style={styles.checkPlaceholder} />
@@ -170,7 +179,7 @@ export function LanguageSheet({ visible, onClose }: Props) {
           filtered.map((lang, idx) => (
             <Pressable
               key={lang.code}
-              onPress={() => handleSelect(lang.code)}
+              onPress={() => handleTap(lang.code)}
               style={({ pressed }) => [
                 styles.row,
                 idx < filtered.length - 1 && {
@@ -190,7 +199,7 @@ export function LanguageSheet({ visible, onClose }: Props) {
                 </Text>
               </View>
               <View style={styles.rowRight}>
-                {currentLang === lang.code ? (
+                {selected === lang.code ? (
                   <Check size={18} color={checkColor} strokeWidth={2.6} />
                 ) : (
                   <View style={styles.checkPlaceholder} />
@@ -200,6 +209,20 @@ export function LanguageSheet({ visible, onClose }: Props) {
           ))
         )}
       </ScrollView>
+
+      <View style={[styles.footer, { backgroundColor: bg }]}>
+        <Pressable
+          onPress={handleSave}
+          disabled={!hasChanges}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            !hasChanges && { opacity: 0.4 },
+            pressed && hasChanges && { opacity: 0.85 },
+          ]}
+        >
+          <Text style={styles.saveBtnText}>{t('common.save')}</Text>
+        </Pressable>
+      </View>
     </HalfSheet>
   );
 }
@@ -278,5 +301,25 @@ const styles = StyleSheet.create({
   checkPlaceholder: {
     width: 18,
     height: 18,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  saveBtn: {
+    height: 52,
+    borderRadius: radius.full,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    ...fontFamily.semibold,
+    fontSize: fontSize[16],
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
 });
