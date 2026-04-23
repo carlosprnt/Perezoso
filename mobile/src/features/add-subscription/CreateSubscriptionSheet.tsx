@@ -508,12 +508,10 @@ export function CreateSubscriptionSheet() {
     setForm((f) => ({ ...f, nextPaymentDate: renewalDate }));
     Keyboard.dismiss();
     const exitEase = Easing.bezierFn(0.2, 0, 0.8, 1);
-    step1Opacity.value = withTiming(0, { duration: 1000, easing: exitEase });
-    step1TranslateY.value = withTiming(-20, { duration: 1000, easing: exitEase });
-    step1Scale.value = withTiming(0.98, { duration: 1000, easing: exitEase }, (finished) => {
+    step1Opacity.value = withTiming(0, { duration: 1500, easing: exitEase }, (finished) => {
       if (finished) runOnJS(enterStep2)();
     });
-  }, [renewalDate, step1Opacity, step1TranslateY, step1Scale, enterStep2]);
+  }, [renewalDate, step1Opacity, enterStep2]);
 
   // ─────────────────────────────────────────────────────────────────
   return (
