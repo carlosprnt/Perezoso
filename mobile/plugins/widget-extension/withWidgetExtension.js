@@ -8,8 +8,6 @@ const {
   withEntitlementsPlist,
   withDangerousMod,
 } = require("expo/config-plugins");
-const { withPodfile } = require("@expo/config-plugins/build/plugins/ios-plugins");
-const { mergeContents } = require("@expo/config-plugins/build/utils/generateCode");
 const path = require("path");
 const fs = require("fs");
 
@@ -179,17 +177,8 @@ function withWidgetExtension(config) {
       );
     }
 
-    // Read DEVELOPMENT_TEAM from the main target so the widget uses the same one
-    const configs = project.pbxXCBuildConfigurationSection();
-    let devTeam = null;
-    for (const key in configs) {
-      const cfg = configs[key];
-      if (cfg.buildSettings?.DEVELOPMENT_TEAM && !devTeam) {
-        devTeam = cfg.buildSettings.DEVELOPMENT_TEAM;
-      }
-    }
-
     // Configure widget target build settings
+    const configs = project.pbxXCBuildConfigurationSection();
     for (const key in configs) {
       const cfg = configs[key];
       if (cfg.buildSettings?.PRODUCT_BUNDLE_IDENTIFIER === `"${widgetBundleId}"` ||
@@ -199,7 +188,7 @@ function withWidgetExtension(config) {
           IPHONEOS_DEPLOYMENT_TARGET: DEPLOYMENT_TARGET,
           CODE_SIGN_ENTITLEMENTS: `${WIDGET_NAME}/${WIDGET_NAME}.entitlements`,
           CODE_SIGN_STYLE: "Automatic",
-          ...(devTeam ? { DEVELOPMENT_TEAM: devTeam } : {}),
+          DEVELOPMENT_TEAM: "YTNBUHSVA9",
           TARGETED_DEVICE_FAMILY: '"1"',
           GENERATE_INFOPLIST_FILE: "YES",
           MARKETING_VERSION: "1.0",
@@ -220,37 +209,6 @@ function withWidgetExtension(config) {
     project.addFramework("WidgetKit.framework", { target: widgetTarget.uuid, link: true });
     project.addFramework("SwiftUI.framework", { target: widgetTarget.uuid, link: true });
 
-    return c;
-  });
-
-  // 4. Patch Podfile: disable code signing on CocoaPods resource bundle
-  // targets to fix Xcode 14+ "resource bundles are signed by default" error
-  config = withPodfile(config, (c) => {
-    const snippet = [
-      "    installer.pods_project.targets.each do |target|",
-      "      if target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'",
-      "        target.build_configurations.each do |config|",
-      "          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'",
-      "        end",
-      "      end",
-      "    end",
-    ].join("\n");
-
-    if (c.modResults.contents.includes("post_install do |installer|")) {
-      const result = mergeContents({
-        src: c.modResults.contents,
-        newSrc: snippet,
-        tag: "perezoso-widget-codesign",
-        anchor: /post_install do \|installer\|/,
-        offset: 1,
-        comment: "#",
-      });
-      if (result.didMerge) {
-        c.modResults.contents = result.contents;
-      }
-    } else {
-      c.modResults.contents += `\npost_install do |installer|\n${snippet}\nend\n`;
-    }
     return c;
   });
 
