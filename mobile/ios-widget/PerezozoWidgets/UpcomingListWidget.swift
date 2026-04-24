@@ -18,14 +18,14 @@ struct UpcomingListProvider: TimelineProvider {
         let data = loadWidgetData()
         let subs = (data?.subscriptions ?? sampleSubscriptions)
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
-        completion(UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(4))))
+        completion(UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(3))))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<UpcomingListEntry>) -> Void) {
         let data = loadWidgetData()
         let subs = (data?.subscriptions ?? [])
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
-        let entry = UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(4)))
+        let entry = UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(3)))
         let refreshDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
         completion(Timeline(entries: [entry], policy: .after(refreshDate)))
     }
@@ -55,21 +55,10 @@ struct UpcomingListWidgetView: View {
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
-                HStack {
-                    Text(WidgetStrings.upcomingHeader)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .tracking(0.8)
-                        .foregroundColor(textMuted)
-                    Spacer()
-                    Text("\(entry.subscriptions.count)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(textMuted)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            Capsule().fill(border)
-                        )
-                }
+                Text(WidgetStrings.upcomingHeader)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .tracking(0.8)
+                    .foregroundColor(textMuted)
                 .padding(.bottom, 8)
 
                 // List rows

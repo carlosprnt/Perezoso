@@ -28,10 +28,10 @@ enum WidgetStrings {
     static var monthlySpendDesc: String { isSpanish ? "Tu gasto total mensual en suscripciones." : "Your total monthly subscription spending." }
 
     // Upcoming List Widget
-    static var upcomingHeader: String { isSpanish ? "PRÓXIMOS COBROS" : "UPCOMING PAYMENTS" }
+    static var upcomingHeader: String { isSpanish ? "PRÓXIMOS 3 COBROS" : "UPCOMING 3 PAYMENTS" }
     static var noUpcoming: String { isSpanish ? "No hay suscripciones próximas" : "No upcoming subscriptions" }
     static var upcomingTitle: String { isSpanish ? "Próximos cobros" : "Upcoming payments" }
-    static var upcomingDesc: String { isSpanish ? "Tus próximas 4 suscripciones a pagar." : "Your next 4 upcoming payments." }
+    static var upcomingDesc: String { isSpanish ? "Tus próximos 3 cobros." : "Your next 3 upcoming payments." }
 
     // Days
     static func daysText(_ days: Int) -> String {

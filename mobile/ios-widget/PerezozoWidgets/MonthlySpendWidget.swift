@@ -42,38 +42,24 @@ struct MonthlySpendWidgetView: View {
     private var bg: Color { colorScheme == .dark ? WidgetColors.darkBg : WidgetColors.lightBg }
     private var textPrimary: Color { colorScheme == .dark ? WidgetColors.darkText : WidgetColors.lightText }
     private var textMuted: Color { colorScheme == .dark ? WidgetColors.darkTextMuted : WidgetColors.lightTextMuted }
-    private var textSecondary: Color { colorScheme == .dark ? WidgetColors.darkTextSecondary : WidgetColors.lightTextSecondary }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(WidgetStrings.monthlySpendHeader)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .tracking(0.8)
-                    .foregroundColor(textMuted)
-                Spacer()
-                Image(systemName: "chart.bar.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(textMuted)
-            }
-
-            Spacer(minLength: 0)
-
-            Text(formattedTotal)
-                .font(.system(size: 30, weight: .heavy, design: .rounded))
-                .foregroundColor(textPrimary)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-
-            Text(WidgetStrings.perMonth)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundColor(textSecondary)
+            Text(WidgetStrings.monthlySpendHeader)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .tracking(0.8)
+                .foregroundColor(textMuted)
 
             Spacer(minLength: 0)
 
             Text(WidgetStrings.activeSubscriptions(entry.activeCount))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundColor(textMuted)
+
+            Text(formattedTotal)
+                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                .foregroundColor(textPrimary)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .containerBackground(bg, for: .widget)

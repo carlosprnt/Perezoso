@@ -66,9 +66,9 @@ struct NextPaymentWidgetView: View {
 
                 // Price
                 Text(sub.formattedPrice)
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
                     .foregroundColor(textPrimary)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.6)
                     .lineLimit(1)
 
                 // Days until
