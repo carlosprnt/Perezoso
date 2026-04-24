@@ -27,18 +27,7 @@
       "autoIncrement": true,
       "ios": {
         "image": "latest",
-        "resourceClass": "m-medium",
-        "appExtensions": [
-          {
-            "targetName": "PerezozoWidgets",
-            "bundleIdentifier": "com.perezoso.app.PerezozoWidgets",
-            "entitlements": {
-              "com.apple.security.application-groups": [
-                "group.com.perezoso.app"
-              ]
-            }
-          }
-        ]
+        "resourceClass": "m-medium"
       }
     }
   },

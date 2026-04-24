@@ -64,7 +64,24 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7ed0ce73-b35a-49c7-90c7-8737f808e530"
+        "projectId": "7ed0ce73-b35a-49c7-90c7-8737f808e530",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "PerezozoWidgets",
+                  "bundleIdentifier": "com.perezoso.app.PerezozoWidgets",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.perezoso.app"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
       }
     },
     "owner": "carlosprnt",
