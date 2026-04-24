@@ -51,6 +51,14 @@
           "backgroundColor": "#F7F8FA"
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
+      ],
       "./plugins/widget-extension/withWidgetExtension"
     ],
     "extra": {
