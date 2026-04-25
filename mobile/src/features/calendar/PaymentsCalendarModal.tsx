@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dayDetailAmount: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 14,
   },
 });

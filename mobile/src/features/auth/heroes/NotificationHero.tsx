@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   promptTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
     textAlign: 'center',
     marginTop: 4,

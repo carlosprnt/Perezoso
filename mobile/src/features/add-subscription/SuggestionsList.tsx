@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 17,
     letterSpacing: -0.1,
   },

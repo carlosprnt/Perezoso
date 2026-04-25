@@ -53,7 +53,7 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
           styles.dayNumber,
           {
             color: dayColor,
-            ...(isToday ? fontFamily.semibold : fontFamily.medium),
+            ...(isToday ? fontFamily.semibold : fontFamily.regular),
           },
         ]}
       >

@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   texts: {},
   bottomGroup: {},
   title: {
-    ...fontFamily.extrabold,
+    ...fontFamily.semibold,
     fontSize: 28,
     lineHeight: 28 * lineHeight.compact,
     letterSpacing: -0.4,

@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   headerTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     letterSpacing: -0.3,
   },
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   explainContainer: {},
   explainContent: { paddingHorizontal: 20, paddingTop: 16, alignItems: 'center' },
   explainTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     textAlign: 'center',
     letterSpacing: -0.3,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   logoImg: { width: 26, height: 26 },
-  logoInitial: { ...fontFamily.bold, fontSize: fontSize[16] },
+  logoInitial: { ...fontFamily.semibold, fontSize: fontSize[16] },
   resultInfo: { flex: 1 },
   resultName: { ...fontFamily.semibold, fontSize: fontSize[15], letterSpacing: -0.1 },
   resultMeta: { ...fontFamily.regular, fontSize: fontSize[11], marginTop: 2 },

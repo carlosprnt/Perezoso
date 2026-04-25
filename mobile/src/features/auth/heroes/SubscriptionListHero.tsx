@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   headerTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
   },
   headerAmount: {
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[13] * lineHeight.normal,
   },
   rowPrice: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[15],
   },
   blurOverlay: {

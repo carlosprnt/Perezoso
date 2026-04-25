@@ -80,39 +80,39 @@ export const letterSpacing = {
 export const textPreset = {
   // Hero / display
   heroAmount: {
-    ...fontFamily.extrabold,
-    fontSize: fontSize[50],
-    lineHeight: fontSize[50] * lineHeight.none,
+    ...fontFamily.semibold,
+    fontSize: fontSize[32],
+    lineHeight: fontSize[32] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroText: {
-    ...fontFamily.extrabold,
-    fontSize: fontSize[45],
-    lineHeight: fontSize[45] * lineHeight.compact,
+    ...fontFamily.semibold,
+    fontSize: fontSize[32],
+    lineHeight: fontSize[32] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
 
   // Headings
   h1: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[32],
     lineHeight: fontSize[32] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   h2: {
-    ...fontFamily.bold,
-    fontSize: fontSize[24],
-    lineHeight: fontSize[24] * lineHeight.tight,
+    ...fontFamily.semibold,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.tight,
   },
   h3: {
-    ...fontFamily.bold,
-    fontSize: fontSize[20],
-    lineHeight: fontSize[20] * lineHeight.snug,
+    ...fontFamily.semibold,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
 
   // Titles (card titles, section headers)
   titleLg: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -123,8 +123,8 @@ export const textPreset = {
   },
   titleSm: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
   },
 
   // Body
@@ -135,8 +135,8 @@ export const textPreset = {
   },
   bodyMd: {
     ...fontFamily.regular,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.normal,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.normal,
   },
   bodySm: {
     ...fontFamily.regular,
@@ -146,25 +146,25 @@ export const textPreset = {
 
   // Captions / labels
   caption: {
-    ...fontFamily.medium,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
   },
   captionSm: {
-    ...fontFamily.medium,
-    fontSize: fontSize[11],
-    lineHeight: fontSize[11] * lineHeight.snug,
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
   },
   label: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.snug,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
     letterSpacing: letterSpacing.widest,
   },
   labelSm: {
     ...fontFamily.semibold,
-    fontSize: fontSize[10],
-    lineHeight: fontSize[10] * lineHeight.snug,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
     letterSpacing: letterSpacing.wide,
   },
 
@@ -178,18 +178,18 @@ export const textPreset = {
   // Button text
   buttonSm: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.none,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.none,
   },
   buttonMd: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.none,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.none,
   },
   buttonLg: {
     ...fontFamily.semibold,
-    fontSize: fontSize[14],
-    lineHeight: fontSize[14] * lineHeight.none,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.none,
   },
 } as const;
 

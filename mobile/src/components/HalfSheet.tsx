@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     letterSpacing: -0.3,
   },

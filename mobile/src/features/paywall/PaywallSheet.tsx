@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   proBadgeText: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 11,
     color: '#FFFFFF',
     letterSpacing: 1.5,
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   headline: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[24],
     color: '#000000',
     textAlign: 'center',
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   planColPrice: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#8E8E93',
     letterSpacing: -0.3,

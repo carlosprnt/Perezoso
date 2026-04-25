@@ -202,19 +202,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   dayNumber: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[50],
     color: '#000000',
     letterSpacing: -2,
   },
   monthLabel: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[50],
     color: '#000000',
     letterSpacing: -2,
   },
   renewalLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[16],
     color: '#8E8E93',
     marginTop: 2,

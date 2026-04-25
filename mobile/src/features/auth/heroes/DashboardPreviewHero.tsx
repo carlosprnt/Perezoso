@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   greeting: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
   },
   avatar: {
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   heroLabel: {
-    ...fontFamily.extrabold,
+    ...fontFamily.semibold,
     fontSize: 22,
     lineHeight: 22 * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   heroAmount: {
-    ...fontFamily.extrabold,
+    ...fontFamily.semibold,
     fontSize: 42,
     lineHeight: 42 * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -365,14 +365,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   supportText: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.normal,
     marginTop: 8,
     marginBottom: 12,
   },
   supportBold: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
   },
 
   // Insight cards
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   insightTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },

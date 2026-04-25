@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowCode: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
     width: 48,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowSymbol: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
     minWidth: 24,

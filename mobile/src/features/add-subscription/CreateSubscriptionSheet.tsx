@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
   quickNameInput: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[32],
     color: '#000000',
     letterSpacing: -0.6,
@@ -1145,7 +1145,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   renewalRowLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.2,
@@ -1156,7 +1156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   renewalValue: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -1183,7 +1183,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -1233,7 +1233,7 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
   },
   platformName: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.3,
@@ -1315,7 +1315,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   proBadgeText: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[11],
     color: '#FFFFFF',
     letterSpacing: 0.2,
@@ -1403,7 +1403,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pasteLink: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[15],
     color: '#007AFF',
     letterSpacing: -0.1,

@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   reminderBold: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     color: '#111827',
   },
   reminderActions: {
@@ -232,13 +232,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: 10,
     color: '#9CA3AF',
     marginBottom: 3,
   },
   statValue: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 13,
     color: '#0F172A',
     marginBottom: 2,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
   },
   nextSection: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
     color: '#0F172A',
     marginTop: 18,

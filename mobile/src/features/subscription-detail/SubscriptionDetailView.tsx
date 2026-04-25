@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   heroName: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 28,
     lineHeight: 34,
     letterSpacing: letterSpacing.tight,
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceBig: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[24],
     lineHeight: fontSize[24] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressDaysLeft: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[15],
     paddingHorizontal: 16,
     paddingTop: 10,

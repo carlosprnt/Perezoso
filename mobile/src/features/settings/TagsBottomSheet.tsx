@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,

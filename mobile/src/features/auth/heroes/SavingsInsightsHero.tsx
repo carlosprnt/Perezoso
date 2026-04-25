@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 16,
   },
   closeBtn: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     lineHeight: 13 * 1.45,
   },
   bodyBold: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
   },
   ctaPill: {
     borderRadius: radius.full,

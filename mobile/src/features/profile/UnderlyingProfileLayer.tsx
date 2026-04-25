@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   plusTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.3,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   bottomBtnText: {
-    ...fontFamily.medium,
+    ...fontFamily.regular,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
   },

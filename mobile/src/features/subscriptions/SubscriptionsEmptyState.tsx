@@ -60,13 +60,13 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   subtitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: 18,
     lineHeight: 18 * 1.4,
     marginBottom: 22,
   },
   sectionTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[18],
     letterSpacing: -0.2,
     marginBottom: 4,

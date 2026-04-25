@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   dotWrap: {},
   dotText: {
-    ...fontFamily.bold,
+    ...fontFamily.semibold,
     fontSize: fontSize[11],
   },
 });
