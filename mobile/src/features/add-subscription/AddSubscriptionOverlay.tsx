@@ -25,7 +25,7 @@
 // first half of progress 1→0), then the morph shrinks back to the
 // trigger rect, leaving the `+` button visually continuous.
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ import {
   Dimensions,
   Image,
   Linking,
+  TextInput,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
@@ -53,7 +54,7 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Mail, Store } from 'lucide-react-native';
+import { X, Mail, Store, Search } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
@@ -144,7 +145,8 @@ const FEATURED_IDS = [
 
 const FEATURED = FEATURED_IDS
   .map((id) => PLATFORMS.find((p) => p.id === id))
-  .filter((p): p is NonNullable<typeof p> => !!p);
+  .filter((p): p is NonNullable<typeof p> => !!p)
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 // ─── Animation config ───────────────────────────────────────────────
 const OPEN_SPRING = {
@@ -185,6 +187,7 @@ export function AddSubscriptionOverlay() {
 
   const [mounted, setMounted] = useState(false);
   const [showFindSubs, setShowFindSubs] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [interactive, setInteractive] = useState(false);
   const progress = useSharedValue(0);
   // swipeY tracks the user's vertical drag distance during a pull-to-dismiss
@@ -229,6 +232,7 @@ export function AddSubscriptionOverlay() {
     } else {
       setInteractive(false);
       setShowFindSubs(false);
+      setSearchQuery('');
       progress.value = withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) runOnJS(setMounted)(false);
       });
@@ -287,6 +291,16 @@ export function AddSubscriptionOverlay() {
       ],
     };
   });
+
+  const filteredPlatforms = useMemo(() => {
+    if (!searchQuery.trim()) return FEATURED;
+    const q = searchQuery.toLowerCase().trim();
+    return FEATURED.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.aliases?.some((a) => a.toLowerCase().includes(q)),
+    );
+  }, [searchQuery]);
 
   const handleBackdropPress = useCallback(() => {
     if (interactive) close();
@@ -378,133 +392,194 @@ export function AddSubscriptionOverlay() {
                 </Pressable>
               </View>
 
-            {/* ─── Scrollable service list ─────────────────────── */}
-            <GestureDetector gesture={nativeScrollGesture}>
-            <ScrollView
-              style={styles.list}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              bounces={false}
-            >
-              {FEATURED.map((p) => (
-                <Pressable
-                  key={p.id}
-                  style={({ pressed }) => [
-                    styles.row,
-                    pressed && styles.rowPressed,
-                  ]}
-                  android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
-                  onPress={() => {
-                    // Step 2: open white form with prefill, then close
-                    // the dark picker. Order matters — opening first
-                    // guarantees the white sheet is requested to render
-                    // even if close() has any side-effect that would
-                    // suppress later state updates.
-                    useCreateSubscriptionStore.getState().open({
-                      name: p.name,
-                      logoUrl: logoUrlFromDomain(p.domain),
-                    });
-                    close();
-                  }}
-                >
-                  <View style={styles.logoBox}>
-                    <Image
-                      source={{ uri: logoUrlFromDomain(p.domain) }}
-                      style={styles.logoImg}
-                      resizeMode="contain"
-                    />
-                  </View>
-                  <Text style={styles.rowText}>{p.name}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-            </GestureDetector>
-
-            {/* ─── Footer actions ──────────────────────────────── */}
+            {/* ─── Search mode: Gmail disabled + search input + filtered list */}
             {showFindSubs ? (
-              <View style={[styles.findSubsPanel, { paddingBottom: 22 }]}>
-                <View style={styles.findSubsHeader}>
-                  <Pressable onPress={() => setShowFindSubs(false)} hitSlop={8}>
-                    <Text style={styles.findSubsBack}>←</Text>
+              <>
+                <View style={styles.findSubsPanel}>
+                  <View style={styles.findSubsHeader}>
+                    <Pressable onPress={() => { setShowFindSubs(false); setSearchQuery(''); }} hitSlop={8}>
+                      <Text style={styles.findSubsBack}>←</Text>
+                    </Pressable>
+                    <Text style={styles.findSubsTitle}>{t('findSubs.title')}</Text>
+                    <View style={{ width: 24 }} />
+                  </View>
+
+                  {/* Gmail — disabled */}
+                  <Pressable style={[styles.findSubsRow, styles.findSubsRowDisabled]} disabled>
+                    <View style={styles.findSubsIconWrap}>
+                      <Mail size={18} color="rgba(255,255,255,0.3)" strokeWidth={2} />
+                    </View>
+                    <View style={styles.findSubsTextCol}>
+                      <View style={styles.findSubsLabelRow}>
+                        <Text style={[styles.findSubsRowTitle, { color: 'rgba(255,255,255,0.3)' }]}>
+                          {t('findSubs.gmail')}
+                        </Text>
+                        <View style={styles.findSubsBadge}>
+                          <Text style={styles.findSubsBadgeText}>{t('findSubs.gmailSoon')}</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.findSubsRowDesc, { color: 'rgba(255,255,255,0.2)' }]}>
+                        {t('findSubs.gmailDesc')}
+                      </Text>
+                    </View>
                   </Pressable>
-                  <Text style={styles.findSubsTitle}>{t('findSubs.title')}</Text>
-                  <View style={{ width: 24 }} />
+
+                  {/* Search input */}
+                  <View style={styles.searchInputWrap}>
+                    <Search size={16} color="rgba(255,255,255,0.4)" strokeWidth={2} />
+                    <TextInput
+                      style={styles.searchInput}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder={t('findSubs.searchPlaceholder')}
+                      placeholderTextColor="rgba(255,255,255,0.3)"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      returnKeyType="search"
+                    />
+                    {searchQuery.length > 0 && (
+                      <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                        <X size={14} color="rgba(255,255,255,0.4)" strokeWidth={2.5} />
+                      </Pressable>
+                    )}
+                  </View>
                 </View>
 
-                {/* Gmail — disabled */}
-                <Pressable style={[styles.findSubsRow, styles.findSubsRowDisabled]} disabled>
-                  <View style={styles.findSubsIconWrap}>
-                    <Mail size={18} color="rgba(255,255,255,0.3)" strokeWidth={2} />
-                  </View>
-                  <View style={styles.findSubsTextCol}>
-                    <View style={styles.findSubsLabelRow}>
-                      <Text style={[styles.findSubsRowTitle, { color: 'rgba(255,255,255,0.3)' }]}>
-                        {t('findSubs.gmail')}
-                      </Text>
-                      <View style={styles.findSubsBadge}>
-                        <Text style={styles.findSubsBadgeText}>{t('findSubs.gmailSoon')}</Text>
+                {/* Filtered list */}
+                <GestureDetector gesture={nativeScrollGesture}>
+                <ScrollView
+                  style={styles.list}
+                  contentContainerStyle={styles.listContent}
+                  showsVerticalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  bounces={false}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {filteredPlatforms.map((p) => (
+                    <Pressable
+                      key={p.id}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && styles.rowPressed,
+                      ]}
+                      onPress={() => {
+                        useCreateSubscriptionStore.getState().open({
+                          name: p.name,
+                          logoUrl: logoUrlFromDomain(p.domain),
+                        });
+                        close();
+                      }}
+                    >
+                      <View style={styles.logoBox}>
+                        <Image
+                          source={{ uri: logoUrlFromDomain(p.domain) }}
+                          style={styles.logoImg}
+                          resizeMode="contain"
+                        />
                       </View>
-                    </View>
-                    <Text style={[styles.findSubsRowDesc, { color: 'rgba(255,255,255,0.2)' }]}>
-                      {t('findSubs.gmailDesc')}
-                    </Text>
-                  </View>
-                </Pressable>
-
-                {/* App Store — active */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.findSubsRow,
-                    pressed && { opacity: 0.7 },
-                  ]}
-                  onPress={() => {
-                    Linking.openURL(APP_STORE_SUBSCRIPTIONS_URL).catch(() => {});
-                  }}
-                >
-                  <View style={styles.findSubsIconWrap}>
-                    <Store size={18} color="#FFFFFF" strokeWidth={2} />
-                  </View>
-                  <View style={styles.findSubsTextCol}>
-                    <Text style={styles.findSubsRowTitle}>{t('findSubs.appStore')}</Text>
-                    <Text style={styles.findSubsRowDesc}>{t('findSubs.appStoreDesc')}</Text>
-                  </View>
-                </Pressable>
-              </View>
+                      <Text style={styles.rowText}>{p.name}</Text>
+                    </Pressable>
+                  ))}
+                  {filteredPlatforms.length === 0 && searchQuery.length > 0 && (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && styles.rowPressed,
+                      ]}
+                      onPress={() => {
+                        useCreateSubscriptionStore.getState().open({ name: searchQuery.trim() });
+                        close();
+                      }}
+                    >
+                      <View style={[styles.logoBox, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
+                        <Text style={styles.noResultInitial}>
+                          {searchQuery.trim().charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text style={styles.rowText}>
+                        {t('create.addManually')}: {searchQuery.trim()}
+                      </Text>
+                    </Pressable>
+                  )}
+                </ScrollView>
+                </GestureDetector>
+              </>
             ) : (
-              <View
-                style={[
-                  styles.footer,
-                  { paddingBottom: 22 },
-                ]}
-              >
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.footerBtnSecondary,
-                    pressed && { opacity: 0.8 },
-                  ]}
-                  onPress={() => setShowFindSubs(true)}
+              <>
+                {/* ─── Scrollable service list ─────────────────────── */}
+                <GestureDetector gesture={nativeScrollGesture}>
+                <ScrollView
+                  style={styles.list}
+                  contentContainerStyle={styles.listContent}
+                  showsVerticalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  bounces={false}
                 >
-                  <Text style={styles.footerBtnSecondaryText}>
-                    {t('findSubs.search')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.footerBtnPrimary,
-                    pressed && { opacity: 0.85 },
+                  {FEATURED.map((p) => (
+                    <Pressable
+                      key={p.id}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && styles.rowPressed,
+                      ]}
+                      android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
+                      onPress={() => {
+                        useCreateSubscriptionStore.getState().open({
+                          name: p.name,
+                          logoUrl: logoUrlFromDomain(p.domain),
+                        });
+                        close();
+                      }}
+                    >
+                      <View style={styles.logoBox}>
+                        <Image
+                          source={{ uri: logoUrlFromDomain(p.domain) }}
+                          style={styles.logoImg}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <Text style={styles.rowText}>{p.name}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+                </GestureDetector>
+
+                {/* ─── Footer actions ──────────────────────────────── */}
+                <View
+                  style={[
+                    styles.footer,
+                    { paddingBottom: 22 },
                   ]}
-                  onPress={() => {
-                    useCreateSubscriptionStore.getState().open();
-                    close();
-                  }}
                 >
-                  <Text style={styles.footerBtnPrimaryText}>
-                    {t('create.addManually')}
-                  </Text>
-                </Pressable>
-              </View>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.footerBtnSecondary,
+                      pressed && { opacity: 0.8 },
+                    ]}
+                    onPress={() => setShowFindSubs(true)}
+                  >
+                    <Text style={styles.footerBtnSecondaryText}>
+                      {t('findSubs.search')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.footerBtnPrimary,
+                      pressed && { opacity: 0.85 },
+                    ]}
+                    onPress={() => {
+                      useCreateSubscriptionStore.getState().open();
+                      close();
+                    }}
+                  >
+                    <Text style={styles.footerBtnPrimaryText}>
+                      {t('create.addManually')}
+                    </Text>
+                  </Pressable>
+                </View>
+              </>
             )}
             </View>
             </GestureDetector>
@@ -719,5 +794,28 @@ const styles = StyleSheet.create({
     ...fontFamily.medium,
     fontSize: fontSize[11],
     color: 'rgba(255,255,255,0.35)',
+  },
+  searchInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  searchInput: {
+    ...fontFamily.regular,
+    fontSize: fontSize[15],
+    color: '#FFFFFF',
+    flex: 1,
+    padding: 0,
+    letterSpacing: -0.1,
+  },
+  noResultInitial: {
+    ...fontFamily.bold,
+    fontSize: fontSize[16],
+    color: 'rgba(255,255,255,0.5)',
   },
 });

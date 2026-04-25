@@ -295,6 +295,7 @@ export const resources = {
       'findSubs.gmailSoon': 'Próximamente',
       'findSubs.appStore': 'Buscar en App Store',
       'findSubs.appStoreDesc': 'Revisa tus suscripciones activas en la App Store',
+      'findSubs.searchPlaceholder': 'Buscar servicio...',
 
       // ── Gmail import ──
       'gmail.searchTitle': 'Buscar en Gmail',
@@ -784,6 +785,7 @@ export const resources = {
       'findSubs.gmailSoon': 'Coming soon',
       'findSubs.appStore': 'Search App Store',
       'findSubs.appStoreDesc': 'Review your active App Store subscriptions',
+      'findSubs.searchPlaceholder': 'Search service...',
 
       // ── Gmail import ──
       'gmail.searchTitle': 'Search Gmail',
