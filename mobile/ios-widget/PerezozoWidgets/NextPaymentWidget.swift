@@ -48,12 +48,12 @@ struct NextPaymentWidgetView: View {
                 Text(sub.category.uppercased())
                     .font(.system(size: 9, weight: .bold, design: .rounded))
                     .tracking(0.8)
-                    .foregroundColor(WidgetColors.categoryTextColor(for: sub.category))
+                    .foregroundColor(.white)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
                     .background(
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(WidgetColors.categoryColor(for: sub.category))
+                            .fill(Color.black)
                     )
 
                 Spacer(minLength: 0)

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 // MARK: - Shared data model (mirrors WidgetSharedData from TypeScript)
 
@@ -70,3 +71,30 @@ let sampleSubscriptions: [WidgetSubscription] = [
 ]
 
 let sampleData = WidgetSharedData(subscriptions: sampleSubscriptions, currency: "EUR", updatedAt: "2026-04-23T12:00:00Z")
+
+// MARK: - Logo downloading for widgets
+
+func downloadLogos(for subs: [WidgetSubscription], completion: @escaping ([String: UIImage]) -> Void) {
+    let group = DispatchGroup()
+    var logos: [String: UIImage] = [:]
+    let lock = NSLock()
+
+    for sub in subs {
+        guard let urlString = sub.logoUrl, let url = URL(string: urlString) else { continue }
+        group.enter()
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForResource = 5
+        URLSession(configuration: config).dataTask(with: url) { data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                lock.lock()
+                logos[sub.id] = image
+                lock.unlock()
+            }
+            group.leave()
+        }.resume()
+    }
+
+    group.notify(queue: .global()) {
+        completion(logos)
+    }
+}

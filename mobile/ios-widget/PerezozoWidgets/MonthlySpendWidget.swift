@@ -51,15 +51,15 @@ struct MonthlySpendWidgetView: View {
 
             Spacer(minLength: 0)
 
-            Text(WidgetStrings.activeSubscriptions(entry.activeCount))
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundColor(textMuted)
-
             Text(formattedTotal)
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .foregroundColor(textPrimary)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
+
+            Text(WidgetStrings.activeSubscriptions(entry.activeCount))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundColor(textMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .containerBackground(bg, for: .widget)

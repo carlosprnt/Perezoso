@@ -2,32 +2,39 @@ import WidgetKit
 import SwiftUI
 
 // MARK: - Upcoming List Widget (Medium)
-// Shows the next 4 upcoming subscription payments in a compact list.
+// Shows the next 3 upcoming subscription payments in a compact list.
 
 struct UpcomingListEntry: TimelineEntry {
     let date: Date
     let subscriptions: [WidgetSubscription]
+    let logos: [String: UIImage]
 }
 
 struct UpcomingListProvider: TimelineProvider {
     func placeholder(in context: Context) -> UpcomingListEntry {
-        UpcomingListEntry(date: Date(), subscriptions: sampleSubscriptions)
+        UpcomingListEntry(date: Date(), subscriptions: sampleSubscriptions, logos: [:])
     }
 
     func getSnapshot(in context: Context, completion: @escaping (UpcomingListEntry) -> Void) {
         let data = loadWidgetData()
-        let subs = (data?.subscriptions ?? sampleSubscriptions)
+        let subs = Array((data?.subscriptions ?? sampleSubscriptions)
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
-        completion(UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(3))))
+            .prefix(3))
+        downloadLogos(for: subs) { logos in
+            completion(UpcomingListEntry(date: Date(), subscriptions: subs, logos: logos))
+        }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<UpcomingListEntry>) -> Void) {
         let data = loadWidgetData()
-        let subs = (data?.subscriptions ?? [])
+        let subs = Array((data?.subscriptions ?? [])
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
-        let entry = UpcomingListEntry(date: Date(), subscriptions: Array(subs.prefix(3)))
-        let refreshDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
-        completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+            .prefix(3))
+        downloadLogos(for: subs) { logos in
+            let entry = UpcomingListEntry(date: Date(), subscriptions: subs, logos: logos)
+            let refreshDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
+            completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+        }
     }
 }
 
@@ -63,7 +70,7 @@ struct UpcomingListWidgetView: View {
 
                 // List rows
                 ForEach(Array(entry.subscriptions.enumerated()), id: \.element.id) { index, sub in
-                    UpcomingRow(sub: sub, textPrimary: textPrimary, textMuted: textMuted)
+                    UpcomingRow(sub: sub, logo: entry.logos[sub.id], textPrimary: textPrimary, textMuted: textMuted)
 
                     if index < entry.subscriptions.count - 1 {
                         Divider()
@@ -79,20 +86,34 @@ struct UpcomingListWidgetView: View {
 
 struct UpcomingRow: View {
     let sub: WidgetSubscription
+    let logo: UIImage?
     let textPrimary: Color
     let textMuted: Color
 
     var body: some View {
         HStack(spacing: 10) {
-            // Category initial
-            RoundedRectangle(cornerRadius: 5)
-                .fill(WidgetColors.categoryColor(for: sub.category))
-                .frame(width: 26, height: 26)
-                .overlay(
-                    Text(String(sub.name.prefix(1)).uppercased())
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(WidgetColors.categoryTextColor(for: sub.category))
-                )
+            if let logo = logo {
+                Image(uiImage: logo)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+                    .padding(2)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color.gray.opacity(0.15), lineWidth: 0.5)
+                    )
+            } else {
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Color.black)
+                    .frame(width: 26, height: 26)
+                    .overlay(
+                        Text(String(sub.name.prefix(1)).uppercased())
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    )
+            }
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(sub.name)
