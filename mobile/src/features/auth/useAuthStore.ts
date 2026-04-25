@@ -1,0 +1,192 @@
+// Auth store — thin wrapper around Supabase's session API, exposed to
+// React via Zustand so components can read `session` / `user` / `status`
+// without each one subscribing to supabase.auth.onAuthStateChange.
+//
+// status machine:
+//   'loading'        — initial boot, checking persisted session from AsyncStorage
+//   'authenticated'  — supabase has a valid session
+//   'unauthenticated'— no session (logged out or never logged in)
+//
+// The store initialises itself on first import by:
+//   1. Reading the persisted session via supabase.auth.getSession()
+//   2. Subscribing to onAuthStateChange so external sign-in / token refresh /
+//      sign-out events flow back into the UI.
+
+import { create } from 'zustand';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import type { Session, User } from '@supabase/supabase-js';
+
+import { supabase } from '../../services/supabase';
+import { deleteAllSubscriptions } from '../../services/subscriptionsApi';
+
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
+interface AuthState {
+  status: AuthStatus;
+  session: Session | null;
+  user: User | null;
+  error: string | null;
+
+  signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  signInWithApple: () => Promise<{ ok: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  /** Wipe all DB data for the current user and sign out. Next login
+   *  starts fresh with zero subscriptions. */
+  deleteAccount: () => Promise<{ ok: boolean; error?: string }>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  status: 'loading',
+  session: null,
+  user: null,
+  error: null,
+
+  signInWithGoogle: async () => {
+    set({ error: null });
+
+    // Deep link the Supabase OAuth callback returns to. Must be registered
+    // in Supabase Dashboard → Authentication → URL Configuration → Redirect URLs.
+    const redirectTo = makeRedirectUri({
+      scheme: 'perezoso',
+      path: 'auth/callback',
+    });
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true,
+      },
+    });
+
+    if (error || !data?.url) {
+      const msg = error?.message ?? 'No authorization URL returned';
+      set({ error: msg });
+      return { ok: false, error: msg };
+    }
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+    if (result.type !== 'success' || !result.url) {
+      // User cancelled — not an error state worth surfacing.
+      return { ok: false, error: 'cancelled' };
+    }
+
+    // Parse tokens from the redirect URL fragment: perezoso://auth/callback#access_token=...&refresh_token=...
+    const url = new URL(result.url);
+    // Supabase returns tokens in the hash fragment; fall back to query.
+    const params = new URLSearchParams(
+      (url.hash?.startsWith('#') ? url.hash.slice(1) : url.hash) || url.search.slice(1),
+    );
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    if (!access_token || !refresh_token) {
+      const msg = 'Missing tokens in auth callback';
+      set({ error: msg });
+      return { ok: false, error: msg };
+    }
+
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    });
+
+    if (setErr) {
+      set({ error: setErr.message });
+      return { ok: false, error: setErr.message };
+    }
+
+    // onAuthStateChange will flip status → 'authenticated' via the
+    // subscription below, so we don't set it here.
+    return { ok: true };
+  },
+
+  signInWithApple: async () => {
+    set({ error: null });
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        const msg = 'No se recibió el token de Apple';
+        set({ error: msg });
+        return { ok: false, error: msg };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+
+      if (error) {
+        set({ error: error.message });
+        return { ok: false, error: error.message };
+      }
+
+      // onAuthStateChange flips status → 'authenticated'.
+      return { ok: true };
+    } catch (e: any) {
+      if (e.code === 'ERR_REQUEST_CANCELED') {
+        return { ok: false, error: 'cancelled' };
+      }
+      const msg = e?.message ?? 'Error al iniciar sesión con Apple';
+      set({ error: msg });
+      return { ok: false, error: msg };
+    }
+  },
+
+  signOut: async () => {
+    await supabase.auth.signOut();
+    // onAuthStateChange flips status → 'unauthenticated'.
+  },
+
+  deleteAccount: async () => {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+    if (!userId) {
+      return { ok: false, error: 'No hay sesión activa' };
+    }
+    try {
+      await deleteAllSubscriptions(userId);
+    } catch (e: any) {
+      return { ok: false, error: e?.message ?? 'Error borrando datos' };
+    }
+    // Sign out — the auth.users row remains (needs a Supabase RPC with
+    // SECURITY DEFINER to remove it), but all app data is gone, so the
+    // next sign-in lands on an empty account.
+    await supabase.auth.signOut();
+    return { ok: true };
+  },
+}));
+
+// ── Bootstrap: read persisted session, then subscribe to changes ─────────
+// Runs once at module load. Safe to call before any React tree mounts
+// because Zustand state is global.
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+  useAuthStore.setState({
+    session,
+    user: session?.user ?? null,
+    status: session ? 'authenticated' : 'unauthenticated',
+  });
+})();
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  useAuthStore.setState({
+    session,
+    user: session?.user ?? null,
+    status: session ? 'authenticated' : 'unauthenticated',
+  });
+});
+
+// Pre-warm the browser auth session on supported platforms (no-op elsewhere).
+// Reduces the delay between tapping Google and the chrome opening.
+WebBrowser.maybeCompleteAuthSession();
