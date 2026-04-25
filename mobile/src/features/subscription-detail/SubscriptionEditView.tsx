@@ -803,7 +803,8 @@ const styles = StyleSheet.create({
     fontSize: fontSize[18],
     color: '#000000',
     letterSpacing: -0.2,
-    padding: 0,
+    paddingVertical: 8,
+    paddingHorizontal: 0,
     flex: 1,
   },
 
