@@ -88,7 +88,9 @@ export function SubscriptionDetailSheet() {
     try {
       await useSubscriptionsStore.getState().deleteSubscription(sub.id);
       deleteSub();
-      useToastStore.getState().show('success', t('detail.deleted'));
+      setTimeout(() => {
+        useToastStore.getState().show('success', t('detail.deleted'));
+      }, 350);
     } catch {
       useToastStore.getState().show('error', t('detail.deleteError'));
     }

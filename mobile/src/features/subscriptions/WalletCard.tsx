@@ -92,7 +92,12 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
 
         <View style={styles.priceBlock}>
           <Text style={[styles.price, { color: colors.textPrimary }]}>
-            {formatPrice(sub.my_monthly_cost, sub.currency)}
+            {formatPrice(
+              sub.is_shared && sub.shared_with_count > 1
+                ? sub.price_amount / sub.shared_with_count
+                : sub.price_amount,
+              sub.currency,
+            )}
           </Text>
           <Text style={[styles.period, { color: colors.textMuted }]}>
             {billingLabel(sub.billing_period)}

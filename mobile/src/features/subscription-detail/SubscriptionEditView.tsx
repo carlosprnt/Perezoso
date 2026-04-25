@@ -36,6 +36,16 @@ import { usePaywallStore } from '../paywall/usePaywallStore';
 import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
+function toMonthly(price: number, period: BillingPeriod): number {
+  switch (period) {
+    case 'yearly':    return price / 12;
+    case 'quarterly': return price / 3;
+    case 'weekly':    return price * 4.345;
+    case 'monthly':
+    default:          return price;
+  }
+}
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 type ReminderDays = '1' | '3' | '7';
@@ -278,8 +288,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       // falls back to initials (same behaviour as "no logo" creation).
       logo_url: draft.logoUrl ? draft.logoUrl : null,
       notes: draft.notes,
-      monthly_equivalent_cost: priceNum,
-      my_monthly_cost: draft.shared ? priceNum / draft.sharedCount : priceNum,
+      monthly_equivalent_cost: toMonthly(priceNum, draft.billingPeriod),
+      my_monthly_cost: draft.shared
+        ? toMonthly(priceNum, draft.billingPeriod) / draft.sharedCount
+        : toMonthly(priceNum, draft.billingPeriod),
       updated_at: new Date().toISOString(),
     };
 
