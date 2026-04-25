@@ -60,7 +60,7 @@ export function Toast() {
 
   if (!visible) return null;
 
-  const bg = kind === 'success' ? '#22C55E' : '#EF4444';
+  const bg = kind === 'success' ? '#30D158' : '#EF4444';
   const Icon = kind === 'success' ? Check : X;
 
   return (

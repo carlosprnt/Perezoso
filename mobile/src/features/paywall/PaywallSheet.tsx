@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   savingsBadgeText: {
     ...fontFamily.semibold,
     fontSize: 11,
-    color: '#16A34A',
+    color: '#30D158',
     letterSpacing: 0.1,
   },
 

@@ -182,7 +182,7 @@ export function SettingsRow({
           <Switch
             value={switchValue}
             onValueChange={onSwitchChange}
-            trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+            trackColor={{ false: '#E5E5EA', true: '#30D158' }}
             thumbColor="#FFFFFF"
             ios_backgroundColor="#E5E5EA"
           />

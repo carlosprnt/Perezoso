@@ -33,9 +33,9 @@ const palette = {
   red700: '#B91C1C',
   red800: '#991B1B',
 
-  green400: '#4ADE80',
-  green500: '#22C55E',
-  green600: '#16A34A',
+  green400: '#30D158',
+  green500: '#30D158',
+  green600: '#30D158',
   green800: '#166534',
 
   amber500: '#F59E0B',
@@ -78,7 +78,7 @@ export const light = {
   statusCancelled: palette.red500,
 
   // Semantic
-  success: palette.green800,
+  success: palette.green500,
   warning: palette.amber800,
   danger: palette.red600,
   dangerHover: palette.red700,

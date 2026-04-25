@@ -755,7 +755,7 @@ export function CreateSubscriptionSheet() {
                   <Switch
                     value={form.endEnabled}
                     onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
-                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.endEnabled && (
@@ -800,7 +800,7 @@ export function CreateSubscriptionSheet() {
                       setForm((f) => ({ ...f, reminderEnabled: v }));
                     }}
                     disabled={!isPlusActive}
-                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.reminderEnabled && (
@@ -826,7 +826,7 @@ export function CreateSubscriptionSheet() {
                   <Switch
                     value={form.shared}
                     onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
-                    trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.shared && (

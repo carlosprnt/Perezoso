@@ -393,7 +393,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Switch
                 value={draft.endEnabled}
                 onValueChange={(v) => setDraft((f) => ({ ...f, endEnabled: v }))}
-                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.endEnabled && (
@@ -438,7 +438,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                   setDraft((f) => ({ ...f, reminderEnabled: v }));
                 }}
                 disabled={!isPlusActive}
-                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.reminderEnabled && (
@@ -464,7 +464,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Switch
                 value={draft.shared}
                 onValueChange={(v) => setDraft((f) => ({ ...f, shared: v }))}
-                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.shared && (

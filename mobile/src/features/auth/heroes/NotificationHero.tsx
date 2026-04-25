@@ -201,7 +201,7 @@ export function NotificationHero({ parallax }: Props) {
   }));
 
   const { colors } = useTheme();
-  const accentGreen = '#22C55E';
+  const accentGreen = '#30D158';
 
   return (
     <Animated.View style={[styles.root, wrapStyle]}>

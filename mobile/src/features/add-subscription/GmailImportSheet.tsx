@@ -371,7 +371,7 @@ export function GmailImportSheet() {
                         styles.confidenceBadge,
                         {
                           backgroundColor:
-                            sub.confidence === 'high' ? '#16A34A20' : sub.confidence === 'medium' ? '#F59E0B20' : '#EF444420',
+                            sub.confidence === 'high' ? '#30D15820' : sub.confidence === 'medium' ? '#F59E0B20' : '#EF444420',
                         },
                       ]}
                     >
@@ -380,7 +380,7 @@ export function GmailImportSheet() {
                           styles.confidenceDot,
                           {
                             backgroundColor:
-                              sub.confidence === 'high' ? '#16A34A' : sub.confidence === 'medium' ? '#F59E0B' : '#EF4444',
+                              sub.confidence === 'high' ? '#30D158' : sub.confidence === 'medium' ? '#F59E0B' : '#EF4444',
                           },
                         ]}
                       />

@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#34C759',
+    backgroundColor: '#30D158',
     alignItems: 'center',
     justifyContent: 'center',
   },

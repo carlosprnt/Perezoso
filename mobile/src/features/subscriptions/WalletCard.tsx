@@ -53,7 +53,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   } as Record<string, string>)[sub.status];
 
   const progressBarBg = isDark ? '#2C2C2E' : '#F0F0F0';
-  const progressBarFill = isDark ? '#4ADE80' : '#16A34A';
+  const progressBarFill = '#30D158';
 
   return (
     <Pressable
