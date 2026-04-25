@@ -58,12 +58,12 @@ export default function RootLayout() {
     Nunito_700Bold,
     Nunito_800ExtraBold,
     Nunito_900Black,
-    'SFProRounded-Regular':  require('../assets/fonts/SF-Pro-Rounded-Regular.otf'),
-    'SFProRounded-Medium':   require('../assets/fonts/SF-Pro-Rounded-Medium.otf'),
-    'SFProRounded-Semibold': require('../assets/fonts/SF-Pro-Rounded-Semibold.otf'),
-    'SFProRounded-Bold':     require('../assets/fonts/SF-Pro-Rounded-Bold.otf'),
-    'SFProRounded-Heavy':    require('../assets/fonts/SF-Pro-Rounded-Heavy.otf'),
-    'SFProRounded-Black':    require('../assets/fonts/SF-Pro-Rounded-Black.otf'),
+    'OverusedGrotesk-Regular':  require('../assets/fonts/OverusedGrotesk-Regular.otf'),
+    'OverusedGrotesk-Medium':   require('../assets/fonts/OverusedGrotesk-Medium.otf'),
+    'OverusedGrotesk-SemiBold': require('../assets/fonts/OverusedGrotesk-SemiBold.otf'),
+    'OverusedGrotesk-Bold':     require('../assets/fonts/OverusedGrotesk-Bold.otf'),
+    'OverusedGrotesk-ExtraBold': require('../assets/fonts/OverusedGrotesk-ExtraBold.otf'),
+    'OverusedGrotesk-Black':    require('../assets/fonts/OverusedGrotesk-Black.otf'),
   });
 
   useEffect(() => {

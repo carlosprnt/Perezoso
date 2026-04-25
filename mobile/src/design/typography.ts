@@ -1,11 +1,7 @@
 // Phase 1 — Design tokens: typography
-// iOS: SF Pro Rounded — loaded from assets/fonts/SF-Pro-Rounded-*.otf.
-//      Each weight is a separate .otf registered under its PostScript
-//      name via expo-font in _layout.tsx. This is the ROUNDED variant
-//      Apple uses for watchOS / Fitness / Health — same family Perezoso
-//      web targets via `ui-rounded`.
-// Android: Nunito (loaded via expo-google-fonts) — rounded fallback;
-//      each weight is a separate fontFamily name because Android
+// iOS + Android: Overused Grotesk — loaded from assets/fonts/OverusedGrotesk-*.otf.
+//      Each weight is a separate .otf registered via expo-font in _layout.tsx.
+//      Android fallback: Nunito (loaded via expo-google-fonts) because Android
 //      ignores fontWeight when fontFamily is custom.
 //
 // IMPORTANT: fontFamily tokens are STYLE OBJECTS, not strings.
@@ -28,16 +24,16 @@ const androidFont = (family: string): FontToken => ({
 
 /**
  * Font family tokens. Spread into StyleSheet rules.
- * On iOS, resolves to the SF Pro Rounded .otf registered in _layout.tsx.
+ * On iOS, resolves to Overused Grotesk .otf registered in _layout.tsx.
  * On Android, resolves to the specific Nunito TTF variant.
  */
 export const fontFamily = {
-  regular:   Platform.OS === 'ios' ? iosFont('SFProRounded-Regular')  : androidFont('Nunito_400Regular'),
-  medium:    Platform.OS === 'ios' ? iosFont('SFProRounded-Medium')   : androidFont('Nunito_500Medium'),
-  semibold:  Platform.OS === 'ios' ? iosFont('SFProRounded-Semibold') : androidFont('Nunito_600SemiBold'),
-  bold:      Platform.OS === 'ios' ? iosFont('SFProRounded-Bold')     : androidFont('Nunito_700Bold'),
-  extrabold: Platform.OS === 'ios' ? iosFont('SFProRounded-Heavy')    : androidFont('Nunito_800ExtraBold'),
-  black:     Platform.OS === 'ios' ? iosFont('SFProRounded-Black')    : androidFont('Nunito_900Black'),
+  regular:   Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Regular')  : androidFont('Nunito_400Regular'),
+  medium:    Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Medium')   : androidFont('Nunito_500Medium'),
+  semibold:  Platform.OS === 'ios' ? iosFont('OverusedGrotesk-SemiBold') : androidFont('Nunito_600SemiBold'),
+  bold:      Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Bold')     : androidFont('Nunito_700Bold'),
+  extrabold: Platform.OS === 'ios' ? iosFont('OverusedGrotesk-ExtraBold') : androidFont('Nunito_800ExtraBold'),
+  black:     Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Black')    : androidFont('Nunito_900Black'),
 };
 
 /**
