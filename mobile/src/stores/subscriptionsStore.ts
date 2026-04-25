@@ -19,6 +19,7 @@
 
 import { create } from 'zustand';
 import { syncWidgetData } from '../lib/widgetData';
+import { resolvePlatformLogoUrl } from '../lib/constants/platforms';
 
 import type { Subscription } from '../features/subscriptions/types';
 import {
@@ -134,6 +135,10 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     // Real mode: insert into Supabase, then prepend the returned row.
     const user = useAuthStore.getState().user;
     if (!user) throw new Error('No user session');
+
+    if (!sub.logo_url) {
+      sub = { ...sub, logo_url: resolvePlatformLogoUrl(sub.name) };
+    }
 
     const inserted = await insertSubscription(user.id, sub);
     set((state) => ({ subscriptions: [inserted, ...state.subscriptions] }));
