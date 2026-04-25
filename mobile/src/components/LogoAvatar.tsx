@@ -108,8 +108,8 @@ export function LogoAvatar({
       >
         <Image
           source={{ uri: logoUrl }}
-          style={{ width: config.dimension, height: config.dimension }}
-          resizeMode="cover"
+          style={{ width: config.dimension - 8, height: config.dimension - 8 }}
+          resizeMode="contain"
           onError={() => setImgError(true)}
         />
       </View>
