@@ -20,6 +20,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
@@ -525,25 +526,37 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             <View style={styles.row}>
               <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
               <View style={styles.urlRow}>
-                <TextInput
-                  style={styles.urlInput}
-                  value={draft.logoUrl}
-                  onChangeText={(txt) => setDraft((f) => ({ ...f, logoUrl: txt }))}
-                  placeholder="https://..."
-                  placeholderTextColor="#C7C7CC"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                />
-                {draft.logoUrl.length > 0 && (
+                {draft.logoUrl.length === 0 ? (
                   <Pressable
-                    onPress={() => setDraft((f) => ({ ...f, logoUrl: '' }))}
+                    onPress={async () => {
+                      const clip = await Clipboard.getStringAsync();
+                      if (clip) setDraft((f) => ({ ...f, logoUrl: clip.trim() }));
+                    }}
                     hitSlop={8}
-                    style={styles.urlClear}
                   >
-                    <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                    <Text style={styles.pasteLink}>{t('form.pasteUrl')}</Text>
                   </Pressable>
+                ) : (
+                  <>
+                    <TextInput
+                      style={styles.urlInput}
+                      value={draft.logoUrl}
+                      onChangeText={(txt) => setDraft((f) => ({ ...f, logoUrl: txt }))}
+                      placeholder="https://..."
+                      placeholderTextColor="#C7C7CC"
+                      keyboardType="url"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      returnKeyType="done"
+                    />
+                    <Pressable
+                      onPress={() => setDraft((f) => ({ ...f, logoUrl: '' }))}
+                      hitSlop={8}
+                      style={styles.urlClear}
+                    >
+                      <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                    </Pressable>
+                  </>
                 )}
               </View>
             </View>
@@ -946,6 +959,12 @@ const styles = StyleSheet.create({
     height: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pasteLink: {
+    ...fontFamily.medium,
+    fontSize: fontSize[15],
+    color: '#007AFF',
+    letterSpacing: -0.1,
   },
 
   // Notes

@@ -60,6 +60,7 @@ import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
+import * as Clipboard from 'expo-clipboard';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import type {
   BillingPeriod as SubBillingPeriod,
@@ -887,25 +888,37 @@ export function CreateSubscriptionSheet() {
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
                   <View style={styles.urlRow}>
-                    <TextInput
-                      style={styles.urlInput}
-                      value={form.logoUrl}
-                      onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
-                      placeholder="https://..."
-                      placeholderTextColor="#C7C7CC"
-                      keyboardType="url"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      returnKeyType="done"
-                    />
-                    {form.logoUrl.length > 0 && (
+                    {form.logoUrl.length === 0 ? (
                       <Pressable
-                        onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))}
+                        onPress={async () => {
+                          const clip = await Clipboard.getStringAsync();
+                          if (clip) setForm((f) => ({ ...f, logoUrl: clip.trim() }));
+                        }}
                         hitSlop={8}
-                        style={styles.urlClear}
                       >
-                        <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                        <Text style={styles.pasteLink}>{t('form.pasteUrl')}</Text>
                       </Pressable>
+                    ) : (
+                      <>
+                        <TextInput
+                          style={styles.urlInput}
+                          value={form.logoUrl}
+                          onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
+                          placeholder="https://..."
+                          placeholderTextColor="#C7C7CC"
+                          keyboardType="url"
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          returnKeyType="done"
+                        />
+                        <Pressable
+                          onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))}
+                          hitSlop={8}
+                          style={styles.urlClear}
+                        >
+                          <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                        </Pressable>
+                      </>
                     )}
                   </View>
                 </View>
@@ -1388,6 +1401,12 @@ const styles = StyleSheet.create({
     height: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pasteLink: {
+    ...fontFamily.medium,
+    fontSize: fontSize[15],
+    color: '#007AFF',
+    letterSpacing: -0.1,
   },
   notesRow: {
     paddingHorizontal: 16,

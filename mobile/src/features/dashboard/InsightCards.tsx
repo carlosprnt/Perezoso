@@ -137,14 +137,14 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
         />
       ) : null}
 
-      {/* Shared Plans */}
-      {sharedPlans ? (
+      {/* Shared Plans — hidden when there are none */}
+      {sharedPlans && sharedPlans.count > 0 ? (
         <InsightCell
           iconBg={defaultIconBg}
           iconColor={sharedIconColor}
           IconComponent={Users}
           label={t('dashboard.insights.sharedPlans')}
-          title={sharedPlans.count > 0 ? t('dashboard.insights.plans', { count: sharedPlans.count }) : t('dashboard.insights.noPlans')}
+          title={t('dashboard.insights.plans', { count: sharedPlans.count })}
           rightTop={sharedPlans.savings}
           rightBottom={sharedPlans.savings ? t('dashboard.perMonth') : undefined}
         />
