@@ -83,9 +83,16 @@ export function SubscriptionDetailSheet() {
     }
   }, [updateSub, close, t]);
 
-  const handleDelete = useCallback(() => {
-    deleteSub();
-  }, [deleteSub]);
+  const handleDelete = useCallback(async () => {
+    if (!sub) return;
+    try {
+      await useSubscriptionsStore.getState().deleteSubscription(sub.id);
+      deleteSub();
+      useToastStore.getState().show('success', t('detail.deleted'));
+    } catch {
+      useToastStore.getState().show('error', t('detail.deleteError'));
+    }
+  }, [sub, deleteSub, t]);
 
   if (!sub) return null;
 

@@ -159,6 +159,15 @@ export async function updateSubscription(
   return rowToSubscription(data as SubscriptionRow);
 }
 
+export async function deleteSubscription(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('subscriptions')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 // Wipe every subscription belonging to a user. Used by "Eliminar cuenta"
 // in Settings to reset an account back to its empty state. RLS enforces
 // that the delete only touches rows owned by the authenticated user.

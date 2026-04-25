@@ -364,7 +364,9 @@ export const resources = {
 
       // ── Subscription detail ──
       'detail.updated': 'Suscripción actualizada',
+      'detail.deleted': 'Suscripción eliminada',
       'detail.saveError': 'Error al guardar cambios',
+      'detail.deleteError': 'Error al eliminar suscripción',
       'detail.today': 'Hoy',
       'detail.tomorrow': 'Mañana',
       'detail.inDays': 'En {{days}} días',
@@ -850,7 +852,9 @@ export const resources = {
 
       // ── Subscription detail ──
       'detail.updated': 'Subscription updated',
+      'detail.deleted': 'Subscription deleted',
       'detail.saveError': 'Error saving changes',
+      'detail.deleteError': 'Error deleting subscription',
       'detail.today': 'Today',
       'detail.tomorrow': 'Tomorrow',
       'detail.inDays': 'In {{days}} days',

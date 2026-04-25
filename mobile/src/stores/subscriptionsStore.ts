@@ -26,7 +26,7 @@ import {
   type AppPreset,
 } from '../features/subscriptions/presets';
 import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
-import { fetchSubscriptions, insertSubscription, updateSubscription as apiUpdateSubscription } from '../services/subscriptionsApi';
+import { fetchSubscriptions, insertSubscription, updateSubscription as apiUpdateSubscription, deleteSubscription as apiDeleteSubscription } from '../services/subscriptionsApi';
 import { useAuthStore } from '../features/auth/useAuthStore';
 import {
   addCustomerInfoListener,
@@ -62,6 +62,7 @@ interface SubscriptionsStore {
   ) => Promise<void>;
 
   updateSubscription: (sub: Subscription) => Promise<void>;
+  deleteSubscription: (id: string) => Promise<void>;
 
   enableRemindersOnAnnuals: () => number;
 }
@@ -151,6 +152,19 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     const updated = await apiUpdateSubscription(sub);
     set((state) => ({
       subscriptions: state.subscriptions.map((s) => (s.id === updated.id ? updated : s)),
+    }));
+  },
+
+  deleteSubscription: async (id) => {
+    if (get().mode === 'demo') {
+      set((state) => ({
+        subscriptions: state.subscriptions.filter((s) => s.id !== id),
+      }));
+      return;
+    }
+    await apiDeleteSubscription(id);
+    set((state) => ({
+      subscriptions: state.subscriptions.filter((s) => s.id !== id),
     }));
   },
 
