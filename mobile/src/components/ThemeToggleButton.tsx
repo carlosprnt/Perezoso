@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
     lineHeight: ROW_HEIGHT,

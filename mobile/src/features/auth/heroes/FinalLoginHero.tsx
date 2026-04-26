@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   greet: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: 12,
     color: '#0F172A',
   },
@@ -123,26 +123,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   heroLabel: {
-    ...fontFamily.semibold,
+    ...fontFamily.extrabold,
     fontSize: 19,
     lineHeight: 22,
     color: '#0F172A',
     letterSpacing: -0.4,
   },
   heroAmount: {
-    ...fontFamily.semibold,
+    ...fontFamily.extrabold,
     color: ACCENT_PRIMARY,
   },
 
   activity: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: 10.5,
     lineHeight: 10.5 * 1.5,
     color: '#0F172A',
     marginBottom: 12,
   },
   activityAccent: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     color: ACCENT_PRIMARY,
   },
 
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   reminderBold: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     color: '#0F172A',
   },
 });

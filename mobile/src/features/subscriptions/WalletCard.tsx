@@ -208,7 +208,7 @@ const lockedStyles = StyleSheet.create({
     paddingVertical: 2,
   },
   ctaText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
   },
 });
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
   },
@@ -239,12 +239,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   category: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
   shared: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
@@ -252,12 +252,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
   },
   period: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
@@ -286,12 +286,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   renewalLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },
   renewalText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },

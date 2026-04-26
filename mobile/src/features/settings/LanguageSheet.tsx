@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowNative: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
   },

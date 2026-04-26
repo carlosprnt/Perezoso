@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoFallbackText: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[24],
     color: '#8E8E93',
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     color: '#000000',
     letterSpacing: -0.3,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   price: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     color: '#000000',
     letterSpacing: -0.3,

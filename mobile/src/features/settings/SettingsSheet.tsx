@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[32],
     letterSpacing: -0.6,
     flexShrink: 1,

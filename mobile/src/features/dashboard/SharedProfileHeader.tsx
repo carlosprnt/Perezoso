@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   greetingBase: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     letterSpacing: -0.3,
     flexShrink: 1,
   },

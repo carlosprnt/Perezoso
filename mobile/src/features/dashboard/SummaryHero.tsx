@@ -233,21 +233,21 @@ const styles = StyleSheet.create({
     // Amount + period on same line
   },
   label: {
-    ...fontFamily.regular,
-    fontSize: fontSize[18],
-    lineHeight: fontSize[18] * 1.3,
+    ...fontFamily.extrabold,
+    fontSize: 25,
+    lineHeight: 25 * 1.15,
     letterSpacing: letterSpacing.tight,
   },
   heroAmount: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[32],
-    lineHeight: fontSize[32] * lineHeight.compact,
+    ...fontFamily.extrabold,
+    fontSize: fontSize[50],
+    lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[32],
-    lineHeight: fontSize[32] * lineHeight.compact,
+    ...fontFamily.extrabold,
+    fontSize: fontSize[50],
+    lineHeight: fontSize[50] * lineHeight.compact,
   },
   supportBlock: {
     // Container for support lines with inline LogoStack
@@ -258,13 +258,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   supportText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * 1.6,
+    ...fontFamily.bold,
+    fontSize: 18,
+    lineHeight: 18 * 1.6, // leading-relaxed
   },
   supportBold: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * 1.6,
+    ...fontFamily.bold,
+    fontSize: 18,
+    lineHeight: 18 * 1.6,
   },
 });

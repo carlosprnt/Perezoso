@@ -179,14 +179,14 @@ const styles = StyleSheet.create({
   },
   label: {
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
-    marginBottom: 2,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
+    marginBottom: 2, // mb-0.5
   },
   title: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * lineHeight.snug,
+    ...fontFamily.bold,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   right: {
     alignItems: 'flex-end',
@@ -194,13 +194,13 @@ const styles = StyleSheet.create({
   },
   rightTop: {
     ...fontFamily.semibold,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
   },
   rightBottom: {
     ...fontFamily.regular,
-    fontSize: fontSize[13],
-    lineHeight: fontSize[13] * lineHeight.snug,
+    fontSize: fontSize[14],
+    lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,
   },
 });

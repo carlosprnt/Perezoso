@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[15] * 1.4,
   },
   bodyBold: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
   },
   buttons: {
     flexDirection: 'row',

@@ -333,9 +333,9 @@ function MonthGrid({
                         { color: colors.textMuted },
                         isToday && {
                           color: colors.textPrimary,
-                          ...fontFamily.semibold,
+                          ...fontFamily.bold,
                         },
-                        renewal && { ...fontFamily.semibold },
+                        renewal && { ...fontFamily.bold },
                       ]}
                     >
                       {d}
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   subNumber: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 16,
     padding: 0,
     margin: 0,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     width: 62,
   },
   subNumberNarrow: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 16,
     padding: 0,
     margin: 0,
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     width: 11,
   },
   subLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 16,
   },
   subDot: {
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekday: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 11,
   },
   gridWrap: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
   },
   dayNumber: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 11,
   },
   logoWrap: {

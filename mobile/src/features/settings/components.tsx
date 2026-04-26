@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E4C8B8',
   },
   avatarInitials: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     color: '#3B2A1A',
     letterSpacing: -0.2,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
   },
   profileName: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     letterSpacing: -0.3,
     marginBottom: 2,
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   subTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[20],
     letterSpacing: -0.3,
     marginBottom: 2,

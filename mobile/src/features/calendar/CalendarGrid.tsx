@@ -56,7 +56,7 @@ export function CalendarGrid({ year, month, today, dayMap, onDayPress }: Props) 
             <Text
               style={[
                 styles.weekLabel,
-                { color: weekdayColor, ...fontFamily.regular },
+                { color: weekdayColor, ...fontFamily.medium },
               ]}
             >
               {w}

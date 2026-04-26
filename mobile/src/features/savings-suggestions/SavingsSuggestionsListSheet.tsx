@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     height: 32,
   },
   logoInitial: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.2,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[14] * 1.4,
   },
   copyAmount: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     color: '#000000',
   },
   viewMoreBtn: {
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   proCardTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     marginBottom: 6,

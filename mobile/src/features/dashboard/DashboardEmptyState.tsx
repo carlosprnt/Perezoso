@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   heroTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.extrabold,
     fontSize: 25,
     lineHeight: 25 * lineHeight.tight,
     letterSpacing: -0.4,
@@ -228,12 +228,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   primaryBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
   },
   sectionTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.bold,
     fontSize: fontSize[18],
     letterSpacing: -0.2,
     marginBottom: 4,
