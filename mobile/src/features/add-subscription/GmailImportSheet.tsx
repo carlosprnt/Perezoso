@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   headerTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     letterSpacing: -0.3,
   },
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   explainContainer: {},
   explainContent: { paddingHorizontal: 20, paddingTop: 16, alignItems: 'center' },
   explainTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     textAlign: 'center',
     letterSpacing: -0.3,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
 
   // Loading phase
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 },
-  loadingText: { ...fontFamily.semibold, fontSize: fontSize[18], textAlign: 'center' },
+  loadingText: { ...fontFamily.medium, fontSize: fontSize[18], textAlign: 'center' },
   loadingSubtext: { ...fontFamily.regular, fontSize: fontSize[14], textAlign: 'center' },
 
   // Results phase
@@ -569,9 +569,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   logoImg: { width: 26, height: 26 },
-  logoInitial: { ...fontFamily.semibold, fontSize: fontSize[16] },
+  logoInitial: { ...fontFamily.medium, fontSize: fontSize[16] },
   resultInfo: { flex: 1 },
-  resultName: { ...fontFamily.semibold, fontSize: fontSize[15], letterSpacing: -0.1 },
+  resultName: { ...fontFamily.medium, fontSize: fontSize[15], letterSpacing: -0.1 },
   resultMeta: { ...fontFamily.regular, fontSize: fontSize[11], marginTop: 2 },
   confidenceBadge: {
     width: 20,
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
   },

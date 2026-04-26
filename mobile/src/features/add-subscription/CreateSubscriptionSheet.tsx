@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
   quickNameInput: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[32],
     color: '#000000',
     letterSpacing: -0.6,
@@ -1119,13 +1119,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   quickCurrencyText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.2,
   },
   quickPriceInput: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[32],
     color: '#000000',
     letterSpacing: -0.6,
@@ -1145,7 +1145,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   renewalRowLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.2,
@@ -1156,7 +1156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   renewalValue: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -1183,7 +1183,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -1233,7 +1233,7 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
   },
   platformName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.3,
@@ -1255,7 +1255,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   currencyText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
@@ -1315,7 +1315,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   proBadgeText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     color: '#FFFFFF',
     letterSpacing: 0.2,
@@ -1361,7 +1361,7 @@ const styles = StyleSheet.create({
   },
   stepperBtnDisabled: { opacity: 0.35 },
   stepperValue: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     minWidth: 22,
@@ -1403,7 +1403,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pasteLink: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#007AFF',
     letterSpacing: -0.1,
@@ -1444,7 +1444,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,
@@ -1458,7 +1458,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   createBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,

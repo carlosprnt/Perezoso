@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
   },
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   primaryBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   legalLink: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     textDecorationLine: 'underline',
   },
 });

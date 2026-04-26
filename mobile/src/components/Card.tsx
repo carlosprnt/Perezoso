@@ -121,7 +121,7 @@ const headerStyles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,

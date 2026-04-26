@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   headerTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     height: 38,
   },
   detailLogoInitial: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[24],
     color: '#FFFFFF',
     letterSpacing: -0.3,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
   },
   serviceName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.3,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   savingsAmount: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     color: SUGGESTED_COLOR,
     letterSpacing: -0.3,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
 
   // Comparativa
   compareHeading: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     color: C.textMuted,
     letterSpacing: 1.2,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.05,
   },
   compareValue: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#0F0F10',
     letterSpacing: -0.1,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,

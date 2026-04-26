@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   islandBlobText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
   },
   content: {
     flexGrow: 1,
@@ -894,9 +894,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[32],
-    lineHeight: fontSize[32] * lineHeight.tight,
+    ...fontFamily.medium,
+    fontSize: 30,
+    lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
     flex: 1,
   },
@@ -910,9 +910,9 @@ const styles = StyleSheet.create({
   },
   // Matches web: 18px bold, primary text color (NOT muted), tight leading.
   paragraph: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * lineHeight.snug,
+    ...fontFamily.medium,
+    fontSize: fontSize[18],
+    lineHeight: fontSize[18] * lineHeight.snug,
   },
   // Row that holds the "Pagas X al mes." line. flexWrap lets the
   // inline Skeleton sit alongside the surrounding text without
@@ -964,7 +964,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   clearBtn: {
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   clearBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   // Custom dropdown menu — matches web SortDropdown/FilterDropdown.
@@ -1002,8 +1002,8 @@ const styles = StyleSheet.create({
   },
   // 16px typography — explicit size on user's request.
   dropdownItemText: {
-    ...fontFamily.regular,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * 1.3,
+    ...fontFamily.medium,
+    fontSize: 16,
+    lineHeight: 16 * 1.3,
   },
 });

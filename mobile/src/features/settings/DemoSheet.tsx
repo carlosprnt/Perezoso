@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionTitle: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,

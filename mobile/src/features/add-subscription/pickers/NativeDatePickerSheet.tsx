@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   acceptText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#007AFF',
     letterSpacing: -0.1,

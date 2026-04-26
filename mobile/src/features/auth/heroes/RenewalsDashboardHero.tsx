@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   reminderBold: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     color: '#111827',
   },
   reminderActions: {
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reminderBtnGhostText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 11,
     color: '#737373',
   },
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reminderBtnSolidText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 11,
     color: '#1F2937',
   },
@@ -232,13 +232,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 10,
     color: '#9CA3AF',
     marginBottom: 3,
   },
   statValue: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 13,
     color: '#0F172A',
     marginBottom: 2,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
   },
   nextSection: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     color: '#0F172A',
     marginTop: 18,

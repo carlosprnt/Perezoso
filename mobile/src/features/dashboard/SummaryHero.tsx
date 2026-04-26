@@ -234,20 +234,20 @@ const styles = StyleSheet.create({
   },
   label: {
     ...fontFamily.regular,
-    fontSize: fontSize[18],
-    lineHeight: fontSize[18] * 1.3,
+    fontSize: 18,
+    lineHeight: 18 * 1.6,
     letterSpacing: letterSpacing.tight,
   },
   heroAmount: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[32],
-    lineHeight: fontSize[32] * lineHeight.compact,
+    ...fontFamily.medium,
+    fontSize: fontSize[50],
+    lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[32],
-    lineHeight: fontSize[32] * lineHeight.compact,
+    ...fontFamily.medium,
+    fontSize: fontSize[50],
+    lineHeight: fontSize[50] * lineHeight.compact,
   },
   supportBlock: {
     // Container for support lines with inline LogoStack
@@ -258,13 +258,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   supportText: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * 1.6,
+    ...fontFamily.medium,
+    fontSize: 18,
+    lineHeight: 18 * 1.6,
   },
   supportBold: {
-    ...fontFamily.semibold,
-    fontSize: fontSize[15],
-    lineHeight: fontSize[15] * 1.6,
+    ...fontFamily.medium,
+    fontSize: 18,
+    lineHeight: 18 * 1.6,
   },
 });

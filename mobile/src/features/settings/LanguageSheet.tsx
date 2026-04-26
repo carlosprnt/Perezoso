@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   sectionHeader: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     letterSpacing: 0.4,
     textTransform: 'uppercase',
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowNative: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
   },
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,

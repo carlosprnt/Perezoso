@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.default,
   },
   badgeText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },

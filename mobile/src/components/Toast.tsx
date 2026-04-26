@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   text: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.2,
