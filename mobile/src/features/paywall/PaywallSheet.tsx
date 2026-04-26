@@ -295,10 +295,14 @@ export function PaywallSheet() {
                 <Text style={[styles.planColLabel, plan === 'annual' && styles.planLabelActive]}>
                   {t('paywall.annual')}
                 </Text>
-                <Text style={[styles.planColPrice, plan === 'annual' && styles.planPriceActive]}>
-                  {annualPrice}
-                </Text>
-                <Text style={styles.planColPeriod}>{t('paywall.perYear')}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={[styles.planColPrice, plan === 'annual' && styles.planPriceActive]}>
+                    {annualPrice}
+                  </Text>
+                  <Text style={[styles.planColPeriodInline, plan === 'annual' && styles.periodActive]}>
+                    {t('paywall.perYear')}
+                  </Text>
+                </View>
                 <View style={styles.planColFooter}>
                   <Text style={styles.planPerMonth}>{annualPerMonth}{t('paywall.perMonthShort')}</Text>
                   <View style={styles.savingsBadge}>
@@ -326,14 +330,21 @@ export function PaywallSheet() {
                 <Text style={[styles.planColLabel, plan === 'monthly' && styles.planLabelActive]}>
                   {t('paywall.monthly')}
                 </Text>
-                <Text style={[styles.planColPrice, plan === 'monthly' && styles.planPriceActive]}>
-                  {monthlyPrice}
-                </Text>
-                <Text style={styles.planColPeriod}>{t('paywall.perMonth')}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={[styles.planColPrice, plan === 'monthly' && styles.planPriceActive]}>
+                    {monthlyPrice}
+                  </Text>
+                  <Text style={[styles.planColPeriodInline, plan === 'monthly' && styles.periodActive]}>
+                    {t('paywall.perMonth')}
+                  </Text>
+                </View>
               </Pressable>
             </View>
 
-            {/* ── 5. CTA ──────────────────────────────────────── */}
+          </ScrollView>
+
+          {/* ── 5. CTA (fixed at bottom) ─────────────────────── */}
+          <View style={styles.ctaSection}>
             <Pressable
               onPress={handlePurchase}
               disabled={purchasing}
@@ -351,7 +362,7 @@ export function PaywallSheet() {
             <Text style={styles.trustText}>
               {t('paywall.trustText')}
             </Text>
-          </ScrollView>
+          </View>
         </Reanimated.View>
       </View>
     </Modal>
@@ -560,11 +571,18 @@ const styles = StyleSheet.create({
   planPriceActive: {
     color: '#000000',
   },
-  planColPeriod: {
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+  },
+  planColPeriodInline: {
     ...fontFamily.regular,
     fontSize: fontSize[13],
     color: '#8E8E93',
-    marginBottom: 4,
+  },
+  periodActive: {
+    color: '#6B6B6B',
   },
   planColFooter: {
     marginTop: 10,
@@ -606,7 +624,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
 
-  // 5. CTA
+  // 5. CTA (fixed at bottom)
+  ctaSection: {
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#F2F2F7',
+  },
   ctaBtn: {
     height: 54,
     borderRadius: radius.full,
