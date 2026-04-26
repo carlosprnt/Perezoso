@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   islandBlobText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
   },
   content: {
     flexGrow: 1,
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: 30,
     lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
   },
   // Matches web: 18px bold, primary text color (NOT muted), tight leading.
   paragraph: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   clearBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   // Custom dropdown menu — matches web SortDropdown/FilterDropdown.

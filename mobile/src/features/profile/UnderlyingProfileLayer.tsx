@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   tileLabel: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#FFFFFF',
     letterSpacing: -0.1,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   plusTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.3,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.20)',
   },
   plusBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     color: '#FFFFFF',
     letterSpacing: -0.1,

@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,

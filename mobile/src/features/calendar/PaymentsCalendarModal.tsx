@@ -444,12 +444,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   dayDetailName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 14,
     flex: 1,
   },
   dayDetailAmount: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: 14,
   },
 });

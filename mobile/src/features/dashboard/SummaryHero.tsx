@@ -233,19 +233,19 @@ const styles = StyleSheet.create({
     // Amount + period on same line
   },
   label: {
-    ...fontFamily.extrabold,
-    fontSize: 25,
-    lineHeight: 25 * 1.15,
+    ...fontFamily.regular,
+    fontSize: 18,
+    lineHeight: 18 * 1.6,
     letterSpacing: letterSpacing.tight,
   },
   heroAmount: {
-    ...fontFamily.extrabold,
+    ...fontFamily.medium,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
-    ...fontFamily.extrabold,
+    ...fontFamily.medium,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
   },
@@ -258,12 +258,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   supportText: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: 18,
-    lineHeight: 18 * 1.6, // leading-relaxed
+    lineHeight: 18 * 1.6,
   },
   supportBold: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: 18,
     lineHeight: 18 * 1.6,
   },

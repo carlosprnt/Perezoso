@@ -5,7 +5,7 @@
 //      ignores fontWeight when fontFamily is custom.
 //
 // IMPORTANT: fontFamily tokens are STYLE OBJECTS, not strings.
-// Call sites must spread them: `...fontFamily.bold` (not `fontFamily: fontFamily.bold`).
+// Call sites must spread them: `...fontFamily.medium` (not `fontFamily: fontFamily.medium`).
 
 import { Platform, type TextStyle } from 'react-native';
 
@@ -80,13 +80,13 @@ export const letterSpacing = {
 export const textPreset = {
   // Hero / display
   heroAmount: {
-    ...fontFamily.extrabold,
+    ...fontFamily.medium,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.none,
     letterSpacing: letterSpacing.tight,
   },
   heroText: {
-    ...fontFamily.extrabold,
+    ...fontFamily.medium,
     fontSize: fontSize[45],
     lineHeight: fontSize[45] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -94,35 +94,35 @@ export const textPreset = {
 
   // Headings
   h1: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[32],
     lineHeight: fontSize[32] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   h2: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[24],
     lineHeight: fontSize[24] * lineHeight.tight,
   },
   h3: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[20],
     lineHeight: fontSize[20] * lineHeight.snug,
   },
 
   // Titles (card titles, section headers)
   titleLg: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
   titleMd: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
   titleSm: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
@@ -156,13 +156,13 @@ export const textPreset = {
     lineHeight: fontSize[11] * lineHeight.snug,
   },
   label: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     letterSpacing: letterSpacing.widest,
   },
   labelSm: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[10],
     lineHeight: fontSize[10] * lineHeight.snug,
     letterSpacing: letterSpacing.wide,
@@ -177,17 +177,17 @@ export const textPreset = {
 
   // Button text
   buttonSm: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },
   buttonMd: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },
   buttonLg: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },

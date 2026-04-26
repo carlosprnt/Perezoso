@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },

@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   heroName: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: 28,
     lineHeight: 34,
     letterSpacing: letterSpacing.tight,
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: 3.5,
   },
   statusBadgeText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceBig: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[24],
     lineHeight: fontSize[24] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   dataRowValueBold: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
 
   // ── Progress ──
   progressLabel: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.snug,
     letterSpacing: 0.7,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressDaysLeft: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,

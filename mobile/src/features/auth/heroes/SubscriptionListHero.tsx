@@ -216,11 +216,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   headerTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
   },
   headerAmount: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
   },
   listClip: {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.compact,
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[13] * lineHeight.normal,
   },
   rowPrice: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   blurOverlay: {

@@ -102,7 +102,7 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
           style={[
             styles.title,
             styles.titleLayer,
-            { color: titleColor, ...fontFamily.bold },
+            { color: titleColor, ...fontFamily.medium },
             titleAStyle,
           ]}
           numberOfLines={1}
@@ -114,7 +114,7 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
             style={[
               styles.title,
               styles.titleLayer,
-              { color: titleColor, ...fontFamily.bold },
+              { color: titleColor, ...fontFamily.medium },
               titleBStyle,
             ]}
             numberOfLines={1}
@@ -125,7 +125,7 @@ export function CalendarMonthHeader({ year, month, onPrev, onNext }: Props) {
         {/* Invisible sizing placeholder — pushes the row to the correct
             height so the absolutely-positioned title layers stay anchored. */}
         <Text
-          style={[styles.title, styles.titleSpacer, { ...fontFamily.bold }]}
+          style={[styles.title, styles.titleSpacer, { ...fontFamily.medium }]}
           numberOfLines={1}
         >
           {labelA}

@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: 2, // mb-0.5
   },
   title: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   rightTop: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },

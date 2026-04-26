@@ -53,7 +53,7 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
           styles.dayNumber,
           {
             color: dayColor,
-            ...(isToday ? fontFamily.semibold : fontFamily.medium),
+            ...(isToday ? fontFamily.medium : fontFamily.medium),
           },
         ]}
       >
@@ -73,7 +73,7 @@ export function CalendarDayCell({ day, isToday, subs, onPress }: Props) {
               <Text
                 style={[
                   styles.overflowText,
-                  { color: badgeFg, ...fontFamily.semibold },
+                  { color: badgeFg, ...fontFamily.medium },
                 ]}
               >
                 +{extra}

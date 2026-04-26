@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
   },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusLabel: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },

@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   promptTitle: {
-    ...fontFamily.bold,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     textAlign: 'center',
     marginTop: 4,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   ctaBtnText: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
   },
   ctaDoneWrap: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.compact,
   },

@@ -333,9 +333,9 @@ function MonthGrid({
                         { color: colors.textMuted },
                         isToday && {
                           color: colors.textPrimary,
-                          ...fontFamily.bold,
+                          ...fontFamily.medium,
                         },
-                        renewal && { ...fontFamily.bold },
+                        renewal && { ...fontFamily.medium },
                       ]}
                     >
                       {d}
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   monthName: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: 28,
     letterSpacing: -0.3,
   },

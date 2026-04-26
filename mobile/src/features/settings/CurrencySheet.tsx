@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   sectionHeader: {
-    ...fontFamily.semibold,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     letterSpacing: 0.4,
     textTransform: 'uppercase',
