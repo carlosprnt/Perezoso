@@ -28,12 +28,8 @@ const androidFont = (family: string): FontToken => ({
  * On Android, resolves to the specific Nunito TTF variant.
  */
 export const fontFamily = {
-  regular:   Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Regular')  : androidFont('Nunito_400Regular'),
-  medium:    Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Medium')   : androidFont('Nunito_500Medium'),
-  semibold:  Platform.OS === 'ios' ? iosFont('OverusedGrotesk-SemiBold') : androidFont('Nunito_600SemiBold'),
-  bold:      Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Bold')     : androidFont('Nunito_700Bold'),
-  extrabold: Platform.OS === 'ios' ? iosFont('OverusedGrotesk-ExtraBold') : androidFont('Nunito_800ExtraBold'),
-  black:     Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Black')    : androidFont('Nunito_900Black'),
+  regular: Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Book')   : androidFont('Nunito_400Regular'),
+  medium:  Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Medium') : androidFont('Nunito_500Medium'),
 };
 
 /**

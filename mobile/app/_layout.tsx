@@ -58,12 +58,8 @@ export default function RootLayout() {
     Nunito_700Bold,
     Nunito_800ExtraBold,
     Nunito_900Black,
-    'OverusedGrotesk-Regular':  require('../assets/fonts/OverusedGrotesk-Regular.otf'),
+    'OverusedGrotesk-Book':     require('../assets/fonts/OverusedGrotesk-Book.otf'),
     'OverusedGrotesk-Medium':   require('../assets/fonts/OverusedGrotesk-Medium.otf'),
-    'OverusedGrotesk-SemiBold': require('../assets/fonts/OverusedGrotesk-SemiBold.otf'),
-    'OverusedGrotesk-Bold':     require('../assets/fonts/OverusedGrotesk-Bold.otf'),
-    'OverusedGrotesk-ExtraBold': require('../assets/fonts/OverusedGrotesk-ExtraBold.otf'),
-    'OverusedGrotesk-Black':    require('../assets/fonts/OverusedGrotesk-Black.otf'),
   });
 
   useEffect(() => {
@@ -75,9 +71,6 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
-
-  // Version marker so we can tell from Metro logs which build is running.
-  console.log('[RootLayout] render v5-native-modal');
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
