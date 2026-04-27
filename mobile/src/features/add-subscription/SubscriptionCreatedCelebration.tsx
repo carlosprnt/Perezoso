@@ -27,8 +27,8 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { haptic } from '../../lib/haptics';
 
 const ENTER_MS = 320;
-const HOLD_MS = 1760;       // ENTER + HOLD + EXIT ≈ 2500ms
-const EXIT_MS = 420;
+const HOLD_MS = 800;
+const EXIT_MS = 350;
 
 export function SubscriptionCreatedCelebration() {
   const visible = useSubscriptionCelebrationStore((s) => s.visible);
