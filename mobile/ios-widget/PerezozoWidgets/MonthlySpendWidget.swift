@@ -45,20 +45,20 @@ struct MonthlySpendWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(WidgetStrings.monthlySpendHeader)
-                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .font(.system(size: 10, weight: .medium))
                 .tracking(0.8)
                 .foregroundColor(textMuted)
 
             Spacer(minLength: 0)
 
             Text(formattedTotal)
-                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                .font(.system(size: 30, weight: .medium))
                 .foregroundColor(textPrimary)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
 
             Text(WidgetStrings.activeSubscriptions(entry.activeCount))
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(textMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

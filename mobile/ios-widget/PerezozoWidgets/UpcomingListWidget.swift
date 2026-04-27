@@ -54,7 +54,7 @@ struct UpcomingListWidgetView: View {
                     .font(.system(size: 28))
                     .foregroundColor(textMuted)
                 Text(WidgetStrings.noUpcoming)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(textMuted)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -63,7 +63,7 @@ struct UpcomingListWidgetView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
                 Text(WidgetStrings.upcomingHeader)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .medium))
                     .tracking(0.8)
                     .foregroundColor(textMuted)
                 .padding(.bottom, 8)
@@ -110,25 +110,25 @@ struct UpcomingRow: View {
                     .frame(width: 26, height: 26)
                     .overlay(
                         Text(String(sub.name.prefix(1)).uppercased())
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.white)
                     )
             }
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(sub.name)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(textPrimary)
                     .lineLimit(1)
                 Text(WidgetStrings.daysText(sub.daysUntilNext))
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(textMuted)
             }
 
             Spacer()
 
             Text(sub.formattedPrice)
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundColor(textPrimary)
         }
         .padding(.vertical, 5)
