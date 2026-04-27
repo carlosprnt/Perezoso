@@ -46,7 +46,7 @@ struct NextPaymentWidgetView: View {
             VStack(alignment: .leading, spacing: 6) {
                 // Category pill
                 Text(sub.category.uppercased())
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .font(.system(size: 9, weight: .medium))
                     .tracking(0.8)
                     .foregroundColor(.white)
                     .padding(.horizontal, 6)
@@ -60,13 +60,13 @@ struct NextPaymentWidgetView: View {
 
                 // Subscription name
                 Text(sub.name)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundColor(textPrimary)
                     .lineLimit(1)
 
                 // Price
                 Text(sub.formattedPrice)
-                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundColor(textPrimary)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
@@ -77,7 +77,7 @@ struct NextPaymentWidgetView: View {
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(textMuted)
                     Text(WidgetStrings.daysText(sub.daysUntilNext))
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(textMuted)
                 }
             }
@@ -89,7 +89,7 @@ struct NextPaymentWidgetView: View {
                     .font(.system(size: 24))
                     .foregroundColor(textMuted)
                 Text(WidgetStrings.noSubscriptions)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(textMuted)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
