@@ -507,8 +507,8 @@ export function CreateSubscriptionSheet() {
           name: f.name,
           price: f.price,
           currency: currencySymbol(f.currency),
-          billingPeriod: f.billingPeriod,
-          category: f.category,
+          billingPeriod: t(BILLING_DISPLAY_KEYS[f.billingPeriod] ?? 'form.billing.monthly'),
+          category: f.category ? t(CATEGORY_DISPLAY_KEYS[f.category] ?? f.category) : undefined,
           logoUrl: f.logoUrl || undefined,
         });
       }, 380);
