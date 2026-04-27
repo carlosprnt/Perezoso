@@ -82,6 +82,15 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
             <Text style={[styles.category, { color: colors.textMuted }]}>
               {CATEGORY_LABELS[sub.category] ?? sub.category}
             </Text>
+            {sub.status !== 'active' && (
+              <>
+                <Text style={[styles.metaSeparator, { color: colors.textMuted }]}> · </Text>
+                <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+                <Text style={[styles.statusLabel, { color: statusColor }]}>
+                  {STATUS_LABELS[sub.status]}
+                </Text>
+              </>
+            )}
             {sub.is_shared && (
               <Text style={[styles.shared, { color: colors.textMuted }]}>
                 {' '}· Compartida
@@ -132,15 +141,6 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           </Text>
         </View>
 
-        {/* Status dot + label — hidden for 'active' (noise); shown for others */}
-        {sub.status !== 'active' && (
-          <View style={styles.statusRow}>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusLabel, { color: statusColor }]}>
-              {STATUS_LABELS[sub.status]}
-            </Text>
-          </View>
-        )}
       </View>
     </Pressable>
   );
@@ -295,10 +295,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  metaSeparator: {
+    ...fontFamily.regular,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * lineHeight.snug,
   },
   statusDot: {
     width: 6,
