@@ -26,33 +26,26 @@ export default function BottomSheet({
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  const scrollRef    = useRef<HTMLDivElement>(null)
-  const sheetRef     = useRef<HTMLDivElement>(null)
-  const savedScrollY = useRef(0)
-  const touchStartY  = useRef(0)
-  const onCloseRef   = useRef(onClose)
+  const scrollRef   = useRef<HTMLDivElement>(null)
+  const sheetRef    = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
+  const onCloseRef  = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
-  // ── Body scroll lock (iOS-safe) ───────────────────────────────────────────
+  // Body scroll lock — plain overflow:hidden on html+body while open.
+  // (Earlier versions used `body { position: fixed; top: -scrollY }` to
+  // preserve scroll position; that interacted badly with the fixed sheet
+  // positioning on iOS PWA and is no longer needed now that globals.css
+  // sets `overscroll-behavior: none` on html/body.)
   useEffect(() => {
-    if (isOpen) {
-      savedScrollY.current = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top      = `-${savedScrollY.current}px`
-      document.body.style.left     = '0'
-      document.body.style.right    = '0'
-    } else {
-      document.body.style.position = ''
-      document.body.style.top      = ''
-      document.body.style.left     = ''
-      document.body.style.right    = ''
-      window.scrollTo(0, savedScrollY.current)
-    }
+    if (!isOpen) return
+    const prevHtmlOverflow = document.documentElement.style.overflow
+    const prevBodyOverflow = document.body.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.position = ''
-      document.body.style.top      = ''
-      document.body.style.left     = ''
-      document.body.style.right    = ''
+      document.documentElement.style.overflow = prevHtmlOverflow
+      document.body.style.overflow = prevBodyOverflow
     }
   }, [isOpen])
 
@@ -171,24 +164,67 @@ export default function BottomSheet({
 
   return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop — `bottom` is overridden to bleed into the iOS PWA
+          bottom safe area. The bleed value is computed in JS at
+          runtime (see layout.tsx head script) and exposed as
+          --safe-bleed-bottom on :root, so the CSS never depends on
+          nested calc/max expressions that can be brittle in iOS
+          Safari. */}
       <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 animate-backdrop-in"
-        style={{ zIndex: zIndex ? zIndex - 2 : 58 }}
+        style={{
+          zIndex: zIndex ? zIndex - 2 : 58,
+          bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
+        }}
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/*
+       * Sheet — safe-area bleed pattern, robust to cached PWA configs.
+       *
+       * Empirically verified on iOS PWA standalone: in this webview
+       * `fixed bottom: 0` anchors to the LAYOUT VIEWPORT bottom, NOT
+       * the physical screen edge. The ~34px gap between them shows
+       * the canvas / body background, which is the visible strip
+       * below white sheets. Raw portal tests (no Framer Motion, no
+       * Tailwind) reproduce the same gap — it is an iOS WebKit
+       * standalone behavior, not our component chain.
+       *
+       * Additionally, iOS caches `apple-mobile-web-app-*` meta tags
+       * at PWA install time. A PWA installed before we added
+       * `black-translucent` + `viewport-fit=cover` keeps using the
+       * older config, in which `env(safe-area-inset-bottom)` returns
+       * 0 regardless of what the current HTML says. For those
+       * installs, `calc(-1 * env)` collapses to 0 and the bleed does
+       * nothing. `max(env, 34px)` forces at least 34px of bleed so
+       * the sheet background still covers the typical home-indicator
+       * zone even on stale installs. Content positioning does not
+       * change: the padding-bottom compensation is computed with the
+       * same max() expression, so the content stays at exactly the
+       * same visual Y as before.
+       *
+       * Do NOT revert this to plain `bottom: 0` without empirically
+       * re-running a raw portal test in the PWA standalone view.
+       *
+       * On devices with no bottom inset (Android, desktop) the
+       * compensation cancels out identically and the bleed extends
+       * invisibly 34px below the viewport (clipped, not rendered).
+       */}
       <div
         ref={sheetRef}
         className={`
-          fixed bottom-0 left-0 right-0
+          fixed left-0 right-0
           bg-white dark:bg-[#1C1C1E]
           flex flex-col
           ${maxH}
           animate-slide-up
         `}
-        style={{ zIndex: zIndex ?? 60, paddingBottom: 'env(safe-area-inset-bottom)', borderRadius: '32px 32px 0 0' }}
+        style={{
+          zIndex: zIndex ?? 60,
+          bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
+          paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
+          borderRadius: '32px 32px 0 0',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle — drag zone */}
@@ -204,7 +240,7 @@ export default function BottomSheet({
         {/* Header */}
         {title && (
           <div className="flex-shrink-0 flex items-center justify-between px-5 py-3">
-            <h2 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7]">{title}</h2>
+            <h2 className="text-[17px] font-semibold text-[#000000] dark:text-[#F2F2F7]">{title}</h2>
             <button
               onClick={onClose}
               className="w-11 h-11 rounded-full bg-[#F5F5F5] dark:bg-[#2C2C2E] flex items-center justify-center text-[#616161] dark:text-[#AEAEB2] transition-colors active:bg-[#EBEBEB] dark:active:bg-[#3A3A3C]"

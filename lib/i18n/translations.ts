@@ -69,6 +69,9 @@ const en = {
     andSave: 'and cut your spend by',
     subscriptionWord: 'subscription',
     subscriptionsWord: 'subscriptions',
+    reduceSpend: 'You cut',
+    yourSpendMonthly: 'off your monthly spend',
+    yourSpendAnnual: 'off your yearly spend',
   },
   subscriptions: {
     title: 'My subscriptions',
@@ -360,6 +363,9 @@ const es: typeof en = {
     andSave: 'y reduces tu gasto en',
     subscriptionWord: 'suscripción',
     subscriptionsWord: 'suscripciones',
+    reduceSpend: 'Reduces',
+    yourSpendMonthly: 'tu gasto al mes',
+    yourSpendAnnual: 'tu gasto al año',
   },
   subscriptions: {
     title: 'Mis suscripciones',

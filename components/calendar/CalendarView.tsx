@@ -7,6 +7,7 @@ import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import type { SubscriptionWithCosts } from '@/types'
 import CalendarDaySheet from './CalendarDaySheet'
 
@@ -134,13 +135,13 @@ function DayCell({ day, isToday, subscriptions, onClick }: DayCellProps) {
         transition-all duration-100 select-none bg-[#F5F5F5] dark:bg-[#2C2C2E]
         ${hasSubs ? 'active:scale-[0.96] cursor-pointer' : 'cursor-default'}
       `}
-      style={isToday ? { border: '1.5px solid #3D3BF3' } : { border: '1.5px solid transparent' }}
+      style={isToday ? { border: '1.5px solid #000000' } : { border: '1.5px solid transparent' }}
     >
       {/* Day number — plain, no circle */}
       <span
         className={`
           text-[13px] font-medium leading-none flex-shrink-0
-          ${isToday ? 'text-[#3D3BF3] font-semibold' : hasSubs ? 'text-[#121212] dark:text-[#F2F2F7]' : 'text-[#A0A0A0] dark:text-[#8E8E93]'}
+          ${isToday ? 'text-[#000000] font-semibold' : hasSubs ? 'text-[#000000] dark:text-[#F2F2F7]' : 'text-[#A0A0A0] dark:text-[#8E8E93]'}
         `}
       >
         {day}
@@ -191,12 +192,19 @@ interface Props {
 export default function CalendarView({ subscriptions }: Props) {
   const t = useT()
   const locale = useLocale()
+  const gate = useFeatureGate()
   const today = new Date()
 
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const direction = useRef<1 | -1>(1) // 1 = forward, -1 = backward
+
+  // Offset of the currently-displayed month relative to today: 0 = this
+  // month, 1 = next month, -1 = previous month. Free users can go into
+  // the past freely but navigating into the future opens the paywall.
+  const currentMonthOffset =
+    (year - today.getFullYear()) * 12 + (month - today.getMonth())
 
   const dayMap = useMemo(
     () => buildDayMap(subscriptions, year, month),
@@ -218,6 +226,12 @@ export default function CalendarView({ subscriptions }: Props) {
     else setMonth(m => m - 1)
   }
   function nextMonth() {
+    // Pro gate: free users cannot navigate into months beyond the
+    // current one. Opens the paywall and stops before advancing state.
+    if (!gate.canViewFutureMonth(currentMonthOffset + 1)) {
+      gate.requirePro('future_calendar')
+      return
+    }
     direction.current = 1
     if (month === 11) { setYear(y => y + 1); setMonth(0) }
     else setMonth(m => m + 1)
@@ -288,7 +302,7 @@ export default function CalendarView({ subscriptions }: Props) {
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.h1
                 key={`${year}-${month}`}
-                className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight capitalize leading-none"
+                className="text-[28px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight capitalize leading-none"
                 initial={{ x: direction.current * 32, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: direction.current * -32, opacity: 0 }}

@@ -2,9 +2,9 @@
 
 import type { SubscriptionWithCosts, DashboardStats } from '@/types'
 import { formatCurrency } from '@/lib/utils/currency'
-import { getHighestCostSubscription, getTopSpendCategories, getUpcomingRenewals } from '@/lib/calculations/subscriptions'
+import { getHighestCostSubscription, getTopSpendCategories } from '@/lib/calculations/subscriptions'
 import { getCategoryMeta } from '@/lib/constants/categories'
-import { AlertCircle, TrendingUp, Users } from 'lucide-react'
+import { TrendingUp, Users } from 'lucide-react'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { Category } from '@/types'
 
@@ -13,30 +13,39 @@ interface InsightsProps {
   stats: DashboardStats
 }
 
-// ─── Individual cell ──────────────────────────────────────────────────────────
+// ─── Individual horizontal card ──────────────────────────────────────────────
+// Layout: [Icon]  label (small)        rightTop
+//                 title (bold)         rightBottom
 function InsightCell({
   icon,
   iconCls,
   label,
   value,
-  sub,
-  border,
+  rightTop,
+  rightBottom,
 }: {
   icon: React.ReactNode
   iconCls: string
   label: string
   value: string
-  sub: string
-  border: string
+  rightTop?: string
+  rightBottom?: string
 }) {
   return (
-    <div className={`p-4 ${border}`}>
-      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-2.5 flex-shrink-0 ${iconCls}`}>
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-[32px] px-4 py-3 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${iconCls}`}>
         {icon}
       </div>
-      <p className="text-[11px] text-[#737373] dark:text-[#8E8E93] font-medium mb-0.5">{label}</p>
-      <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
-      {sub && <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5 leading-snug line-clamp-2">{sub}</p>}
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mb-0.5">{label}</p>
+        <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">{value}</p>
+      </div>
+      {(rightTop || rightBottom) && (
+        <div className="text-right flex-shrink-0">
+          {rightTop && <p className="text-[12px] text-[#000000] dark:text-[#F2F2F7] font-semibold leading-snug">{rightTop}</p>}
+          {rightBottom && <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5">{rightBottom}</p>}
+        </div>
+      )}
     </div>
   )
 }
@@ -56,15 +65,13 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
 
   const highest = getHighestCostSubscription(subscriptions)
   const topCategories = getTopSpendCategories(subscriptions, 3)
-  const urgentRenewals = getUpcomingRenewals(subscriptions, 7)
   const sharedSubs = subscriptions.filter(
     (s) => s.is_shared && (s.status === 'active' || s.status === 'trial')
   )
 
   const topCat = topCategories[0] ?? null
-  const nextRenewal = urgentRenewals[0] ?? null
 
-  if (!highest && !topCat && sharedSubs.length === 0 && !nextRenewal) return null
+  if (!highest && !topCat && sharedSubs.length === 0) return null
 
   // Top category meta
   const catMeta = topCat ? getCategoryMeta(topCat.category as Category) : null
@@ -78,80 +85,43 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
 
   const perMonth = t('dashboard.perMonth')
 
-  // "Renews soon" sub-label
-  const renewsSub = nextRenewal
-    ? (() => {
-        const d = nextRenewal.days_until
-        const when = d === 0
-          ? t('dashboard.dueToday')
-          : d === 1
-          ? t('dashboard.tomorrow')
-          : t('dashboard.inDays').replace('{days}', String(d))
-        return `${when} · ${formatCurrency(nextRenewal.subscription.my_monthly_cost, nextRenewal.subscription.currency)}`
-      })()
-    : ''
-
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] overflow-hidden">
-      <div className="grid grid-cols-2">
+    <div className="flex flex-col gap-2">
 
-        {/* ① Highest cost */}
-        <InsightCell
-          icon={<TrendingUp size={20} />}
-          iconCls="bg-[#F5F5F5] text-[#424242]"
-          label={t('dashboard.highestCost')}
-          value={highest?.name ?? '—'}
-          sub={
-            highest
-              ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} ${perMonth} · ${t(`categories.${highest.category}` as Parameters<typeof t>[0])}`
-              : ''
-          }
-          border="border-r border-b border-[#F7F8FA] dark:border-[#121212]"
-        />
+      {/* ① Highest cost */}
+      <InsightCell
+        icon={<TrendingUp size={20} />}
+        iconCls="bg-[#F5F5F5] text-[#000000] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+        label={t('dashboard.highestCost')}
+        value={highest?.name ?? '—'}
+        rightTop={highest ? `${formatCurrency(highest.my_monthly_cost, highest.currency)} /mes` : undefined}
+        rightBottom={highest ? t(`categories.${highest.category}` as Parameters<typeof t>[0]) : undefined}
+      />
 
-        {/* ② Top category */}
-        <InsightCell
-          icon={CatIcon ? <CatIcon size={20} /> : null}
-          iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#424242]'}
-          label={t('dashboard.topCategory')}
-          value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
-          sub={
-            topCat
-              ? `${formatCurrency(topCat.monthly_cost, dominantCurrency, locale)} ${perMonth} · ${topCat.count} ${locale === 'es' ? 'suscr.' : 'subs'}`
-              : ''
-          }
-          border="border-b border-[#F7F8FA] dark:border-[#121212]"
-        />
+      {/* ② Top category */}
+      <InsightCell
+        icon={CatIcon ? <CatIcon size={20} /> : null}
+        iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#000000]'}
+        label={t('dashboard.topCategory')}
+        value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
+        rightTop={topCat ? `${formatCurrency(topCat.monthly_cost, dominantCurrency, locale)} /mes` : undefined}
+        rightBottom={topCat ? `${topCat.count} ${locale === 'es' ? 'suscr.' : 'subs'}` : undefined}
+      />
 
-        {/* ③ Shared plans */}
-        <InsightCell
-          icon={<Users size={20} />}
-          iconCls="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-          label={t('dashboard.sharedPlans')}
-          value={
-            sharedSubs.length > 0
-              ? `${sharedSubs.length} ${locale === 'es' ? (sharedSubs.length === 1 ? 'plan' : 'planes') : (sharedSubs.length === 1 ? 'plan' : 'plans')}`
-              : t('dashboard.noPlans')
-          }
-          sub={
-            sharedSubs.length > 0
-              ? t('dashboard.saving').replace('{amount}', `${formatCurrency(sharedSavings, dominantCurrency, locale)} ${perMonth}`)
-              : ''
-          }
-          border="border-r border-[#F7F8FA] dark:border-[#121212]"
-        />
+      {/* ③ Shared plans */}
+      <InsightCell
+        icon={<Users size={20} />}
+        iconCls="bg-[#F5F5F5] text-[#000000] dark:bg-[#2C2C2E] dark:text-[#E5E5EA]"
+        label={t('dashboard.sharedPlans')}
+        value={
+          sharedSubs.length > 0
+            ? `${sharedSubs.length} ${locale === 'es' ? (sharedSubs.length === 1 ? 'plan' : 'planes') : (sharedSubs.length === 1 ? 'plan' : 'plans')}`
+            : t('dashboard.noPlans')
+        }
+        rightTop={sharedSubs.length > 0 ? formatCurrency(sharedSavings, dominantCurrency, locale) : undefined}
+        rightBottom={sharedSubs.length > 0 ? '/mes' : undefined}
+      />
 
-        {/* ④ Renews soon */}
-        <InsightCell
-          icon={<AlertCircle size={20} />}
-          iconCls="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-          label={t('dashboard.renewsSoon')}
-          value={nextRenewal?.subscription.name ?? t('dashboard.noPlans')}
-          sub={renewsSub}
-          border=""
-        />
-
-      </div>
     </div>
   )
 }

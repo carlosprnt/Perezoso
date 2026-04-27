@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { LayoutGrid, Plus, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import BottomSheet from '@/components/ui/BottomSheet'
-import PlatformPicker from '@/components/subscriptions/PlatformPicker'
+import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 import GmailSubscriptionSearchSheet from '@/components/subscriptions/GmailSubscriptionSearchSheet'
 import { useT } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import haptics from '@/lib/haptics'
-import type { PlatformPreset } from '@/lib/constants/platforms'
+import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 
 type Step = 'closed' | 'pick' | 'form' | 'gmail'
 
@@ -21,12 +22,16 @@ const BTN_H = 48   // button height
 const PAD  = 8     // pill padding
 const GAP  = 8     // gap between buttons
 
-function TagHeartIcon({ active }: { active: boolean }) {
+function CardIcon({ filled, stripeColor }: { filled?: boolean; stripeColor?: string }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-      <path d="M8.5 8.5c.5-1 2-1 2 .5 0 1-2 2-2 2s-2-1-2-2c0-1.5 1.5-1.5 2-.5z" strokeWidth="1.5" />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      {filled ? (
+        <line x1="2" y1="10" x2="22" y2="10" stroke={stripeColor ?? '#F7F8FA'} strokeWidth={2.5} />
+      ) : (
+        <line x1="2" y1="10" x2="22" y2="10" />
+      )}
     </svg>
   )
 }
@@ -65,24 +70,35 @@ export default function FloatingNav() {
 
   // SubscriptionsView broadcasts its count via a custom event so we can
   // emphasize the "+" CTA without a second Supabase roundtrip from here.
-  const [hasNoSubs, setHasNoSubs] = useState(false)
+  // We also use the exact count to gate the "+" button against the free
+  // 15-subscription limit.
+  const [subsCount, setSubsCount] = useState<number>(0)
   useEffect(() => {
     function onCount(e: Event) {
       const count = (e as CustomEvent<number>).detail
-      setHasNoSubs(count === 0)
+      setSubsCount(count)
     }
     window.addEventListener('perezoso:subs-count', onCount)
     return () => window.removeEventListener('perezoso:subs-count', onCount)
   }, [])
 
-  const emphasizeAdd = isSubs && hasNoSubs
+  const gate = useFeatureGate()
+  const hasNoSubs = subsCount === 0
+  const emphasizeAdd = (isSubs || isDash) && hasNoSubs
 
-  // x offset of the sliding bg: Dashboard=0, Subscriptions=1
-  const bgX = isSubs ? BTN_W + GAP : 0
+  function handlePlusTap() {
+    haptics.tap('medium')
+    // Pro gate: free users capped at 15. Opens paywall instead of the
+    // creation sheet when the limit is reached.
+    if (!gate.requireSubscriptionSlot(subsCount)) return
+    setStep('pick')
+  }
 
-  // Icon colors depend on dark mode
-  const activeIconColor = isDarkMode ? '#121212' : '#ffffff'
-  const inactiveIconColor = isDarkMode ? '#AEAEB2' : '#121212'
+  // x offset of the sliding bg — no longer used (active = stroke, not fill)
+  // const bgX = isSubs ? BTN_W + GAP : 0
+
+  // All icons are dark in both modes; active state is on the container (stroke).
+  const iconColor = isDarkMode ? '#F2F2F7' : '#000000'
 
   // Bottom offset: 20px + safe-area
   const bottomOffset = 'calc(env(safe-area-inset-bottom) - 20px)'
@@ -92,118 +108,184 @@ export default function FloatingNav() {
       {/* ── Floating nav — mobile only, hidden on settings ────────────────── */}
       {!hideNav && (
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: `calc(${BTN_H + PAD * 2}px + env(safe-area-inset-bottom))` }}
+        style={{
+          height: `calc(${BTN_H + PAD * 2}px + env(safe-area-inset-bottom))`,
+          // Follow the draggable surface when it's lowered
+          transform: 'translateY(var(--surface-y, 0px))',
+        }}
       >
-        {/* Pill — left-aligned at 20px, 16px from bottom */}
-        <div className="absolute left-5 pointer-events-auto"
+        {/* Pill — centred at bottom */}
+        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto"
           style={{ bottom: bottomOffset }}
         >
           <div
-            className="floating-pill relative flex items-center rounded-full overflow-hidden"
+            className="floating-pill relative flex items-center rounded-full"
             style={{
               padding: PAD,
               gap: GAP,
               background: isDarkMode ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: `1px solid ${isDarkMode ? '#3A3A3C' : '#BCBCBC'}`,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
             }}
           >
-            {/* Static backgrounds — always visible behind each button */}
-            <div
-              className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
-            />
-            <div
-              className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD + BTN_W + GAP, backgroundColor: isDarkMode ? '#2C2C2E' : '#EEEEEE' }}
-            />
-
-            {/* Sliding indicator */}
+            {/* Sliding stroke indicator — animates horizontally between
+                Dashboard (x=0) and Subscriptions (x=2*(BTN_W+GAP)).
+                The "+" button in the middle is skipped. */}
             <motion.div
               className="absolute rounded-full"
-              style={{ width: BTN_W, height: BTN_H, top: PAD, left: PAD, zIndex: 1, backgroundColor: isDarkMode ? '#F2F2F7' : '#121212' }}
-              animate={{ x: bgX }}
+              style={{
+                width: BTN_W,
+                height: BTN_H,
+                top: PAD,
+                left: PAD,
+                zIndex: 1,
+                border: `2px solid ${isDarkMode ? '#F2F2F7' : '#000000'}`,
+              }}
+              animate={{ x: isSubs ? 2 * (BTN_W + GAP) : 0 }}
               transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
             />
 
             {/* Dashboard button */}
             <Link href="/dashboard" aria-label={t('nav.dashboard')}>
               <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  border: isDash ? 'none' : `1.5px solid ${isDarkMode ? '#2C2C2E' : '#E5E5EA'}`,
+                }}
               >
-                <LayoutGrid size={20} strokeWidth={2}
-                  color={isDash ? activeIconColor : inactiveIconColor} />
+                <LayoutGrid size={20} strokeWidth={2} color={iconColor} fill={isDash ? iconColor : 'none'} />
               </div>
             </Link>
+
+            {/* + button — black circle with white plus, same height */}
+            <motion.button
+              onClick={handlePlusTap}
+              aria-label="Add subscription"
+              className="relative flex items-center justify-center rounded-full bg-[#000000] dark:bg-[#F2F2F7]"
+              style={{ width: BTN_W, height: BTN_H, zIndex: 2 }}
+              animate={emphasizeAdd ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+              transition={
+                emphasizeAdd
+                  ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
+                  : { type: 'spring', stiffness: 300, damping: 22 }
+              }
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus size={20} color={isDarkMode ? '#000000' : '#ffffff'} strokeWidth={2.5} />
+            </motion.button>
 
             {/* Subscriptions button */}
             <Link href="/subscriptions" aria-label={t('nav.subscriptions')}>
               <div className="relative flex items-center justify-center rounded-full"
-                style={{ width: BTN_W, height: BTN_H, zIndex: 2, color: isSubs ? activeIconColor : inactiveIconColor }}
+                style={{
+                  width: BTN_W,
+                  height: BTN_H,
+                  zIndex: 2,
+                  color: iconColor,
+                  border: isSubs ? 'none' : `1.5px solid ${isDarkMode ? '#2C2C2E' : '#E5E5EA'}`,
+                }}
               >
-                <TagHeartIcon active={false} />
+                <CardIcon filled={isSubs} stripeColor={isDarkMode ? '#1C1C1E' : '#F7F8FA'} />
               </div>
             </Link>
 
           </div>
         </div>
-
-        {/* + button — right edge, 16px margin, same bottom as pill.
-            When the user has no subscriptions yet, it scales to 2x to
-            emphasize it as the primary call to action. */}
-        <motion.button
-          onClick={() => { haptics.tap('medium'); setStep('pick') }}
-          aria-label="Add subscription"
-          className="absolute right-4 pointer-events-auto flex items-center justify-center rounded-full bg-[#3D3BF3]"
-          style={{
-            width: 56,
-            height: 56,
-            originX: 1,
-            originY: 1,
-            bottom: `calc(${bottomOffset} + 4px)`,
-            boxShadow: '0 4px 16px rgba(61,59,243,0.40)',
-          }}
-          animate={emphasizeAdd ? { scale: [1, 1.25, 1] } : { scale: 1 }}
-          transition={
-            emphasizeAdd
-              ? { duration: 1.6, ease: 'easeInOut', repeat: Infinity }
-              : { type: 'spring', stiffness: 300, damping: 22 }
-          }
-          whileTap={{ scale: 0.95 }}
-        >
-          <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-        </motion.button>
       </nav>
       )}
 
-      {/* Step 1 — Platform picker */}
-      <BottomSheet
-        isOpen={step === 'pick'}
-        onClose={close}
-        title={t('sheets.createNew')}
-        height="tall"
-        footer={
-          <div
-            className="flex gap-3 px-5 py-4 border-t border-[#F0F0F0] dark:border-[#2C2C2E]"
+      {/* ── Add panel — dark overlay expanding from the + button ─────────── */}
+      <AnimatePresence>
+        {step === 'pick' && (
+          <motion.div
+            className="lg:hidden fixed z-[55] overflow-hidden flex flex-col"
+            style={{
+              left: 10,
+              right: 10,
+              bottom: 10,
+              height: '70dvh',
+              transformOrigin: 'bottom center',
+            }}
+            initial={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 48, opacity: 0 }}
+            animate={{ scaleX: 1, scaleY: 1, borderRadius: 40, opacity: 1 }}
+            exit={{ scaleX: 0.15, scaleY: 0.08, borderRadius: 48, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
-            <button
-              onClick={() => setStep('gmail')}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF] border border-[#3D3BF3] dark:border-[#8B89FF] bg-transparent flex items-center justify-center active:bg-[#F0F0FF] dark:active:bg-[#1E1D3A] transition-colors"
-            >
-              {t('picker.searchGmail')}
-            </button>
-            <button
-              onClick={() => handleSelect(null)}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] flex items-center justify-center active:bg-[#3230D0] transition-colors"
-            >
-              {t('picker.enterManually')}
-            </button>
-          </div>
-        }
-      >
-        <PlatformPicker onSelect={handleSelect} />
-      </BottomSheet>
+            {/* Background with blur */}
+            <div
+              className="absolute inset-0 bg-[#0a0a0a]/95"
+              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 'inherit' }}
+            />
+
+            {/* Content */}
+            <div className="relative flex flex-col h-full z-[1]">
+              {/* Header with close button */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                <h2 className="text-[17px] font-semibold text-white">{t('sheets.createNew')}</h2>
+                <button
+                  onClick={close}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center active:bg-white/20 transition-colors"
+                >
+                  <X size={15} strokeWidth={2.5} className="text-white" />
+                </button>
+              </div>
+
+              {/* Scrollable platform list */}
+              <div className="flex-1 overflow-y-auto px-3 pb-3">
+                <div className="space-y-0.5">
+                  {PLATFORMS.map(platform => (
+                    <button
+                      key={platform.id}
+                      onClick={() => handleSelect(platform)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl active:bg-white/10 transition-colors text-left"
+                    >
+                      <SubscriptionAvatar
+                        name={platform.name}
+                        logoUrl={resolvePlatformLogoUrl(platform)}
+                        size="sm40"
+                        corner="rounded-[16px]"
+                      />
+                      <span className="text-[15px] font-medium text-white">{platform.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer buttons */}
+              <div className="flex gap-3 px-5 py-4">
+                <button
+                  onClick={() => setStep('gmail')}
+                  className="flex-1 h-12 rounded-full text-sm font-semibold text-white border border-white/30 bg-transparent flex items-center justify-center active:bg-white/10 transition-colors"
+                >
+                  {t('picker.searchGmail')}
+                </button>
+                <button
+                  onClick={() => handleSelect(null)}
+                  className="flex-1 h-12 rounded-full text-sm font-semibold text-black bg-white flex items-center justify-center active:bg-white/90 transition-colors"
+                >
+                  {t('picker.enterManually')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Backdrop — dims the page when the add panel is open */}
+      <AnimatePresence>
+        {step === 'pick' && (
+          <motion.div
+            className="lg:hidden fixed inset-0 z-[54] bg-black/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={close}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Step 2 — Form */}
       <BottomSheet isOpen={step === 'form'} onClose={close} height="full">

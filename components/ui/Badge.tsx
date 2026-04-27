@@ -9,7 +9,7 @@ interface StatusBadgeProps {
 /* All color pairs pass WCAG AA (≥4.5:1) on their background */
 const STATUS_CONFIG: Record<SubscriptionStatus, { label: string; classes: string }> = {
   active:    { label: 'Active',    classes: 'bg-green-100  text-green-800  border-green-300'  },
-  trial:     { label: 'Trial',     classes: 'bg-blue-100   text-blue-800   border-blue-300'   },
+  trial:     { label: 'Trial',     classes: 'bg-stone-200  text-stone-800  border-stone-300'  },
   paused:    { label: 'Paused',    classes: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
   cancelled: { label: 'Cancelled', classes: 'bg-neutral-100 text-neutral-700 border-neutral-300' },
 }

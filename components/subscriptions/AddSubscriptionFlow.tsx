@@ -7,14 +7,33 @@ import PlatformPicker from './PlatformPicker'
 import SubscriptionForm from './SubscriptionForm'
 import GmailSubscriptionSearchSheet from './GmailSubscriptionSearchSheet'
 import { useT } from '@/lib/i18n/LocaleProvider'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 import type { PlatformPreset } from '@/lib/constants/platforms'
 
 type Step = 'closed' | 'pick' | 'form' | 'gmail'
 
 export default function AddSubscriptionFlow() {
   const t = useT()
+  const gate = useFeatureGate()
   const [step, setStep] = useState<Step>('closed')
   const [platform, setPlatform] = useState<PlatformPreset | null>(null)
+  const [subsCount, setSubsCount] = useState<number>(0)
+
+  // Track the global subscription count (broadcast by SubscriptionsView)
+  // so we can gate the "+" button against the 15-sub free limit.
+  useEffect(() => {
+    function onCount(e: Event) {
+      const count = (e as CustomEvent<number>).detail
+      setSubsCount(count)
+    }
+    window.addEventListener('perezoso:subs-count', onCount)
+    return () => window.removeEventListener('perezoso:subs-count', onCount)
+  }, [])
+
+  function handleAddClick() {
+    if (!gate.requireSubscriptionSlot(subsCount)) return
+    setStep('pick')
+  }
 
   // Re-open Gmail sheet after Supabase OAuth redirect (fallback flow)
   useEffect(() => {
@@ -41,8 +60,8 @@ export default function AddSubscriptionFlow() {
   return (
     <>
       <button
-        onClick={() => setStep('pick')}
-        className="flex items-center gap-1.5 px-4 h-12 rounded-2xl bg-[#3D3BF3] text-white text-sm font-medium hover:bg-[#3230D0] transition-colors pressable"
+        onClick={handleAddClick}
+        className="flex items-center gap-1.5 px-4 h-12 rounded-2xl bg-[#000000] text-white text-sm font-medium hover:bg-[#000000] transition-colors pressable"
       >
         <Plus size={15} />
         {t('common.add')}
@@ -60,13 +79,13 @@ export default function AddSubscriptionFlow() {
           >
             <button
               onClick={() => setStep('gmail')}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#3D3BF3] dark:text-[#8B89FF] border border-[#3D3BF3] dark:border-[#8B89FF] bg-transparent flex items-center justify-center active:bg-[#F0F0FF] dark:active:bg-[#1E1D3A] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-[#000000] dark:text-[#FFFFFF] border border-[#000000] dark:border-[#FFFFFF] bg-transparent flex items-center justify-center active:bg-[#F5F5F5] dark:active:bg-[#2C2C2E] transition-colors"
             >
               {t('picker.searchGmail')}
             </button>
             <button
               onClick={() => handleSelect(null)}
-              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] flex items-center justify-center active:bg-[#3230D0] transition-colors"
+              className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#000000] flex items-center justify-center active:bg-[#000000] transition-colors"
             >
               {t('picker.enterManually')}
             </button>

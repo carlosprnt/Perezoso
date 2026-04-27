@@ -1,7 +1,9 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { useEffectiveScrollY } from '@/lib/hooks/useEffectiveScrollY'
+import { useSurfaceProgress } from '@/components/ui/DraggableSurface'
 import { formatCurrency } from '@/lib/utils/currency'
 import UserAvatarMenu from '@/components/dashboard/UserAvatarMenu'
 import { useT } from '@/lib/i18n/LocaleProvider'
@@ -121,7 +123,7 @@ function spawnLogoConfetti(originX: number, originY: number, logoUrls: string[])
         } else {
           // Fallback: accent-colored square
           roundRect(ctx, -half, -half, p.size, p.size, r)
-          ctx.fillStyle = '#3D3BF3'; ctx.fill()
+          ctx.fillStyle = '#000000'; ctx.fill()
         }
         ctx.restore()
       }
@@ -141,6 +143,147 @@ interface Props {
   shareText: string
   currency?: string
   logoUrls?: string[]
+  sharedLogoUrls?: string[]
+}
+
+/** Inline row of up to 3 overlapping circular subscription logos.
+    If there are more than 3, the 4th slot shows "..." to indicate
+    more exist. Tapping the stack fires a bubble animation where all
+    logos float upward gently from the "..." position and fade out
+    with blur. */
+function LogoStack({ urls, allUrls }: { urls: string[]; allUrls?: string[] }) {
+  const show3 = urls.slice(0, 3)
+  const hasMore = urls.length > 3
+  const [bubbling, setBubbling] = useState(false)
+  const [bubbleKey, setBubbleKey] = useState(0)
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null)
+  const dotsRef = useRef<HTMLSpanElement>(null)
+  const stackRef = useRef<HTMLSpanElement>(null)
+
+  // All logos for the bubble animation (up to 8)
+  const bubbleUrls = (allUrls ?? urls).slice(0, 8)
+
+  const handleTap = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (bubbling) return
+    // Get the origin point: the "..." dot if visible, or the last logo
+    const ref = dotsRef.current ?? stackRef.current
+    if (ref) setOriginRect(ref.getBoundingClientRect())
+    setBubbling(true)
+    setBubbleKey(k => k + 1)
+    // Auto-dismiss once the slowest bubble has finished
+    const maxDuration = bubbleUrls.length * 250 + 3200
+    setTimeout(() => setBubbling(false), maxDuration)
+  }, [bubbling, bubbleUrls.length])
+
+  if (show3.length === 0) return null
+
+  return (
+    <>
+      <span
+        ref={stackRef}
+        className="inline-flex items-center align-middle mx-1.5 -my-1 cursor-pointer"
+        onClick={handleTap}
+        role="button"
+        tabIndex={0}
+      >
+        {show3.map((url, i) => (
+          <span
+            key={url + i}
+            className="inline-block w-8 h-8 rounded-full overflow-hidden border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#F0F0F0] dark:bg-[#2C2C2E] p-0.5"
+            style={{
+              marginLeft: i === 0 ? 0 : -10,
+              position: 'relative',
+              zIndex: 4 - i,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt=""
+              loading="lazy"
+              className="block w-full h-full object-contain rounded-full"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+          </span>
+        ))}
+        {/* "..." indicator when there are more than 3 */}
+        {hasMore && (
+          <span
+            ref={dotsRef}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-[#F7F8FA] dark:border-[#121212] bg-[#E5E5EA] dark:bg-[#3A3A3C] text-[11px] font-bold text-[#737373] dark:text-[#AEAEB2]"
+            style={{
+              marginLeft: -10,
+              position: 'relative',
+              zIndex: 0,
+            }}
+          >
+            ···
+          </span>
+        )}
+      </span>
+
+      {/* Bubble animation — logos emerge from the "..." dot and drift
+          upward gently at different speeds/sizes, fading with blur. */}
+      {bubbling && (
+        <BubbleOverlay key={bubbleKey} urls={bubbleUrls} originRect={originRect} />
+      )}
+    </>
+  )
+}
+
+/** Portal-free overlay — logos emerge one by one from the "..." dot
+    position, drift upward at different speeds and sizes, fading out
+    with a gentle blur. Much calmer than the previous burst. */
+function BubbleOverlay({ urls, originRect }: { urls: string[]; originRect: DOMRect | null }) {
+  if (!originRect) return null
+  // Centre of the "..." dot in viewport coords
+  const cx = originRect.left + originRect.width / 2
+  const cy = originRect.top + originRect.height / 2
+
+  return (
+    <span
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 9999 }}
+      aria-hidden
+    >
+      {urls.map((url, i) => {
+        // Each logo drifts slightly left/right from the origin for variety
+        const offsetX = (Math.random() - 0.5) * 60
+        const scale = 0.7 + Math.random() * 0.6          // 0.7 – 1.3
+        const duration = 1.8 + Math.random() * 1.2        // 1.8 – 3.0s
+        const delay = i * 0.25 + Math.random() * 0.15     // stagger ~250ms
+        const driftY = -200 - Math.random() * 180          // -200 to -380
+        return (
+          <motion.span
+            key={url + i}
+            className="absolute w-10 h-10 rounded-full overflow-hidden bg-white shadow-md p-1"
+            style={{
+              left: cx - 20,
+              top: cy - 20,
+            }}
+            initial={{ y: 0, x: 0, opacity: 0, scale: 0.3, filter: 'blur(0px)' }}
+            animate={{
+              y: driftY,
+              x: offsetX,
+              opacity: [0, 1, 1, 0],
+              scale: [0.3, scale, scale * 0.9],
+              filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(6px)'],
+            }}
+            transition={{
+              duration,
+              delay,
+              ease: [0.15, 0, 0.25, 1],
+              times: [0, 0.15, 0.7, 1],
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="w-full h-full object-contain rounded-full" />
+          </motion.span>
+        )
+      })}
+    </span>
+  )
 }
 
 export default function DashboardSummaryHero({
@@ -150,26 +293,77 @@ export default function DashboardSummaryHero({
   shareText,
   currency = 'EUR',
   logoUrls = [],
+  sharedLogoUrls = [],
 }: Props) {
-  const t       = useT()
-  const ref     = useRef<HTMLDivElement>(null)
+  const t = useT()
+  const heroRef = useRef<HTMLDivElement>(null)
   const scrollY = useEffectiveScrollY()
 
   const [savingsPeriod, setSavingsPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [showSkeleton, setShowSkeleton]   = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Restore the original scroll-fade effect on the whole hero: as the user
+  // scrolls the foreground content, the paragraphs fade out and blur.
+  // Reads scroll from the ScrollContainerProvider when inside the
+  // DraggableSurface, or from window.scrollY otherwise.
   useEffect(() => {
     return scrollY.on('change', (v: number) => {
-      if (!ref.current) return
+      if (!heroRef.current) return
       const progress = Math.max(0, Math.min(1, v / 220))
       const opacity  = 1 - progress
-      const blur     = progress * 12  // 0→12px
-      ref.current.style.opacity       = String(opacity)
-      ref.current.style.filter        = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : ''
-      ref.current.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto'
+      const blur     = progress * 12
+      heroRef.current.style.opacity       = String(opacity)
+      heroRef.current.style.filter        = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : ''
+      heroRef.current.style.pointerEvents = opacity < 0.05 ? 'none' : 'auto'
     })
   }, [scrollY])
+
+  // On mobile, the avatar tap reveals the DraggableSurface's dark backdrop
+  // (where the account menu items live). On desktop, the default dropdown
+  // popover is used.
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)')
+    const update = () => setIsMobile(mql.matches)
+    update()
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
+
+  const avatarTapOverride = isMobile
+    ? () => window.dispatchEvent(new Event('oso:reveal-analytics'))
+    : undefined
+
+  // When inside a DraggableSurface, fade the internal greeting row out
+  // as the drag progresses so it crossfades with the DashboardFixedGreeting
+  // overlay that's pinned at the top of the viewport. The internal fade
+  // completes by 4% progress — the overlay then picks up from 4% → 8%,
+  // leaving a no-overlap gap so neither header visibly "merges" with the
+  // other while the foreground is near the raised position.
+  const surfaceProgress = useSurfaceProgress()
+  const fallback = useMotionValue(0)
+  const greetingOpacity = useTransform(surfaceProgress ?? fallback, [0, 0.04], [1, 0])
+
+  // Track whether the surface is "lowered" (past the halfway point) so
+  // the avatar can flip to the Perezoso logo face in sync with the reveal
+  // gesture. `null` means we're outside a surface context (e.g. desktop)
+  // and the avatar uses its default tap-driven flip.
+  const [surfaceFlipped, setSurfaceFlipped] = useState<boolean | undefined>(
+    surfaceProgress ? false : undefined
+  )
+  useEffect(() => {
+    if (!surfaceProgress) return
+    let last = false
+    setSurfaceFlipped(false)
+    return surfaceProgress.on('change', v => {
+      const isLowered = v > 0.5
+      if (isLowered !== last) {
+        last = isLowered
+        setSurfaceFlipped(isLowered)
+      }
+    })
+  }, [surfaceProgress])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
@@ -203,62 +397,81 @@ export default function DashboardSummaryHero({
     : `${savingsYr} ${t('dashboard.perYear')}`
 
   return (
-    <div
-      ref={ref}
-      className="sticky pb-5 bg-[#F7F8FA] dark:bg-[#121212]"
-      style={{ top: 'env(safe-area-inset-top)' }}
-    >
-      {/* Greeting + avatar */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[17px] font-bold text-black dark:text-[#F2F2F7]">
+    <div ref={heroRef} className="pb-5">
+      {/* Greeting + avatar — crossfades out during drag so the fixed
+          overlay (DashboardFixedGreeting) takes over at the viewport top. */}
+      <motion.div
+        className="flex items-center justify-between mb-3"
+        style={{ opacity: greetingOpacity }}
+      >
+        <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7]">
           {t('dashboard.greeting')} {name}.
         </p>
-        <UserAvatarMenu shareText={shareText} />
-      </div>
+        <UserAvatarMenu
+          shareText={shareText}
+          onTap={avatarTapOverride}
+          flipped={surfaceFlipped}
+        />
+      </motion.div>
 
-      {/* Main statement — tapping figures spawns money confetti */}
-      <p className="text-[40px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
-        {t('dashboard.spendStatement')}<br />
+      {/* Main statement — tapping figures spawns money confetti.
+          Narrative text in dark gray (#616161) at 25px, amounts in pure
+          black bumped +25px to 50px so the numbers stand out. */}
+      <p className="text-[25px] font-extrabold leading-[1.15] tracking-tight mb-3" style={{ maxWidth: '100%' }}>
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.spendStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{monthly}</span>
-        </button>.<br />
-        {t('dashboard.annualStatement')}<br />
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[50px]">{monthly}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span><br />
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.annualStatement')}</span><br />
         <button onClick={handleAmountTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">{annual}</span>
-        </button>.
+          <span className="text-[#000000] dark:text-[#F2F2F7] text-[50px]">{annual}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
       </p>
 
-      {/* Supporting statement */}
-      <p className="text-[18px] font-bold text-black dark:text-[#F2F2F7] leading-relaxed" style={{ maxWidth: '100%' }}>
-        {t('dashboard.youHave')}{' '}
+      {/* Supporting statement — three separate lines:
+          1. Tienes {total} suscripciones activas.
+          2. Compartes {sharedCount} suscripciones.
+          3. Reduces {savings} tu gasto al año (or al mes on tap). */}
+      <p className="text-[18px] font-bold leading-relaxed" style={{ maxWidth: '100%' }}>
+        {/* Line 1 — active subscriptions */}
+        <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youHave')}{' '}</span>
         <button onClick={handleSubsTap} className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform">
-          <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
-            {total} {total === 1 ? t('dashboard.activeSubscription') : t('dashboard.activeSubscriptions')}
-          </span>
-        </button>.
+          <span className="text-[#000000] dark:text-[#F2F2F7]">{total}</span>
+          <LogoStack urls={logoUrls} allUrls={logoUrls} />
+          <span className="text-[#616161] dark:text-[#8E8E93]">{total === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
+        </button>
+        <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
         {hasSave && (
           <>
-            {' '}{t('dashboard.youShare')}{' '}
-            <span className="text-[#3D3BF3] dark:text-[#8B89FF] whitespace-nowrap">
-              {sharedCount}&nbsp;{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}
-            </span>
-            {' '}{t('dashboard.andSave')}{' '}
+            <br />
+            {/* Line 2 — shared count with stacked logos */}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.youShare')}{' '}</span>
+            <span className="text-[#000000] dark:text-[#F2F2F7]">{sharedCount}</span>
+            <LogoStack urls={sharedLogoUrls} allUrls={sharedLogoUrls} />
+            <span className="text-[#616161] dark:text-[#8E8E93]">{sharedCount === 1 ? t('dashboard.subscriptionWord') : t('dashboard.subscriptionsWord')}</span>
+            <span className="text-[#616161] dark:text-[#8E8E93]">.</span>
+            <br />
+            {/* Line 3 — savings with monthly↔annual toggle */}
+            <span className="text-[#616161] dark:text-[#8E8E93]">{t('dashboard.reduceSpend')}{' '}</span>
             <button
               onClick={handleSavingsTap}
-              className="inline align-baseline cursor-pointer select-none"
+              className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform"
               aria-label="Cambiar entre ahorro mensual y anual"
             >
               {showSkeleton ? (
                 <span
-                  className="inline-block align-middle rounded-md bg-[#3D3BF3]/20 dark:bg-[#8B89FF]/20 animate-pulse"
-                  style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
+                  className="inline-block align-middle rounded-md bg-[#000000]/20 dark:bg-[#FFFFFF]/20 animate-pulse"
+                  style={{ width: '5ch', height: '1em', verticalAlign: 'baseline' }}
                 />
               ) : (
-                <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
-                  {savingsLabel}
+                <span className="text-[#000000] dark:text-[#F2F2F7]">
+                  {savingsPeriod === 'monthly' ? savingsMo : savingsYr}
                 </span>
               )}
-            </button>.
+            </button>
+            <span className="text-[#616161] dark:text-[#8E8E93]">{' '}{savingsPeriod === 'monthly' ? t('dashboard.yourSpendMonthly') : t('dashboard.yourSpendAnnual')}.</span>
           </>
         )}
       </p>
