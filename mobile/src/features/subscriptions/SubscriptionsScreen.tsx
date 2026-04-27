@@ -393,6 +393,15 @@ export function SubscriptionsScreen() {
     return sortSubscriptions(subs, sortMode);
   }, [subscriptions, sortMode, filter]);
 
+  const activeFiltered = useMemo(
+    () => filtered.filter((s) => s.status === 'active' || s.status === 'trial'),
+    [filtered],
+  );
+  const inactiveFiltered = useMemo(
+    () => filtered.filter((s) => s.status !== 'active' && s.status !== 'trial'),
+    [filtered],
+  );
+
   // Stats for the subtitle paragraph.
   // Active subs define the headline number; we always sum their
   // monthly-equivalent cost in EUR (my_monthly_cost is pre-converted).
@@ -683,7 +692,7 @@ export function SubscriptionsScreen() {
             listY.value = e.nativeEvent.layout.y;
           }}
         >
-          {filtered.map((sub, index) => (
+          {activeFiltered.map((sub, index) => (
             <ScrollCard
               key={sub.id}
               scrollY={scrollY}
@@ -701,6 +710,36 @@ export function SubscriptionsScreen() {
               )}
             </ScrollCard>
           ))}
+
+          {inactiveFiltered.length > 0 && (
+            <>
+              <View style={styles.inactiveSeparator}>
+                <View style={[styles.separatorLine, { backgroundColor: colors.borderLight }]} />
+                <Text style={[styles.separatorLabel, { color: colors.textMuted }]}>
+                  {t('subscriptions.inactive')}
+                </Text>
+                <View style={[styles.separatorLine, { backgroundColor: colors.borderLight }]} />
+              </View>
+              {inactiveFiltered.map((sub, index) => (
+                <ScrollCard
+                  key={sub.id}
+                  scrollY={scrollY}
+                  listY={listY}
+                  triggerY={triggerY}
+                  stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
+                >
+                  {lockedIds.has(sub.id) ? (
+                    <LockedWalletCard
+                      subscription={sub}
+                      onPress={() => usePaywallStore.getState().open('subscription_limit')}
+                    />
+                  ) : (
+                    <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
+                  )}
+                </ScrollCard>
+              ))}
+            </>
+          )}
 
           {filtered.length === 0 && (
             <View style={styles.empty}>
@@ -975,6 +1014,21 @@ const styles = StyleSheet.create({
   clearBtnText: {
     ...fontFamily.medium,
     fontSize: fontSize[15],
+  },
+  inactiveSeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+  },
+  separatorLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  separatorLabel: {
+    ...fontFamily.regular,
+    fontSize: fontSize[13],
   },
   // Custom dropdown menu — matches web SortDropdown/FilterDropdown.
   // Surface is absolutely positioned in window coords set by the
