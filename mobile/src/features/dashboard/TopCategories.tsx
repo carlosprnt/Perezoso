@@ -22,6 +22,7 @@ import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { categoryColors } from '../../design/colors';
+import { currencyToSymbol } from '../../lib/formatting';
 import { standard } from '../../motion/easing';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import type { CategoryRow } from './types';
@@ -71,7 +72,7 @@ function formatAmount(amount: number, currency: string): string {
   const num = amount % 1 === 0
     ? amount.toFixed(0)
     : amount.toFixed(2).replace('.', ',');
-  return currency === 'US$' ? `${num}US$` : `${num}\u20AC`;
+  return `${num}${currencyToSymbol(currency)}`;
 }
 
 export function TopCategories({ categories, currency = 'EUR' }: TopCategoriesProps) {

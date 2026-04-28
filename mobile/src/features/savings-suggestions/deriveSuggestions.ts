@@ -13,6 +13,7 @@
 
 import type { Subscription } from '../subscriptions/types';
 import { resolvePlatformLogoUrl } from '../../lib/constants/platforms';
+import { currencyToSymbol } from '../../lib/formatting';
 
 export type SuggestionKind = 'share' | 'annual';
 
@@ -57,8 +58,7 @@ interface CatalogEntry {
 }
 
 function fmt(n: number, currency: string): string {
-  const sym = currency === 'EUR' ? '\u20AC' : currency === 'USD' ? 'US$' : currency;
-  return `${n.toFixed(2).replace('.', ',')}${sym}`;
+  return `${n.toFixed(2).replace('.', ',')}${currencyToSymbol(currency)}`;
 }
 
 /** Build a "switch to a shared / family plan" suggestion. */

@@ -36,6 +36,7 @@ import {
   logOut as purchasesLogOut,
 } from '../services/purchases';
 import { isReviewAccount, REVIEW_SEED_SUBSCRIPTIONS } from '../lib/reviewAccount';
+import { currencyCodeFromLabel } from '../lib/formatting';
 
 export type Mode = 'real' | 'demo';
 
@@ -276,6 +277,8 @@ useSubscriptionsStore.subscribe((state, prev) => {
 
   if (widgetSyncTimer) clearTimeout(widgetSyncTimer);
   widgetSyncTimer = setTimeout(() => {
-    void syncWidgetData(state.subscriptions, 'EUR');
+    const { usePreferencesStore } = require('../features/settings/useSettingsStore');
+    const cur = currencyCodeFromLabel(usePreferencesStore.getState().currency);
+    void syncWidgetData(state.subscriptions, cur);
   }, 500);
 });

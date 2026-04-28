@@ -42,7 +42,7 @@ import {
   useDashboardReveal,
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
-import { useSettingsStore } from '../settings/useSettingsStore';
+import { useSettingsStore, usePreferencesStore } from '../settings/useSettingsStore';
 import { useAuthStore } from '../auth/useAuthStore';
 import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
 import { useToastStore } from '../../components/useToastStore';
@@ -57,6 +57,7 @@ import { DashboardEmptyState } from './DashboardEmptyState';
 
 import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
+import { currencyCodeFromLabel } from '../../lib/formatting';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useCalendarStore } from '../calendar/useCalendarStore';
@@ -101,16 +102,18 @@ export function DashboardScreen() {
   const isEmpty = subscriptions.length === 0;
   // Real count of yearly-billing subs — drives the "Avísame" reminder
   // card's visibility (no annuals → don't render the card at all).
+  const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
+  const globalCurrency = React.useMemo(() => currencyCodeFromLabel(globalCurrencyLabel), [globalCurrencyLabel]);
   const annualCount = React.useMemo(
     () => subscriptions.filter((s) => s.billing_period === 'yearly').length,
     [subscriptions],
   );
-  const stats            = React.useMemo(() => deriveStats(subscriptions),            [subscriptions]);
+  const stats            = React.useMemo(() => deriveStats(subscriptions, globalCurrency),            [subscriptions, globalCurrency]);
   const renewals         = React.useMemo(() => deriveRenewals(subscriptions),         [subscriptions]);
   const topExpensive     = React.useMemo(() => deriveTopExpensive(subscriptions),     [subscriptions]);
   const categories       = React.useMemo(() => deriveCategories(subscriptions),       [subscriptions]);
   const highestCost      = React.useMemo(() => deriveHighestCost(subscriptions),      [subscriptions]);
-  const topCategory      = React.useMemo(() => deriveTopCategory(subscriptions),      [subscriptions]);
+  const topCategory      = React.useMemo(() => deriveTopCategory(subscriptions, globalCurrency),      [subscriptions, globalCurrency]);
   const logoUrls         = React.useMemo(() => deriveLogoUrls(subscriptions),         [subscriptions]);
   const sharedLogoUrls   = React.useMemo(() => deriveSharedLogoUrls(subscriptions),   [subscriptions]);
   const savingsSuggestions = React.useMemo(() => deriveSavingsSuggestions(subscriptions), [subscriptions]);

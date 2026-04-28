@@ -10,14 +10,50 @@ export const MONTHS_ES_SHORT = [
   'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
 ];
 
+// ─── Currency symbol resolution ─────────────────────────────────────
+
+const SYMBOL_MAP: Record<string, string> = {
+  EUR: '€', USD: '$', GBP: '£', JPY: '¥', CAD: 'C$', AUD: 'A$',
+  BRL: 'R$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', HKD: 'HK$',
+  HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', KRW: '₩', MXN: '$',
+  NOK: 'kr', NZD: 'NZ$', PEN: 'S/.', PLN: 'zł', RUB: '₽', SEK: 'kr',
+  SGD: 'S$', THB: '฿', TRY: '₺', TWD: 'NT$', ARS: '$', CLP: '$',
+  COP: '$', UYU: '$U', ZAR: 'R',
+};
+
+export function currencyToSymbol(code: string): string {
+  return SYMBOL_MAP[code] ?? code;
+}
+
+export function currencyCodeFromLabel(label: string): string {
+  const parts = label.trim().split(' ');
+  return parts[parts.length - 1] || 'EUR';
+}
+
 // ─── Price / money ──────────────────────────────────────────────────
 
 export function formatPrice(amount: number, currency: string): string {
   const parts = amount.toFixed(2).split('.');
   const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const decPart = parts[1];
-  const symbol = currency === 'US$' ? 'US$' : '€';
+  const symbol = currencyToSymbol(currency);
   return `${intPart},${decPart}${symbol}`;
+}
+
+export function formatMoney(
+  amount: number,
+  currency: string,
+  opts?: { trimZeros?: boolean; thousandSep?: boolean },
+): string {
+  let formatted = amount.toFixed(2).replace('.', ',');
+  if (opts?.trimZeros && formatted.endsWith(',00')) {
+    formatted = formatted.slice(0, -3);
+  }
+  if (opts?.thousandSep) {
+    const [int, dec] = formatted.split(',');
+    formatted = `${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}${dec ? ',' + dec : ''}`;
+  }
+  return `${formatted}${currencyToSymbol(currency)}`;
 }
 
 // ─── Billing ────────────────────────────────────────────────────────

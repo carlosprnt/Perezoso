@@ -40,6 +40,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { useTheme } from '../../design/useTheme';
 import { haptic } from '../../lib/haptics';
+import { currencyToSymbol } from '../../lib/formatting';
 import { useGmailImportStore } from './useGmailImportStore';
 import { promptGmailAuth, searchSubscriptionEmails } from '../../services/gmail';
 import { detectSubscriptions } from './gmailDetection';
@@ -361,7 +362,7 @@ export function GmailImportSheet() {
                       </Text>
                       <Text style={[styles.resultMeta, { color: textSecondary }]} numberOfLines={1}>
                         {sub.price_amount != null
-                          ? `${sub.price_amount.toFixed(2).replace('.', ',')}${sub.currency === 'EUR' ? '€' : sub.currency === 'USD' ? '$' : sub.currency} · ${t(BILLING_LABEL_KEYS[sub.billing_period])}`
+                          ? `${sub.price_amount.toFixed(2).replace('.', ',')}${currencyToSymbol(sub.currency ?? 'EUR')} · ${t(BILLING_LABEL_KEYS[sub.billing_period])}`
                           : sub.source_hint}
                       </Text>
                     </View>
