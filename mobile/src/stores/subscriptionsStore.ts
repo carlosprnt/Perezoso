@@ -35,6 +35,7 @@ import {
   fetchIsPro,
   logOut as purchasesLogOut,
 } from '../services/purchases';
+import { isReviewAccount, REVIEW_SEED_SUBSCRIPTIONS } from '../lib/reviewAccount';
 
 export type Mode = 'real' | 'demo';
 
@@ -201,13 +202,19 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
 // change (renewal, cancellation, restore) straight into `isPlusActive`.
 let unsubscribePurchases: (() => void) | null = null;
 
-function bootstrapPurchases(userId: string | undefined) {
+function bootstrapPurchases(userId: string | undefined, email?: string | null) {
+  const reviewMode = isReviewAccount(email);
   (async () => {
     await configurePurchases(userId);
-    const isPro = await fetchIsPro();
-    useSubscriptionsStore.setState({ isPlusActive: isPro });
+    if (reviewMode) {
+      useSubscriptionsStore.setState({ isPlusActive: true });
+    } else {
+      const isPro = await fetchIsPro();
+      useSubscriptionsStore.setState({ isPlusActive: isPro });
+    }
     unsubscribePurchases?.();
     unsubscribePurchases = addCustomerInfoListener((pro) => {
+      if (reviewMode) return;
       useSubscriptionsStore.setState({ isPlusActive: pro });
     });
   })();
@@ -216,17 +223,40 @@ function bootstrapPurchases(userId: string | undefined) {
 // Cold-boot case: if the app is opened with a persisted session, the
 // status is already 'authenticated' by the time this subscribe runs,
 // so the event-based branch never fires. Bootstrap RC here too.
+async function seedReviewDataIfNeeded(userId: string) {
+  const current = useSubscriptionsStore.getState().subscriptions;
+  if (current.length > 0) return;
+  for (const seed of REVIEW_SEED_SUBSCRIPTIONS) {
+    try {
+      const inserted = await insertSubscription(userId, seed);
+      useSubscriptionsStore.setState((s) => ({
+        subscriptions: [...s.subscriptions, inserted],
+      }));
+    } catch (_) { /* best-effort — skip duplicates */ }
+  }
+}
+
 const initialAuth = useAuthStore.getState();
 if (initialAuth.status === 'authenticated') {
-  bootstrapPurchases(initialAuth.user?.id);
+  bootstrapPurchases(initialAuth.user?.id, initialAuth.user?.email);
+  if (isReviewAccount(initialAuth.user?.email) && initialAuth.user?.id) {
+    useSubscriptionsStore.getState().loadFromSupabase().then(() => {
+      void seedReviewDataIfNeeded(initialAuth.user!.id);
+    });
+  }
 }
 
 useAuthStore.subscribe((state, prev) => {
   if (state.status === prev.status) return;
 
   if (state.status === 'authenticated') {
-    useSubscriptionsStore.getState().useRealMode();
-    bootstrapPurchases(state.user?.id);
+    const email = state.user?.email;
+    useSubscriptionsStore.getState().useRealMode().then(() => {
+      if (isReviewAccount(email) && state.user?.id) {
+        void seedReviewDataIfNeeded(state.user.id);
+      }
+    });
+    bootstrapPurchases(state.user?.id, email);
   } else if (state.status === 'unauthenticated') {
     useSubscriptionsStore.getState().clear();
     unsubscribePurchases?.();
