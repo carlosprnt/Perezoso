@@ -398,7 +398,7 @@ export function AddSubscriptionOverlay() {
                 <View style={styles.findSubsPanel}>
                   <View style={styles.findSubsHeader}>
                     <Pressable onPress={() => { setShowFindSubs(false); setSearchQuery(''); }} hitSlop={8}>
-                      <Text style={styles.findSubsBack}>←</Text>
+                      <X size={18} color="#FFFFFF" strokeWidth={2.5} />
                     </Pressable>
                     <Text style={styles.findSubsTitle}>{t('findSubs.title')}</Text>
                     <View style={{ width: 24 }} />
@@ -407,18 +407,18 @@ export function AddSubscriptionOverlay() {
                   {/* Gmail — disabled */}
                   <Pressable style={[styles.findSubsRow, styles.findSubsRowDisabled]} disabled>
                     <View style={styles.findSubsIconWrap}>
-                      <Mail size={18} color="rgba(255,255,255,0.3)" strokeWidth={2} />
+                      <Mail size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
                     </View>
                     <View style={styles.findSubsTextCol}>
                       <View style={styles.findSubsLabelRow}>
-                        <Text style={[styles.findSubsRowTitle, { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[styles.findSubsRowTitle, { color: 'rgba(255,255,255,0.5)' }]}>
                           {t('findSubs.gmail')}
                         </Text>
                         <View style={styles.findSubsBadge}>
                           <Text style={styles.findSubsBadgeText}>{t('findSubs.gmailSoon')}</Text>
                         </View>
                       </View>
-                      <Text style={[styles.findSubsRowDesc, { color: 'rgba(255,255,255,0.2)' }]}>
+                      <Text style={[styles.findSubsRowDesc, { color: 'rgba(255,255,255,0.4)' }]}>
                         {t('findSubs.gmailDesc')}
                       </Text>
                     </View>
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
   },
   morph: {
     position: 'absolute',
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   findSubsRowDisabled: {
-    opacity: 0.45,
+    opacity: 0.55,
   },
   findSubsIconWrap: {
     width: 36,

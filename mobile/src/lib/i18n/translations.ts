@@ -287,7 +287,7 @@ export const resources = {
       'form.reminder.7days': '7 días antes',
 
       // ── Find subscriptions sheet ──
-      'findSubs.search': 'Buscar',
+      'findSubs.search': 'Encontrar',
       'findSubs.title': 'Buscar suscripciones',
       'findSubs.subtitle': 'Encuentra suscripciones que ya estás pagando',
       'findSubs.gmail': 'Buscar en Gmail',
@@ -823,7 +823,7 @@ export const resources = {
       'form.reminder.7days': '7 days before',
 
       // ── Find subscriptions sheet ──
-      'findSubs.search': 'Search',
+      'findSubs.search': 'Find',
       'findSubs.title': 'Find subscriptions',
       'findSubs.subtitle': 'Find subscriptions you are already paying for',
       'findSubs.gmail': 'Search Gmail',
