@@ -182,7 +182,6 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
 
           {/* Status badge */}
           <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22` }]}>
-            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
             <Text style={[styles.statusBadgeText, { color: statusColor }]}>
               {STATUS_LABELS[sub.status]}
             </Text>
