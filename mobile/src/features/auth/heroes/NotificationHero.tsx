@@ -25,6 +25,7 @@ import { BlurView } from 'expo-blur';
 import { Bell, Check } from 'lucide-react-native';
 
 import { useTheme } from '../../../design/useTheme';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize, lineHeight } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -49,11 +50,11 @@ const ROWS_START = 1700;
 const ROW_STAGGER = 220;
 
 const NOTIF_SUBS = [
-  { domain: 'netflix.com',    name: 'Netflix',          days: '3 días' },
-  { domain: 'spotify.com',    name: 'Spotify Premium',  days: '12 días' },
-  { domain: 'disneyplus.com', name: 'Disney+',          days: '15 días' },
-  { domain: 'youtube.com',    name: 'YouTube Premium',  days: '8 días' },
-  { domain: 'amazon.com',     name: 'Amazon Prime',     days: '21 días' },
+  { domain: 'netflix.com',    name: 'Netflix',          days: 3 },
+  { domain: 'spotify.com',    name: 'Spotify Premium',  days: 12 },
+  { domain: 'disneyplus.com', name: 'Disney+',          days: 15 },
+  { domain: 'youtube.com',    name: 'YouTube Premium',  days: 8 },
+  { domain: 'amazon.com',     name: 'Amazon Prime',     days: 21 },
 ];
 
 interface Props {
@@ -200,6 +201,7 @@ export function NotificationHero({ parallax }: Props) {
     transform: [{ translateY: shiftY.value }],
   }));
 
+  const t = useT();
   const { colors } = useTheme();
   const accentGreen = '#30D158';
 
@@ -218,10 +220,10 @@ export function NotificationHero({ parallax }: Props) {
               <Bell size={28} color={colors.textPrimary} strokeWidth={1.8} />
             </Animated.View>
             <Text style={[styles.promptTitle, { color: colors.textPrimary }]}>
-              Activa avisos de renovación
+              {t('onboarding.hero.enableAlerts')}
             </Text>
             <Text style={[styles.promptBody, { color: colors.textSecondary }]}>
-              Recibe una alerta 7 días antes de cada cobro automático
+              {t('onboarding.hero.alertBody')}
             </Text>
             <Animated.View
               style={[
@@ -233,12 +235,12 @@ export function NotificationHero({ parallax }: Props) {
               <Animated.Text
                 style={[styles.ctaBtnText, { color: colors.background }, btnLabelStyle]}
               >
-                Avísame 7 días antes
+                {t('onboarding.hero.alertBtn')}
               </Animated.Text>
               <Animated.View style={[styles.ctaDoneWrap, btnDoneStyle]}>
                 <Check size={16} color={colors.background} strokeWidth={2.5} />
                 <Text style={[styles.ctaBtnText, { color: colors.background }]}>
-                  {' '}Activado
+                  {' '}{t('onboarding.hero.alertEnabled')}
                 </Text>
               </Animated.View>
             </Animated.View>
@@ -281,6 +283,7 @@ function NotifRow({
   colors: Record<string, string>;
   accentGreen: string;
 }) {
+  const t = useT();
   const style = useAnimatedStyle(() => ({
     opacity: scale.value,
     transform: [{ scale: interpolate(scale.value, [0, 1], [0.88, 1], Extrapolation.CLAMP) }],
@@ -298,7 +301,7 @@ function NotifRow({
           {sub.name}
         </Text>
         <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>
-          Renueva en {sub.days}
+          {t('onboarding.hero.renewsIn')} {sub.days} {t('onboarding.hero.days')}
         </Text>
       </View>
       <View style={[styles.badge, { backgroundColor: accentGreen }]}>
