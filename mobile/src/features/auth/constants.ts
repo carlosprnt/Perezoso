@@ -43,50 +43,32 @@ export const LEGAL = {
 // hunting across hero files.
 
 export const MOCK_DASHBOARD = {
-  greeting: 'Hola, Carlos.',
-  monthlyLabel: 'Al mes gastas',
+  greetingKey: 'onboarding.hero.greeting',
+  monthlyLabelKey: 'onboarding.hero.monthlyLabel',
   monthlyAmount: '148,33€',
-  yearlyLabel: 'Eso al año es',
+  yearlyLabelKey: 'onboarding.hero.yearlyLabel',
   yearlyAmount: '1.779,96€',
   activeCount: 11,
   shareDiscount: '4,17€',
-  reminderBody: 'Podrías evitar 3 renovaciones anuales por sorpresa si activas avisos 7 días antes.',
+  reminderBodyKey: 'onboarding.hero.reminderBody',
 } as const;
 
 export const MOCK_RENEWALS_STATS = {
-  topSpend: { label: 'Mayor gasto', name: 'Amazon Prime', sub: '30,00€ al mes · Otros' },
-  topCategory: { label: 'Categoría principal', name: 'Otros', sub: '53,00€ al mes · 2 suscr.' },
-  shared: { label: 'Planes compartidos', name: '1 plan', sub: 'Ahorrando 8,33€ al mes' },
-  nextRenewal: { label: 'Próxima renovación', name: 'Notion', sub: 'En 3 días · 20,00€' },
+  topSpend: { labelKey: 'onboarding.hero.topSpend', name: 'Amazon Prime' },
+  topCategory: { labelKey: 'onboarding.hero.topCategory' },
+  shared: { labelKey: 'onboarding.hero.sharedPlans' },
+  nextRenewal: { labelKey: 'onboarding.hero.nextRenewal', name: 'Notion' },
 } as const;
 
 export const MOCK_SAVINGS = [
-  {
-    domain: 'apple.com/apple-tv-plus',
-    amount: '120,00€',
-    body: 'si cambias Apple TV+ a un plan compartido.',
-  },
-  {
-    domain: '__bundle__',
-    amount: '94,20€',
-    body: 'si agrupas algunos de tus servicios.',
-  },
-  {
-    domain: 'apple.com/apple-music',
-    amount: '66,00€',
-    body: 'si cambias Apple Music a un plan compartido.',
-  },
-  {
-    domain: 'amazon.com/prime',
-    amount: '60,00€',
-    body: 'si pasas Amazon Prime al plan anual.',
-  },
+  { domain: 'apple.com/apple-tv-plus', amount: '120,00€', bodyKey: 'onboarding.hero.savingsBody1' },
+  { domain: '__bundle__', amount: '94,20€', bodyKey: 'onboarding.hero.savingsBody2' },
+  { domain: 'apple.com/apple-music', amount: '66,00€', bodyKey: 'onboarding.hero.savingsBody3' },
+  { domain: 'amazon.com/prime', amount: '60,00€', bodyKey: 'onboarding.hero.savingsBody4' },
 ] as const;
 
 export const MOCK_CALENDAR = {
-  monthName: 'Abril',
-  totalLabel: '476,58€ total',
-  renewalsLabel: '11 renovaciones',
+  monthNameKey: 'onboarding.hero.calendarMonth',
   // Start weekday of Apr 1 = Wednesday (iOS Spanish locale, Lun-first)
   firstWeekdayIndex: 2,
   daysInMonth: 30,
@@ -125,14 +107,14 @@ export const FLOATING_LOGOS = [
 // 10 most recognisable services — varied categories so the hero
 // feels universal rather than tied to one vertical.
 export const MOCK_SUBSCRIPTIONS = [
-  { domain: 'netflix.com',              name: 'Netflix',          price: '12,99€', period: 'mes', renewsIn: '3 días' },
-  { domain: 'spotify.com',              name: 'Spotify Premium',  price: '10,99€', period: 'mes', renewsIn: '12 días' },
-  { domain: 'youtube.com',              name: 'YouTube Premium',  price: '13,99€', period: 'mes', renewsIn: '8 días' },
-  { domain: 'amazon.com',               name: 'Amazon Prime',     price: '4,99€',  period: 'mes', renewsIn: '21 días' },
-  { domain: 'disneyplus.com',           name: 'Disney+',          price: '8,99€',  period: 'mes', renewsIn: '15 días' },
-  { domain: 'max.com',                  name: 'Max',              price: '9,99€',  period: 'mes', renewsIn: '5 días' },
-  { domain: 'apple.com/apple-music',    name: 'Apple Music',      price: '10,99€', period: 'mes', renewsIn: '18 días' },
-  { domain: 'icloud.com',               name: 'iCloud+',          price: '2,99€',  period: 'mes', renewsIn: '26 días' },
-  { domain: 'openai.com',               name: 'ChatGPT Plus',     price: '20,00€', period: 'mes', renewsIn: '9 días' },
-  { domain: 'figma.com',                name: 'Figma',            price: '15,00€', period: 'mes', renewsIn: '2 días' },
+  { domain: 'netflix.com',              name: 'Netflix',          price: '12,99€', renewDays: 3 },
+  { domain: 'spotify.com',              name: 'Spotify Premium',  price: '10,99€', renewDays: 12 },
+  { domain: 'youtube.com',              name: 'YouTube Premium',  price: '13,99€', renewDays: 8 },
+  { domain: 'amazon.com',               name: 'Amazon Prime',     price: '4,99€',  renewDays: 21 },
+  { domain: 'disneyplus.com',           name: 'Disney+',          price: '8,99€',  renewDays: 15 },
+  { domain: 'max.com',                  name: 'Max',              price: '9,99€',  renewDays: 5 },
+  { domain: 'apple.com/apple-music',    name: 'Apple Music',      price: '10,99€', renewDays: 18 },
+  { domain: 'icloud.com',               name: 'iCloud+',          price: '2,99€',  renewDays: 26 },
+  { domain: 'openai.com',               name: 'ChatGPT Plus',     price: '20,00€', renewDays: 9 },
+  { domain: 'figma.com',                name: 'Figma',            price: '15,00€', renewDays: 2 },
 ] as const;

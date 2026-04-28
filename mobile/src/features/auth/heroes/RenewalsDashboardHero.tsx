@@ -16,6 +16,7 @@ import { Bell, TrendingUp, Package, Users, AlertCircle } from 'lucide-react-nati
 import { fontFamily, fontSize, lineHeight } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { MOCK_RENEWALS_STATS } from '../constants';
 import { PhoneFrame } from './PhoneFrame';
 
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function RenewalsDashboardHero({ parallax }: Props) {
+  const t = useT();
   const heroStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: parallax.value * 22 },
@@ -54,15 +56,15 @@ export function RenewalsDashboardHero({ parallax }: Props) {
               <Bell size={18} color="#4F46E5" strokeWidth={2.3} />
             </View>
             <Text style={styles.reminderText}>
-              Podrías evitar <Text style={styles.reminderBold}>3 renovaciones anuales</Text> por sorpresa si activas avisos 7 días antes.
+              {t('onboarding.hero.reminderBody')}
             </Text>
           </View>
           <View style={styles.reminderActions}>
             <View style={styles.reminderBtnGhost}>
-              <Text style={styles.reminderBtnGhostText}>No me interesa</Text>
+              <Text style={styles.reminderBtnGhostText}>{t('onboarding.hero.dismiss')}</Text>
             </View>
             <View style={styles.reminderBtnSolid}>
-              <Text style={styles.reminderBtnSolidText}>Avisarme 7 días antes</Text>
+              <Text style={styles.reminderBtnSolidText}>{t('onboarding.hero.enableReminder')}</Text>
             </View>
           </View>
         </View>
@@ -72,17 +74,17 @@ export function RenewalsDashboardHero({ parallax }: Props) {
           <View style={styles.statRow}>
             <StatCell
               icon={<TrendingUp size={15} color="#000" strokeWidth={2.2} />}
-              label={MOCK_RENEWALS_STATS.topSpend.label}
+              label={t(MOCK_RENEWALS_STATS.topSpend.labelKey)}
               value={MOCK_RENEWALS_STATS.topSpend.name}
-              sub={MOCK_RENEWALS_STATS.topSpend.sub}
+              sub={`30,00€ ${t('onboarding.hero.perMonthLong')}`}
               bgColor="#F2F2F4"
             />
             <View style={styles.statDivider} />
             <StatCell
               icon={<Package size={15} color="#000" strokeWidth={2.2} />}
-              label={MOCK_RENEWALS_STATS.topCategory.label}
-              value={MOCK_RENEWALS_STATS.topCategory.name}
-              sub={MOCK_RENEWALS_STATS.topCategory.sub}
+              label={t(MOCK_RENEWALS_STATS.topCategory.labelKey)}
+              value={t('onboarding.hero.other')}
+              sub={t('onboarding.hero.subsAbbr')}
               bgColor="#F2F2F4"
             />
           </View>
@@ -90,24 +92,24 @@ export function RenewalsDashboardHero({ parallax }: Props) {
           <View style={styles.statRow}>
             <StatCell
               icon={<Users size={15} color="#2563EB" strokeWidth={2.4} />}
-              label={MOCK_RENEWALS_STATS.shared.label}
-              value={MOCK_RENEWALS_STATS.shared.name}
-              sub={MOCK_RENEWALS_STATS.shared.sub}
+              label={t(MOCK_RENEWALS_STATS.shared.labelKey)}
+              value={t('onboarding.hero.plan')}
+              sub={`8,33€ ${t('onboarding.hero.perMonthLong')}`}
               bgColor="#DBEAFE"
             />
             <View style={styles.statDivider} />
             <StatCell
               icon={<AlertCircle size={15} color="#D97706" strokeWidth={2.4} />}
-              label={MOCK_RENEWALS_STATS.nextRenewal.label}
+              label={t(MOCK_RENEWALS_STATS.nextRenewal.labelKey)}
               value={MOCK_RENEWALS_STATS.nextRenewal.name}
-              sub={MOCK_RENEWALS_STATS.nextRenewal.sub}
+              sub={t('onboarding.hero.in3days')}
               bgColor="#FEF3C7"
             />
           </View>
         </View>
 
         {/* Partial hint of next section (fades under mask) */}
-        <Text style={styles.nextSection}>Próximas renovaciones</Text>
+        <Text style={styles.nextSection}>{t('onboarding.hero.upcomingRenewals')}</Text>
       </PhoneFrame>
     </Animated.View>
   );

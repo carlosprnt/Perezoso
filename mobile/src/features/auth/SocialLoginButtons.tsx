@@ -12,6 +12,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { haptic } from '../../lib/haptics';
 import { GoogleGlyph, AppleGlyph } from './icons/BrandGlyphs';
+import { useT } from '../../lib/i18n/LocaleProvider';
 
 interface Props {
   onPressGoogle: () => void;
@@ -25,6 +26,7 @@ export function SocialLoginButtons({
   appleDisabled = true,
 }: Props) {
   const { colors, isDark } = useTheme();
+  const t = useT();
 
   const primaryBg = colors.surface;
   const primaryBorder = colors.borderLight;
@@ -48,13 +50,13 @@ export function SocialLoginButtons({
             pressed && { opacity: 0.85 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Continuar con Google"
+          accessibilityLabel="{t('onboarding.continueGoogle')}"
         >
           <View style={styles.glyph}>
             <GoogleGlyph size={20} />
           </View>
           <Text style={[styles.btnText, { color: primaryText }]}>
-            Continuar con Google
+            {t('onboarding.continueGoogle')}
           </Text>
         </Pressable>
       </Animated.View>
@@ -72,13 +74,13 @@ export function SocialLoginButtons({
             pressed && { opacity: 0.85 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Continuar con Apple"
+          accessibilityLabel="{t('onboarding.continueApple')}"
         >
           <View style={styles.glyph}>
             <AppleGlyph size={20} color={secondaryText} />
           </View>
           <Text style={[styles.btnText, { color: secondaryText }]}>
-            Continuar con Apple
+            {t('onboarding.continueApple')}
           </Text>
         </Pressable>
       </Animated.View>

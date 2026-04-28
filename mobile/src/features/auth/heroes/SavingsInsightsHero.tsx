@@ -23,6 +23,7 @@ import { BlurView } from 'expo-blur';
 import { X, HandCoins } from 'lucide-react-native';
 
 import { useTheme } from '../../../design/useTheme';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -46,17 +47,17 @@ const INSIGHTS = [
   {
     domain: 'apple.com/apple-tv-plus',
     amount: '120,00€',
-    body: 'si cambias Apple TV+ a un plan compartido.',
+    bodyKey: 'onboarding.hero.savingsBody1',
   },
   {
     domain: '__bundle__',
     amount: '94,20€',
-    body: 'si agrupas algunos de tus servicios.',
+    bodyKey: 'onboarding.hero.savingsBody2',
   },
   {
     domain: 'apple.com/apple-music',
     amount: '66,00€',
-    body: 'si cambias Apple Music a un plan compartido.',
+    bodyKey: 'onboarding.hero.savingsBody3',
   },
 ];
 
@@ -141,6 +142,7 @@ export function SavingsInsightsHero({ parallax }: Props) {
     transform: [{ translateY: containerY.value }],
   }));
 
+  const t = useT();
   const { colors } = useTheme();
 
   return (
@@ -153,7 +155,7 @@ export function SavingsInsightsHero({ parallax }: Props) {
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
-            Sugerencias de ahorro
+            {t('onboarding.hero.savingsTitle')}
           </Text>
           <View style={[styles.closeBtn, { backgroundColor: 'rgba(0,0,0,0.04)' }]}>
             <X size={12} color={colors.textMuted} strokeWidth={2.4} />
@@ -192,6 +194,7 @@ function InsightCard({
   scale: SharedValue<number>;
   colors: Record<string, string>;
 }) {
+  const t = useT();
   const isBundle = insight.domain === '__bundle__';
 
   const style = useAnimatedStyle(() => ({
@@ -229,15 +232,15 @@ function InsightCard({
           )}
         </View>
         <Text style={[styles.body, { color: colors.textSecondary }]}>
-          Podrías ahorrar hasta{' '}
+          {t('onboarding.hero.savingsUpTo')}{' '}
           <Text style={[styles.bodyBold, { color: colors.textPrimary }]}>
             {insight.amount}
           </Text>{' '}
-          al año {insight.body}
+          {t('onboarding.hero.savingsPerYear')} {t(insight.bodyKey)}
         </Text>
       </View>
       <View style={[styles.ctaPill, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.ctaText, { color: colors.textPrimary }]}>Ver más</Text>
+        <Text style={[styles.ctaText, { color: colors.textPrimary }]}>{t('onboarding.hero.seeMore')}</Text>
       </View>
     </Animated.View>
   );

@@ -23,6 +23,7 @@ import { BlurView } from 'expo-blur';
 import { TrendingUp, Users, Bot } from 'lucide-react-native';
 
 import { useTheme } from '../../../design/useTheme';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -153,6 +154,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
     return { text: formatEur(val) } as any;
   });
 
+  const t = useT();
   const { colors, isDark } = useTheme();
   const labelColor = isDark ? '#8E8E93' : '#616161';
   const iconBg = isDark ? '#2C2C2E' : '#F5F5F5';
@@ -194,7 +196,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
           {/* Greeting + avatar */}
           <View style={styles.greetingRow}>
             <Text style={[styles.greeting, { color: colors.textPrimary }]}>
-              Hola, Perezoso.
+              {t('onboarding.hero.greeting')}
             </Text>
             <Image
               source={require('../../../../assets/logo.png')}
@@ -205,7 +207,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
 
           {/* Monthly */}
           <Text style={[styles.heroLabel, { color: labelColor }]}>
-            Al mes gastas
+            {t('onboarding.hero.monthlyLabel')}
           </Text>
           <AnimatedTextInput
             editable={false}
@@ -218,7 +220,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
 
           {/* Annual */}
           <Text style={[styles.heroLabel, styles.heroLabelSecond, { color: labelColor }]}>
-            Eso al año es
+            {t('onboarding.hero.yearlyLabel')}
           </Text>
           <AnimatedTextInput
             editable={false}
@@ -231,7 +233,7 @@ export function DashboardPreviewHero({ parallax }: Props) {
 
           {/* Supporting text */}
           <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-            Tienes <Text style={styles.supportBold}>11</Text> suscripciones.
+            {t('onboarding.hero.haveSubs')} <Text style={styles.supportBold}>11</Text> {t('onboarding.hero.subscriptions')}
           </Text>
 
           {/* Insight cards */}
@@ -241,12 +243,12 @@ export function DashboardPreviewHero({ parallax }: Props) {
                 <TrendingUp size={18} strokeWidth={2} color={iconColor} />
               </View>
               <View style={styles.insightInfo}>
-                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Mayor gasto</Text>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>{t('onboarding.hero.topSpend')}</Text>
                 <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>Amazon Prime</Text>
               </View>
               <View style={styles.insightRight}>
                 <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>30,00€</Text>
-                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>Otros</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>{t('onboarding.hero.other')}</Text>
               </View>
             </View>
 
@@ -255,12 +257,12 @@ export function DashboardPreviewHero({ parallax }: Props) {
                 <Bot size={18} strokeWidth={2} color={catIconColor} />
               </View>
               <View style={styles.insightInfo}>
-                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Categoría principal</Text>
-                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>Otros</Text>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>{t('onboarding.hero.topCategory')}</Text>
+                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>{t('onboarding.hero.other')}</Text>
               </View>
               <View style={styles.insightRight}>
                 <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>53,00€</Text>
-                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>2 suscr.</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>{t('onboarding.hero.subsAbbr')}</Text>
               </View>
             </View>
 
@@ -269,12 +271,12 @@ export function DashboardPreviewHero({ parallax }: Props) {
                 <Users size={18} strokeWidth={2} color={iconColor} />
               </View>
               <View style={styles.insightInfo}>
-                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Planes compartidos</Text>
-                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>1 plan</Text>
+                <Text style={[styles.insightLabel, { color: colors.textMuted }]}>{t('onboarding.hero.sharedPlans')}</Text>
+                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>{t('onboarding.hero.plan')}</Text>
               </View>
               <View style={styles.insightRight}>
                 <Text style={[styles.insightRightTop, { color: colors.textPrimary }]}>8,33€</Text>
-                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>/mes</Text>
+                <Text style={[styles.insightRightBot, { color: colors.textMuted }]}>{t('onboarding.hero.perMonth')}</Text>
               </View>
             </View>
           </View>
