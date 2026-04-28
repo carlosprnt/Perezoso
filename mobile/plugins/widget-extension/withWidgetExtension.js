@@ -141,11 +141,9 @@ function withWidgetExtension(config) {
     const mainBundleId = c.ios?.bundleIdentifier ?? "com.perezoso.app";
     const widgetBundleId = mainBundleId + "." + WIDGET_NAME;
 
-    // Add empty PBX group (files added individually below to avoid
-    // double-pathing — the group already provides the directory prefix).
+    // Add PBX group for organisation in Xcode sidebar (no files — they
+    // are wired to the build phase separately to avoid path doubling).
     const widgetGroup = project.addPbxGroup([], WIDGET_NAME, WIDGET_NAME);
-
-    // Add group to main project
     const mainGroupId = project.getFirstProject().firstProject.mainGroup;
     project.addToPbxGroup(widgetGroup.uuid, mainGroupId);
 
@@ -157,26 +155,24 @@ function withWidgetExtension(config) {
       widgetBundleId
     );
 
-    // Add Swift source files to the widget target build phase.
-    // Path is just the filename — the group's own path ("PerezozoWidgets")
-    // provides the directory, so the resolved path is
-    // PerezozoWidgets/<file>.swift (NOT PerezozoWidgets/PerezozoWidgets/<file>.swift).
+    // Add Swift source files to the widget target.
+    // Use full path from project root and do NOT pass a group UUID —
+    // this prevents the xcode package from resolving group.path + file.path
+    // which was producing PerezozoWidgets/PerezozoWidgets/file.swift.
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
-        file,
-        { target: widgetTarget.uuid },
-        widgetGroup.uuid
+        `${WIDGET_NAME}/${file}`,
+        { target: widgetTarget.uuid }
       );
     }
 
-    // Add bridge files to main target
+    // Add bridge files to main target (full path from project root).
     const mainTarget = project.getFirstTarget();
     const mainAppName = c.modRequest.projectName || "Perezoso";
     for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        file,
-        { target: mainTarget.uuid },
-        project.getFirstProject().firstProject.mainGroup
+        `${mainAppName}/${file}`,
+        { target: mainTarget.uuid }
       );
     }
 
