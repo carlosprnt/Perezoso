@@ -21,7 +21,6 @@
       "bundleIdentifier": "com.perezoso.app",
       "entitlements": {
         "com.apple.developer.applesignin": [
-          "Default",
           "Default"
         ],
         "com.apple.security.application-groups": [
