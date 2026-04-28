@@ -199,12 +199,14 @@ function withWidgetExtension(config) {
     }
 
     // Add bridge files to main target only.
+    // The main app group has no "path" property (unlike the widget group),
+    // so file references must include the subdirectory prefix.
     const mainTarget = project.getFirstTarget();
     const mainAppName = c.modRequest.projectName || "Perezoso";
     const mainAppGroupKey = findGroupKeyByName(project, mainAppName);
     for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        file,
+        `${mainAppName}/${file}`,
         { target: mainTarget.uuid },
         mainAppGroupKey || mainGroupId
       );
