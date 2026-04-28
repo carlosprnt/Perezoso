@@ -121,8 +121,8 @@ export function PaymentsCalendarModal() {
     return total;
   }, [dayMap]);
 
-  const globalCurrency = currencyCodeFromLabel(usePreferencesStore.getState().currency);
-  const currency = subscriptions[0]?.currency ?? globalCurrency;
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
+  const currency = globalCurrency;
 
   // Animated count-up — amount + count smoothly morph on month change.
   const animatedAmount = useCountUp(totalAmount, 550);
@@ -357,7 +357,7 @@ export function PaymentsCalendarModal() {
         onClose={closeDayDetail}
         title={dayDetail ? t('calendar.dayOf', { day: dayDetail.day, month: t(`calendar.month.${month}`) }) : ''}
         subtitle={dayDetail && dayDetail.subs.length > 1
-          ? t('calendar.totalAmount', { amount: formatAmount(dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0), dayDetail.subs[0].currency) })
+          ? t('calendar.totalAmount', { amount: formatAmount(dayDetail.subs.reduce((s, sub) => s + sub.price_amount, 0), currency) })
           : undefined}
         heightFraction={0.22 + (dayDetail ? dayDetail.subs.length * 0.06 : 0)}
       >
@@ -377,7 +377,7 @@ export function PaymentsCalendarModal() {
                 {sub.name}
               </Text>
               <Text style={[styles.dayDetailAmount, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-                {formatAmount(sub.price_amount, sub.currency)}
+                {formatAmount(sub.price_amount, currency)}
               </Text>
             </View>
           ))}

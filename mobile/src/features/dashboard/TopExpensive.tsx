@@ -15,6 +15,8 @@ import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/ty
 import { radius } from '../../design/radius';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
+import { currencyToSymbol, currencyCodeFromLabel } from '../../lib/formatting';
+import { usePreferencesStore } from '../settings/useSettingsStore';
 import type { TopSubscription } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -27,13 +29,14 @@ function formatCost(amount: number, currency: string): string {
   const num = amount % 1 === 0
     ? amount.toFixed(0)
     : amount.toFixed(2).replace('.', ',');
-  return currency === 'US$' ? `${num}US$` : `${num}€`;
+  return `${num}${currencyToSymbol(currency)}`;
 }
 
 export function TopExpensive({ subscriptions }: TopExpensiveProps) {
   const { colors } = useTheme();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const fullList = useSubscriptionsStore((s) => s.subscriptions);
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
 
   if (subscriptions.length === 0) return null;
 
@@ -80,7 +83,7 @@ export function TopExpensive({ subscriptions }: TopExpensiveProps) {
             {/* Price */}
             <View style={styles.priceRow}>
               <Text style={[styles.price, { color: colors.textPrimary }]}>
-                {formatCost(sub.monthlyCost, sub.currency)}
+                {formatCost(sub.monthlyCost, globalCurrency)}
               </Text>
               <Text style={[styles.period, { color: colors.textMuted }]}>
                 {' '}/mo

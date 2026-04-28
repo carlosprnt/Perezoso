@@ -116,7 +116,7 @@ export function DashboardScreen() {
   const topCategory      = React.useMemo(() => deriveTopCategory(subscriptions, globalCurrency),      [subscriptions, globalCurrency]);
   const logoUrls         = React.useMemo(() => deriveLogoUrls(subscriptions),         [subscriptions]);
   const sharedLogoUrls   = React.useMemo(() => deriveSharedLogoUrls(subscriptions),   [subscriptions]);
-  const savingsSuggestions = React.useMemo(() => deriveSavingsSuggestions(subscriptions), [subscriptions]);
+  const savingsSuggestions = React.useMemo(() => deriveSavingsSuggestions(subscriptions, globalCurrency), [subscriptions, globalCurrency]);
 
   // Confetti state
   const [moneyConfetti, setMoneyConfetti] = useState<{ x: number; y: number } | null>(null);
@@ -375,12 +375,12 @@ export function DashboardScreen() {
                   <InsightCards
                     highestCost={{
                       name: highestCost.name,
-                      amount: `${formatAmount(highestCost.monthlyCost, highestCost.currency)} /mes`,
+                      amount: `${formatAmount(highestCost.monthlyCost, globalCurrency)} /mes`,
                       category: highestCost.category ?? '',
                     }}
                     topCategory={{
                       name: topCategory.name,
-                      amount: `${formatAmount(topCategory.monthlyCost, topCategory.currency)} /mes`,
+                      amount: `${formatAmount(topCategory.monthlyCost, globalCurrency)} /mes`,
                       count: topCategory.count,
                     }}
                     sharedPlans={{

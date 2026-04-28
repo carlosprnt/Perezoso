@@ -56,6 +56,8 @@ import { SavingsSuggestionDetailSheet } from './SavingsSuggestionDetailSheet';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
+import { usePreferencesStore } from '../settings/useSettingsStore';
+import { currencyCodeFromLabel } from '../../lib/formatting';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -69,9 +71,10 @@ export function SavingsSuggestionsListSheet() {
 
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const isPlusActive  = useSubscriptionsStore((s) => s.isPlusActive);
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
   const suggestions = React.useMemo(
-    () => deriveSavingsSuggestions(subscriptions),
-    [subscriptions],
+    () => deriveSavingsSuggestions(subscriptions, globalCurrency),
+    [subscriptions, globalCurrency],
   );
   const visibleSuggestions = isPlusActive ? suggestions : suggestions.slice(0, 2);
   const hasLockedSuggestions = !isPlusActive && suggestions.length > 2;

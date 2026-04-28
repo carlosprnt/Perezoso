@@ -12,7 +12,8 @@ import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import { useT } from '../../lib/i18n/LocaleProvider';
-import { currencyToSymbol } from '../../lib/formatting';
+import { currencyToSymbol, currencyCodeFromLabel } from '../../lib/formatting';
+import { usePreferencesStore } from '../settings/useSettingsStore';
 import type { UpcomingRenewal } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -42,6 +43,7 @@ export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
   const t = useT();
   const openDetail = useSubscriptionDetailStore((s) => s.openDetail);
   const fullList = useSubscriptionsStore((s) => s.subscriptions);
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
 
   if (renewals.length === 0) {
     return (
@@ -81,7 +83,7 @@ export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {
                 {renewal.name}
               </Text>
               <Text style={[styles.price, { color: colors.textMuted }]}>
-                {formatCost(renewal.monthlyCost, renewal.currency)}
+                {formatCost(renewal.monthlyCost, globalCurrency)}
               </Text>
             </View>
 

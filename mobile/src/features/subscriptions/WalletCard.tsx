@@ -16,7 +16,8 @@ import { shadows } from '../../design/shadows';
 import { LogoAvatar } from '../../components/LogoAvatar';
 import { Pressable } from '../../components/Pressable';
 import { haptic } from '../../lib/haptics';
-import { formatPrice, billingLabel, daysUntilDate, renewalText, formatBillingDate } from '../../lib/formatting';
+import { formatPrice, billingLabel, daysUntilDate, renewalText, formatBillingDate, currencyCodeFromLabel } from '../../lib/formatting';
+import { usePreferencesStore } from '../settings/useSettingsStore';
 import type { Subscription } from './types';
 import { CATEGORY_LABELS, STATUS_LABELS } from './types';
 
@@ -41,6 +42,7 @@ function billingProgress(period: string, intervalCount: number, nextDate: string
 
 export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   const { colors, isDark } = useTheme();
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
   const days = daysUntilDate(sub.next_billing_date);
   const progress = billingProgress(sub.billing_period, sub.billing_interval_count, sub.next_billing_date);
 
@@ -105,7 +107,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
               sub.is_shared && sub.shared_with_count > 1
                 ? sub.price_amount / sub.shared_with_count
                 : sub.price_amount,
-              sub.currency,
+              globalCurrency,
             )}
           </Text>
           <Text style={[styles.period, { color: colors.textMuted }]}>

@@ -51,7 +51,7 @@ interface CatalogEntry {
   /** ISO date (YYYY-MM-DD) when the entry was last checked against sourceUrl. */
   lastVerified: string;
   shouldShow: (sub: Subscription) => boolean;
-  build: (sub: Subscription) => Omit<
+  build: (sub: Subscription, globalCurrency?: string) => Omit<
     SavingsSuggestion,
     'id' | 'kind' | 'serviceName' | 'logoUrl' | 'brandColor'
   >;
@@ -84,12 +84,12 @@ function share(params: {
     sourceUrl: params.sourceUrl,
     lastVerified: params.lastVerified,
     shouldShow: (s) => !s.is_shared,
-    build: (s) => {
+    build: (s, globalCurrency) => {
       const monthly = s.monthly_equivalent_cost;
       const perPerson = monthly * params.ratio;
       const savingsM = monthly - perPerson;
       const savingsY = savingsM * 12;
-      const c = s.currency;
+      const c = globalCurrency ?? s.currency;
       return {
         listCopyBefore: 'Podr\u00EDas ahorrar hasta ',
         listAmount: fmt(savingsY, c),
@@ -125,12 +125,12 @@ function annual(params: {
     sourceUrl: params.sourceUrl,
     lastVerified: params.lastVerified,
     shouldShow: (s) => s.billing_period === 'monthly',
-    build: (s) => {
+    build: (s, globalCurrency) => {
       const monthly = s.monthly_equivalent_cost;
       const annualM = monthly * params.ratio;
       const savingsM = monthly - annualM;
       const savingsY = savingsM * 12;
-      const c = s.currency;
+      const c = globalCurrency ?? s.currency;
       return {
         listCopyBefore: 'Podr\u00EDas ahorrar hasta ',
         listAmount: fmt(savingsY, c),
@@ -1139,6 +1139,7 @@ function matches(subName: string, keys: string[]): boolean {
 
 export function deriveSavingsSuggestions(
   subscriptions: Subscription[],
+  globalCurrency?: string,
 ): SavingsSuggestion[] {
   const active = subscriptions.filter(
     (s) => s.status === 'active' || s.status === 'trial',
@@ -1161,7 +1162,7 @@ export function deriveSavingsSuggestions(
         serviceName: sub.name,
         logoUrl: sub.logo_url ?? resolvePlatformLogoUrl(sub.name),
         brandColor: entry.brandColor,
-        ...entry.build(sub),
+        ...entry.build(sub, globalCurrency),
       });
     }
   }
