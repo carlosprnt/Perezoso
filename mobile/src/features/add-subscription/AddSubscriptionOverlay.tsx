@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#FFFFFF',
     letterSpacing: -0.3,
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     height: 28,
   },
   rowText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.1,
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   footerBtnSecondaryText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     color: '#FFFFFF',
     letterSpacing: -0.1,
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   footerBtnPrimaryText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
@@ -735,12 +735,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   findSubsBack: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#FFFFFF',
   },
   findSubsTitle: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   findSubsRowTitle: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     color: '#FFFFFF',
     letterSpacing: -0.1,
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   findSubsBadgeText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[11],
     color: 'rgba(255,255,255,0.35)',
   },
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   noResultInitial: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: 'rgba(255,255,255,0.5)',
   },

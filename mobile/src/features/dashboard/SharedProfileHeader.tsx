@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   greetingBase: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     letterSpacing: -0.3,
     flexShrink: 1,
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   avatarText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 14,
   },
 });

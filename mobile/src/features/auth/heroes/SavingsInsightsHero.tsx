@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 16,
   },
   closeBtn: {
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     lineHeight: 13 * 1.45,
   },
   bodyBold: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
   },
   ctaPill: {
     borderRadius: radius.full,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 13,
   },
   blurOverlay: {

@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   catAmount: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
     flexShrink: 0,

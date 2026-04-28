@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[32],
     letterSpacing: -0.6,
   },
@@ -388,9 +388,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 18, paddingTop: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  errorText: { ...fontFamily.medium, fontSize: fontSize[15] },
+  errorText: { ...fontFamily.semiBold, fontSize: fontSize[15] },
   retryBtn: { paddingVertical: 8, paddingHorizontal: 16 },
-  retryText: { ...fontFamily.medium, fontSize: fontSize[15] },
+  retryText: { ...fontFamily.semiBold, fontSize: fontSize[15] },
   gap: { height: 16 },
 
   bigNumbersRow: { flexDirection: 'row', gap: 12 },
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   bigLabel: { ...fontFamily.medium, fontSize: fontSize[11], letterSpacing: 0.3 },
-  bigValue: { ...fontFamily.medium, fontSize: fontSize[32], letterSpacing: -0.5 },
+  bigValue: { ...fontFamily.semiBold, fontSize: fontSize[32], letterSpacing: -0.5 },
 
   sectionTitleRow: {
     flexDirection: 'row',
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 4,
   },
-  sectionTitle: { ...fontFamily.medium, fontSize: fontSize[16], letterSpacing: -0.2 },
+  sectionTitle: { ...fontFamily.semiBold, fontSize: fontSize[16], letterSpacing: -0.2 },
   sectionTitleRight: { ...fontFamily.medium, fontSize: fontSize[13] },
 
   card: { borderRadius: 14, overflow: 'hidden' },
@@ -423,10 +423,10 @@ const styles = StyleSheet.create({
   },
   rowLabel: { ...fontFamily.medium, fontSize: fontSize[15], flex: 1 },
   rowValue: { ...fontFamily.medium, fontSize: fontSize[15] },
-  rowValueAccent: { ...fontFamily.medium, fontSize: fontSize[15] },
+  rowValueAccent: { ...fontFamily.semiBold, fontSize: fontSize[15] },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 16 },
   rankRow: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
-  rank: { ...fontFamily.medium, fontSize: fontSize[13], width: 26, textAlign: 'right' },
+  rank: { ...fontFamily.semiBold, fontSize: fontSize[13], width: 26, textAlign: 'right' },
   emptyText: { ...fontFamily.medium, fontSize: fontSize[14], padding: 16 },
 
   chartCard: { paddingTop: 16, paddingBottom: 10, paddingHorizontal: 12 },

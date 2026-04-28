@@ -28,8 +28,8 @@ const androidFont = (family: string): FontToken => ({
  * On Android, resolves to the specific Nunito TTF variant.
  */
 export const fontFamily = {
-  regular: Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Book')   : androidFont('Nunito_400Regular'),
-  medium:  Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Medium') : androidFont('Nunito_500Medium'),
+  medium:   Platform.OS === 'ios' ? iosFont('OverusedGrotesk-Medium')   : androidFont('Nunito_500Medium'),
+  semiBold: Platform.OS === 'ios' ? iosFont('OverusedGrotesk-SemiBold') : androidFont('Nunito_600SemiBold'),
 };
 
 /**
@@ -76,13 +76,13 @@ export const letterSpacing = {
 export const textPreset = {
   // Hero / display
   heroAmount: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.none,
     letterSpacing: letterSpacing.tight,
   },
   heroText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[45],
     lineHeight: fontSize[45] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -90,35 +90,35 @@ export const textPreset = {
 
   // Headings
   h1: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[32],
     lineHeight: fontSize[32] * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
   h2: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[24],
     lineHeight: fontSize[24] * lineHeight.tight,
   },
   h3: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     lineHeight: fontSize[20] * lineHeight.snug,
   },
 
   // Titles (card titles, section headers)
   titleLg: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
   titleMd: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
   titleSm: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
@@ -142,23 +142,23 @@ export const textPreset = {
 
   // Captions / labels
   caption: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
   },
   captionSm: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.snug,
   },
   label: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     letterSpacing: letterSpacing.widest,
   },
   labelSm: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[10],
     lineHeight: fontSize[10] * lineHeight.snug,
     letterSpacing: letterSpacing.wide,
@@ -173,17 +173,17 @@ export const textPreset = {
 
   // Button text
   buttonSm: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },
   buttonMd: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },
   buttonLg: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.none,
   },

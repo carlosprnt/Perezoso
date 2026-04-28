@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[32],
     letterSpacing: -0.6,
     flexShrink: 1,
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   resetBtnFullText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     letterSpacing: -0.2,
   },
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inlineToastText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
     flex: 1,

@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   proBadgeText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 11,
     color: '#FFFFFF',
     letterSpacing: 1.5,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   headline: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[24],
     color: '#000000',
     textAlign: 'center',
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   benefitTitle: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     color: '#1A1A1A',
     letterSpacing: -0.1,
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   planColLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.1,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   planColPrice: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#8E8E93',
     letterSpacing: -0.3,
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   popularBadgeText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 10,
     color: '#FFFFFF',
     letterSpacing: 0.2,
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   savingsBadgeText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 11,
     color: '#30D158',
     letterSpacing: 0.1,
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.15,

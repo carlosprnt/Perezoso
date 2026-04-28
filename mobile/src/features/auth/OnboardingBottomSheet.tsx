@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   texts: {},
   bottomGroup: {},
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 28,
     lineHeight: 28 * lineHeight.compact,
     letterSpacing: -0.4,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   legalLink: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     textDecorationLine: 'underline',
   },
 });
