@@ -4,6 +4,7 @@
 // place so the view + edit components stay visual.
 
 import { findPlatform } from '../../lib/constants/platforms';
+import { currencyToSymbol } from '../../lib/formatting';
 import type { BillingPeriod, Category, Subscription } from '../subscriptions/types';
 export { CATEGORY_LABELS } from '../subscriptions/types';
 
@@ -81,7 +82,7 @@ export function formatAmount(
   if (trimZeros && formatted.endsWith(',00')) {
     formatted = formatted.slice(0, -3);
   }
-  return currency === 'US$' ? `${formatted}US$` : `${formatted}€`;
+  return `${formatted}${currencyToSymbol(currency)}`;
 }
 
 /** Convert any billing period amount into its monthly equivalent. */

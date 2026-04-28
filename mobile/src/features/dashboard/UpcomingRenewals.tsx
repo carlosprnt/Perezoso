@@ -12,6 +12,7 @@ import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import { useT } from '../../lib/i18n/LocaleProvider';
+import { currencyToSymbol } from '../../lib/formatting';
 import type { UpcomingRenewal } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -26,15 +27,14 @@ function formatDays(days: number, t: (k: string, o?: any) => string): string {
 }
 
 function formatPrice(amount: number, currency: string): string {
-  const formatted = amount.toFixed(2).replace('.', ',');
-  const symbol = currency === 'US$' ? 'US$' : '€';
-  return `${formatted.replace(',00', '')}${currency === 'US$' ? '' : ''}${symbol === 'US$' ? `${formatted}US$` : `${formatted}${symbol}`}`;
+  let formatted = amount.toFixed(2).replace('.', ',');
+  if (formatted.endsWith(',00')) formatted = formatted.slice(0, -3);
+  return `${formatted}${currencyToSymbol(currency)}`;
 }
 
 function formatCost(amount: number, currency: string): string {
   const num = amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2).replace('.', ',');
-  if (currency === 'US$') return `${num}US$ /mes`;
-  return `${num}€ /mes`;
+  return `${num}${currencyToSymbol(currency)} /mes`;
 }
 
 export function UpcomingRenewals({ renewals }: UpcomingRenewalsProps) {

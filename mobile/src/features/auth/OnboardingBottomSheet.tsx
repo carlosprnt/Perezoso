@@ -88,6 +88,7 @@ export function OnboardingBottomSheet({
         styles.sheet,
         {
           backgroundColor: colors.surface,
+          borderColor: colors.borderLight,
           paddingBottom: Math.max(insets.bottom, 18) + 10,
         },
       ]}
@@ -153,6 +154,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderTopLeftRadius: radius.card,
     borderTopRightRadius: radius.card,
+    borderWidth: 0.5,
+    borderBottomWidth: 0,
     paddingTop: 28,
     paddingHorizontal: 24,
     minHeight: 330,

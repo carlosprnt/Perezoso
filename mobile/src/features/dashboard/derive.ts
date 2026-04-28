@@ -30,7 +30,7 @@ function activeOnly(subs: Subscription[]): Subscription[] {
 }
 
 // ─── Stats (headline totals) ────────────────────────────────────────
-export function deriveStats(subs: Subscription[]): DashboardStats {
+export function deriveStats(subs: Subscription[], currency = 'EUR'): DashboardStats {
   const active = activeOnly(subs);
 
   const monthlyTotal = active.reduce((sum, s) => sum + s.my_monthly_cost, 0);
@@ -38,8 +38,6 @@ export function deriveStats(subs: Subscription[]): DashboardStats {
 
   const sharedCount = active.filter((s) => s.is_shared).length;
 
-  // Monthly savings = how much of the full plan cost the user avoids
-  // by sharing (monthly equivalent minus their slice).
   const savingsMonthly = active
     .filter((s) => s.is_shared)
     .reduce((sum, s) => sum + Math.max(0, s.monthly_equivalent_cost - s.my_monthly_cost), 0);
@@ -50,7 +48,7 @@ export function deriveStats(subs: Subscription[]): DashboardStats {
     totalCount: active.length,
     sharedCount,
     savingsMonthly,
-    currency: 'EUR',
+    currency,
   };
 }
 
@@ -129,7 +127,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: 'Otros',
 };
 
-export function deriveTopCategory(subs: Subscription[]): {
+export function deriveTopCategory(subs: Subscription[], currency = 'EUR'): {
   name: string;
   monthlyCost: number;
   currency: string;
@@ -142,7 +140,7 @@ export function deriveTopCategory(subs: Subscription[]): {
   return {
     name: CATEGORY_LABELS[top.category] ?? top.category,
     monthlyCost: top.monthlyCost,
-    currency: 'EUR',
+    currency,
     count,
   };
 }

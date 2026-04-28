@@ -44,6 +44,8 @@ import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { formatAmount } from '../subscription-detail/helpers';
 import { haptic } from '../../lib/haptics';
+import { usePreferencesStore } from '../settings/useSettingsStore';
+import { currencyCodeFromLabel } from '../../lib/formatting';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
 import { useCalendarStore } from './useCalendarStore';
@@ -119,7 +121,8 @@ export function PaymentsCalendarModal() {
     return total;
   }, [dayMap]);
 
-  const currency = subscriptions[0]?.currency ?? '€';
+  const globalCurrency = currencyCodeFromLabel(usePreferencesStore.getState().currency);
+  const currency = subscriptions[0]?.currency ?? globalCurrency;
 
   // Animated count-up — amount + count smoothly morph on month change.
   const animatedAmount = useCountUp(totalAmount, 550);

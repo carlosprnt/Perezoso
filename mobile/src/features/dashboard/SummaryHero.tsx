@@ -35,13 +35,10 @@ interface SummaryHeroProps {
   onLogosTap?: (x: number, y: number) => void;
 }
 
+import { formatMoney } from '../../lib/formatting';
+
 function formatAmount(amount: number, currency: string): string {
-  // Match web format: 98,26EUR or 1.179,07EUR
-  const parts = amount.toFixed(2).split('.');
-  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  const decPart = parts[1];
-  const symbol = currency === 'US$' ? 'US$' : '\u20AC';
-  return `${intPart},${decPart}${symbol}`;
+  return formatMoney(amount, currency, { thousandSep: true });
 }
 
 export function SummaryHero({

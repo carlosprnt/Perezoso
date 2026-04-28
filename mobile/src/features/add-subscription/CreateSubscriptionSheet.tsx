@@ -55,7 +55,8 @@ import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationSto
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
-import { useTagsStore } from '../settings/useSettingsStore';
+import { useTagsStore, usePreferencesStore } from '../settings/useSettingsStore';
+import { currencyCodeFromLabel } from '../../lib/formatting';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
@@ -178,11 +179,11 @@ function nextMonth(d: Date): Date {
   n.setMonth(n.getMonth() + 1);
   return n;
 }
-function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null): FormState {
+function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null, defaultCurrency = 'EUR'): FormState {
   const today = new Date();
   return {
     name: prefill?.name ?? '',
-    currency: 'EUR',
+    currency: defaultCurrency,
     price: '',
     startDate: today,
     nextPaymentDate: nextMonth(today),
@@ -308,6 +309,8 @@ export function CreateSubscriptionSheet() {
   const insets = useSafeAreaInsets();
   const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
+  const defaultCurrency = currencyCodeFromLabel(globalCurrencyLabel);
   const t = useT();
   const allCategoryKeys = [...BASE_CATEGORIES, ...tags.map((tg) => tg.name)];
 
@@ -338,8 +341,8 @@ export function CreateSubscriptionSheet() {
   const [renewalDate, setRenewalDate] = useState<Date>(() => {
     const d = new Date(); d.setHours(0, 0, 0, 0); d.setMonth(d.getMonth() + 1); return d;
   });
-  const [form, setForm] = useState<FormState>(() => makeInitialForm(null));
-  const initialFormRef = useRef<FormState>(makeInitialForm(null));
+  const [form, setForm] = useState<FormState>(() => makeInitialForm(null, defaultCurrency));
+  const initialFormRef = useRef<FormState>(makeInitialForm(null, defaultCurrency));
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
@@ -377,7 +380,7 @@ export function CreateSubscriptionSheet() {
   // No custom animation — native iOS pageSheet owns the slide-up.
   useEffect(() => {
     if (isOpen) {
-      const fresh = makeInitialForm(prefill);
+      const fresh = makeInitialForm(prefill, defaultCurrency);
       initialFormRef.current = fresh;
       setForm(fresh);
       setStep(1);
