@@ -1,11 +1,13 @@
 // Expo config plugin — adds PerezozoWidgets extension target.
 //
-// Uses withDangerousMod for file operations (runs after ios/ is created)
-// and withXcodeProject for Xcode project manipulation.
+// Uses withDangerousMod for file operations (runs after ios/ is created),
+// withXcodeProject for Xcode project manipulation, and withInfoPlist
+// to fix CFBundleVersion so it reads from build settings.
 
 const {
   withXcodeProject,
   withEntitlementsPlist,
+  withInfoPlist,
   withDangerousMod,
 } = require("expo/config-plugins");
 const path = require("path");
@@ -45,7 +47,16 @@ function withWidgetExtension(config) {
     return c;
   });
 
-  // 2. Copy files into ios/ directory (withDangerousMod runs reliably after ios/ exists)
+  // 2. Fix CFBundleVersion — use build-setting variables so the version
+  //    is controlled from Xcode Build Settings, not hardcoded in the plist.
+  //    This prevents App Store Connect rejecting builds for duplicate numbers.
+  config = withInfoPlist(config, (c) => {
+    c.modResults.CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
+    c.modResults.CFBundleShortVersionString = "$(MARKETING_VERSION)";
+    return c;
+  });
+
+  // 3. Copy files into ios/ directory (withDangerousMod runs reliably after ios/ exists)
   config = withDangerousMod(config, [
     "ios",
     (c) => {
@@ -146,19 +157,18 @@ function withWidgetExtension(config) {
     },
   ]);
 
-  // 3. Add widget target to the Xcode project
+  // 4. Add widget target to the Xcode project
   config = withXcodeProject(config, (c) => {
     const project = c.modResults;
     const mainBundleId = c.ios?.bundleIdentifier ?? "com.perezoso.app";
     const widgetBundleId = mainBundleId + "." + WIDGET_NAME;
 
-    // Add PBX group for organisation in Xcode sidebar (no files — they
-    // are wired to the build phase separately to avoid path doubling).
+    // Add PBX group for the widget in Xcode sidebar
     const widgetGroup = project.addPbxGroup([], WIDGET_NAME, WIDGET_NAME);
     const mainGroupId = project.getFirstProject().firstProject.mainGroup;
     project.addToPbxGroup(widgetGroup.uuid, mainGroupId);
 
-    // Add extension target
+    // Add extension target (creates target with empty buildPhases)
     const widgetTarget = project.addTarget(
       WIDGET_NAME,
       "app_extension",
@@ -166,10 +176,20 @@ function withWidgetExtension(config) {
       widgetBundleId
     );
 
+    // Create a Sources build phase for the widget target.
+    // addTarget() leaves buildPhases empty, so without this step
+    // addSourceFile falls back to the main target's Sources phase,
+    // putting all widget files in the wrong target.
+    project.addBuildPhase(
+      [],
+      'PBXSourcesBuildPhase',
+      'Sources',
+      widgetTarget.uuid
+    );
+
     // Add Swift source files to the widget target.
     // Pass just the filename + widget group UUID so the xcode package
     // resolves group.path ("PerezozoWidgets") + filename correctly.
-    // Passing the full path WITH a group causes doubled paths.
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
         file,
@@ -178,7 +198,7 @@ function withWidgetExtension(config) {
       );
     }
 
-    // Add bridge files to main target.
+    // Add bridge files to main target only.
     const mainTarget = project.getFirstTarget();
     const mainAppName = c.modRequest.projectName || "Perezoso";
     const mainAppGroupKey = findGroupKeyByName(project, mainAppName);
