@@ -26,6 +26,7 @@ import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide
 
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
+import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
 import { CATEGORY_PICKER } from './helpers';
@@ -59,7 +60,9 @@ interface EditDraft {
   price: string;
   startDate: Date;
   nextPaymentDate: Date;
-  billingPeriod: BillingPeriod;
+  billingPeriod: BillingPeriod | 'custom';
+  customCount: number;
+  customUnit: CustomUnit;
   endEnabled: boolean;
   endDate: Date;
   category: Category;
@@ -75,20 +78,48 @@ interface EditDraft {
 
 // ─── Constants ───────────────────────────────────────────────────────
 
-const BILLING_OPTIONS = ['Monthly', 'Yearly', 'Quarterly', 'Weekly'] as const;
+const BILLING_OPTIONS = ['Monthly', 'Yearly', 'Quarterly', 'Weekly', 'Custom'] as const;
 type BillingLabel = typeof BILLING_OPTIONS[number];
-const BILLING_LABEL_TO_KEY: Record<BillingLabel, BillingPeriod> = {
+const BILLING_LABEL_TO_KEY: Record<BillingLabel, BillingPeriod | 'custom'> = {
   Monthly: 'monthly',
   Yearly: 'yearly',
   Quarterly: 'quarterly',
   Weekly: 'weekly',
+  Custom: 'custom' as any,
 };
-const BILLING_KEY_TO_LABEL: Record<BillingPeriod, BillingLabel> = {
+const BILLING_KEY_TO_LABEL: Record<string, BillingLabel> = {
   monthly: 'Monthly',
   yearly: 'Yearly',
   quarterly: 'Quarterly',
   weekly: 'Weekly',
+  custom: 'Custom',
 };
+
+type CustomUnit = 'day' | 'week' | 'month' | 'year';
+const CUSTOM_UNIT_LABELS: Record<CustomUnit, string> = {
+  day: 'form.unit.day',
+  week: 'form.unit.week',
+  month: 'form.unit.month',
+  year: 'form.unit.year',
+};
+
+function customMonthlyEquivalent(price: number, count: number, unit: CustomUnit): number {
+  switch (unit) {
+    case 'day':   return (price / count) * 30.44;
+    case 'week':  return (price / count) * (52 / 12);
+    case 'month': return price / count;
+    case 'year':  return price / (count * 12);
+  }
+}
+
+function customUnitToSubBilling(unit: CustomUnit): BillingPeriod {
+  switch (unit) {
+    case 'day':   return 'weekly';
+    case 'week':  return 'weekly';
+    case 'month': return 'monthly';
+    case 'year':  return 'yearly';
+  }
+}
 
 const STATUS_KEYS: Record<string, string> = {
   active: 'form.status.active',
@@ -114,13 +145,16 @@ function nextYear(d: Date): Date {
 
 function makeDraft(sub: Subscription): EditDraft {
   const today = new Date();
+  const isCustom = sub.billing_interval_count > 1;
   return {
     name: sub.name,
     currency: sub.currency,
     price: sub.price_amount.toFixed(2).replace('.', ','),
     startDate: sub.start_date ? new Date(sub.start_date) : new Date(sub.created_at),
     nextPaymentDate: new Date(sub.next_billing_date),
-    billingPeriod: sub.billing_period,
+    billingPeriod: isCustom ? 'custom' : sub.billing_period,
+    customCount: isCustom ? sub.billing_interval_count : 1,
+    customUnit: isCustom ? (sub.billing_period === 'yearly' ? 'year' : sub.billing_period === 'weekly' ? 'week' : 'month') as CustomUnit : 'month',
     endEnabled: !!sub.end_date,
     endDate: sub.end_date ? new Date(sub.end_date) : nextYear(today),
     category: sub.category,
@@ -143,6 +177,8 @@ function draftEqual(a: EditDraft, b: EditDraft): boolean {
     a.startDate.getTime() === b.startDate.getTime() &&
     a.nextPaymentDate.getTime() === b.nextPaymentDate.getTime() &&
     a.billingPeriod === b.billingPeriod &&
+    a.customCount === b.customCount &&
+    a.customUnit === b.customUnit &&
     a.endEnabled === b.endEnabled &&
     a.endDate.getTime() === b.endDate.getTime() &&
     a.category === b.category &&
@@ -159,21 +195,23 @@ function draftEqual(a: EditDraft, b: EditDraft): boolean {
 
 // ─── Sub-components ──────────────────────────────────────────────────
 
-function FormDivider() { return <View style={styles.divider} />; }
+function FormDivider({ color }: { color?: string }) {
+  return <View style={[styles.divider, color ? { backgroundColor: color } : undefined]} />;
+}
 
-function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
+function DatePillBtn({ date, onPress, bg, fg }: { date: Date; onPress: () => void; bg?: string; fg?: string }) {
   return (
-    <Pressable style={styles.datePill} onPress={onPress} hitSlop={8}>
-      <Text style={styles.datePillText}>{formatDate(date)}</Text>
+    <Pressable style={[styles.datePill, bg ? { backgroundColor: bg } : undefined]} onPress={onPress} hitSlop={8}>
+      <Text style={[styles.datePillText, fg ? { color: fg } : undefined]}>{formatDate(date)}</Text>
     </Pressable>
   );
 }
 
-function DropdownBtn({ value, onPress }: { value: string; onPress: () => void }) {
+function DropdownBtn({ value, onPress, fg, iconColor }: { value: string; onPress: () => void; fg?: string; iconColor?: string }) {
   return (
     <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
-      <Text style={styles.dropdownText}>{value}</Text>
-      <ChevronsUpDown size={14} color="#8E8E93" strokeWidth={2.5} />
+      <Text style={[styles.dropdownText, fg ? { color: fg } : undefined]}>{value}</Text>
+      <ChevronsUpDown size={14} color={iconColor ?? '#8E8E93'} strokeWidth={2.5} />
     </Pressable>
   );
 }
@@ -191,6 +229,7 @@ interface Props {
 
 export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const t = useT();
@@ -269,12 +308,22 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
     }
     setError(null);
 
+    const isCustom = draft.billingPeriod === 'custom';
+    const resolvedPeriod: BillingPeriod = isCustom
+      ? customUnitToSubBilling(draft.customUnit)
+      : draft.billingPeriod as BillingPeriod;
+    const intervalCount = isCustom ? draft.customCount : 1;
+    const monthly = isCustom
+      ? customMonthlyEquivalent(priceNum, draft.customCount, draft.customUnit)
+      : toMonthly(priceNum, resolvedPeriod);
+
     const updated: Subscription = {
       ...sub,
       name: draft.name.trim(),
       price_amount: priceNum,
       currency: draft.currency,
-      billing_period: draft.billingPeriod,
+      billing_period: resolvedPeriod,
+      billing_interval_count: intervalCount,
       next_billing_date: draft.nextPaymentDate.toISOString().split('T')[0],
       start_date: draft.startDate.toISOString().split('T')[0],
       end_date: draft.endEnabled ? draft.endDate.toISOString().split('T')[0] : undefined,
@@ -285,14 +334,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       is_shared: draft.shared,
       shared_with_count: draft.shared ? draft.sharedCount : sub.shared_with_count,
       payment_method: draft.paymentMethod || undefined,
-      // Empty string ⇒ user cleared the logo; store null so the avatar
-      // falls back to initials (same behaviour as "no logo" creation).
       logo_url: draft.logoUrl ? draft.logoUrl : null,
       notes: draft.notes,
-      monthly_equivalent_cost: toMonthly(priceNum, draft.billingPeriod),
+      monthly_equivalent_cost: monthly,
       my_monthly_cost: draft.shared
-        ? toMonthly(priceNum, draft.billingPeriod) / draft.sharedCount
-        : toMonthly(priceNum, draft.billingPeriod),
+        ? monthly / draft.sharedCount
+        : monthly,
       updated_at: new Date().toISOString(),
     };
 
@@ -302,27 +349,27 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   // ─────────────────────────────────────────────────────────────────
 
   return (
-    <View style={styles.sheet}>
+    <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* ── iOS-style drag handle + header ── */}
         <View style={styles.handleWrap}>
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
         </View>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('form.editTitle')}</Text>
-          <Pressable style={styles.closeBtn} onPress={handleCancel} hitSlop={10}>
-            <X size={15} color="#3C3C43" strokeWidth={2.5} />
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{t('form.editTitle')}</Text>
+          <Pressable style={[styles.closeBtn, { backgroundColor: colors.surfaceSecondary }]} onPress={handleCancel} hitSlop={10}>
+            <X size={15} color={isDark ? '#F2F2F7' : '#3C3C43'} strokeWidth={2.5} />
           </Pressable>
         </View>
 
         {/* ── Error banner ── */}
         {error && (
-          <View style={styles.errorBanner}>
-            <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorBanner, isDark && { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
+            <AlertCircle size={16} color={isDark ? '#F87171' : '#B91C1C'} strokeWidth={2.5} />
+            <Text style={[styles.errorText, isDark && { color: '#F87171' }]}>{error}</Text>
           </View>
         )}
 
@@ -335,31 +382,31 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           keyboardDismissMode="on-drag"
         >
           {/* Platform card */}
-          <View style={styles.platformCard}>
+          <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
             <TextInput
-              style={styles.platformName}
+              style={[styles.platformName, { color: colors.textPrimary }]}
               value={draft.name}
               onChangeText={(txt) => setDraft((f) => ({ ...f, name: txt }))}
               placeholder={t('form.namePlaceholder')}
-              placeholderTextColor="#C7C7CC"
+              placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
               returnKeyType="done"
               autoCorrect={false}
             />
             <View style={styles.priceRow}>
               <Pressable
-                style={styles.currencyPill}
+                style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
                 onPress={() => setCurrencySheetOpen(true)}
                 hitSlop={8}
               >
-                <Text style={styles.currencyText}>{currencySymbol(draft.currency)}</Text>
-                <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
+                <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(draft.currency)}</Text>
+                <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
               </Pressable>
               <TextInput
-                style={styles.priceInput}
+                style={[styles.priceInput, { color: colors.textPrimary }]}
                 value={draft.price}
                 onChangeText={(txt) => setDraft((f) => ({ ...f, price: txt }))}
                 placeholder="0.00"
-                placeholderTextColor="#C7C7CC"
+                placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                 keyboardType="decimal-pad"
                 returnKeyType="done"
               />
@@ -367,67 +414,131 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
 
           {/* Dates + billing */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.startDate')}</Text>
-              <DatePillBtn date={draft.startDate} onPress={() => setOpenDate('start')} />
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.startDate')}</Text>
+              <DatePillBtn date={draft.startDate} onPress={() => setOpenDate('start')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
             </View>
-            <FormDivider />
+            <FormDivider color={colors.border} />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.nextPayment')}</Text>
-              <DatePillBtn date={draft.nextPaymentDate} onPress={() => setOpenDate('next')} />
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.nextPayment')}</Text>
+              <DatePillBtn date={draft.nextPaymentDate} onPress={() => setOpenDate('next')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
             </View>
-            <FormDivider />
+            <FormDivider color={colors.border} />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.billingPeriod')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.billingPeriod')}</Text>
               <View ref={billingRef} collapsable={false}>
                 <DropdownBtn
-                  value={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
+                  value={BILLING_KEY_TO_LABEL[draft.billingPeriod] ?? t('form.billing.custom')}
                   onPress={() => openPickerAt(billingRef, 'billing')}
+                  fg={colors.textPrimary}
+                  iconColor={colors.textMuted}
                 />
               </View>
             </View>
-            <FormDivider />
+            {draft.billingPeriod === 'custom' && (
+              <>
+                <FormDivider color={colors.border} />
+                <View style={styles.row}>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.every')}</Text>
+                  <View style={styles.customIntervalRow}>
+                    <View style={styles.stepper}>
+                      <Pressable
+                        onPress={() => setDraft((f) => ({ ...f, customCount: Math.max(1, f.customCount - 1) }))}
+                        hitSlop={6}
+                        disabled={draft.customCount <= 1}
+                        style={({ pressed }) => [
+                          styles.stepperBtn,
+                          { backgroundColor: colors.surfaceSecondary },
+                          draft.customCount <= 1 && styles.stepperBtnDisabled,
+                          pressed && { opacity: 0.6 },
+                        ]}
+                      >
+                        <Minus size={14} color={colors.textPrimary} strokeWidth={2.5} />
+                      </Pressable>
+                      <Text style={[styles.stepperValue, { color: colors.textPrimary }]}>{draft.customCount}</Text>
+                      <Pressable
+                        onPress={() => setDraft((f) => ({ ...f, customCount: Math.min(99, f.customCount + 1) }))}
+                        hitSlop={6}
+                        disabled={draft.customCount >= 99}
+                        style={({ pressed }) => [
+                          styles.stepperBtn,
+                          { backgroundColor: colors.surfaceSecondary },
+                          draft.customCount >= 99 && styles.stepperBtnDisabled,
+                          pressed && { opacity: 0.6 },
+                        ]}
+                      >
+                        <Plus size={14} color={colors.textPrimary} strokeWidth={2.5} />
+                      </Pressable>
+                    </View>
+                    <View style={styles.customUnitRow}>
+                      {(['day', 'week', 'month', 'year'] as CustomUnit[]).map((u) => (
+                        <Pressable
+                          key={u}
+                          onPress={() => setDraft((f) => ({ ...f, customUnit: u }))}
+                          style={[
+                            styles.customUnitPill,
+                            { backgroundColor: colors.surfaceSecondary },
+                            draft.customUnit === u && { backgroundColor: colors.accent },
+                          ]}
+                        >
+                          <Text style={[
+                            styles.customUnitText,
+                            { color: colors.textMuted },
+                            draft.customUnit === u && { color: colors.accentFg },
+                          ]}>
+                            {t(CUSTOM_UNIT_LABELS[u] as any)}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              </>
+            )}
+            <FormDivider color={colors.border} />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.endSubscription')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.endSubscription')}</Text>
               <Switch
                 value={draft.endEnabled}
                 onValueChange={(v) => setDraft((f) => ({ ...f, endEnabled: v }))}
-                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.endEnabled && (
               <>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.endDateLabel')}</Text>
-                  <DatePillBtn date={draft.endDate} onPress={() => setOpenDate('end')} />
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.endDateLabel')}</Text>
+                  <DatePillBtn date={draft.endDate} onPress={() => setOpenDate('end')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
                 </View>
               </>
             )}
           </View>
 
           {/* Category */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.category')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.category')}</Text>
               <View ref={categoryRef} collapsable={false}>
                 <DropdownBtn
                   value={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
                   onPress={() => openPickerAt(categoryRef, 'category')}
+                  fg={colors.textPrimary}
+                  iconColor={colors.textMuted}
                 />
               </View>
             </View>
           </View>
 
           {/* Reminder */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
               <View style={styles.rowLabelWithBadge}>
-                <Text style={styles.rowLabel}>{t('form.enableReminder')}</Text>
+                <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.enableReminder')}</Text>
                 {!isPlusActive && (
-                  <View style={styles.proBadge}>
-                    <Text style={styles.proBadgeText}>Pro</Text>
+                  <View style={[styles.proBadge, { backgroundColor: colors.accent }]}>
+                    <Text style={[styles.proBadgeText, { color: colors.accentFg }]}>Pro</Text>
                   </View>
                 )}
               </View>
@@ -438,18 +549,20 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                   setDraft((f) => ({ ...f, reminderEnabled: v }));
                 }}
                 disabled={!isPlusActive}
-                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.reminderEnabled && (
               <>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.notifyMe')}</Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.notifyMe')}</Text>
                   <View ref={reminderRef} collapsable={false}>
                     <DropdownBtn
                       value={t(REMINDER_KEYS[draft.reminderDays])}
                       onPress={() => openPickerAt(reminderRef, 'reminder')}
+                      fg={colors.textPrimary}
+                      iconColor={colors.textMuted}
                     />
                   </View>
                 </View>
@@ -458,20 +571,20 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
 
           {/* Shared */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.sharedSubscription')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.sharedSubscription')}</Text>
               <Switch
                 value={draft.shared}
                 onValueChange={(v) => setDraft((f) => ({ ...f, shared: v }))}
-                trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
               />
             </View>
             {draft.shared && (
               <>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.totalPeople')}</Text>
+                  <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.totalPeople')}</Text>
                   <View style={styles.stepper}>
                     <Pressable
                       onPress={decShared}
@@ -479,13 +592,14 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                       disabled={draft.sharedCount <= 2}
                       style={({ pressed }) => [
                         styles.stepperBtn,
+                        { backgroundColor: colors.surfaceSecondary },
                         draft.sharedCount <= 2 && styles.stepperBtnDisabled,
                         pressed && { opacity: 0.6 },
                       ]}
                     >
-                      <Minus size={14} color="#000000" strokeWidth={2.5} />
+                      <Minus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                     </Pressable>
-                    <Text style={styles.stepperValue}>{draft.sharedCount}</Text>
+                    <Text style={[styles.stepperValue, { color: colors.textPrimary }]}>{draft.sharedCount}</Text>
                     <Pressable
                       onPress={incShared}
                       hitSlop={6}
@@ -496,7 +610,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                         pressed && { opacity: 0.6 },
                       ]}
                     >
-                      <Plus size={14} color="#000000" strokeWidth={2.5} />
+                      <Plus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                     </Pressable>
                   </View>
                 </View>
@@ -505,15 +619,15 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
 
           {/* Payment method */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.paymentMethod')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.paymentMethod')}</Text>
               <TextInput
-                style={styles.inlineInput}
+                style={[styles.inlineInput, { color: colors.textPrimary }]}
                 value={draft.paymentMethod}
                 onChangeText={(txt) => setDraft((f) => ({ ...f, paymentMethod: txt }))}
                 placeholder="Visa, PayPal..."
-                placeholderTextColor="#C7C7CC"
+                placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                 returnKeyType="done"
                 autoCorrect={false}
                 textAlign="right"
@@ -522,9 +636,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
 
           {/* Logo URL */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.logoUrl')}</Text>
               <View style={styles.urlRow}>
                 {draft.logoUrl.length === 0 ? (
                   <Pressable
@@ -539,11 +653,11 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 ) : (
                   <>
                     <TextInput
-                      style={styles.urlInput}
+                      style={[styles.urlInput, { color: colors.textPrimary }]}
                       value={draft.logoUrl}
                       onChangeText={(txt) => setDraft((f) => ({ ...f, logoUrl: txt }))}
                       placeholder="https://..."
-                      placeholderTextColor="#C7C7CC"
+                      placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                       keyboardType="url"
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -554,7 +668,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                       hitSlop={8}
                       style={styles.urlClear}
                     >
-                      <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                      <X size={12} color={colors.textMuted} strokeWidth={2.5} />
                     </Pressable>
                   </>
                 )}
@@ -563,38 +677,35 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           </View>
 
           {/* Status + Notes */}
-          <View style={styles.group}>
+          <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>{t('form.status')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.status')}</Text>
               <View ref={statusRef} collapsable={false}>
                 <DropdownBtn
                   value={t(STATUS_KEYS[draft.status])}
                   onPress={() => openPickerAt(statusRef, 'status')}
+                  fg={colors.textPrimary}
+                  iconColor={colors.textMuted}
                 />
               </View>
             </View>
-            <FormDivider />
+            <FormDivider color={colors.border} />
             <View style={styles.notesRow}>
-              <Text style={styles.rowLabel}>{t('form.notes')}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.notes')}</Text>
               <TextInput
-                style={styles.notesInput}
+                style={[styles.notesInput, { color: colors.textPrimary }]}
                 value={draft.notes}
                 onChangeText={(txt) => setDraft((f) => ({ ...f, notes: txt }))}
                 placeholder={t('form.notesPlaceholder')}
-                placeholderTextColor="#C7C7CC"
+                placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                 multiline
                 textAlignVertical="top"
               />
             </View>
           </View>
 
-          {/* ── Destructive zone ──
-              Apple's pattern in Contacts / Calendar edit sheets: a red
-              "Delete …" card placed at the very end of the scroll,
-              visually integrated (same card chrome as the form groups)
-              but separated from the primary Save action below. */}
           <View style={styles.destructiveSpacer} />
-          <View style={styles.destructiveCard}>
+          <View style={[styles.destructiveCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Pressable
               onPress={handleDelete}
               style={({ pressed }) => [
@@ -602,18 +713,18 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 pressed && { opacity: 0.55 },
               ]}
             >
-              <Text style={styles.destructiveText}>{t('form.deleteSubscription')}</Text>
+              <Text style={[styles.destructiveText, { color: colors.danger }]}>{t('form.deleteSubscription')}</Text>
             </Pressable>
           </View>
         </ScrollView>
 
         {/* ── Footer — Save primary CTA (single, pinned) ── */}
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <Pressable
-            style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.85 }]}
+            style={({ pressed }) => [styles.saveBtn, { backgroundColor: colors.accent }, pressed && { opacity: 0.85 }]}
             onPress={handleSave}
           >
-            <Text style={styles.saveBtnText}>{t('form.saveChanges')}</Text>
+            <Text style={[styles.saveBtnText, { color: colors.accentFg }]}>{t('form.saveChanges')}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -656,10 +767,10 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
         visible={openPicker === 'billing'}
         anchor={pickerAnchor}
         options={[...BILLING_OPTIONS]}
-        selected={BILLING_KEY_TO_LABEL[draft.billingPeriod]}
+        selected={BILLING_KEY_TO_LABEL[draft.billingPeriod] ?? 'Custom'}
         onSelect={(label) => {
           const key = BILLING_LABEL_TO_KEY[label as BillingLabel];
-          if (key) setDraft((f) => ({ ...f, billingPeriod: key }));
+          if (key) setDraft((f) => ({ ...f, billingPeriod: key as any }));
         }}
         onClose={() => setOpenPicker(null)}
       />
@@ -886,6 +997,25 @@ const styles = StyleSheet.create({
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
+  },
+
+  customIntervalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  customUnitRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  customUnitPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  customUnitText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
   },
 
   // Dropdown

@@ -42,7 +42,8 @@ export type SortMode =
   | 'alphabetical'
   | 'price_high'
   | 'price_low'
-  | 'recently_added';
+  | 'recently_added'
+  | 'next_renewal';
 
 export const CATEGORY_LABELS: Record<string, string> = {
   streaming: 'Streaming',
