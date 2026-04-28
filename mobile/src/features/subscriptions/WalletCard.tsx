@@ -87,7 +87,6 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
             {sub.status !== 'active' && (
               <>
                 <Text style={[styles.metaSeparator, { color: colors.textMuted }]}> · </Text>
-                <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
                 <Text style={[styles.statusLabel, { color: statusColor }]}>
                   {STATUS_LABELS[sub.status]}
                 </Text>
@@ -116,34 +115,35 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
         </View>
       </View>
 
-      {/* Bottom row: progress bar + renewal info + status */}
-      <View style={styles.bottomRow}>
-        <View style={styles.progressSection}>
-          <View style={styles.renewalRow}>
+      {/* Bottom row: progress bar + renewal info (active only) */}
+      {sub.status === 'active' && (
+        <View style={styles.bottomRow}>
+          <View style={styles.progressSection}>
+            <View style={styles.renewalRow}>
+              <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+                Siguiente cobro
+              </Text>
+              <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
+                {formatBillingDate(sub.next_billing_date)}
+              </Text>
+            </View>
+            <View style={[styles.progressBar, { backgroundColor: progressBarBg }]}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    backgroundColor: progressBarFill,
+                    width: `${progress * 100}%` as any,
+                  },
+                ]}
+              />
+            </View>
             <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-              Siguiente cobro
-            </Text>
-            <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-              {formatBillingDate(sub.next_billing_date)}
+              {renewalText(days)}
             </Text>
           </View>
-          <View style={[styles.progressBar, { backgroundColor: progressBarBg }]}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  backgroundColor: progressBarFill,
-                  width: `${progress * 100}%` as any,
-                },
-              ]}
-            />
-          </View>
-          <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-            {renewalText(days)}
-          </Text>
         </View>
-
-      </View>
+      )}
     </Pressable>
   );
 }
