@@ -467,6 +467,7 @@ export function AddSubscriptionOverlay() {
                         useCreateSubscriptionStore.getState().open({
                           name: p.name,
                           logoUrl: logoUrlFromDomain(p.domain),
+                          category: p.category,
                         });
                         close();
                       }}
@@ -529,6 +530,7 @@ export function AddSubscriptionOverlay() {
                         useCreateSubscriptionStore.getState().open({
                           name: p.name,
                           logoUrl: logoUrlFromDomain(p.domain),
+                          category: p.category,
                         });
                         close();
                       }}

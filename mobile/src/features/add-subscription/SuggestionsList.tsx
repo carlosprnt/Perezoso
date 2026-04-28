@@ -157,10 +157,11 @@ export function SuggestionsList({ scrollY }: Props) {
     });
   };
 
-  const handleSelect = (name: string, domain: string) => {
+  const handleSelect = (name: string, domain: string, category?: string) => {
     useCreateSubscriptionStore.getState().open({
       name,
       logoUrl: logoUrlFromDomain(domain),
+      category,
     });
   };
 
@@ -182,7 +183,7 @@ export function SuggestionsList({ scrollY }: Props) {
           showDivider={i < FEATURED.length - 1}
           name={p.name}
           domain={p.domain}
-          onPress={() => handleSelect(p.name, p.domain)}
+          onPress={() => handleSelect(p.name, p.domain, p.category)}
         />
       ))}
     </View>

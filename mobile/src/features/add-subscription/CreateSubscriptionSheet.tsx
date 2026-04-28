@@ -219,7 +219,7 @@ function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: 
     customUnit: 'month',
     endEnabled: false,
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
-    category: prefill?.category ?? 'streaming',
+    category: prefill?.category ?? 'other',
     status: 'active',
     reminderEnabled: false,
     reminderDays: '1',
