@@ -20,6 +20,7 @@ import Animated, {
 import { BlurView } from 'expo-blur';
 
 import { useTheme } from '../../../design/useTheme';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize, lineHeight } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -83,6 +84,7 @@ export function SubscriptionListHero({ parallax }: Props) {
     intensity: Math.abs(parallax.value) * MAX_BLUR_INTENSITY,
   }));
 
+  const t = useT();
   const { colors } = useTheme();
 
   return (
@@ -107,10 +109,10 @@ export function SubscriptionListHero({ parallax }: Props) {
           ]}
         >
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Suscripciones
+            {t('onboarding.hero.subsHeader')}
           </Text>
           <Text style={[styles.headerAmount, { color: colors.textSecondary }]}>
-            111,92€/mes
+            111,92€{t('onboarding.hero.perMonth')}
           </Text>
         </View>
 
@@ -149,6 +151,7 @@ interface RowProps {
 }
 
 function SubscriptionRow({ sub, index, scrollY, colors }: RowProps) {
+  const t = useT();
   const rowStyle = useAnimatedStyle(() => {
     const rowTop = index * ROW_H + scrollY.value;
     const distFromTop = rowTop;
@@ -179,7 +182,7 @@ function SubscriptionRow({ sub, index, scrollY, colors }: RowProps) {
           {sub.name}
         </Text>
         <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>
-          Renueva en {sub.renewsIn}
+          {t('onboarding.hero.renewsIn')} {sub.renewDays} {t('onboarding.hero.days')}
         </Text>
       </View>
       <Text style={[styles.rowPrice, { color: colors.textPrimary }]}>

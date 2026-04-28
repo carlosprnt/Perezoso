@@ -15,6 +15,7 @@ import { Bell } from 'lucide-react-native';
 
 import { fontFamily } from '../../../design/typography';
 import { shadows } from '../../../design/shadows';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { ACCENT_PRIMARY, MOCK_DASHBOARD } from '../constants';
 import { PhoneFrame } from './PhoneFrame';
 
@@ -37,39 +38,39 @@ export function FinalLoginHero({ parallax }: Props) {
     ],
   }));
 
+  const t = useT();
+
   return (
     <Animated.View style={[styles.root, heroStyle]}>
       <PhoneFrame time="13:10">
         {/* Greeting row ────────────────── */}
         <View style={styles.greetRow}>
-          <Text style={styles.greet}>{MOCK_DASHBOARD.greeting}</Text>
+          <Text style={styles.greet}>{t(MOCK_DASHBOARD.greetingKey)}</Text>
           <View style={styles.avatar} />
         </View>
 
         {/* Big numbers ────────────────── */}
         <View style={styles.amountsBlock}>
           <Text style={styles.heroLabel}>
-            {MOCK_DASHBOARD.monthlyLabel}{' '}
+            {t(MOCK_DASHBOARD.monthlyLabelKey)}{' '}
             <Text style={styles.heroAmount}>{MOCK_DASHBOARD.monthlyAmount}</Text>.
           </Text>
           <Text style={[styles.heroLabel, { marginTop: 4 }]}>
-            {MOCK_DASHBOARD.yearlyLabel}{' '}
+            {t(MOCK_DASHBOARD.yearlyLabelKey)}{' '}
             <Text style={styles.heroAmount}>{MOCK_DASHBOARD.yearlyAmount}</Text>.
           </Text>
         </View>
 
         {/* Activity line ────────────────── */}
         <Text style={styles.activity}>
-          Tienes{' '}
+          {t('onboarding.hero.haveSubs')}{' '}
           <Text style={[styles.activityAccent]}>
-            {MOCK_DASHBOARD.activeCount} suscripciones activas
+            {MOCK_DASHBOARD.activeCount} {t('onboarding.hero.subscriptions')}
           </Text>
-          .{'\n'}
-          Compartes{' '}
-          <Text style={styles.activityAccent}>1 suscripción</Text>{' '}
-          y reduces tu gasto en{' '}
+          {'\n'}
+          {t('onboarding.hero.saving')}{' '}
           <Text style={styles.activityAccent}>
-            {MOCK_DASHBOARD.shareDiscount} al mes
+            {MOCK_DASHBOARD.shareDiscount} {t('onboarding.hero.perMonthLong')}
           </Text>
           .
         </Text>
@@ -86,7 +87,7 @@ export function FinalLoginHero({ parallax }: Props) {
             <Bell size={16} color="#4F46E5" strokeWidth={2.3} />
           </View>
           <Text style={styles.reminderText}>
-            Podrías evitar 3 <Text style={styles.reminderBold}>renovaciones anuales</Text> por sorpresa si activas avisos 7 días antes.
+            {t('onboarding.hero.reminderBody')}
           </Text>
         </View>
       </PhoneFrame>

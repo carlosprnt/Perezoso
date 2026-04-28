@@ -20,6 +20,7 @@ import { BlurView } from 'expo-blur';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { useTheme } from '../../../design/useTheme';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 import { fontFamily } from '../../../design/typography';
 import { radius } from '../../../design/radius';
 import { shadows } from '../../../design/shadows';
@@ -43,7 +44,7 @@ const LOGO_SIZE = Math.min(28, APPROX_CELL_W * 0.62);
 const MAX_ROT_DEG = 22;
 const MAX_BLUR_INTENSITY = 38;
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+// WEEKDAYS is now derived from the translation inside the component.
 
 const HOLD_MS = 3000;
 const FADE_MS = 500;
@@ -55,7 +56,7 @@ const RENEWALS_A = 3;
 const RENEWALS_B = 4;
 
 interface MonthData {
-  name: string;
+  nameKey: string;
   daysInMonth: number;
   firstWeekdayIndex: number;
   today: number | null;
@@ -63,7 +64,7 @@ interface MonthData {
 }
 
 const MONTH_A: MonthData = {
-  name: 'Abril',
+  nameKey: 'onboarding.hero.calendarMonth',
   daysInMonth: 30,
   firstWeekdayIndex: 2,
   today: 21,
@@ -76,7 +77,7 @@ const MONTH_A: MonthData = {
 };
 
 const MONTH_B: MonthData = {
-  name: 'Mayo',
+  nameKey: 'calendar.month.4',
   daysInMonth: 31,
   firstWeekdayIndex: 3,
   today: null,
@@ -198,7 +199,9 @@ export function CalendarHero({ parallax }: Props) {
     };
   });
 
+  const t = useT();
   const { colors } = useTheme();
+  const weekdays = t('onboarding.hero.weekdays').split(',');
 
   return (
     <Animated.View style={[styles.root, wrapStyle]}>
@@ -215,12 +218,12 @@ export function CalendarHero({ parallax }: Props) {
               <Animated.Text
                 style={[styles.monthName, { color: colors.textPrimary }, nameAStyle]}
               >
-                {MONTH_A.name}
+                {t(MONTH_A.nameKey)}
               </Animated.Text>
               <Animated.Text
                 style={[styles.monthName, styles.abs, { color: colors.textPrimary }, nameBStyle]}
               >
-                {MONTH_B.name}
+                {t(MONTH_B.nameKey)}
               </Animated.Text>
             </View>
             <View style={styles.subRow}>
@@ -233,7 +236,7 @@ export function CalendarHero({ parallax }: Props) {
                 underlineColorAndroid="transparent"
               />
               <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
-                Total
+                {t('onboarding.hero.calendarTotal')}
               </Text>
               <View style={[styles.subDot, { backgroundColor: colors.textMuted }]} />
               <AnimatedTextInput
@@ -245,7 +248,7 @@ export function CalendarHero({ parallax }: Props) {
                 underlineColorAndroid="transparent"
               />
               <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
-                Renovaciones
+                {t('onboarding.hero.calendarRenewals')}
               </Text>
             </View>
           </View>
@@ -261,7 +264,7 @@ export function CalendarHero({ parallax }: Props) {
 
         {/* Weekday labels */}
         <View style={styles.weekRow}>
-          {WEEKDAYS.map((w) => (
+          {weekdays.map((w) => (
             <View key={w} style={styles.weekCell}>
               <Text style={[styles.weekday, { color: colors.textMuted }]}>{w}</Text>
             </View>
