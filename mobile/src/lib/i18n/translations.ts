@@ -172,7 +172,7 @@ export const resources = {
       'profile.upgrade': 'Mejorar',
 
       // ── Paywall ──
-      'paywall.headline': 'Ser PRO te da\ncontrol absoluto',
+      'paywall.headline': 'Ser PRO te da control absoluto',
       'paywall.notAvailable': 'No disponible',
       'paywall.notConfigured': 'Los planes de suscripción aún no están configurados. Inténtalo más tarde.',
       'paywall.purchaseFailed': 'No se pudo completar la compra',
@@ -202,7 +202,7 @@ export const resources = {
       'paywall.trigger.reminders.subheadline': 'Activa avisos antes de cada renovación para decidir si quieres seguir pagando.',
       'paywall.trigger.categories.headline': 'Organiza a tu manera',
       'paywall.trigger.categories.subheadline': 'Crea categorías personalizadas y clasifica tus suscripciones como prefieras.',
-      'paywall.trigger.general.headline': 'Ser PRO te da\ncontrol absoluto',
+      'paywall.trigger.general.headline': 'Ser PRO te da control absoluto',
       // Paywall benefits
       'paywall.benefit.unlimited': 'Suscripciones ilimitadas',
       'paywall.benefit.unlimitedSub': 'Sin el límite de 15 del plan normal',
@@ -702,7 +702,7 @@ export const resources = {
       'subscriptions.empty.subtitle': "You don't have any yet. Add the first one to start tracking your monthly spending.",
       'subscriptions.empty.suggestions': 'Subscription suggestions',
 
-      'paywall.headline': 'Go PRO for\nabsolute control',
+      'paywall.headline': 'Go PRO for absolute control',
       'paywall.notAvailable': 'Not available',
       'paywall.notConfigured': 'Subscription plans are not configured yet. Try again later.',
       'paywall.purchaseFailed': 'Could not complete the purchase',
@@ -731,7 +731,7 @@ export const resources = {
       'paywall.trigger.reminders.subheadline': 'Enable alerts before each renewal so you can decide whether to keep paying.',
       'paywall.trigger.categories.headline': 'Organize your way',
       'paywall.trigger.categories.subheadline': 'Create custom categories and classify your subscriptions however you prefer.',
-      'paywall.trigger.general.headline': 'Go PRO for\nabsolute control',
+      'paywall.trigger.general.headline': 'Go PRO for absolute control',
       'paywall.benefit.unlimited': 'Unlimited subscriptions',
       'paywall.benefit.unlimitedSub': 'No more 15-subscription limit',
       'paywall.benefit.reminders': 'Renewal alerts',

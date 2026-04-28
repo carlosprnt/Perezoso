@@ -30,7 +30,7 @@ AS $$
 BEGIN
   PERFORM public._assert_admin();
   RETURN QUERY
-    SELECT d.day, COALESCE(c.cnt, 0) AS count
+    SELECT d.day::date, COALESCE(c.cnt, 0::bigint) AS count
     FROM generate_series(
       (current_date - interval '29 days')::date,
       current_date,
@@ -41,7 +41,7 @@ BEGIN
       FROM auth.users u
       WHERE u.created_at >= current_date - interval '29 days'
       GROUP BY 1
-    ) c ON c.reg_day = d.day
+    ) c ON c.reg_day = d.day::date
     ORDER BY d.day;
 END;
 $$;
@@ -72,7 +72,7 @@ AS $$
 BEGIN
   PERFORM public._assert_admin();
   RETURN QUERY
-    SELECT d.day, COALESCE(c.cnt, 0) AS count
+    SELECT d.day::date, COALESCE(c.cnt, 0::bigint) AS count
     FROM generate_series(
       (current_date - interval '29 days')::date,
       current_date,
@@ -83,7 +83,7 @@ BEGIN
       FROM public.subscriptions s
       WHERE s.created_at >= current_date - interval '29 days'
       GROUP BY 1
-    ) c ON c.c_day = d.day
+    ) c ON c.c_day = d.day::date
     ORDER BY d.day;
 END;
 $$;

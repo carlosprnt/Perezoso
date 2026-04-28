@@ -145,8 +145,7 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
           IconComponent={Users}
           label={t('dashboard.insights.sharedPlans')}
           title={t('dashboard.insights.plans', { count: sharedPlans.count })}
-          rightTop={sharedPlans.savings}
-          rightBottom={sharedPlans.savings ? t('dashboard.perMonth') : undefined}
+          rightTop={sharedPlans.savings ? `${sharedPlans.savings}${t('dashboard.perMonth')}` : undefined}
         />
       ) : null}
     </View>

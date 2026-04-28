@@ -236,6 +236,7 @@ export function PaywallSheet() {
           <ScrollView
             bounces={false}
             showsVerticalScrollIndicator={false}
+            style={{ flexShrink: 1 }}
             contentContainerStyle={{ paddingBottom: 4 }}
           >
             {/* ── 1. Branding ─────────────────────────────────── */}
@@ -389,6 +390,7 @@ const styles = StyleSheet.create({
     shadowRadius: 32,
     shadowOffset: { width: 0, height: -10 },
     elevation: 32,
+    overflow: 'hidden',
   },
 
   // Handle + close
@@ -454,7 +456,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 20,
     paddingBottom: 20,
-    paddingHorizontal: 0,
+    paddingHorizontal: 8,
   },
   headline: {
     ...fontFamily.medium,
