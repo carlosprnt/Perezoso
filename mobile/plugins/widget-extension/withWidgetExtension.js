@@ -141,9 +141,9 @@ function withWidgetExtension(config) {
     const mainBundleId = c.ios?.bundleIdentifier ?? "com.perezoso.app";
     const widgetBundleId = mainBundleId + "." + WIDGET_NAME;
 
-    // Add PBX group for widget files
-    const allFiles = [...WIDGET_SWIFT_FILES, "Info.plist", `${WIDGET_NAME}.entitlements`];
-    const widgetGroup = project.addPbxGroup(allFiles, WIDGET_NAME, WIDGET_NAME);
+    // Add empty PBX group (files added individually below to avoid
+    // double-pathing — the group already provides the directory prefix).
+    const widgetGroup = project.addPbxGroup([], WIDGET_NAME, WIDGET_NAME);
 
     // Add group to main project
     const mainGroupId = project.getFirstProject().firstProject.mainGroup;
@@ -157,10 +157,13 @@ function withWidgetExtension(config) {
       widgetBundleId
     );
 
-    // Add Swift source files to the widget target build phase
+    // Add Swift source files to the widget target build phase.
+    // Path is just the filename — the group's own path ("PerezozoWidgets")
+    // provides the directory, so the resolved path is
+    // PerezozoWidgets/<file>.swift (NOT PerezozoWidgets/PerezozoWidgets/<file>.swift).
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
-        `${WIDGET_NAME}/${file}`,
+        file,
         { target: widgetTarget.uuid },
         widgetGroup.uuid
       );
@@ -171,7 +174,7 @@ function withWidgetExtension(config) {
     const mainAppName = c.modRequest.projectName || "Perezoso";
     for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        `${mainAppName}/${file}`,
+        file,
         { target: mainTarget.uuid },
         project.getFirstProject().firstProject.mainGroup
       );
