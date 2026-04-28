@@ -27,6 +27,17 @@ const WIDGET_SWIFT_FILES = [
 
 const BRIDGE_FILES = ["WidgetDataModule.swift", "WidgetDataModule.m"];
 
+function findGroupKeyByName(project, name) {
+  const groups = project.hash.project.objects['PBXGroup'];
+  for (const key in groups) {
+    if (typeof groups[key] !== 'object') continue;
+    if (groups[key].name === name || groups[key].path === name) {
+      return key;
+    }
+  }
+  return null;
+}
+
 function withWidgetExtension(config) {
   // 1. App Group entitlement on main target
   config = withEntitlementsPlist(config, (c) => {
@@ -156,23 +167,26 @@ function withWidgetExtension(config) {
     );
 
     // Add Swift source files to the widget target.
-    // Use full path from project root and do NOT pass a group UUID —
-    // this prevents the xcode package from resolving group.path + file.path
-    // which was producing PerezozoWidgets/PerezozoWidgets/file.swift.
+    // Pass just the filename + widget group UUID so the xcode package
+    // resolves group.path ("PerezozoWidgets") + filename correctly.
+    // Passing the full path WITH a group causes doubled paths.
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
-        `${WIDGET_NAME}/${file}`,
-        { target: widgetTarget.uuid }
+        file,
+        { target: widgetTarget.uuid },
+        widgetGroup.uuid
       );
     }
 
-    // Add bridge files to main target (full path from project root).
+    // Add bridge files to main target.
     const mainTarget = project.getFirstTarget();
     const mainAppName = c.modRequest.projectName || "Perezoso";
+    const mainAppGroupKey = findGroupKeyByName(project, mainAppName);
     for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        `${mainAppName}/${file}`,
-        { target: mainTarget.uuid }
+        file,
+        { target: mainTarget.uuid },
+        mainAppGroupKey || mainGroupId
       );
     }
 
