@@ -130,13 +130,36 @@ const REMINDER_DISPLAY_KEYS: Record<string, string> = {
 // Convert the form price + billing period into a normalized monthly
 // equivalent (EUR/etc per month). Matches how preset-seeded subs are
 // computed — downstream dashboard math assumes this field is correct.
-function monthlyEquivalent(priceAmount: number, billingKey: SubBillingPeriod): number {
+function monthlyEquivalent(priceAmount: number, billingKey: SubBillingPeriod, intervalCount = 1): number {
   switch (billingKey) {
-    case 'yearly':    return priceAmount / 12;
-    case 'quarterly': return priceAmount / 3;
-    case 'weekly':    return (priceAmount * 52) / 12;
+    case 'yearly':    return priceAmount / (12 * intervalCount);
+    case 'quarterly': return priceAmount / (3 * intervalCount);
+    case 'weekly':    return (priceAmount * 52) / (12 * intervalCount);
     case 'monthly':
-    default:          return priceAmount;
+    default:          return priceAmount / intervalCount;
+  }
+}
+
+function customUnitToSubBilling(unit: CustomUnit): SubBillingPeriod {
+  switch (unit) {
+    case 'day':   return 'weekly';
+    case 'week':  return 'weekly';
+    case 'month': return 'monthly';
+    case 'year':  return 'yearly';
+  }
+}
+
+function customToIntervalCount(count: number, unit: CustomUnit): number {
+  if (unit === 'day') return count;
+  return count;
+}
+
+function customMonthlyEquivalent(price: number, count: number, unit: CustomUnit): number {
+  switch (unit) {
+    case 'day':   return (price / count) * 30.44;
+    case 'week':  return (price / count) * (52 / 12);
+    case 'month': return price / count;
+    case 'year':  return price / (count * 12);
   }
 }
 
@@ -147,6 +170,8 @@ type ReminderDays = '1' | '3' | '7';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
 
+type CustomUnit = 'day' | 'week' | 'month' | 'year';
+
 interface FormState {
   name: string;
   currency: string;
@@ -154,6 +179,8 @@ interface FormState {
   startDate: Date;
   nextPaymentDate: Date;
   billingPeriod: BillingPeriod;
+  customCount: number;
+  customUnit: CustomUnit;
   endEnabled: boolean;
   endDate: Date;
   category: string;
@@ -188,6 +215,8 @@ function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: 
     startDate: today,
     nextPaymentDate: nextMonth(today),
     billingPeriod: 'monthly',
+    customCount: 1,
+    customUnit: 'month',
     endEnabled: false,
     endDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
     category: prefill?.category ?? 'streaming',
@@ -209,6 +238,8 @@ function formIsEqual(a: FormState, b: FormState): boolean {
     a.startDate.getTime() === b.startDate.getTime() &&
     a.nextPaymentDate.getTime() === b.nextPaymentDate.getTime() &&
     a.billingPeriod === b.billingPeriod &&
+    a.customCount === b.customCount &&
+    a.customUnit === b.customUnit &&
     a.endEnabled === b.endEnabled &&
     a.endDate.getTime() === b.endDate.getTime() &&
     a.category === b.category &&
@@ -468,8 +499,14 @@ export function CreateSubscriptionSheet() {
     haptic.light();
     setIsSubmitting(true);
     try {
-      const billingKey = BILLING_KEY[f.billingPeriod] ?? 'monthly';
-      const monthly = monthlyEquivalent(priceNum, billingKey);
+      const isCustom = f.billingPeriod === 'custom';
+      const billingKey = isCustom
+        ? customUnitToSubBilling(f.customUnit)
+        : (BILLING_KEY[f.billingPeriod] ?? 'monthly');
+      const intervalCount = isCustom ? customToIntervalCount(f.customCount, f.customUnit) : 1;
+      const monthly = isCustom
+        ? customMonthlyEquivalent(priceNum, f.customCount, f.customUnit)
+        : monthlyEquivalent(priceNum, billingKey);
       const myMonthly = f.shared && f.sharedCount > 1
         ? monthly / f.sharedCount
         : monthly;
@@ -482,7 +519,7 @@ export function CreateSubscriptionSheet() {
         price_amount: priceNum,
         currency: f.currency,
         billing_period: billingKey,
-        billing_interval_count: 1,
+        billing_interval_count: intervalCount,
         next_billing_date: f.nextPaymentDate.toISOString().split('T')[0],
         status: f.status,
         is_shared: f.shared,
@@ -752,6 +789,62 @@ export function CreateSubscriptionSheet() {
                     />
                   </View>
                 </View>
+                {form.billingPeriod === 'custom' && (
+                  <>
+                    <FormDivider />
+                    <View style={styles.row}>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.every')}</Text>
+                      <View style={styles.customIntervalRow}>
+                        <View style={styles.stepper}>
+                          <Pressable
+                            onPress={() => setForm((f) => ({ ...f, customCount: Math.max(1, f.customCount - 1) }))}
+                            hitSlop={6}
+                            disabled={form.customCount <= 1}
+                            style={({ pressed }) => [
+                              styles.stepperBtn,
+                              form.customCount <= 1 && styles.stepperBtnDisabled,
+                              pressed && { opacity: 0.6 },
+                            ]}
+                          >
+                            <Minus size={14} color="#000000" strokeWidth={2.5} />
+                          </Pressable>
+                          <Text style={styles.stepperValue}>{form.customCount}</Text>
+                          <Pressable
+                            onPress={() => setForm((f) => ({ ...f, customCount: Math.min(99, f.customCount + 1) }))}
+                            hitSlop={6}
+                            disabled={form.customCount >= 99}
+                            style={({ pressed }) => [
+                              styles.stepperBtn,
+                              form.customCount >= 99 && styles.stepperBtnDisabled,
+                              pressed && { opacity: 0.6 },
+                            ]}
+                          >
+                            <Plus size={14} color="#000000" strokeWidth={2.5} />
+                          </Pressable>
+                        </View>
+                        <View style={styles.customUnitRow}>
+                          {(['day', 'week', 'month', 'year'] as CustomUnit[]).map((u) => (
+                            <Pressable
+                              key={u}
+                              onPress={() => setForm((f) => ({ ...f, customUnit: u }))}
+                              style={[
+                                styles.customUnitPill,
+                                form.customUnit === u && styles.customUnitPillActive,
+                              ]}
+                            >
+                              <Text style={[
+                                styles.customUnitText,
+                                form.customUnit === u && styles.customUnitTextActive,
+                              ]}>
+                                {t(`form.unit.${u}` as any)}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                    </View>
+                  </>
+                )}
                 <FormDivider />
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>{t('form.endSubscription')}</Text>
@@ -1370,6 +1463,33 @@ const styles = StyleSheet.create({
     minWidth: 22,
     textAlign: 'center',
     letterSpacing: -0.2,
+  },
+
+  customIntervalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  customUnitRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  customUnitPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+  },
+  customUnitPillActive: {
+    backgroundColor: '#000000',
+  },
+  customUnitText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    color: '#8E8E93',
+  },
+  customUnitTextActive: {
+    color: '#FFFFFF',
   },
 
   inlineInput: {

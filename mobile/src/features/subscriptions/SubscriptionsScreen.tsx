@@ -61,6 +61,8 @@ import {
 } from '../dashboard/useDashboardReveal';
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
+import { usePreferencesStore } from '../settings/useSettingsStore';
+import { currencyCodeFromLabel, currencyToSymbol } from '../../lib/formatting';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Tighter stacking — cards overlap more,
@@ -73,12 +75,14 @@ const SORT_KEYS: Record<SortMode, string> = {
   recently_added: 'subscriptions.sort.recent',
   price_high: 'subscriptions.sort.priceHigh',
   price_low: 'subscriptions.sort.priceLow',
+  next_renewal: 'subscriptions.sort.nextRenewal',
 };
 const SORT_OPTIONS: SortMode[] = [
   'alphabetical',
   'recently_added',
   'price_high',
   'price_low',
+  'next_renewal',
 ];
 
 type FilterValue = SubscriptionStatus | 'all';
@@ -105,6 +109,10 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
     case 'recently_added':
       return sorted.sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+    case 'next_renewal':
+      return sorted.sort(
+        (a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime(),
       );
     default:
       return sorted;
@@ -409,6 +417,9 @@ export function SubscriptionsScreen() {
     () => subscriptions.filter((s) => s.status === 'active'),
     [subscriptions],
   );
+  const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
+  const globalCurrencyCode = useMemo(() => currencyCodeFromLabel(globalCurrencyLabel), [globalCurrencyLabel]);
+  const globalCurrencySymbol = useMemo(() => currencyToSymbol(globalCurrencyCode), [globalCurrencyCode]);
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
   const totalForPeriod = period === 'monthly' ? totalMonthly : totalMonthly * 12;
@@ -611,7 +622,7 @@ export function SubscriptionsScreen() {
                 ) : (
                   <Text style={[styles.paragraph, { color: colors.textPrimary }]}>
                     {amountFormatted}
-                    {'\u20AC'} {periodLabel}
+                    {globalCurrencySymbol} {periodLabel}
                   </Text>
                 )}
                 <Text style={[styles.paragraph, { color: colors.textPrimary }]}>

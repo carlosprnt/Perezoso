@@ -55,17 +55,21 @@ function DataRow({
   label,
   value,
   valueBold = false,
+  labelColor,
+  valueColor,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   valueBold?: boolean;
+  labelColor?: string;
+  valueColor?: string;
 }) {
   return (
     <View style={styles.dataRow}>
       <View style={styles.dataRowIcon}>{icon}</View>
-      <Text style={styles.dataRowLabel}>{label}</Text>
-      <Text style={[styles.dataRowValue, valueBold && styles.dataRowValueBold]}>
+      <Text style={[styles.dataRowLabel, labelColor ? { color: labelColor } : undefined]}>{label}</Text>
+      <Text style={[styles.dataRowValue, valueBold && styles.dataRowValueBold, valueColor ? { color: valueColor } : undefined]}>
         {value}
       </Text>
     </View>
@@ -214,12 +218,16 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               icon={<CalendarDays size={iconSize} color={iconColor} strokeWidth={2} />}
               label={t('detail.nextCharge')}
               value={formatDateShort(nextDate)}
+              labelColor={colors.textMuted}
+              valueColor={colors.textPrimary}
             />
             <RowDivider />
             <DataRow
               icon={<CreditCard size={iconSize} color={iconColor} strokeWidth={2} />}
               label={t('detail.chargeAmount')}
               value={billingAmountFmt}
+              labelColor={colors.textMuted}
+              valueColor={colors.textPrimary}
             />
             <RowDivider />
             <DataRow
@@ -227,6 +235,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               label={t('detail.chargeFrequency')}
               value={BILLING_PERIOD_LABELS[sub.billing_period]}
               valueBold
+              labelColor={colors.textMuted}
+              valueColor={colors.textPrimary}
             />
           </View>
 
@@ -267,6 +277,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               }
               label={t('detail.renewalAlert')}
               value={sub.reminderEnabled ? t({ '1': 'form.reminder.1day', '3': 'form.reminder.3days', '7': 'form.reminder.7days' }[sub.reminderDays ?? '1'] ?? 'form.reminder.1day') : t('detail.noAlert')}
+              labelColor={colors.textMuted}
+              valueColor={colors.textPrimary}
             />
             <RowDivider />
             <DataRow
@@ -274,6 +286,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               label={t('form.category')}
               value={CATEGORY_LABELS[sub.category] ?? sub.category}
               valueBold
+              labelColor={colors.textMuted}
+              valueColor={colors.textPrimary}
             />
             {sub.is_shared && (
               <>
@@ -283,6 +297,8 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
                   label={t('detail.sharedWith')}
                   value={t('detail.people', { count: sub.shared_with_count })}
                   valueBold
+                  labelColor={colors.textMuted}
+                  valueColor={colors.textPrimary}
                 />
               </>
             )}
@@ -293,10 +309,10 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
       {/* ── Footer CTA ── */}
       <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: cardBorder }]}>
         <Pressable
-          style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.85 }]}
+          style={({ pressed }) => [styles.editBtn, { backgroundColor: colors.accent }, pressed && { opacity: 0.85 }]}
           onPress={handleEdit}
         >
-          <Text style={styles.editBtnText}>{t('detail.editSubscription')}</Text>
+          <Text style={[styles.editBtnText, { color: colors.accentFg }]}>{t('detail.editSubscription')}</Text>
         </Pressable>
       </View>
     </View>
@@ -451,14 +467,12 @@ const styles = StyleSheet.create({
     ...fontFamily.regular,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
-    color: '#8E8E93',
     flex: 1,
   },
   dataRowValue: {
     ...fontFamily.regular,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
-    color: '#000000',
     textAlign: 'right',
   },
   dataRowValueBold: {
@@ -519,14 +533,12 @@ const styles = StyleSheet.create({
   editBtn: {
     height: 52,
     borderRadius: radius.full,
-    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   editBtnText: {
     ...fontFamily.medium,
     fontSize: fontSize[16],
-    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
 });
