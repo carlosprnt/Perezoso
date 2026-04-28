@@ -50,7 +50,7 @@ export function SocialLoginButtons({
             pressed && { opacity: 0.85 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="{t('onboarding.continueGoogle')}"
+          accessibilityLabel={t('onboarding.continueGoogle')}
         >
           <View style={styles.glyph}>
             <GoogleGlyph size={20} />
@@ -74,7 +74,7 @@ export function SocialLoginButtons({
             pressed && { opacity: 0.85 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="{t('onboarding.continueApple')}"
+          accessibilityLabel={t('onboarding.continueApple')}
         >
           <View style={styles.glyph}>
             <AppleGlyph size={20} color={secondaryText} />
