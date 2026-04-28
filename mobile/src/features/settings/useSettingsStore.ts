@@ -102,6 +102,20 @@ export const useTagsStore = create<TagsStore>((set) => ({
     }),
 }));
 
+// ─── Admin stats sheet (open/close) ──────────────────────────────────
+
+interface AdminStatsStore {
+  isOpen: boolean;
+  openSheet: () => void;
+  closeSheet: () => void;
+}
+
+export const useAdminStatsStore = create<AdminStatsStore>((set) => ({
+  isOpen: false,
+  openSheet: () => set({ isOpen: true }),
+  closeSheet: () => set({ isOpen: false }),
+}));
+
 // ─── Demo preset sheet (open/close) ──────────────────────────────────
 // State lives in subscriptionsStore — this only tracks the sheet's
 // presentation so other sheets don't need to know about demo presets.

@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowUpDown,
+  BarChart3,
   Bell,
   Check,
   Coins,
@@ -45,11 +46,13 @@ import {
   SettingsPaletteProvider,
   SubscriptionCard,
 } from './components';
+import { AdminStatsSheet } from './AdminStatsSheet';
 import { CurrencySheet } from './CurrencySheet';
 import { DemoSheet } from './DemoSheet';
 import { LanguageSheet, languageLabel } from './LanguageSheet';
 import { TagsBottomSheet } from './TagsBottomSheet';
 import {
+  useAdminStatsStore,
   useDemoSheetStore,
   usePreferencesStore,
   useSettingsStore,
@@ -81,6 +84,7 @@ export function SettingsSheet() {
   const openTags              = useTagsStore((s) => s.openSheet);
 
   const openDemo              = useDemoSheetStore((s) => s.openSheet);
+  const openAdminStats        = useAdminStatsStore((s) => s.openSheet);
   const isPlusActive          = useSubscriptionsStore((s) => s.isPlusActive);
   const openPaywall           = usePaywallStore((s) => s.open);
   const deleteAccount         = useAuthStore((s) => s.deleteAccount);
@@ -301,7 +305,7 @@ export function SettingsSheet() {
               />
             </SettingsSectionCard>
 
-            {/* 5 — Demo (only carlosprnt@gmail.com) */}
+            {/* 5 — Admin: Demo + Stats (only carlosprnt@gmail.com) */}
             {showDemo && (
               <>
                 <View style={styles.gap} />
@@ -310,6 +314,11 @@ export function SettingsSheet() {
                     icon={<Shield size={20} color={iconColor} strokeWidth={2} />}
                     label="Demo"
                     onPress={handleDemo}
+                  />
+                  <SettingsRow
+                    icon={<BarChart3 size={20} color={iconColor} strokeWidth={2} />}
+                    label="Stats"
+                    onPress={openAdminStats}
                   />
                 </SettingsSectionCard>
               </>
@@ -376,6 +385,7 @@ export function SettingsSheet() {
           {/* Secondary sheets */}
           <TagsBottomSheet />
           <DemoSheet />
+          <AdminStatsSheet />
           <CurrencySheet
             visible={currencySheetOpen}
             onClose={() => setCurrencySheetOpen(false)}
