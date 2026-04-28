@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   body: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.normal,
     marginTop: 10,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   legal: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.normal,
     marginTop: 14,

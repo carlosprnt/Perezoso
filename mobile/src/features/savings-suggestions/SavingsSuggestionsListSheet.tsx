@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   copy: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     flex: 1,
     fontSize: fontSize[14],
     color: '#1F1F22',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   proCardBody: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     color: '#AEAEB2',
     textAlign: 'center',
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#8E8E93',
     textAlign: 'center',

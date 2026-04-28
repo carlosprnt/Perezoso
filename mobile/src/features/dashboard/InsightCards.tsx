@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   label: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginBottom: 2, // mb-0.5
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[14] * lineHeight.snug,
   },
   rightBottom: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,

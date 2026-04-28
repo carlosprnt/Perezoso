@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 6,
   },
-  bigLabel: { ...fontFamily.regular, fontSize: fontSize[11], letterSpacing: 0.3 },
+  bigLabel: { ...fontFamily.medium, fontSize: fontSize[11], letterSpacing: 0.3 },
   bigValue: { ...fontFamily.medium, fontSize: fontSize[32], letterSpacing: -0.5 },
 
   sectionTitleRow: {
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sectionTitle: { ...fontFamily.medium, fontSize: fontSize[16], letterSpacing: -0.2 },
-  sectionTitleRight: { ...fontFamily.regular, fontSize: fontSize[13] },
+  sectionTitleRight: { ...fontFamily.medium, fontSize: fontSize[13] },
 
   card: { borderRadius: 14, overflow: 'hidden' },
   row: {
@@ -421,13 +421,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  rowLabel: { ...fontFamily.regular, fontSize: fontSize[15], flex: 1 },
-  rowValue: { ...fontFamily.regular, fontSize: fontSize[15] },
+  rowLabel: { ...fontFamily.medium, fontSize: fontSize[15], flex: 1 },
+  rowValue: { ...fontFamily.medium, fontSize: fontSize[15] },
   rowValueAccent: { ...fontFamily.medium, fontSize: fontSize[15] },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 16 },
   rankRow: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
   rank: { ...fontFamily.medium, fontSize: fontSize[13], width: 26, textAlign: 'right' },
-  emptyText: { ...fontFamily.regular, fontSize: fontSize[14], padding: 16 },
+  emptyText: { ...fontFamily.medium, fontSize: fontSize[14], padding: 16 },
 
   chartCard: { paddingTop: 16, paddingBottom: 10, paddingHorizontal: 12 },
   chartBars: {
@@ -438,12 +438,12 @@ const styles = StyleSheet.create({
   },
   chartCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   chartBar: { width: '100%', borderRadius: 2, minWidth: 3 },
-  chartDayLabel: { ...fontFamily.regular, fontSize: 8, marginTop: 3 },
+  chartDayLabel: { ...fontFamily.medium, fontSize: 8, marginTop: 3 },
   chartFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 6,
     paddingHorizontal: 2,
   },
-  chartFooterText: { ...fontFamily.regular, fontSize: fontSize[11] },
+  chartFooterText: { ...fontFamily.medium, fontSize: fontSize[11] },
 });

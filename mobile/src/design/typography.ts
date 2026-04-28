@@ -125,17 +125,17 @@ export const textPreset = {
 
   // Body
   bodyLg: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.normal,
   },
   bodyMd: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.normal,
   },
   bodySm: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.normal,
   },
@@ -166,7 +166,7 @@ export const textPreset = {
 
   // Input (TextInput body copy)
   input: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.normal,
   },

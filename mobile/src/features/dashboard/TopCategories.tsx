@@ -204,12 +204,12 @@ const styles = StyleSheet.create({
   },
   catName: {
     flex: 1,
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
   catPct: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#8E8E93',
     flexShrink: 0,

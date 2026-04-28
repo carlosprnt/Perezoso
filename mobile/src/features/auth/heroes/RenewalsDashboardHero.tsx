@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   reminderText: {
     flex: 1,
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 12,
     lineHeight: 12 * 1.4,
     color: '#1F2937',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statSub: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 9.5,
     color: '#9CA3AF',
     lineHeight: 9.5 * 1.35,

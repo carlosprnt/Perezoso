@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   findSubsRowDesc: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: 'rgba(255,255,255,0.45)',
     marginTop: 2,
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   searchInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#FFFFFF',
     flex: 1,

@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   bodyText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * 1.4,
   },

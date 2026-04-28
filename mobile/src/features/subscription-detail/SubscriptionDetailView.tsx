@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   priceCaption: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },
@@ -467,13 +467,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dataRowLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
     flex: 1,
   },
   dataRowValue: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
     textAlign: 'right',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressDateText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
   },
   progressTrack: {

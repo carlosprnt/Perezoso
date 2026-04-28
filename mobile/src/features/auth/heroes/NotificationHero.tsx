@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   promptBody: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.normal,
     textAlign: 'center',
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[14] * lineHeight.compact,
   },
   rowSub: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.normal,
   },

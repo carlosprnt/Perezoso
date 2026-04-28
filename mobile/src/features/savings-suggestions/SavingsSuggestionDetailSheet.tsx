@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   currentPlanLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     color: C.textMuted,
     letterSpacing: -0.05,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   savingsYear: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: SUGGESTED_COLOR,
     letterSpacing: -0.05,
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     borderBottomColor: C.cardDivider,
   },
   compareLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     flex: 1,
     fontSize: fontSize[14],
     color: '#0F0F10',
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
 
   // Explanatory note
   note: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: C.textMuted,
     letterSpacing: -0.05,

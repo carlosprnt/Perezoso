@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   period: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
   },
 });

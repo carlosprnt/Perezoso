@@ -997,11 +997,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dropdownMuted: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
   },
   dropdownValue: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     marginRight: 4,
   },
@@ -1038,7 +1038,7 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
   },
   separatorLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
   },
   // Custom dropdown menu — matches web SortDropdown/FilterDropdown.

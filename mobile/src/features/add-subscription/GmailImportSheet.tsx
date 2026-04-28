@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   explainBody: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     textAlign: 'center',
     lineHeight: fontSize[15] * 1.5,
@@ -519,14 +519,14 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   bulletText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     flex: 1,
     lineHeight: fontSize[15] * 1.4,
   },
   explainFooter: { paddingHorizontal: 20, paddingTop: 20 },
   footerNote: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 11,
     textAlign: 'center',
     marginTop: 8,
@@ -535,11 +535,11 @@ const styles = StyleSheet.create({
   // Loading phase
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 },
   loadingText: { ...fontFamily.medium, fontSize: fontSize[18], textAlign: 'center' },
-  loadingSubtext: { ...fontFamily.regular, fontSize: fontSize[14], textAlign: 'center' },
+  loadingSubtext: { ...fontFamily.medium, fontSize: fontSize[14], textAlign: 'center' },
 
   // Results phase
   resultsSubtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     paddingHorizontal: 20,
     marginBottom: 8,
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   logoInitial: { ...fontFamily.medium, fontSize: fontSize[16] },
   resultInfo: { flex: 1 },
   resultName: { ...fontFamily.medium, fontSize: fontSize[15], letterSpacing: -0.1 },
-  resultMeta: { ...fontFamily.regular, fontSize: fontSize[11], marginTop: 2 },
+  resultMeta: { ...fontFamily.medium, fontSize: fontSize[11], marginTop: 2 },
   confidenceBadge: {
     width: 20,
     height: 20,

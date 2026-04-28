@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   plusSubtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: 'rgba(255,255,255,0.50)',
   },

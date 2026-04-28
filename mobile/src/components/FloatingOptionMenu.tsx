@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rowText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
     flex: 1,

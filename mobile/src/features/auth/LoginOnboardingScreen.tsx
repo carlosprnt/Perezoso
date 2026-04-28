@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   legalText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 11,
     lineHeight: 11 * 1.5,
     textAlign: 'center',

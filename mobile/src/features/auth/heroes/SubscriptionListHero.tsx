@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[15] * lineHeight.compact,
   },
   rowSub: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.normal,
   },

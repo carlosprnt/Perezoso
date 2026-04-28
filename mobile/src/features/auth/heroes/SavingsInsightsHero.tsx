@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 13,
     lineHeight: 13 * 1.45,
   },

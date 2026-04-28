@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   errorText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#B91C1C',
     flex: 1,
@@ -923,7 +923,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   priceInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[18],
     color: '#000000',
     letterSpacing: -0.2,
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   rowLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.1,
@@ -993,7 +993,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   datePillText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
@@ -1025,7 +1025,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dropdownText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.1,
@@ -1057,7 +1057,7 @@ const styles = StyleSheet.create({
 
   // Inline text input (payment method)
   inlineInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.1,
@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   urlInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   notesInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,

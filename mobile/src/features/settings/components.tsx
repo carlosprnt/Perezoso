@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     maxWidth: '60%',
   },
   rowValue: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
     maxWidth: 180,
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   profileEmail: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
   },
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   subStatus: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
   },

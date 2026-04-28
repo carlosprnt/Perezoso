@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[15] * lineHeight.snug,
   },
   metaSeparator: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },

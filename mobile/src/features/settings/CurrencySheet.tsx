@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
     paddingVertical: 0,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   emptyState: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     paddingVertical: 16,
     textAlign: 'center',
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     width: 48,
   },
   rowName: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     letterSpacing: -0.1,
     flex: 1,

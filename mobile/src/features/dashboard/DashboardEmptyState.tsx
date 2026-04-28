@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   heroSubtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 18,
     lineHeight: 18 * 1.45,
     marginBottom: 22,

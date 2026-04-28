@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   subheadline: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     color: '#6B6B6B',
     textAlign: 'center',
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   benefitSubtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: '#8E8E93',
     marginTop: 2,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   planColPeriodInline: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: '#8E8E93',
   },
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   },
 
   planPerMonth: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: '#6B6B6B',
   },
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
 
   // 6. Trust
   trustText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 12,
     color: '#AEAEB2',
     textAlign: 'center',

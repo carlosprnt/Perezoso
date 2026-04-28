@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   cancelText: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#8E8E93',
     letterSpacing: -0.1,

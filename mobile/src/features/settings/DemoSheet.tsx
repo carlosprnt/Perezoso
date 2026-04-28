@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     color: C.textMuted,
     letterSpacing: -0.1,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   optionDesc: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: C.textMuted,
     letterSpacing: -0.05,

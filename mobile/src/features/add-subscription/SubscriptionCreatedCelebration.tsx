@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   category: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: '#8E8E93',
     letterSpacing: -0.1,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   period: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: '#8E8E93',
     letterSpacing: -0.1,

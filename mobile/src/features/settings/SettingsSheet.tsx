@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   appearanceValue: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
   },

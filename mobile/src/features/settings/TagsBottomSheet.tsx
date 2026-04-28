@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     color: C.textMuted,
     letterSpacing: -0.1,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   addInput: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[16],
     color: '#000000',
     letterSpacing: -0.1,
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
 
   emptyHint: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[13],
     color: C.textMuted,
     letterSpacing: -0.1,

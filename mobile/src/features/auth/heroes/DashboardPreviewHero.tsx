@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   insightLabel: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.snug,
     marginBottom: 1,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[13] * lineHeight.snug,
   },
   insightRightBot: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[11],
     lineHeight: fontSize[11] * lineHeight.snug,
     marginTop: 1,

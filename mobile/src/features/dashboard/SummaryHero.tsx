@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     // Amount + period on same line
   },
   label: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 18,
     lineHeight: 18 * 1.6,
     letterSpacing: letterSpacing.tight,

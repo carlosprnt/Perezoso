@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   reminderText: {
     flex: 1,
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: 10,
     lineHeight: 10 * 1.4,
     color: '#1F2937',

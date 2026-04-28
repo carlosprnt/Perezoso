@@ -127,7 +127,7 @@ const headerStyles = StyleSheet.create({
     letterSpacing: letterSpacing.tight,
   },
   subtitle: {
-    ...fontFamily.regular,
+    ...fontFamily.medium,
     fontSize: fontSize[14],
     lineHeight: fontSize[14] * lineHeight.snug,
     marginTop: 2,

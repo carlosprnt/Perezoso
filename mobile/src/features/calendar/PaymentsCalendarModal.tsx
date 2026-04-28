@@ -311,7 +311,7 @@ export function PaymentsCalendarModal() {
                     <Text
                       style={[
                         styles.subtitle,
-                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.medium },
                       ]}
                     >
                       {formatAmount(animatedAmount, currency)} {t('calendar.total')}
@@ -325,7 +325,7 @@ export function PaymentsCalendarModal() {
                     <Text
                       style={[
                         styles.subtitle,
-                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.regular },
+                        { color: isDark ? '#8E8E93' : '#737373', ...fontFamily.medium },
                       ]}
                     >
                       {totalCount === 0
