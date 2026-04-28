@@ -110,6 +110,15 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
 
   const [query, setQuery] = useState('');
 
+  // Pending selection — tracks what the user has tapped but not yet
+  // saved. `null` means nothing has been tapped this session.
+  const [pending, setPending] = useState<Currency | null>(null);
+
+  // Reset pending selection whenever the sheet opens.
+  React.useEffect(() => {
+    if (visible) setPending(null);
+  }, [visible]);
+
   const filtered = useMemo(
     () => ALL_CURRENCIES.filter((c) => matches(c, query)),
     [query],
@@ -117,16 +126,34 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
   const showMostUsed = query.trim().length === 0;
 
   const isSelected = (c: Currency) => {
-    if (selectedCode !== undefined) return c.code === selectedCode;
+    // External selection (edit forms) — driven by selectedCode prop.
+    if (selectedCode !== undefined) {
+      if (pending) return c.code === pending.code;
+      return c.code === selectedCode;
+    }
+    // Global settings — compare against pending or store value.
+    if (pending) return c.code === pending.code;
     return storeCurrency === c.label;
   };
 
   const handleSelect = (c: Currency) => {
     haptic.selection();
+    setPending(c);
+  };
+
+  const handleSave = () => {
+    const chosen = pending;
+    if (!chosen) {
+      // Nothing changed — just close.
+      setQuery('');
+      onClose();
+      return;
+    }
+    haptic.selection();
     if (onSelectCurrency) {
-      onSelectCurrency(c);
+      onSelectCurrency(chosen);
     } else {
-      setCurrency(c.label);
+      setCurrency(chosen.label);
     }
     setQuery('');
     onClose();
@@ -227,6 +254,29 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
           ))
         )}
       </ScrollView>
+
+      {/* Save button */}
+      <View style={[styles.saveWrap, { borderTopColor: dividerColor }]}>
+        <Pressable
+          onPress={handleSave}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            { backgroundColor: pending ? '#000000' : isDark ? '#3A3A3C' : '#E5E5EA' },
+            pressed && { opacity: 0.85 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.save')}
+        >
+          <Text
+            style={[
+              styles.saveBtnText,
+              { color: pending ? '#FFFFFF' : isDark ? '#8E8E93' : '#8E8E93' },
+            ]}
+          >
+            Guardar
+          </Text>
+        </Pressable>
+      </View>
     </HalfSheet>
   );
 }
@@ -363,5 +413,22 @@ const styles = StyleSheet.create({
   checkPlaceholder: {
     width: 18,
     height: 18,
+  },
+  saveWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  saveBtn: {
+    height: 52,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[16],
+    letterSpacing: -0.2,
   },
 });
