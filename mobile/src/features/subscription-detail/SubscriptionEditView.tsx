@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.4,
@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
   },
   platformName: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.3,
@@ -917,7 +917,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   currencyText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     color: '#000000',
     letterSpacing: -0.1,
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   proBadgeText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[11],
     color: '#FFFFFF',
     letterSpacing: 0.2,
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   customUnitText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[13],
   },
 
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
   },
   stepperBtnDisabled: { opacity: 0.35 },
   stepperValue: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#000000',
     minWidth: 22,
@@ -1091,7 +1091,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pasteLink: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     color: '#007AFF',
     letterSpacing: -0.1,
@@ -1132,7 +1132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   destructiveText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#FF3B30',
     letterSpacing: -0.1,
@@ -1154,7 +1154,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     color: '#FFFFFF',
     letterSpacing: -0.2,

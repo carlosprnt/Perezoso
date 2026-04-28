@@ -236,13 +236,13 @@ const styles = StyleSheet.create({
     letterSpacing: letterSpacing.tight,
   },
   heroAmount: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
   },
   heroPeriod: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[50],
     lineHeight: fontSize[50] * lineHeight.compact,
   },
@@ -255,12 +255,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   supportText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 18,
     lineHeight: 18 * 1.6,
   },
   supportBold: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 18,
     lineHeight: 18 * 1.6,
   },

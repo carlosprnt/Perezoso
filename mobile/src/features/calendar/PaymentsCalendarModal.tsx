@@ -447,12 +447,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   dayDetailName: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 14,
     flex: 1,
   },
   dayDetailAmount: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 14,
   },
 });

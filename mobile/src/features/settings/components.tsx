@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   rowLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     letterSpacing: -0.2,
     flex: 1,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E4C8B8',
   },
   avatarInitials: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
     color: '#3B2A1A',
     letterSpacing: -0.2,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
   },
   profileName: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
     letterSpacing: -0.3,
     marginBottom: 2,
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   subTitle: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[20],
     letterSpacing: -0.3,
     marginBottom: 2,
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subBtnText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[14],
     color: '#FFFFFF',
     letterSpacing: -0.1,

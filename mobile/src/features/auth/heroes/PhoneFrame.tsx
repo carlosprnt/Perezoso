@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   clock: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 11,
     color: '#0F172A',
   },

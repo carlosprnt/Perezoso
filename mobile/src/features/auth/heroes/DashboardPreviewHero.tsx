@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   greeting: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
   },
   avatar: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   heroLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 22,
     lineHeight: 22 * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   heroAmount: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 42,
     lineHeight: 42 * lineHeight.compact,
     letterSpacing: letterSpacing.tight,
@@ -367,14 +367,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   supportText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.normal,
     marginTop: 8,
     marginBottom: 12,
   },
   supportBold: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
   },
 
   // Insight cards
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   insightTitle: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
   },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   insightRightTop: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
   },

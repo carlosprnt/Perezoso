@@ -60,6 +60,7 @@ export default function RootLayout() {
     Nunito_900Black,
     'OverusedGrotesk-Book':     require('../assets/fonts/OverusedGrotesk-Book.otf'),
     'OverusedGrotesk-Medium':   require('../assets/fonts/OverusedGrotesk-Medium.otf'),
+    'OverusedGrotesk-SemiBold': require('../assets/fonts/OverusedGrotesk-SemiBold.otf'),
   });
 
   useEffect(() => {

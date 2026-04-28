@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize[15] * 1.4,
   },
   bodyBold: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
   },
   buttons: {
     flexDirection: 'row',
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dismissText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[13],
   },
   ctaBtn: {
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   ctaText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[13],
   },
 });

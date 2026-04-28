@@ -336,9 +336,9 @@ function MonthGrid({
                         { color: colors.textMuted },
                         isToday && {
                           color: colors.textPrimary,
-                          ...fontFamily.medium,
+                          ...fontFamily.semiBold,
                         },
-                        renewal && { ...fontFamily.medium },
+                        renewal && { ...fontFamily.semiBold },
                       ]}
                     >
                       {d}
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   monthName: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 28,
     letterSpacing: -0.3,
   },
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   subNumber: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 16,
     padding: 0,
     margin: 0,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     width: 62,
   },
   subNumberNarrow: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 16,
     padding: 0,
     margin: 0,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     width: 11,
   },
   subLabel: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 16,
   },
   subDot: {
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekday: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 11,
   },
   gridWrap: {
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
   },
   dayNumber: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 11,
   },
   logoWrap: {

@@ -447,7 +447,7 @@ const sheetStyles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
     flex: 1,

@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   sectionHeader: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[11],
     letterSpacing: 0.4,
     textTransform: 'uppercase',
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowCode: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     letterSpacing: -0.1,
     width: 48,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowSymbol: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
     letterSpacing: -0.1,
     minWidth: 24,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[16],
     letterSpacing: -0.2,
   },

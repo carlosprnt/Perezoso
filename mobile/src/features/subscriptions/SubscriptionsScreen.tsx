@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   islandBlobText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
   },
   content: {
     flexGrow: 1,
@@ -944,7 +944,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 30,
     lineHeight: 30 * lineHeight.tight,
     letterSpacing: letterSpacing.tight,
@@ -960,7 +960,7 @@ const styles = StyleSheet.create({
   },
   // Matches web: 18px bold, primary text color (NOT muted), tight leading.
   paragraph: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[18],
     lineHeight: fontSize[18] * lineHeight.snug,
   },
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
   },
   clearBtn: {
@@ -1023,7 +1023,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   clearBtnText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: fontSize[15],
   },
   inactiveSeparator: {
@@ -1067,7 +1067,7 @@ const styles = StyleSheet.create({
   },
   // 16px typography — explicit size on user's request.
   dropdownItemText: {
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 16,
     lineHeight: 16 * 1.3,
   },

@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    ...fontFamily.medium,
+    ...fontFamily.semiBold,
     fontSize: 17,
     letterSpacing: -0.1,
   },
