@@ -236,7 +236,7 @@ export function PaywallSheet() {
           <ScrollView
             bounces={false}
             showsVerticalScrollIndicator={false}
-            style={{ flexShrink: 1 }}
+            style={{ flex: 1, flexShrink: 1 }}
             contentContainerStyle={{ paddingBottom: 4 }}
           >
             {/* ── 1. Branding ─────────────────────────────────── */}
@@ -391,6 +391,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -10 },
     elevation: 32,
     overflow: 'hidden',
+    flexDirection: 'column',
   },
 
   // Handle + close
@@ -628,7 +629,9 @@ const styles = StyleSheet.create({
 
   // 5. CTA (fixed at bottom)
   ctaSection: {
+    flexShrink: 0,
     paddingTop: 12,
+    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#F2F2F7',
   },
