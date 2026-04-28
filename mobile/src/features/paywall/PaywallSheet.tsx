@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    maxHeight: SCREEN_H * 0.92,
+    height: SCREEN_H * 0.92,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
