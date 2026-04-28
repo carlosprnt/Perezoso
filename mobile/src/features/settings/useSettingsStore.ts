@@ -12,6 +12,8 @@
 // in the app (e.g. filters) without importing any sheet-specific flags.
 
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 
 // ─── Settings sheet ──────────────────────────────────────────────────
@@ -41,15 +43,23 @@ interface PreferencesStore {
   setAppearance: (a: AppearanceMode) => void;
 }
 
-export const usePreferencesStore = create<PreferencesStore>((set) => ({
-  currency: '€ EUR',
-  notificationsEnabled: false,
-  appearance: 'Claro',
-  setCurrency: (currency) => set({ currency }),
-  setNotificationsEnabled: (notificationsEnabled) =>
-    set({ notificationsEnabled }),
-  setAppearance: (appearance) => set({ appearance }),
-}));
+export const usePreferencesStore = create<PreferencesStore>()(
+  persist(
+    (set) => ({
+      currency: '€ EUR',
+      notificationsEnabled: false,
+      appearance: 'Claro',
+      setCurrency: (currency) => set({ currency }),
+      setNotificationsEnabled: (notificationsEnabled) =>
+        set({ notificationsEnabled }),
+      setAppearance: (appearance) => set({ appearance }),
+    }),
+    {
+      name: 'perezoso-preferences',
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
+);
 
 // ─── Tags (labels) ───────────────────────────────────────────────────
 

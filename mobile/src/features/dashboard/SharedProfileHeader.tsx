@@ -52,6 +52,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { revealProgress } from './useDashboardReveal';
 import { fontFamily } from '../../design/typography';
 import { radius } from '../../design/radius';
+import { useTheme } from '../../design/useTheme';
 import { getAvatarPastel, getInitials } from '../../components/LogoAvatar';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
@@ -83,6 +84,8 @@ export function SharedProfileHeader({
 }: Props) {
   const insets = useSafeAreaInsets();
   const t = useT();
+  const { colors } = useTheme();
+  const closedColor = colors.textPrimary;
   const displayName = fullName || firstName;
   const pastel = getAvatarPastel(displayName);
   const [imgFailed, setImgFailed] = useState(false);
@@ -101,7 +104,7 @@ export function SharedProfileHeader({
         [FONT_CLOSED, FONT_OPEN],
         Extrapolation.CLAMP,
       ),
-      color: interpolateColor(p, [0, 1], ['#000000', '#FFFFFF']),
+      color: interpolateColor(p, [0, 1], [closedColor, '#FFFFFF']),
     };
   });
 
