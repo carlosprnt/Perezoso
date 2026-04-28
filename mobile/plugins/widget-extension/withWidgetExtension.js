@@ -1,11 +1,13 @@
 // Expo config plugin — adds PerezozoWidgets extension target.
 //
-// Uses withDangerousMod for file operations (runs after ios/ is created)
-// and withXcodeProject for Xcode project manipulation.
+// Uses withDangerousMod for file operations (runs after ios/ is created),
+// withXcodeProject for Xcode project manipulation, and withInfoPlist
+// to fix CFBundleVersion so it reads from build settings.
 
 const {
   withXcodeProject,
   withEntitlementsPlist,
+  withInfoPlist,
   withDangerousMod,
 } = require("expo/config-plugins");
 const path = require("path");
@@ -27,6 +29,17 @@ const WIDGET_SWIFT_FILES = [
 
 const BRIDGE_FILES = ["WidgetDataModule.swift", "WidgetDataModule.m"];
 
+function findGroupKeyByName(project, name) {
+  const groups = project.hash.project.objects['PBXGroup'];
+  for (const key in groups) {
+    if (typeof groups[key] !== 'object') continue;
+    if (groups[key].name === name || groups[key].path === name) {
+      return key;
+    }
+  }
+  return null;
+}
+
 function withWidgetExtension(config) {
   // 1. App Group entitlement on main target
   config = withEntitlementsPlist(config, (c) => {
@@ -34,7 +47,16 @@ function withWidgetExtension(config) {
     return c;
   });
 
-  // 2. Copy files into ios/ directory (withDangerousMod runs reliably after ios/ exists)
+  // 2. Fix CFBundleVersion — use build-setting variables so the version
+  //    is controlled from Xcode Build Settings, not hardcoded in the plist.
+  //    This prevents App Store Connect rejecting builds for duplicate numbers.
+  config = withInfoPlist(config, (c) => {
+    c.modResults.CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
+    c.modResults.CFBundleShortVersionString = "$(MARKETING_VERSION)";
+    return c;
+  });
+
+  // 3. Copy files into ios/ directory (withDangerousMod runs reliably after ios/ exists)
   config = withDangerousMod(config, [
     "ios",
     (c) => {
@@ -135,19 +157,18 @@ function withWidgetExtension(config) {
     },
   ]);
 
-  // 3. Add widget target to the Xcode project
+  // 4. Add widget target to the Xcode project
   config = withXcodeProject(config, (c) => {
     const project = c.modResults;
     const mainBundleId = c.ios?.bundleIdentifier ?? "com.perezoso.app";
     const widgetBundleId = mainBundleId + "." + WIDGET_NAME;
 
-    // Add PBX group for organisation in Xcode sidebar (no files — they
-    // are wired to the build phase separately to avoid path doubling).
+    // Add PBX group for the widget in Xcode sidebar
     const widgetGroup = project.addPbxGroup([], WIDGET_NAME, WIDGET_NAME);
     const mainGroupId = project.getFirstProject().firstProject.mainGroup;
     project.addToPbxGroup(widgetGroup.uuid, mainGroupId);
 
-    // Add extension target
+    // Add extension target (creates target with empty buildPhases)
     const widgetTarget = project.addTarget(
       WIDGET_NAME,
       "app_extension",
@@ -155,24 +176,37 @@ function withWidgetExtension(config) {
       widgetBundleId
     );
 
+    // Create a Sources build phase for the widget target.
+    // addTarget() leaves buildPhases empty, so without this step
+    // addSourceFile falls back to the main target's Sources phase,
+    // putting all widget files in the wrong target.
+    project.addBuildPhase(
+      [],
+      'PBXSourcesBuildPhase',
+      'Sources',
+      widgetTarget.uuid
+    );
+
     // Add Swift source files to the widget target.
-    // Use full path from project root and do NOT pass a group UUID —
-    // this prevents the xcode package from resolving group.path + file.path
-    // which was producing PerezozoWidgets/PerezozoWidgets/file.swift.
+    // Pass just the filename + widget group UUID so the xcode package
+    // resolves group.path ("PerezozoWidgets") + filename correctly.
     for (const file of WIDGET_SWIFT_FILES) {
       project.addSourceFile(
-        `${WIDGET_NAME}/${file}`,
-        { target: widgetTarget.uuid }
+        file,
+        { target: widgetTarget.uuid },
+        widgetGroup.uuid
       );
     }
 
-    // Add bridge files to main target (full path from project root).
+    // Add bridge files to main target only.
     const mainTarget = project.getFirstTarget();
     const mainAppName = c.modRequest.projectName || "Perezoso";
+    const mainAppGroupKey = findGroupKeyByName(project, mainAppName);
     for (const file of BRIDGE_FILES) {
       project.addSourceFile(
-        `${mainAppName}/${file}`,
-        { target: mainTarget.uuid }
+        file,
+        { target: mainTarget.uuid },
+        mainAppGroupKey || mainGroupId
       );
     }
 
