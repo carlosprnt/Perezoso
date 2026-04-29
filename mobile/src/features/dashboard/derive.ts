@@ -129,6 +129,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function deriveTopCategory(subs: Subscription[], currency = 'EUR'): {
   name: string;
+  category: string;
   monthlyCost: number;
   currency: string;
   count: number;
@@ -139,6 +140,7 @@ export function deriveTopCategory(subs: Subscription[], currency = 'EUR'): {
   const count = activeOnly(subs).filter((s) => s.category === top.category).length;
   return {
     name: CATEGORY_LABELS[top.category] ?? top.category,
+    category: top.category,
     monthlyCost: top.monthlyCost,
     currency,
     count,

@@ -30,7 +30,7 @@ export const PLATFORMS: Platform[] = [
   { id: 'disney-plus', name: 'Disney+', domain: 'disneyplus.com', category: 'streaming', brandColor: '#113CCF', aliases: ['disney+', 'disneyplus', 'disney plus'] },
   { id: 'apple-tv', name: 'Apple TV+', domain: 'tv.apple.com', category: 'streaming', aliases: ['apple tv', 'appletv+'] },
   { id: 'prime-video', name: 'Prime Video', domain: 'primevideo.com', category: 'streaming', brandColor: '#00A8E1', aliases: ['amazon prime video'] },
-  { id: 'hbo-max', name: 'HBO Max', domain: 'max.com', category: 'streaming', brandColor: '#5822B4', aliases: ['hbo', 'max'] },
+  { id: 'hbo-max', name: 'Max', domain: 'play.max.com', category: 'streaming', brandColor: '#002BE7', aliases: ['hbo', 'hbo max', 'hbomax'] },
   { id: 'hulu', name: 'Hulu', domain: 'hulu.com', category: 'streaming', brandColor: '#1CE783' },
   { id: 'paramount-plus', name: 'Paramount+', domain: 'paramountplus.com', category: 'streaming', aliases: ['paramount+', 'paramount plus'] },
   { id: 'crunchyroll', name: 'Crunchyroll', domain: 'crunchyroll.com', category: 'streaming', brandColor: '#F47521' },

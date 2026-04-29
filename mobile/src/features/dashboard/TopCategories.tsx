@@ -46,16 +46,13 @@ const CATEGORY_KEYS: Record<string, string> = {
   other: 'category.rest',
 };
 
-/** Color used on bar segment (primary is always yellow #FEF08A) */
-function getBarColor(category: string, isPrimary: boolean): string {
-  if (isPrimary) return '#FEF08A';
+/** Color used on bar segment — uses the category's color from categoryColors */
+function getBarColor(category: string, _isPrimary: boolean): string {
   return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
 }
 
-/** Color used on the legend bullet — matches the bar color so the
- *  primary row's dot is yellow (same as the primary bar segment). */
-function getBulletColor(category: string, isPrimary: boolean): string {
-  if (isPrimary) return '#FEF08A';
+/** Color used on the legend bullet — matches the bar color */
+function getBulletColor(category: string, _isPrimary: boolean): string {
   return (categoryColors as Record<string, string>)[category] ?? categoryColors.other;
 }
 

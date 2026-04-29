@@ -13,6 +13,7 @@ import { TrendingUp, Users, Bot } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
+import { categoryColors } from '../../design/colors';
 import { Pressable } from '../../components/Pressable';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
@@ -90,6 +91,7 @@ interface InsightCardsProps {
   };
   topCategory?: {
     name: string;
+    category: string;
     amount: string;
     count: number;
   };
@@ -104,9 +106,10 @@ export function InsightCards({ highestCost, topCategory, sharedPlans }: InsightC
   const t = useT();
   const defaultIconBg = isDark ? '#2C2C2E' : '#F5F5F5';
   const defaultIconColor = isDark ? '#F2F2F7' : '#000000';
-  // Category icon: purple bg matching web's ai category
-  const categoryIconBg = isDark ? '#2C2C2E' : '#DDD6FE';
-  const categoryIconColor = isDark ? '#F2F2F7' : '#4C1D95';
+  // Category icon: use the actual category's color from categoryColors
+  const catKey = topCategory?.category ?? 'other';
+  const categoryIconBg = isDark ? '#2C2C2E' : ((categoryColors as Record<string, string>)[catKey] ?? categoryColors.other);
+  const categoryIconColor = isDark ? '#F2F2F7' : '#000000';
   const sharedIconColor = isDark ? '#E5E5EA' : '#000000';
 
   return (

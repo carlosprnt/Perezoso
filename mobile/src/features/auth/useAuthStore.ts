@@ -120,6 +120,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { ok: false, error: msg };
       }
 
+      const givenName = credential.fullName?.givenName ?? undefined;
+      const familyName = credential.fullName?.familyName ?? undefined;
+      const fullName = [givenName, familyName].filter(Boolean).join(' ') || undefined;
+
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
@@ -130,7 +134,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { ok: false, error: error.message };
       }
 
-      // onAuthStateChange flips status → 'authenticated'.
+      if (fullName) {
+        await supabase.auth.updateUser({
+          data: { full_name: fullName, name: givenName },
+        });
+      }
+
       return { ok: true };
     } catch (e: any) {
       if (e.code === 'ERR_REQUEST_CANCELED') {

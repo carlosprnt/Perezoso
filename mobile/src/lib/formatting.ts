@@ -85,6 +85,10 @@ export function renewalText(days: number): string {
 }
 
 export function formatBillingDate(dateStr: string): string {
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parseInt(parts[2], 10)} ${MONTHS_ES_SHORT[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+  }
   const d = new Date(dateStr);
   return `${d.getDate()} ${MONTHS_ES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
 }

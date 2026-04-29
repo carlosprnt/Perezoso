@@ -69,6 +69,7 @@ const ALL_CURRENCIES: Currency[] = [
   { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', label: 'kr NOK' },
   { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', label: 'NZ$ NZD' },
   { code: 'PEN', name: 'Peruvian Sol', symbol: 'S/.', label: 'S/. PEN' },
+  { code: 'PYG', name: 'Paraguayan Guaraní', symbol: '₲', label: '₲ PYG' },
   { code: 'PLN', name: 'Polish Złoty', symbol: 'zł', label: 'zł PLN' },
   { code: 'RUB', name: 'Russian Ruble', symbol: '₽', label: '₽ RUB' },
   { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', label: 'kr SEK' },

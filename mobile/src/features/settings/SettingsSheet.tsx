@@ -126,7 +126,8 @@ export function SettingsSheet() {
   const handleCurrency = useCallback(() => setCurrencySheetOpen(true), []);
 
   const handleAppearance = useCallback(() => {
-    setAppearance(appearance === 'Oscuro' ? 'Claro' : 'Oscuro');
+    const next = appearance === 'Claro' ? 'Oscuro' : appearance === 'Oscuro' ? 'Automático' : 'Claro';
+    setAppearance(next);
   }, [appearance, setAppearance]);
 
   const handleDemo = useCallback(() => openDemo(), [openDemo]);

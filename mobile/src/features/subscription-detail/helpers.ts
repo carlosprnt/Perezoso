@@ -17,9 +17,16 @@ const MONTHS_ES = [
 
 const MS_PER_DAY = 86_400_000;
 
-/** 30 abr 2026 */
-export function formatDateShort(d: Date): string {
-  return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+/** 30 abr 2026 — accepts Date or ISO date string (YYYY-MM-DD). */
+export function formatDateShort(d: Date | string): string {
+  if (typeof d === 'string') {
+    const parts = d.split('-');
+    if (parts.length === 3) {
+      return `${parseInt(parts[2], 10)} ${MONTHS_ES[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+    }
+  }
+  const date = typeof d === 'string' ? new Date(d) : d;
+  return `${date.getDate()} ${MONTHS_ES[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 /** Midnight-aligned days between now and a target ISO string. */

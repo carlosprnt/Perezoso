@@ -25,7 +25,7 @@
 // first half of progress 1→0), then the morph shrinks back to the
 // trigger rect, leaving the `+` button visually continuous.
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ import {
   Dimensions,
   Image,
   Linking,
+  TextInput,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
@@ -53,7 +54,7 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { X, Search } from 'lucide-react-native';
 
 import { useAddSubscriptionStore } from './useAddSubscriptionStore';
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
@@ -185,6 +186,7 @@ export function AddSubscriptionOverlay() {
   const close = useAddSubscriptionStore((s) => s.close);
 
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [interactive, setInteractive] = useState(false);
   const progress = useSharedValue(0);
   // swipeY tracks the user's vertical drag distance during a pull-to-dismiss
@@ -228,11 +230,22 @@ export function AddSubscriptionOverlay() {
       });
     } else {
       setInteractive(false);
+      setSearchQuery('');
       progress.value = withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) runOnJS(setMounted)(false);
       });
     }
   }, [mounted, isOpen, progress]);
+
+  const filteredPlatforms = useMemo(() => {
+    if (!searchQuery.trim()) return FEATURED;
+    const q = searchQuery.toLowerCase().trim();
+    return FEATURED.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.aliases?.some((a) => a.toLowerCase().includes(q)),
+    );
+  }, [searchQuery]);
 
   // ─── Animated styles ──────────────────────────────────────────────
   // triggerRect is guaranteed non-null here because the component returns
@@ -377,6 +390,26 @@ export function AddSubscriptionOverlay() {
                 </Pressable>
               </View>
 
+            {/* ─── Search input ────────────────────────────────── */}
+                <View style={styles.searchWrap}>
+                  <Search size={16} color="rgba(255,255,255,0.4)" strokeWidth={2} />
+                  <TextInput
+                    style={styles.searchInput}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={t('findSubs.searchPlaceholder')}
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="search"
+                  />
+                  {searchQuery.length > 0 && (
+                    <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                      <X size={14} color="rgba(255,255,255,0.4)" strokeWidth={2.5} />
+                    </Pressable>
+                  )}
+                </View>
+
             {/* ─── Scrollable service list ─────────────────────── */}
                 <GestureDetector gesture={nativeScrollGesture}>
                 <ScrollView
@@ -386,8 +419,9 @@ export function AddSubscriptionOverlay() {
                   onScroll={handleScroll}
                   scrollEventThrottle={16}
                   bounces={false}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  {FEATURED.map((p) => (
+                  {filteredPlatforms.map((p) => (
                     <Pressable
                       key={p.id}
                       style={({ pressed }) => [
@@ -582,6 +616,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+  },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  searchInput: {
+    ...fontFamily.medium,
+    fontSize: fontSize[15],
+    color: '#FFFFFF',
+    flex: 1,
+    padding: 0,
+    letterSpacing: -0.1,
   },
   footerBtnPrimaryText: {
     ...fontFamily.semiBold,
