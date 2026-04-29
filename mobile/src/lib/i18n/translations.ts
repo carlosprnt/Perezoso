@@ -404,6 +404,13 @@ export const resources = {
       'tags.deleteLabel': 'Eliminar categoría {{name}}',
       'tags.empty': 'Aún no hay categorías. Crea la primera arriba.',
 
+      // ── Category picker ──
+      'categoryPicker.title': 'Categoría',
+      'categoryPicker.subtitle': 'Selecciona o crea una categoría.',
+      'categoryPicker.custom': 'Personalizadas',
+      'categoryPicker.newPlaceholder': 'Nueva categoría',
+      'categoryPicker.add': 'Añadir',
+
       // ── Payment methods ──
       'paymentMethods.title': 'Método de pago',
       'paymentMethods.subtitle': 'Selecciona o crea un método de pago.',
@@ -956,6 +963,13 @@ export const resources = {
       'tags.addLabel': 'Add category',
       'tags.deleteLabel': 'Delete category {{name}}',
       'tags.empty': 'No categories yet. Create your first one above.',
+
+      // ── Category picker ──
+      'categoryPicker.title': 'Category',
+      'categoryPicker.subtitle': 'Select or create a category.',
+      'categoryPicker.custom': 'Custom',
+      'categoryPicker.newPlaceholder': 'New category',
+      'categoryPicker.add': 'Add',
 
       // ── Payment methods ──
       'paymentMethods.title': 'Payment method',

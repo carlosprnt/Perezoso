@@ -55,7 +55,7 @@ import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationSto
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
-import { useTagsStore, usePreferencesStore } from '../settings/useSettingsStore';
+import { usePreferencesStore } from '../settings/useSettingsStore';
 import { currencyCodeFromLabel } from '../../lib/formatting';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
@@ -63,6 +63,7 @@ import { formatDate } from '../../lib/formatting';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import * as Clipboard from 'expo-clipboard';
 import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
+import { CategoryPickerSheet } from '../../components/CategoryPickerSheet';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import type {
   BillingPeriod as SubBillingPeriod,
@@ -197,9 +198,6 @@ interface FormState {
 
 // ─── Constants ───────────────────────────────────────────────────────
 const BILLING_PERIODS: BillingPeriod[] = ['monthly', 'yearly', 'quarterly', 'weekly', 'custom'];
-const BASE_CATEGORIES = [
-  'streaming', 'music', 'productivity', 'cloud', 'ai', 'gaming', 'other',
-];
 const STATUSES: Status[] = ['active', 'paused', 'cancelled', 'ended'];
 const REMINDER_OPTIONS: ReminderDays[] = ['1', '3', '7'];
 function nextMonth(d: Date): Date {
@@ -339,25 +337,16 @@ export function CreateSubscriptionSheet() {
   const prefill = useCreateSubscriptionStore((s) => s.prefill);
   const closeStore = useCreateSubscriptionStore((s) => s.close);
   const insets = useSafeAreaInsets();
-  const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
   const defaultCurrency = currencyCodeFromLabel(globalCurrencyLabel);
   const t = useT();
-  const allCategoryKeys = [...BASE_CATEGORIES, ...tags.map((tg) => tg.name)];
 
   // Translated option arrays for FloatingOptionMenu
   const billingOptions = BILLING_PERIODS.map((k) => t(BILLING_DISPLAY_KEYS[k] ?? k));
   const billingLabelToKey = Object.fromEntries(
     BILLING_PERIODS.map((k) => [t(BILLING_DISPLAY_KEYS[k] ?? k), k]),
   ) as Record<string, BillingPeriod>;
-
-  const categoryOptions = allCategoryKeys.map((k) =>
-    CATEGORY_DISPLAY_KEYS[k] ? t(CATEGORY_DISPLAY_KEYS[k]) : k,
-  );
-  const categoryLabelToKey = Object.fromEntries(
-    allCategoryKeys.map((k) => [CATEGORY_DISPLAY_KEYS[k] ? t(CATEGORY_DISPLAY_KEYS[k]) : k, k]),
-  ) as Record<string, string>;
 
   const statusOptions = STATUSES.map((k) => t(STATUS_DISPLAY_KEYS[k] ?? k));
   const statusLabelToKey = Object.fromEntries(
@@ -382,6 +371,7 @@ export function CreateSubscriptionSheet() {
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [renewalDatePickerOpen, setRenewalDatePickerOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
   const [kbHeight, setKbHeight] = useState(0);
 
   const [error, setError] = useState<string | null>(null);
@@ -401,7 +391,6 @@ export function CreateSubscriptionSheet() {
 
   const priceInputRef = useRef<TextInput>(null);
   const billingRef = useRef<View>(null);
-  const categoryRef = useRef<View>(null);
   const statusRef = useRef<View>(null);
   const reminderRef = useRef<View>(null);
 
@@ -876,12 +865,10 @@ export function CreateSubscriptionSheet() {
               <View style={styles.group}>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>{t('form.category')}</Text>
-                  <View ref={categoryRef} collapsable={false}>
-                    <DropdownBtn
-                      value={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
-                      onPress={() => openPickerAt(categoryRef, 'category')}
-                    />
-                  </View>
+                  <DropdownBtn
+                    value={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
+                    onPress={() => setCategorySheetOpen(true)}
+                  />
                 </View>
               </View>
 
@@ -1126,13 +1113,11 @@ export function CreateSubscriptionSheet() {
         onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: billingLabelToKey[v] ?? 'monthly' }))}
         onClose={() => setOpenPicker(null)}
       />
-      <FloatingOptionMenu
-        visible={openPicker === 'category'}
-        anchor={pickerAnchor}
-        options={categoryOptions}
-        selected={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
-        onSelect={(v) => setForm((f) => ({ ...f, category: categoryLabelToKey[v] ?? v }))}
-        onClose={() => setOpenPicker(null)}
+      <CategoryPickerSheet
+        visible={categorySheetOpen}
+        selected={form.category}
+        onSelect={(v) => setForm((f) => ({ ...f, category: v }))}
+        onClose={() => setCategorySheetOpen(false)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'status'}
