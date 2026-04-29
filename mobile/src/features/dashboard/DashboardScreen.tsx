@@ -21,7 +21,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Share } from 'react-native';
-import { Calendar } from 'lucide-react-native';
+import { Calendar, Sparkles } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -46,6 +46,7 @@ import { useSettingsStore, usePreferencesStore } from '../settings/useSettingsSt
 import { useAuthStore } from '../auth/useAuthStore';
 import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
 import { useToastStore } from '../../components/useToastStore';
+import { useReminderDismissalsStore } from './useReminderDismissalsStore';
 
 import { SummaryHero } from './SummaryHero';
 import { ReminderCards } from './ReminderCards';
@@ -55,7 +56,6 @@ import { TopCategories } from './TopCategories';
 import { TopExpensive } from './TopExpensive';
 import { DashboardEmptyState } from './DashboardEmptyState';
 
-import { MOCK_FIRST_NAME } from './mockData';
 import { formatAmount } from '../subscription-detail/helpers';
 import { currencyCodeFromLabel } from '../../lib/formatting';
 import { useT } from '../../lib/i18n/LocaleProvider';
@@ -86,7 +86,7 @@ export function DashboardScreen() {
   const insets = useSafeAreaInsets();
 
   const user = useAuthStore((s) => s.user);
-  const fullName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? MOCK_FIRST_NAME;
+  const fullName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? '';
   const firstName = fullName.split(/\s+/)[0];
   const avatarUrl = user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null;
 
@@ -189,6 +189,11 @@ export function DashboardScreen() {
   // list sheet. Lives in its own globally-mounted Modal so the
   // dashboard scroll position and reveal state are untouched.
   const openSavingsList = useSavingsSuggestionsStore((s) => s.openList);
+
+  // When the savings card is dismissed from the carousel, surface it as
+  // a static banner at the bottom of the dashboard so the user can still
+  // access savings suggestions without the full carousel card.
+  const savingsDismissed = useReminderDismissalsStore((s) => s.isDismissed('savings'));
 
   // "Avísame" CTA — enable 7-day-before reminders on every annual sub and
   // confirm via a green success toast. The store action returns how many
@@ -380,6 +385,7 @@ export function DashboardScreen() {
                     }}
                     topCategory={{
                       name: topCategory.name,
+                      category: topCategory.category,
                       amount: `${formatAmount(topCategory.monthlyCost, globalCurrency)} /mes`,
                       count: topCategory.count,
                     }}
@@ -422,6 +428,55 @@ export function DashboardScreen() {
                       {t('dashboard.topExpensive')}
                     </Text>
                     <TopExpensive subscriptions={topExpensive} />
+                  </View>
+                </StaggeredItem>
+              )}
+
+              {/* Savings banner — shown at the bottom once the user dismisses
+                  the savings carousel card. Keeps savings suggestions
+                  accessible without the carousel chrome or dismiss button. */}
+              {savingsDismissed && savingsSuggestions.length > 0 && (
+                <StaggeredItem index={5}>
+                  <View
+                    style={[
+                      styles.savingsBanner,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.borderLight,
+                      },
+                    ]}
+                  >
+                    <View style={styles.savingsBannerBody}>
+                      <Sparkles
+                        size={18}
+                        strokeWidth={2}
+                        color={isDark ? '#A78BFA' : '#7C3AED'}
+                      />
+                      <Text
+                        style={[
+                          styles.savingsBannerText,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        Tienes oportunidades de ahorro
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={openSavingsList}
+                      accessibilityRole="button"
+                      accessibilityLabel="Ver oportunidades de ahorro"
+                      style={({ pressed }) => [
+                        styles.savingsBannerBtn,
+                        {
+                          backgroundColor: isDark ? '#3B1FA8' : '#7C3AED',
+                          opacity: pressed ? 0.75 : 1,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.savingsBannerBtnText}>
+                        Ver oportunidades
+                      </Text>
+                    </Pressable>
                   </View>
                 </StaggeredItem>
               )}
@@ -507,5 +562,36 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Savings banner — static card shown at the bottom of the dashboard
+  // after the savings carousel card is dismissed.
+  savingsBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    gap: 12,
+    marginTop: 8,
+  },
+  savingsBannerBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  savingsBannerText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[15],
+    flex: 1,
+  },
+  savingsBannerBtn: {
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  savingsBannerBtnText: {
+    ...fontFamily.semiBold,
+    fontSize: fontSize[14],
+    color: '#FFFFFF',
   },
 });
