@@ -91,13 +91,14 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
   const insets = useSafeAreaInsets();
   const t = useT();
   const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
+  const displayCurrency = sub.currency || globalCurrency;
 
   // ── Derived values ──────────────────────────────────────────────
   const monthly = toMonthly(sub.price_amount, sub.billing_period, sub.billing_interval_count);
   const yearly = toYearly(sub.price_amount, sub.billing_period, sub.billing_interval_count);
   const daysLeft = daysUntil(sub.next_billing_date);
   const progress = billingProgress(sub);
-  const nextDate = new Date(sub.next_billing_date);
+  const nextDate = sub.next_billing_date;
 
   // Status badge
   const statusColors: Record<string, string> = {
@@ -112,7 +113,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
   const gradientColors = heroGradientColors(sub, colors.surface);
 
   // Billing amount label: show MY cost per period
-  const billingAmountFmt = formatAmount(sub.price_amount, globalCurrency);
+  const billingAmountFmt = formatAmount(sub.price_amount, displayCurrency);
 
   const handleClose = useCallback(() => onClose(), [onClose]);
   const handleEdit = useCallback(() => onEdit(), [onEdit]);
@@ -196,7 +197,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               {/* Monthly */}
               <View style={styles.priceBlock}>
                 <Text style={[styles.priceBig, { color: colors.textPrimary }]}>
-                  {formatAmount(monthly, globalCurrency)}
+                  {formatAmount(monthly, displayCurrency)}
                 </Text>
                 <Text style={[styles.priceCaption, { color: colors.textMuted }]}>{t('detail.perMonth')}</Text>
               </View>
@@ -207,7 +208,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
               {/* Yearly */}
               <View style={[styles.priceBlock, styles.priceBlockRight]}>
                 <Text style={[styles.priceBig, { color: colors.textPrimary }]}>
-                  {formatAmount(yearly, globalCurrency)}
+                  {formatAmount(yearly, displayCurrency)}
                 </Text>
                 <Text style={[styles.priceCaption, { color: colors.textMuted }]}>{t('detail.annually')}</Text>
               </View>
