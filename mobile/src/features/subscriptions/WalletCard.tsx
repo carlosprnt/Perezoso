@@ -43,6 +43,7 @@ function billingProgress(period: string, intervalCount: number, nextDate: string
 export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   const { colors, isDark } = useTheme();
   const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
+  const displayCurrency = sub.currency || globalCurrency;
   const days = daysUntilDate(sub.next_billing_date);
   const progress = billingProgress(sub.billing_period, sub.billing_interval_count, sub.next_billing_date);
 
@@ -106,7 +107,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
               sub.is_shared && sub.shared_with_count > 1
                 ? sub.price_amount / sub.shared_with_count
                 : sub.price_amount,
-              globalCurrency,
+              displayCurrency,
             )}
           </Text>
           <Text style={[styles.period, { color: colors.textMuted }]}>
