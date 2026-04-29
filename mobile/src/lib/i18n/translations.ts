@@ -19,7 +19,7 @@ export const resources = {
       'settings.appearance.dark': 'Oscuro',
       'settings.appearance.auto': 'Automático',
       'settings.language': 'Idioma',
-      'settings.tags': 'Etiquetas',
+      'settings.tags': 'Categorías',
       'settings.demo': 'Demo',
       'settings.review': 'Dejar una reseña',
       'settings.share': 'Compartir con un amigo',
@@ -392,17 +392,27 @@ export const resources = {
       'onboarding.hero.in3days': 'En 3 días',
       'onboarding.hero.saving': 'Ahorrando',
 
-      // ── Tags ──
-      'tags.title': 'Etiquetas',
-      'tags.closeManager': 'Cerrar gestión de etiquetas',
-      'tags.subtitle': 'Crea etiquetas para organizar tus suscripciones.',
-      'tags.deleteTitle': 'Eliminar etiqueta',
+      // ── Categories (custom) ──
+      'tags.title': 'Categorías',
+      'tags.closeManager': 'Cerrar gestión de categorías',
+      'tags.subtitle': 'Crea categorías para organizar tus suscripciones.',
+      'tags.deleteTitle': 'Eliminar categoría',
       'tags.deleteBody': '¿Seguro que quieres eliminar "{{name}}"? Esta acción no se puede deshacer.',
-      'tags.newPlaceholder': 'Nueva etiqueta',
+      'tags.newPlaceholder': 'Nueva categoría',
       'tags.add': 'Añadir',
-      'tags.addLabel': 'Añadir etiqueta',
-      'tags.deleteLabel': 'Eliminar etiqueta {{name}}',
-      'tags.empty': 'Aún no hay etiquetas. Crea la primera arriba.',
+      'tags.addLabel': 'Añadir categoría',
+      'tags.deleteLabel': 'Eliminar categoría {{name}}',
+      'tags.empty': 'Aún no hay categorías. Crea la primera arriba.',
+
+      // ── Payment methods ──
+      'paymentMethods.title': 'Método de pago',
+      'paymentMethods.subtitle': 'Selecciona o crea un método de pago.',
+      'paymentMethods.newPlaceholder': 'Nuevo método',
+      'paymentMethods.add': 'Añadir',
+      'paymentMethods.empty': 'Aún no hay métodos guardados.',
+      'paymentMethods.none': 'Sin método',
+      'paymentMethods.deleteTitle': 'Eliminar método',
+      'paymentMethods.deleteBody': '¿Seguro que quieres eliminar "{{name}}"?',
 
       // ── Settings (remaining) ──
       'settings.shareMessage': 'Perezoso — la forma perezosa de controlar tus suscripciones. https://perezoso.app',
@@ -536,7 +546,7 @@ export const resources = {
       'settings.appearance.dark': 'Dark',
       'settings.appearance.auto': 'Automatic',
       'settings.language': 'Language',
-      'settings.tags': 'Tags',
+      'settings.tags': 'Categories',
       'settings.demo': 'Demo',
       'settings.review': 'Leave a review',
       'settings.share': 'Share with a friend',
@@ -935,17 +945,27 @@ export const resources = {
       'onboarding.hero.in3days': 'In 3 days',
       'onboarding.hero.saving': 'Saving',
 
-      // ── Tags ──
-      'tags.title': 'Tags',
-      'tags.closeManager': 'Close tag management',
-      'tags.subtitle': 'Create tags to organize your subscriptions.',
-      'tags.deleteTitle': 'Delete tag',
+      // ── Categories (custom) ──
+      'tags.title': 'Categories',
+      'tags.closeManager': 'Close category management',
+      'tags.subtitle': 'Create categories to organize your subscriptions.',
+      'tags.deleteTitle': 'Delete category',
       'tags.deleteBody': 'Are you sure you want to delete "{{name}}"? This action cannot be undone.',
-      'tags.newPlaceholder': 'New tag',
+      'tags.newPlaceholder': 'New category',
       'tags.add': 'Add',
-      'tags.addLabel': 'Add tag',
-      'tags.deleteLabel': 'Delete tag {{name}}',
-      'tags.empty': 'No tags yet. Create your first one above.',
+      'tags.addLabel': 'Add category',
+      'tags.deleteLabel': 'Delete category {{name}}',
+      'tags.empty': 'No categories yet. Create your first one above.',
+
+      // ── Payment methods ──
+      'paymentMethods.title': 'Payment method',
+      'paymentMethods.subtitle': 'Select or create a payment method.',
+      'paymentMethods.newPlaceholder': 'New method',
+      'paymentMethods.add': 'Add',
+      'paymentMethods.empty': 'No saved methods yet.',
+      'paymentMethods.none': 'No method',
+      'paymentMethods.deleteTitle': 'Delete method',
+      'paymentMethods.deleteBody': 'Are you sure you want to delete "{{name}}"?',
 
       // ── Settings (remaining) ──
       'settings.shareMessage': 'Perezoso — the lazy way to manage your subscriptions. https://perezoso.app',

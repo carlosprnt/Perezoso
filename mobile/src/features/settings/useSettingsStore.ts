@@ -61,7 +61,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
   ),
 );
 
-// ─── Tags (labels) ───────────────────────────────────────────────────
+// ─── Custom categories ──────────────────────────────────────────────
 
 export interface Tag {
   id: string;
@@ -79,38 +79,46 @@ interface TagsStore {
   removeTag: (id: string) => void;
 }
 
-export const useTagsStore = create<TagsStore>((set) => ({
-  isOpen: false,
-  openSheet: () => set({ isOpen: true }),
-  closeSheet: () => set({ isOpen: false }),
+export const useTagsStore = create<TagsStore>()(
+  persist(
+    (set) => ({
+      isOpen: false,
+      openSheet: () => set({ isOpen: true }),
+      closeSheet: () => set({ isOpen: false }),
 
-  tags: [],
-  addTag: (name) =>
-    set((s) => {
-      const trimmed = name.trim();
-      if (!trimmed) return s;
-      // No duplicates (case-insensitive)
-      if (s.tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) {
-        return s;
-      }
-      return {
-        tags: [...s.tags, { id: `t-${Date.now()}`, name: trimmed }],
-      };
+      tags: [],
+      addTag: (name) =>
+        set((s) => {
+          const trimmed = name.trim();
+          if (!trimmed) return s;
+          if (s.tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) {
+            return s;
+          }
+          return {
+            tags: [...s.tags, { id: `t-${Date.now()}`, name: trimmed }],
+          };
+        }),
+      removeTag: (id) =>
+        set((s) => {
+          const tag = s.tags.find((t) => t.id === id);
+          if (tag) {
+            const subStore = useSubscriptionsStore.getState();
+            subStore.subscriptions
+              .filter((sub) => sub.category === tag.name)
+              .forEach((sub) => {
+                subStore.updateSubscription({ ...sub, category: 'other' });
+              });
+          }
+          return { tags: s.tags.filter((t) => t.id !== id) };
+        }),
     }),
-  removeTag: (id) =>
-    set((s) => {
-      const tag = s.tags.find((t) => t.id === id);
-      if (tag) {
-        const subStore = useSubscriptionsStore.getState();
-        subStore.subscriptions
-          .filter((sub) => sub.category === tag.name)
-          .forEach((sub) => {
-            subStore.updateSubscription({ ...sub, category: 'other' });
-          });
-      }
-      return { tags: s.tags.filter((t) => t.id !== id) };
-    }),
-}));
+    {
+      name: 'perezoso-categories',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ tags: state.tags }),
+    },
+  ),
+);
 
 // ─── Admin stats sheet (open/close) ──────────────────────────────────
 

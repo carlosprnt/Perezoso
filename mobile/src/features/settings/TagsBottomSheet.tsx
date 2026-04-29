@@ -15,9 +15,8 @@
 //   · tap the X close button
 //   · pan down on the sheet (handle or body)
 //
-// Mock persistence — the tag list is stored in `useTagsStore` so it
-// survives re-opens of the sheet but resets on app reload. Backed by
-// an in-memory Zustand store; swap for Supabase mutations later.
+// Persistence — categories are persisted to AsyncStorage via Zustand's
+// persist middleware, surviving app restarts indefinitely.
 
 import React, {
   useCallback,

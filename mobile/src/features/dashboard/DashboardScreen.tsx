@@ -27,8 +27,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
+import { radius } from '../../design/radius';
+import { shadows } from '../../design/shadows';
 import { Card, CardHeader } from '../../components/Card';
 import { MoneyConfetti } from '../../components/MoneyConfetti';
 import { LogoConfetti } from '../../components/LogoConfetti';
@@ -432,49 +435,43 @@ export function DashboardScreen() {
                 </StaggeredItem>
               )}
 
-              {/* Savings banner — shown at the bottom once the user dismisses
-                  the savings carousel card. Keeps savings suggestions
-                  accessible without the carousel chrome or dismiss button. */}
+              {/* Savings card — shown at the bottom once the user dismisses
+                  the savings carousel card. Same look as the carousel card
+                  but without the dismiss link. */}
               {savingsDismissed && savingsSuggestions.length > 0 && (
                 <StaggeredItem index={5}>
-                  <View
-                    style={[
-                      styles.savingsBanner,
-                      {
-                        backgroundColor: colors.surface,
-                        borderColor: colors.borderLight,
-                      },
-                    ]}
-                  >
-                    <View style={styles.savingsBannerBody}>
-                      <Sparkles
-                        size={18}
-                        strokeWidth={2}
-                        color={isDark ? '#A78BFA' : '#7C3AED'}
-                      />
-                      <Text
-                        style={[
-                          styles.savingsBannerText,
-                          { color: colors.textPrimary },
-                        ]}
+                  <View style={[styles.savingsCard, { backgroundColor: colors.surface }, shadows.cardSm]}>
+                    <View style={styles.savingsCardBody}>
+                      <LinearGradient
+                        colors={['#FEF3C7', '#FDE68A']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.savingsCardIcon}
                       >
-                        Tienes oportunidades de ahorro
-                      </Text>
+                        <Sparkles size={20} color="#92400E" strokeWidth={2} />
+                      </LinearGradient>
+                      <View style={styles.savingsCardTextWrap}>
+                        <Text style={[styles.savingsCardText, { color: colors.textPrimary }]}>
+                          {t('dashboard.savings.bodyStart')}{' '}
+                          <Text style={styles.savingsCardTextBold}>
+                            {savingsSuggestions.length === 1
+                              ? t('dashboard.savings.opportunity')
+                              : t('dashboard.savings.opportunities', { count: savingsSuggestions.length })}
+                          </Text>
+                          {' '}{t('dashboard.savings.bodyEnd')}
+                        </Text>
+                      </View>
                     </View>
                     <Pressable
                       onPress={openSavingsList}
                       accessibilityRole="button"
-                      accessibilityLabel="Ver oportunidades de ahorro"
                       style={({ pressed }) => [
-                        styles.savingsBannerBtn,
-                        {
-                          backgroundColor: isDark ? '#3B1FA8' : '#7C3AED',
-                          opacity: pressed ? 0.75 : 1,
-                        },
+                        styles.savingsCardBtn,
+                        { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7', opacity: pressed ? 0.75 : 1 },
                       ]}
                     >
-                      <Text style={styles.savingsBannerBtnText}>
-                        Ver oportunidades
+                      <Text style={[styles.savingsCardBtnText, { color: colors.textPrimary }]}>
+                        {t('dashboard.savings.cta')}
                       </Text>
                     </Pressable>
                   </View>
@@ -563,35 +560,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Savings banner — static card shown at the bottom of the dashboard
-  // after the savings carousel card is dismissed.
-  savingsBanner: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    gap: 12,
+  savingsCard: {
+    borderRadius: radius.card,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     marginTop: 8,
-  },
-  savingsBannerBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
-  savingsBannerText: {
-    ...fontFamily.medium,
-    fontSize: fontSize[15],
-    flex: 1,
+  savingsCardBody: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 2,
   },
-  savingsBannerBtn: {
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  savingsCardIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+    overflow: 'hidden',
   },
-  savingsBannerBtnText: {
+  savingsCardTextWrap: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  savingsCardText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[15],
+    lineHeight: fontSize[15] * 1.4,
+  },
+  savingsCardTextBold: {
     ...fontFamily.semiBold,
-    fontSize: fontSize[14],
-    color: '#FFFFFF',
+  },
+  savingsCardBtn: {
+    height: 36,
+    borderRadius: radius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  savingsCardBtnText: {
+    ...fontFamily.semiBold,
+    fontSize: fontSize[13],
   },
 });
