@@ -62,6 +62,7 @@ import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
 import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import * as Clipboard from 'expo-clipboard';
+import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import type {
   BillingPeriod as SubBillingPeriod,
@@ -380,6 +381,7 @@ export function CreateSubscriptionSheet() {
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [renewalDatePickerOpen, setRenewalDatePickerOpen] = useState(false);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [kbHeight, setKbHeight] = useState(0);
 
   const [error, setError] = useState<string | null>(null);
@@ -969,19 +971,12 @@ export function CreateSubscriptionSheet() {
 
               {/* Payment method */}
               <View style={styles.group}>
-                <View style={styles.row}>
+                <Pressable style={styles.row} onPress={() => setPaymentSheetOpen(true)}>
                   <Text style={styles.rowLabel}>{t('form.paymentMethod')}</Text>
-                  <TextInput
-                    style={styles.inlineInput}
-                    value={form.paymentMethod}
-                    onChangeText={(t) => setForm((f) => ({ ...f, paymentMethod: t }))}
-                    placeholder={t('form.paymentPlaceholder')}
-                    placeholderTextColor="#C7C7CC"
-                    returnKeyType="done"
-                    autoCorrect={false}
-                    textAlign="right"
-                  />
-                </View>
+                  <Text style={[styles.rowValue, !form.paymentMethod && { color: '#C7C7CC' }]}>
+                    {form.paymentMethod || t('form.paymentPlaceholder')}
+                  </Text>
+                </Pressable>
               </View>
 
               {/* Logo URL */}
@@ -1154,6 +1149,13 @@ export function CreateSubscriptionSheet() {
         selected={t(REMINDER_DISPLAY_KEYS[form.reminderDays] ?? 'form.reminder.1day')}
         onSelect={(v) => setForm((f) => ({ ...f, reminderDays: reminderLabelToKey[v] ?? '1' }))}
         onClose={() => setOpenPicker(null)}
+      />
+
+      <PaymentMethodSheet
+        visible={paymentSheetOpen}
+        selected={form.paymentMethod}
+        onSelect={(v) => setForm((f) => ({ ...f, paymentMethod: v }))}
+        onClose={() => setPaymentSheetOpen(false)}
       />
     </Modal>
 
@@ -1502,6 +1504,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
+  rowValue: {
+    ...fontFamily.medium,
+    fontSize: fontSize[16],
+    color: '#000000',
+    letterSpacing: -0.1,
+    textAlign: 'right',
+    flexShrink: 1,
+  },
   inlineInput: {
     ...fontFamily.medium,
     fontSize: fontSize[16],

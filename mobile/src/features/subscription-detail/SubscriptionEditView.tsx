@@ -36,6 +36,7 @@ import { useTagsStore } from '../settings/useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
+import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
 function toMonthly(price: number, period: BillingPeriod): number {
@@ -245,6 +246,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
 
   const isDirty = useCallback(() => !draftEqual(draft, initialDraft.current), [draft]);
 
@@ -620,19 +622,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
 
           {/* Payment method */}
           <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.row}>
+            <Pressable style={styles.row} onPress={() => setPaymentSheetOpen(true)}>
               <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.paymentMethod')}</Text>
-              <TextInput
-                style={[styles.inlineInput, { color: colors.textPrimary }]}
-                value={draft.paymentMethod}
-                onChangeText={(txt) => setDraft((f) => ({ ...f, paymentMethod: txt }))}
-                placeholder="Visa, PayPal..."
-                placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                returnKeyType="done"
-                autoCorrect={false}
-                textAlign="right"
-              />
-            </View>
+              <Text style={[styles.rowValue, { color: draft.paymentMethod ? colors.textPrimary : (isDark ? '#5A5A5E' : '#C7C7CC') }]}>
+                {draft.paymentMethod || 'Visa, PayPal...'}
+              </Text>
+            </Pressable>
           </View>
 
           {/* Logo URL */}
@@ -806,6 +801,13 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           if (found) setDraft((f) => ({ ...f, reminderDays: found as ReminderDays }));
         }}
         onClose={() => setOpenPicker(null)}
+      />
+
+      <PaymentMethodSheet
+        visible={paymentSheetOpen}
+        selected={draft.paymentMethod}
+        onSelect={(v) => setDraft((f) => ({ ...f, paymentMethod: v }))}
+        onClose={() => setPaymentSheetOpen(false)}
       />
     </View>
   );
@@ -1060,7 +1062,13 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 
-  // Inline text input (payment method)
+  rowValue: {
+    ...fontFamily.medium,
+    fontSize: fontSize[16],
+    letterSpacing: -0.1,
+    textAlign: 'right',
+    flexShrink: 1,
+  },
   inlineInput: {
     ...fontFamily.medium,
     fontSize: fontSize[16],
