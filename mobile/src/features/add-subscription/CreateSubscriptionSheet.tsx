@@ -797,7 +797,7 @@ export function CreateSubscriptionSheet() {
                 {form.billingPeriod === 'custom' && (
                   <>
                     <FormDivider />
-                    <View style={styles.row}>
+                    <View style={styles.customSection}>
                       <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.every')}</Text>
                       <View style={styles.customIntervalRow}>
                         <View style={styles.stepper}>
@@ -1470,6 +1470,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 
+  customSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
   customIntervalRow: {
     flexDirection: 'row',
     alignItems: 'center',

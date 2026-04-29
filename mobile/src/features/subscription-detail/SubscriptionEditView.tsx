@@ -439,7 +439,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
             {draft.billingPeriod === 'custom' && (
               <>
                 <FormDivider color={colors.border} />
-                <View style={styles.row}>
+                <View style={styles.customSection}>
                   <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.every')}</Text>
                   <View style={styles.customIntervalRow}>
                     <View style={styles.stepper}>
@@ -999,6 +999,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 
+  customSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
   customIntervalRow: {
     flexDirection: 'row',
     alignItems: 'center',
