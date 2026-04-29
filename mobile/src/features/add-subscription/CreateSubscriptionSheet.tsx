@@ -397,6 +397,7 @@ export function CreateSubscriptionSheet() {
     transform: [{ translateY: step2TranslateY.value }],
   }));
 
+  const priceInputRef = useRef<TextInput>(null);
   const billingRef = useRef<View>(null);
   const categoryRef = useRef<View>(null);
   const statusRef = useRef<View>(null);
@@ -426,6 +427,9 @@ export function CreateSubscriptionSheet() {
       setOpenPicker(null);
       step1Opacity.value = 1;
       step2TranslateY.value = 0;
+      if (prefill?.name) {
+        setTimeout(() => priceInputRef.current?.focus(), 400);
+      }
     }
   }, [isOpen, prefill]);
 
@@ -633,7 +637,7 @@ export function CreateSubscriptionSheet() {
                     placeholderTextColor="#C7C7CC"
                     returnKeyType="done"
                     autoCorrect={false}
-                    autoFocus
+                    autoFocus={!prefill?.name}
                   />
                   <View style={styles.quickPriceRow}>
                     <Pressable
@@ -645,6 +649,7 @@ export function CreateSubscriptionSheet() {
                       <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
                     </Pressable>
                     <TextInput
+                      ref={priceInputRef}
                       style={styles.quickPriceInput}
                       value={form.price}
                       onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}

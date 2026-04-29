@@ -78,6 +78,7 @@ export function SubscriptionDetailSheet() {
       updateSub(updated);
       close();
       useToastStore.getState().show('success', t('detail.updated'));
+      useSubscriptionsStore.getState().loadFromSupabase();
     } catch {
       useToastStore.getState().show('error', t('detail.saveError'));
     }

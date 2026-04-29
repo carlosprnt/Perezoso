@@ -37,6 +37,7 @@ export const PLATFORMS: Platform[] = [
   { id: 'twitch', name: 'Twitch', domain: 'twitch.tv', category: 'streaming', brandColor: '#9146FF', aliases: ['twitch turbo'] },
   { id: 'dazn', name: 'DAZN', domain: 'dazn.com', category: 'streaming' },
   { id: 'mubi', name: 'MUBI', domain: 'mubi.com', category: 'streaming' },
+  { id: 'filmin', name: 'Filmin', domain: 'filmin.es', category: 'streaming' },
 
   // ─── Music ──────────────────────────────────────────────
   { id: 'spotify', name: 'Spotify', domain: 'spotify.com', category: 'music', brandColor: '#1DB954' },

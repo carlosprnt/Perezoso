@@ -86,6 +86,7 @@ const FEATURED_IDS = [
   'twitch',
   'dazn',
   'mubi',
+  'filmin',
   // Music & audio
   'tidal',
   'deezer',
@@ -304,20 +305,37 @@ export function AddSubscriptionOverlay() {
     if (interactive) close();
   }, [interactive, close]);
 
-  // Track ScrollView offset so pull-to-dismiss only activates at top.
+  // Header pan gesture — always active on the handle/title area.
+  const headerPanGesture = Gesture.Pan()
+    .activeOffsetY(12)
+    .failOffsetY(-10)
+    .onUpdate((e) => {
+      'worklet';
+      if (e.translationY > 0) {
+        swipeY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      'worklet';
+      const shouldClose =
+        e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY;
+      if (shouldClose) {
+        runOnJS(haptic.light)();
+        runOnJS(close)();
+      }
+      swipeY.value = withTiming(0, { duration: 260 });
+    });
+
+  // Track ScrollView offset so pull-to-dismiss in the list only
+  // activates when scrolled to the top.
   const scrollOffset = useSharedValue(0);
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     scrollOffset.value = e.nativeEvent.contentOffset.y;
   }, [scrollOffset]);
 
-  // Whether the pan began while the scroll was at the top. Captured in
-  // onBegin so the entire gesture uses a consistent value — avoids the
-  // race between JS-thread scroll events and UI-thread gesture updates.
   const panStartedAtTop = useSharedValue(false);
 
-  // Swipe-to-dismiss: only activates when the ScrollView is at the top
-  // (offset ≤ 2) AND the user is dragging down.
-  const panGesture = Gesture.Pan()
+  const scrollPanGesture = Gesture.Pan()
     .activeOffsetY(20)
     .failOffsetY(-10)
     .onBegin(() => {
@@ -371,24 +389,24 @@ export function AddSubscriptionOverlay() {
             is large enough to contain it. */}
         <View style={{ width: sheetW, height: sheetH }}>
           <Animated.View style={[styles.content, contentStyle]}>
-            <GestureDetector gesture={panGesture.simultaneousWithExternalGesture(nativeScrollGesture)}>
             <View style={{ flex: 1 }}>
-            {/* ─── Drag handle — iOS affordance for swipe-to-dismiss ─ */}
-              <View style={styles.handleWrap}>
-                <View style={styles.handle} />
-              </View>
-            {/* ─── Header ── */}
-              <View style={styles.header}>
-                <Text style={styles.title}>{t('create.title')}</Text>
-                <Pressable
-                  style={styles.closeBtn}
-                  onPress={close}
-                  hitSlop={8}
-                  accessibilityLabel={t('common.close')}
-                >
-                  <X size={16} color="#FFFFFF" strokeWidth={2.5} />
-                </Pressable>
-              </View>
+            {/* ─── Drag handle + header — draggable to dismiss ─ */}
+            <GestureDetector gesture={headerPanGesture}>
+              <View>
+                <View style={styles.handleWrap}>
+                  <View style={styles.handle} />
+                </View>
+                <View style={styles.header}>
+                  <Text style={styles.title}>{t('create.title')}</Text>
+                  <Pressable
+                    style={styles.closeBtn}
+                    onPress={close}
+                    hitSlop={8}
+                    accessibilityLabel={t('common.close')}
+                  >
+                    <X size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  </Pressable>
+                </View>
 
             {/* ─── Search input ────────────────────────────────── */}
                 <View style={styles.searchWrap}>
@@ -409,9 +427,11 @@ export function AddSubscriptionOverlay() {
                     </Pressable>
                   )}
                 </View>
+              </View>
+            </GestureDetector>
 
             {/* ─── Scrollable service list ─────────────────────── */}
-                <GestureDetector gesture={nativeScrollGesture}>
+                <GestureDetector gesture={Gesture.Simultaneous(scrollPanGesture, nativeScrollGesture)}>
                 <ScrollView
                   style={styles.list}
                   contentContainerStyle={styles.listContent}
@@ -485,7 +505,6 @@ export function AddSubscriptionOverlay() {
                   </Pressable>
                 </View>
             </View>
-            </GestureDetector>
           </Animated.View>
         </View>
       </Animated.View>
