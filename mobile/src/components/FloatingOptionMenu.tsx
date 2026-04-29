@@ -86,13 +86,20 @@ export function FloatingOptionMenu({
   if (anchor) {
     const estimatedHeight = options.length * ROW_HEIGHT + 4;
     const spaceBelow = SCREEN_H - (anchor.y + anchor.height) - 40;
-    if (spaceBelow >= estimatedHeight || anchor.y < estimatedHeight + 40) {
+    const spaceAbove = anchor.y - 40;
+
+    if (spaceBelow >= estimatedHeight) {
       menuTop = anchor.y + anchor.height + V_GAP;
       originTop = true;
-    } else {
+    } else if (spaceAbove >= estimatedHeight) {
       menuTop = anchor.y - estimatedHeight - V_GAP;
       originTop = false;
+    } else {
+      // Neither side fits fully — clamp to stay on screen
+      menuTop = Math.max(40, SCREEN_H - estimatedHeight - 40);
+      originTop = true;
     }
+
     const desiredRight = anchor.x + anchor.width;
     const desiredLeft = desiredRight - MENU_MIN_WIDTH;
     menuLeft = Math.max(
