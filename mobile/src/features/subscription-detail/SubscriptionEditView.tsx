@@ -29,14 +29,13 @@ import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
-import { CATEGORY_PICKER } from './helpers';
 import { formatDate } from '../../lib/formatting';
 import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePickerSheet';
-import { useTagsStore } from '../settings/useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
 import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
+import { CategoryPickerSheet } from '../../components/CategoryPickerSheet';
 import { useT } from '../../lib/i18n/LocaleProvider';
 
 function toMonthly(price: number, period: BillingPeriod): number {
@@ -76,6 +75,20 @@ interface EditDraft {
   logoUrl: string;
   notes: string;
 }
+
+const CATEGORY_DISPLAY_KEYS: Record<string, string> = {
+  streaming: 'category.streaming',
+  music: 'category.music',
+  productivity: 'category.productivity',
+  cloud: 'category.cloud',
+  ai: 'category.ai',
+  health: 'category.health',
+  gaming: 'category.gaming',
+  education: 'category.education',
+  mobility: 'category.mobility',
+  home: 'category.home',
+  other: 'category.other',
+};
 
 // ─── Constants ───────────────────────────────────────────────────────
 
@@ -231,13 +244,8 @@ interface Props {
 export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const tags = useTagsStore((s) => s.tags);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const t = useT();
-  const allCategoryOptions = [
-    ...CATEGORY_PICKER.map((o) => ({ value: o.value, label: t(o.labelKey) })),
-    ...tags.map((tag) => ({ value: tag.name as Category, label: tag.name })),
-  ];
 
   const initialDraft = useRef<EditDraft>(makeDraft(sub));
   const [draft, setDraft] = useState<EditDraft>(() => makeDraft(sub));
@@ -247,11 +255,11 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
   const [currencySheetOpen, setCurrencySheetOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
 
   const isDirty = useCallback(() => !draftEqual(draft, initialDraft.current), [draft]);
 
   const billingRef = useRef<View>(null);
-  const categoryRef = useRef<View>(null);
   const statusRef = useRef<View>(null);
   const reminderRef = useRef<View>(null);
 
@@ -522,14 +530,12 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
           <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.row}>
               <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.category')}</Text>
-              <View ref={categoryRef} collapsable={false}>
-                <DropdownBtn
-                  value={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
-                  onPress={() => openPickerAt(categoryRef, 'category')}
-                  fg={colors.textPrimary}
-                  iconColor={colors.textMuted}
-                />
-              </View>
+              <DropdownBtn
+                value={CATEGORY_DISPLAY_KEYS[draft.category] ? t(CATEGORY_DISPLAY_KEYS[draft.category]) : draft.category}
+                onPress={() => setCategorySheetOpen(true)}
+                fg={colors.textPrimary}
+                iconColor={colors.textMuted}
+              />
             </View>
           </View>
 
@@ -769,16 +775,11 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
         }}
         onClose={() => setOpenPicker(null)}
       />
-      <FloatingOptionMenu
-        visible={openPicker === 'category'}
-        anchor={pickerAnchor}
-        options={allCategoryOptions.map((o) => o.label)}
-        selected={allCategoryOptions.find((o) => o.value === draft.category)?.label ?? draft.category}
-        onSelect={(label) => {
-          const found = allCategoryOptions.find((o) => o.label === label);
-          if (found) setDraft((f) => ({ ...f, category: found.value }));
-        }}
-        onClose={() => setOpenPicker(null)}
+      <CategoryPickerSheet
+        visible={categorySheetOpen}
+        selected={draft.category}
+        onSelect={(v) => setDraft((f) => ({ ...f, category: v as Category }))}
+        onClose={() => setCategorySheetOpen(false)}
       />
       <FloatingOptionMenu
         visible={openPicker === 'status'}
