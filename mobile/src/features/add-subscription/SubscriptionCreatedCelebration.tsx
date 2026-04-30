@@ -27,7 +27,7 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { haptic } from '../../lib/haptics';
 
 const ENTER_MS = 200;
-const HOLD_MS = 800;
+const HOLD_MS = 750;
 const EXIT_MS = 300;
 
 export function SubscriptionCreatedCelebration() {
