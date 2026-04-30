@@ -41,6 +41,7 @@ import { useT } from '../../lib/i18n/LocaleProvider';
 import {
   getCurrentOffering,
   purchasePackage,
+  restorePurchases,
   type RCOffering,
   type RCPackage,
 } from '../../services/purchases';
@@ -177,6 +178,22 @@ export function PaywallSheet() {
     }
     haptic.success();
     close();
+  };
+
+  const handleRestore = async () => {
+    setPurchasing(true);
+    const res = await restorePurchases();
+    setPurchasing(false);
+    if (!res.ok) {
+      Alert.alert(t('paywall.restoreFailed'), res.error ?? t('paywall.tryAgain'));
+      return;
+    }
+    if (res.isPro) {
+      haptic.success();
+      close();
+    } else {
+      Alert.alert(t('paywall.restoreEmpty'));
+    }
   };
 
   const ctaLabel = purchasing
@@ -363,6 +380,18 @@ export function PaywallSheet() {
             <Text style={styles.trustText}>
               {t('paywall.trustText')}
             </Text>
+
+            {/* ── 7. Restore purchases (Apple requirement) ─────── */}
+            <Pressable
+              onPress={handleRestore}
+              disabled={purchasing}
+              hitSlop={8}
+              style={({ pressed }) => [pressed && { opacity: 0.5 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('paywall.restore')}
+            >
+              <Text style={styles.restoreText}>{t('paywall.restore')}</Text>
+            </Pressable>
           </View>
         </Reanimated.View>
       </View>
@@ -656,5 +685,13 @@ const styles = StyleSheet.create({
     color: '#AEAEB2',
     textAlign: 'center',
     marginTop: 12,
+  },
+  restoreText: {
+    ...fontFamily.medium,
+    fontSize: 12,
+    color: '#AEAEB2',
+    textAlign: 'center',
+    marginTop: 8,
+    textDecorationLine: 'underline',
   },
 });

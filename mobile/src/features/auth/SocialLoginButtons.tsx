@@ -23,7 +23,7 @@ interface Props {
 export function SocialLoginButtons({
   onPressGoogle,
   onPressApple,
-  appleDisabled = true,
+  appleDisabled = false,
 }: Props) {
   const { colors, isDark } = useTheme();
   const t = useT();
