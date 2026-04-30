@@ -1,21 +1,20 @@
-// In-memory dismissals for the dashboard reminder carousel cards.
+// Persisted dismissals for the dashboard reminder carousel cards.
 //
 // When the user taps "No me interesa" or acts on a reminder card's
 // primary CTA, we record the dismissal here and ReminderCards filters
-// the matching item out of its render list. The record lives only in
-// memory, so:
+// the matching item out of its render list.
 //
-//   · Dismissal survives navigation + backgrounding.
-//   · A full re-login / app relaunch resets everything.
+//   · Dismissals persist across app restarts via AsyncStorage.
+//   · A 7-day TTL automatically re-surfaces cards after a week.
 //   · The "reminder" (annual heads-up) card is also reset whenever a
 //     new yearly subscription is added — see `clear('reminder')`
 //     called from subscriptionsStore.addSubscription.
-//   · A 5-day TTL caps the dismissal as a safety net in case the
-//     process stays alive longer than that.
 
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TTL_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 interface ReminderDismissalsStore {
   /** id → epoch ms when the dismissal was recorded */
@@ -28,25 +27,32 @@ interface ReminderDismissalsStore {
   clearAll: () => void;
 }
 
-export const useReminderDismissalsStore = create<ReminderDismissalsStore>(
-  (set, get) => ({
-    dismissals: {},
-    isDismissed: (id) => {
-      const ts = get().dismissals[id];
-      if (!ts) return false;
-      return Date.now() - ts < TTL_MS;
+export const useReminderDismissalsStore = create<ReminderDismissalsStore>()(
+  persist(
+    (set, get) => ({
+      dismissals: {},
+      isDismissed: (id) => {
+        const ts = get().dismissals[id];
+        if (!ts) return false;
+        return Date.now() - ts < TTL_MS;
+      },
+      dismiss: (id) =>
+        set((state) => ({
+          dismissals: { ...state.dismissals, [id]: Date.now() },
+        })),
+      clear: (id) =>
+        set((state) => {
+          if (!(id in state.dismissals)) return state;
+          const next = { ...state.dismissals };
+          delete next[id];
+          return { dismissals: next };
+        }),
+      clearAll: () => set({ dismissals: {} }),
+    }),
+    {
+      name: 'perezoso-reminder-dismissals',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ dismissals: state.dismissals }),
     },
-    dismiss: (id) =>
-      set((state) => ({
-        dismissals: { ...state.dismissals, [id]: Date.now() },
-      })),
-    clear: (id) =>
-      set((state) => {
-        if (!(id in state.dismissals)) return state;
-        const next = { ...state.dismissals };
-        delete next[id];
-        return { dismissals: next };
-      }),
-    clearAll: () => set({ dismissals: {} }),
-  }),
+  ),
 );

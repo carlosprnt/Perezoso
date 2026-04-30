@@ -29,6 +29,9 @@ interface SubscriptionRow {
   card_color: string | null;
   created_at: string;
   updated_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  payment_method: string | null;
 }
 
 // ── Cost derivation ──────────────────────────────────────────────────
@@ -81,6 +84,9 @@ function rowToSubscription(row: SubscriptionRow): Subscription {
     monthly_equivalent_cost,
     my_monthly_cost,
     notes: row.notes ?? undefined,
+    start_date: row.start_date ?? undefined,
+    end_date: row.end_date ?? undefined,
+    payment_method: row.payment_method ?? undefined,
   };
 }
 
@@ -117,6 +123,9 @@ export async function insertSubscription(
     shared_with_count: sub.is_shared ? Math.max(sub.shared_with_count, 2) : 1,
     card_color: sub.card_color,
     notes: sub.notes ?? null,
+    start_date: sub.start_date ?? null,
+    end_date: sub.end_date ?? null,
+    payment_method: sub.payment_method ?? null,
   };
 
   const { data, error } = await supabase
@@ -146,6 +155,9 @@ export async function updateSubscription(
     shared_with_count: sub.is_shared ? Math.max(sub.shared_with_count, 2) : 1,
     card_color: sub.card_color,
     notes: sub.notes ?? null,
+    start_date: sub.start_date ?? null,
+    end_date: sub.end_date ?? null,
+    payment_method: sub.payment_method ?? null,
   };
 
   const { data, error } = await supabase

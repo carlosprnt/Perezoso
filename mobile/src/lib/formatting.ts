@@ -25,6 +25,14 @@ export function currencyToSymbol(code: string): string {
   return SYMBOL_MAP[code] ?? code;
 }
 
+const SYMBOL_AFTER = new Set([
+  'EUR', 'CZK', 'DKK', 'HUF', 'NOK', 'PLN', 'SEK', 'CHF', 'TRY', 'RUB',
+]);
+
+export function isSymbolAfter(code: string): boolean {
+  return SYMBOL_AFTER.has(code);
+}
+
 export function currencyCodeFromLabel(label: string): string {
   const parts = label.trim().split(' ');
   return parts[parts.length - 1] || 'EUR';
@@ -37,7 +45,8 @@ export function formatPrice(amount: number, currency: string): string {
   const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const decPart = parts[1];
   const symbol = currencyToSymbol(currency);
-  return `${intPart},${decPart}${symbol}`;
+  const num = `${intPart},${decPart}`;
+  return isSymbolAfter(currency) ? `${num}${symbol}` : `${symbol}${num}`;
 }
 
 export function formatMoney(
@@ -53,7 +62,8 @@ export function formatMoney(
     const [int, dec] = formatted.split(',');
     formatted = `${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}${dec ? ',' + dec : ''}`;
   }
-  return `${formatted}${currencyToSymbol(currency)}`;
+  const symbol = currencyToSymbol(currency);
+  return isSymbolAfter(currency) ? `${formatted}${symbol}` : `${symbol}${formatted}`;
 }
 
 // ─── Billing ────────────────────────────────────────────────────────
