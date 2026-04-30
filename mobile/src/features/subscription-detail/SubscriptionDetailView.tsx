@@ -38,6 +38,7 @@ import {
   daysUntil,
   daysLabel,
   BILLING_PERIOD_LABELS,
+  billingFrequencyLabel,
   toYearly,
   toMonthly,
 } from './helpers';
@@ -236,7 +237,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
             <DataRow
               icon={<RefreshCw size={iconSize} color={iconColor} strokeWidth={2} />}
               label={t('detail.chargeFrequency')}
-              value={BILLING_PERIOD_LABELS[sub.billing_period]}
+              value={billingFrequencyLabel(sub.billing_period, sub.billing_interval_count, t)}
               valueBold
               labelColor={colors.textMuted}
               valueColor={colors.textPrimary}

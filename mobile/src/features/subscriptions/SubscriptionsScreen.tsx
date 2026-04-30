@@ -62,6 +62,7 @@ import {
 import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { usePreferencesStore } from '../settings/useSettingsStore';
+import { useSubscriptionsPrefsStore } from './useSubscriptionsPrefsStore';
 import { currencyCodeFromLabel, currencyToSymbol } from '../../lib/formatting';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
@@ -334,7 +335,8 @@ export function SubscriptionsScreen() {
   // baseline lands around insets.top + ~40–50px.
   const triggerY = insets.top + 50;
 
-  const [sortMode, setSortMode] = useState<SortMode>('alphabetical');
+  const sortMode = useSubscriptionsPrefsStore((s) => s.sortMode);
+  const setSortMode = useSubscriptionsPrefsStore((s) => s.setSortMode);
   const [filter, setFilter] = useState<FilterValue>('all');
 
   // Which dropdown is open, and where the trigger currently sits

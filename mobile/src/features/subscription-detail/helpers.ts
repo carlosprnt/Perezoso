@@ -121,6 +121,24 @@ export const BILLING_PERIOD_LABEL_KEYS: Record<BillingPeriod, string> = {
   weekly: 'detail.billing.weekly',
 };
 
+const CUSTOM_UNIT_LABELS: Record<BillingPeriod, string> = {
+  weekly: 'form.unit.week',
+  monthly: 'form.unit.month',
+  quarterly: 'form.unit.month',
+  yearly: 'form.unit.year',
+};
+
+export function billingFrequencyLabel(
+  period: BillingPeriod,
+  intervalCount: number,
+  t: (key: string) => string,
+): string {
+  if (intervalCount > 1) {
+    return `${t('form.every')} ${intervalCount} ${t(CUSTOM_UNIT_LABELS[period] ?? 'form.unit.month')}`;
+  }
+  return t(BILLING_PERIOD_LABEL_KEYS[period] ?? 'detail.billing.monthly');
+}
+
 export const BILLING_SUFFIX: Record<BillingPeriod, string> = {
   monthly: '/mes',
   yearly: '/año',
