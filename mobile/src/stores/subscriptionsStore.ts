@@ -288,10 +288,17 @@ useSubscriptionsStore.subscribe((state, prev) => {
   scheduleWidgetSync();
 });
 
-// Also sync when the user changes currency in Settings
-const { usePreferencesStore } = require('../features/settings/useSettingsStore');
-usePreferencesStore.subscribe(
-  (state: any, prev: any) => {
-    if (state.currency !== prev.currency) scheduleWidgetSync();
-  },
-);
+// Also sync when the user changes currency in Settings.
+// Deferred to avoid circular-dependency crash at module load time.
+let currencySubRegistered = false;
+function registerCurrencySubscriber() {
+  if (currencySubRegistered) return;
+  currencySubRegistered = true;
+  const { usePreferencesStore } = require('../features/settings/useSettingsStore');
+  usePreferencesStore.subscribe(
+    (state: any, prev: any) => {
+      if (state.currency !== prev.currency) scheduleWidgetSync();
+    },
+  );
+}
+setTimeout(registerCurrencySubscriber, 0);
