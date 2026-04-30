@@ -2,7 +2,7 @@
 // Stacked vertically, pill-shaped, with inline brand glyphs.
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -23,7 +23,7 @@ interface Props {
 export function SocialLoginButtons({
   onPressGoogle,
   onPressApple,
-  appleDisabled = false,
+  appleDisabled = Platform.OS !== 'ios',
 }: Props) {
   const { colors, isDark } = useTheme();
   const t = useT();

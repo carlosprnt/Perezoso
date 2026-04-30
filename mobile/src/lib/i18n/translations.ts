@@ -99,10 +99,17 @@ export const resources = {
 
       // ── Common ──
       'common.cancel': 'Cancelar',
+      'common.accept': 'Aceptar',
       'common.delete': 'Eliminar',
       'common.close': 'Cerrar',
       'common.save': 'Guardar',
       'common.done': 'Listo',
+
+      // ── Auth ──
+      'auth.loginFailed': 'No se pudo iniciar sesión',
+
+      // ── Date picker ──
+      'datePicker.selectDate': 'Seleccionar fecha',
 
       // ── Dashboard ──
       'dashboard.greeting.morning': 'Buenos días',
@@ -192,6 +199,9 @@ export const resources = {
       'paywall.perMonth': '/ mes',
       'paywall.perMonthShort': '/mes',
       'paywall.trustText': 'Cancela cuando quieras desde Ajustes',
+      'paywall.legalAutoRenew': 'La suscripción se renueva automáticamente. Puedes cancelarla en cualquier momento desde los ajustes de tu cuenta de Apple.',
+      'paywall.legalPrivacy': 'Privacidad',
+      'paywall.legalTerms': 'Términos',
       'paywall.restore': 'Restaurar compras',
       'paywall.restoreFailed': 'No se pudo restaurar',
       'paywall.restoreEmpty': 'No se encontraron compras anteriores',
@@ -637,6 +647,7 @@ export const resources = {
       'common.close': 'Close',
       'common.save': 'Save',
       'common.done': 'Done',
+      'common.accept': 'Accept',
 
       'dashboard.greeting.morning': 'Good morning',
       'dashboard.greeting.afternoon': 'Good afternoon',
@@ -748,6 +759,9 @@ export const resources = {
       'paywall.restore': 'Restore purchases',
       'paywall.restoreFailed': 'Could not restore',
       'paywall.restoreEmpty': 'No previous purchases found',
+      'paywall.legalAutoRenew': 'Subscription auto-renews. You can cancel anytime from your Apple account settings.',
+      'paywall.legalPrivacy': 'Privacy',
+      'paywall.legalTerms': 'Terms',
       'paywall.trigger.subscriptionLimit.headline': "You've reached the limit",
       'paywall.trigger.subscriptionLimit.subheadline': 'Your plan allows up to 15 subscriptions. With Pro, add as many as you need.',
       'paywall.trigger.futureCalendar.headline': 'Stay ahead of your charges',
@@ -797,6 +811,12 @@ export const resources = {
       'category.ai': 'AI',
       'category.gaming': 'Gaming',
       'category.other': 'Other',
+
+      // ── Auth ──
+      'auth.loginFailed': 'Could not sign in',
+
+      // ── Date picker ──
+      'datePicker.selectDate': 'Select date',
 
       // ── Common (additions) ──
       'common.comingSoon': 'Coming soon.',

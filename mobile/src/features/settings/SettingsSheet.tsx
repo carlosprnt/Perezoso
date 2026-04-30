@@ -348,14 +348,9 @@ export function SettingsSheet() {
               />
             </SettingsSectionCard>
 
-            {/* 7 — Reseña + Compartir (grouped) */}
+            {/* 7 — Compartir */}
             <View style={styles.gap} />
             <SettingsSectionCard>
-              <SettingsRow
-                icon={<Star size={20} color={iconColor} strokeWidth={2} />}
-                label={t('settings.review')}
-                onPress={handleReview}
-              />
               <SettingsRow
                 icon={<Share2 size={20} color={iconColor} strokeWidth={2} />}
                 label={t('settings.share')}

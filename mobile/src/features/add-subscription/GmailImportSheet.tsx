@@ -154,15 +154,23 @@ export function GmailImportSheet() {
     const store = useSubscriptionsStore.getState();
 
     for (const sub of toImport) {
+      const period = sub.billing_period ?? 'monthly';
+      const nextDate = new Date();
+      nextDate.setHours(0, 0, 0, 0);
+      if (period === 'yearly') nextDate.setFullYear(nextDate.getFullYear() + 1);
+      else if (period === 'quarterly') nextDate.setMonth(nextDate.getMonth() + 3);
+      else if (period === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
+      else nextDate.setMonth(nextDate.getMonth() + 1);
+
       await store.addSubscription({
         name: sub.name,
         logo_url: sub.logoUrl ?? null,
         category: (sub.suggested_category ?? 'other') as Category,
         price_amount: sub.price_amount ?? 0,
         currency: sub.currency ?? 'EUR',
-        billing_period: sub.billing_period ?? 'monthly',
+        billing_period: period,
         billing_interval_count: 1,
-        next_billing_date: '',
+        next_billing_date: nextDate.toISOString().slice(0, 10),
         status: 'active',
         is_shared: false,
         shared_with_count: 0,
