@@ -28,7 +28,6 @@ import {
   RotateCcw,
   Share2,
   Shield,
-  Star,
   Sun,
   Tag as TagIcon,
   X,
@@ -137,7 +136,6 @@ export function SettingsSheet() {
   }, [appearance, setAppearance]);
 
   const handleDemo = useCallback(() => openDemo(), [openDemo]);
-  const handleReview = useCallback(() => comingSoon(t('settings.review')), [comingSoon, t]);
 
   const handleShare = useCallback(() => {
     Share.share({
