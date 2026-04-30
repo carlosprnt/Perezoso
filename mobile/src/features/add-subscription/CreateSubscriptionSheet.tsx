@@ -888,24 +888,26 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Category */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.category')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.category')}</Text>
                   <DropdownBtn
                     value={CATEGORY_DISPLAY_KEYS[form.category] ? t(CATEGORY_DISPLAY_KEYS[form.category]) : form.category}
                     onPress={() => setCategorySheetOpen(true)}
+                    fg={colors.textPrimary}
+                    iconColor={colors.textMuted}
                   />
                 </View>
               </View>
 
               {/* Reminder */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
                   <View style={styles.rowLabelWithBadge}>
-                    <Text style={styles.rowLabel}>{t('form.enableReminder')}</Text>
+                    <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.enableReminder')}</Text>
                     {!isPlusActive && (
-                      <View style={styles.proBadge}>
-                        <Text style={styles.proBadgeText}>Pro</Text>
+                      <View style={[styles.proBadge, { backgroundColor: colors.accent }]}>
+                        <Text style={[styles.proBadgeText, { color: colors.accentFg }]}>Pro</Text>
                       </View>
                     )}
                   </View>
@@ -916,18 +918,20 @@ export function CreateSubscriptionSheet() {
                       setForm((f) => ({ ...f, reminderEnabled: v }));
                     }}
                     disabled={!isPlusActive}
-                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.reminderEnabled && (
                   <>
-                    <FormDivider />
+                    <FormDivider color={colors.border} />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.notifyMe')}</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.notifyMe')}</Text>
                       <View ref={reminderRef} collapsable={false}>
                         <DropdownBtn
                           value={t(REMINDER_DISPLAY_KEYS[form.reminderDays] ?? 'form.reminder.1day')}
                           onPress={() => openPickerAt(reminderRef, 'reminder')}
+                          fg={colors.textPrimary}
+                          iconColor={colors.textMuted}
                         />
                       </View>
                     </View>
@@ -936,20 +940,20 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Shared */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.sharedSubscription')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.sharedSubscription')}</Text>
                   <Switch
                     value={form.shared}
                     onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
-                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.shared && (
                   <>
-                    <FormDivider />
+                    <FormDivider color={colors.border} />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.totalPeople')}</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.totalPeople')}</Text>
                       <View style={styles.stepper}>
                         <Pressable
                           onPress={decShared}
@@ -957,24 +961,26 @@ export function CreateSubscriptionSheet() {
                           disabled={form.sharedCount <= 2}
                           style={({ pressed }) => [
                             styles.stepperBtn,
+                            { backgroundColor: colors.surfaceSecondary },
                             form.sharedCount <= 2 && styles.stepperBtnDisabled,
                             pressed && { opacity: 0.6 },
                           ]}
                         >
-                          <Minus size={14} color="#000000" strokeWidth={2.5} />
+                          <Minus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                         </Pressable>
-                        <Text style={styles.stepperValue}>{form.sharedCount}</Text>
+                        <Text style={[styles.stepperValue, { color: colors.textPrimary }]}>{form.sharedCount}</Text>
                         <Pressable
                           onPress={incShared}
                           hitSlop={6}
                           disabled={form.sharedCount >= 10}
                           style={({ pressed }) => [
                             styles.stepperBtn,
+                            { backgroundColor: colors.surfaceSecondary },
                             form.sharedCount >= 10 && styles.stepperBtnDisabled,
                             pressed && { opacity: 0.6 },
                           ]}
                         >
-                          <Plus size={14} color="#000000" strokeWidth={2.5} />
+                          <Plus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                         </Pressable>
                       </View>
                     </View>
@@ -983,10 +989,10 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Payment method */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Pressable style={styles.row} onPress={() => setPaymentSheetOpen(true)}>
-                  <Text style={styles.rowLabel}>{t('form.paymentMethod')}</Text>
-                  <Text style={[styles.rowValue, !form.paymentMethod && { color: '#C7C7CC' }]}>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.paymentMethod')}</Text>
+                  <Text style={[styles.rowValue, { color: form.paymentMethod ? colors.textPrimary : (isDark ? '#5A5A5E' : '#C7C7CC') }]}>
                     {form.paymentMethod || t('form.paymentPlaceholder')}
                   </Text>
                 </Pressable>
