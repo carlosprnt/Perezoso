@@ -22,6 +22,7 @@ import {
   Bell,
   Check,
   Coins,
+  CreditCard,
   Languages,
   Mail,
   RotateCcw,
@@ -50,6 +51,7 @@ import { AdminStatsSheet } from './AdminStatsSheet';
 import { CurrencySheet } from './CurrencySheet';
 import { DemoSheet } from './DemoSheet';
 import { LanguageSheet, languageLabel } from './LanguageSheet';
+import { PaymentMethodsBottomSheet } from './PaymentMethodsBottomSheet';
 import { TagsBottomSheet } from './TagsBottomSheet';
 import {
   useAdminStatsStore,
@@ -58,6 +60,7 @@ import {
   useSettingsStore,
   useTagsStore,
 } from './useSettingsStore';
+import { usePaymentMethodsStore } from './usePaymentMethodsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { useAuthStore } from '../auth/useAuthStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
@@ -82,6 +85,9 @@ export function SettingsSheet() {
 
   const tagsCount             = useTagsStore((s) => s.tags.length);
   const openTags              = useTagsStore((s) => s.openSheet);
+
+  const paymentMethodsCount   = usePaymentMethodsStore((s) => s.methods.length);
+  const openPaymentMethods    = usePaymentMethodsStore((s) => s.openSheet);
 
   const openDemo              = useDemoSheetStore((s) => s.openSheet);
   const openAdminStats        = useAdminStatsStore((s) => s.openSheet);
@@ -325,7 +331,7 @@ export function SettingsSheet() {
               </>
             )}
 
-            {/* 6 — Etiquetas */}
+            {/* 6 — Etiquetas + Métodos de pago */}
             <View style={styles.gap} />
             <SettingsSectionCard>
               <SettingsRow
@@ -333,6 +339,12 @@ export function SettingsSheet() {
                 label={t('settings.tags')}
                 value={`${tagsCount}`}
                 onPress={openTags}
+              />
+              <SettingsRow
+                icon={<CreditCard size={20} color={iconColor} strokeWidth={2} />}
+                label={t('settings.paymentMethods')}
+                value={`${paymentMethodsCount}`}
+                onPress={openPaymentMethods}
               />
             </SettingsSectionCard>
 
@@ -385,6 +397,7 @@ export function SettingsSheet() {
 
           {/* Secondary sheets */}
           <TagsBottomSheet />
+          <PaymentMethodsBottomSheet />
           <DemoSheet />
           <AdminStatsSheet />
           <CurrencySheet
