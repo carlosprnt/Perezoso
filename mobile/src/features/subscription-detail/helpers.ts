@@ -93,11 +93,17 @@ export function formatAmount(
   return isSymbolAfter(currency) ? `${formatted}${symbol}` : `${symbol}${formatted}`;
 }
 
+const CYCLE_MONTHS: Record<BillingPeriod, number> = {
+  weekly: 7 / 30,
+  monthly: 1,
+  quarterly: 3,
+  yearly: 12,
+};
+
 /** Convert any billing period amount into its monthly equivalent. */
 export function toMonthly(amount: number, period: BillingPeriod, interval: number): number {
-  const perCycle = amount;
-  const months = (CYCLE_DAYS[period] * Math.max(1, interval)) / 30;
-  return perCycle / months;
+  const months = CYCLE_MONTHS[period] * Math.max(1, interval);
+  return amount / months;
 }
 
 /** Convert any billing period amount into its yearly equivalent. */
