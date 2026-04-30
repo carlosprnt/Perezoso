@@ -11,6 +11,7 @@ import {
   Dimensions,
   Easing,
   Image,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -141,20 +142,21 @@ export function PaywallSheet() {
   // ── Pricing data (RC or fallback) ────────────────────────────────
   const annualPkg  = offering?.annual;
   const monthlyPkg = offering?.monthly;
+  const pricingReady = !!(annualPkg && monthlyPkg);
 
-  const annualPrice  = annualPkg?.product.priceString  ?? '19,99 €';
-  const monthlyPrice = monthlyPkg?.product.priceString ?? '2,99 €';
+  const annualPrice  = annualPkg?.product.priceString ?? '---';
+  const monthlyPrice = monthlyPkg?.product.priceString ?? '---';
 
   const annualPerMonth = annualPkg?.product.price
     ? formatPerMonth(annualPkg.product.price / 12, annualPkg.product.currencyCode)
-    : '1,67 €';
+    : '---';
 
   const savingsPercent = (() => {
     if (annualPkg?.product.price && monthlyPkg?.product.price) {
       const yearly = monthlyPkg.product.price * 12;
       return Math.round((1 - annualPkg.product.price / yearly) * 100);
     }
-    return 44;
+    return 0;
   })();
 
   // ── Purchase handler ─────────────────────────────────────────────
@@ -365,10 +367,10 @@ export function PaywallSheet() {
           <View style={styles.ctaSection}>
             <Pressable
               onPress={handlePurchase}
-              disabled={purchasing}
+              disabled={purchasing || !pricingReady}
               style={({ pressed }) => [
                 styles.ctaBtn,
-                (pressed || purchasing) && { opacity: 0.88 },
+                (pressed || purchasing || !pricingReady) && { opacity: 0.88 },
               ]}
               accessibilityRole="button"
               accessibilityLabel={ctaLabel}
@@ -376,22 +378,23 @@ export function PaywallSheet() {
               <Text style={styles.ctaText}>{ctaLabel}</Text>
             </Pressable>
 
-            {/* ── 6. Trust microcopy ──────────────────────────── */}
-            <Text style={styles.trustText}>
-              {t('paywall.trustText')}
+            {/* ── 6. Legal (Apple Guideline 3.1.2) ────────────── */}
+            <Text style={styles.legalText}>
+              {t('paywall.legalAutoRenew')}
             </Text>
-
-            {/* ── 7. Restore purchases (Apple requirement) ─────── */}
-            <Pressable
-              onPress={handleRestore}
-              disabled={purchasing}
-              hitSlop={8}
-              style={({ pressed }) => [pressed && { opacity: 0.5 }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('paywall.restore')}
-            >
-              <Text style={styles.restoreText}>{t('paywall.restore')}</Text>
-            </Pressable>
+            <View style={styles.legalLinks}>
+              <Pressable onPress={() => Linking.openURL('https://perezoso.app/privacidad').catch(() => {})} hitSlop={6}>
+                <Text style={styles.legalLink}>{t('paywall.legalPrivacy')}</Text>
+              </Pressable>
+              <Text style={styles.legalSep}>·</Text>
+              <Pressable onPress={() => Linking.openURL('https://perezoso.app/terminos').catch(() => {})} hitSlop={6}>
+                <Text style={styles.legalLink}>{t('paywall.legalTerms')}</Text>
+              </Pressable>
+              <Text style={styles.legalSep}>·</Text>
+              <Pressable onPress={handleRestore} disabled={purchasing} hitSlop={6}>
+                <Text style={styles.legalLink}>{t('paywall.restore')}</Text>
+              </Pressable>
+            </View>
           </View>
         </Reanimated.View>
       </View>
@@ -678,20 +681,32 @@ const styles = StyleSheet.create({
     letterSpacing: -0.15,
   },
 
-  // 6. Trust
-  trustText: {
+  // 6. Legal
+  legalText: {
     ...fontFamily.medium,
-    fontSize: 12,
+    fontSize: 11,
     color: '#AEAEB2',
     textAlign: 'center',
     marginTop: 12,
+    lineHeight: 15,
+    paddingHorizontal: 8,
   },
-  restoreText: {
-    ...fontFamily.medium,
-    fontSize: 12,
-    color: '#AEAEB2',
-    textAlign: 'center',
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 8,
+    gap: 6,
+  },
+  legalLink: {
+    ...fontFamily.medium,
+    fontSize: 11,
+    color: '#AEAEB2',
     textDecorationLine: 'underline',
+  },
+  legalSep: {
+    ...fontFamily.medium,
+    fontSize: 11,
+    color: '#AEAEB2',
   },
 });

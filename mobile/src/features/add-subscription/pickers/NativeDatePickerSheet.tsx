@@ -22,6 +22,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { fontFamily, fontSize } from '../../../design/typography';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 
 interface Props {
   visible: boolean;
@@ -41,10 +42,12 @@ export function NativeDatePickerSheet({
   value,
   onChange,
   onClose,
-  title = 'Seleccionar fecha',
+  title,
   minimumDate,
   maximumDate,
 }: Props) {
+  const t = useT();
+  const resolvedTitle = title ?? t('datePicker.selectDate');
   const [tempValue, setTempValue] = useState<Date>(value);
   // Render-gate separate from `visible` so we can play the exit animation
   // before unmounting the Modal.
@@ -117,7 +120,7 @@ export function NativeDatePickerSheet({
       presentationStyle="overFullScreen"
     >
       <Animated.View style={[styles.backdrop, { opacity }]}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} accessibilityLabel={t('common.close')} accessibilityRole="button">
           <BlurView
             intensity={20}
             tint="dark"
@@ -135,7 +138,7 @@ export function NativeDatePickerSheet({
         >
           {/* Stop propagation so taps inside the card don't dismiss. */}
           <Pressable onPress={() => {}} style={styles.card}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title}>{resolvedTitle}</Text>
 
             <View style={styles.pickerWrap}>
               <DateTimePicker
@@ -156,16 +159,20 @@ export function NativeDatePickerSheet({
               <Pressable
                 onPress={onClose}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
                 style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.7 }]}
               >
-                <Text style={styles.cancelText}>Cancelar</Text>
+                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 onPress={handleAccept}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.accept')}
                 style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.7 }]}
               >
-                <Text style={styles.acceptText}>Aceptar</Text>
+                <Text style={styles.acceptText}>{t('common.accept')}</Text>
               </Pressable>
             </View>
           </Pressable>
