@@ -999,9 +999,9 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Logo URL */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.logoUrl')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.logoUrl')}</Text>
                   <View style={styles.urlRow}>
                     {form.logoUrl.length === 0 ? (
                       <Pressable
@@ -1016,11 +1016,11 @@ export function CreateSubscriptionSheet() {
                     ) : (
                       <>
                         <TextInput
-                          style={styles.urlInput}
+                          style={[styles.urlInput, { color: colors.textPrimary }]}
                           value={form.logoUrl}
                           onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
                           placeholder="https://..."
-                          placeholderTextColor="#C7C7CC"
+                          placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                           keyboardType="url"
                           autoCapitalize="none"
                           autoCorrect={false}
@@ -1031,7 +1031,7 @@ export function CreateSubscriptionSheet() {
                           hitSlop={8}
                           style={styles.urlClear}
                         >
-                          <X size={12} color="#8E8E93" strokeWidth={2.5} />
+                          <X size={12} color={colors.textMuted} strokeWidth={2.5} />
                         </Pressable>
                       </>
                     )}
@@ -1040,25 +1040,27 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Status + Notes (bottom block) */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.status')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.status')}</Text>
                   <View ref={statusRef} collapsable={false}>
                     <DropdownBtn
                       value={t(STATUS_DISPLAY_KEYS[form.status] ?? 'form.status.active')}
                       onPress={() => openPickerAt(statusRef, 'status')}
+                      fg={colors.textPrimary}
+                      iconColor={colors.textMuted}
                     />
                   </View>
                 </View>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.notesRow}>
-                  <Text style={styles.rowLabel}>{t('form.notes')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.notes')}</Text>
                   <TextInput
-                    style={styles.notesInput}
+                    style={[styles.notesInput, { color: colors.textPrimary }]}
                     value={form.notes}
                     onChangeText={(t) => setForm((f) => ({ ...f, notes: t }))}
                     placeholder={t('form.notesPlaceholder')}
-                    placeholderTextColor="#C7C7CC"
+                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                     multiline
                     textAlignVertical="top"
                   />
@@ -1067,25 +1069,26 @@ export function CreateSubscriptionSheet() {
             </ScrollView>
 
             {/* ── Footer ── */}
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
               <Pressable
-                style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
+                style={({ pressed }) => [styles.cancelBtn, { borderColor: colors.border, backgroundColor: colors.surface }, pressed && { opacity: 0.7 }]}
                 onPress={requestClose}
                 disabled={isSubmitting}
               >
-                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+                <Text style={[styles.cancelBtnText, { color: colors.textPrimary }]}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
                   styles.createBtn,
+                  { backgroundColor: colors.accent },
                   pressed && !isSubmitting && { opacity: 0.85 },
                 ]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
                 {isSubmitting
-                  ? <ActivityIndicator color="#FFFFFF" size="small" />
-                  : <Text style={styles.createBtnText}>{t('form.createSubscription')}</Text>
+                  ? <ActivityIndicator color={colors.accentFg} size="small" />
+                  : <Text style={[styles.createBtnText, { color: colors.accentFg }]}>{t('form.createSubscription')}</Text>
                 }
               </Pressable>
             </View>
