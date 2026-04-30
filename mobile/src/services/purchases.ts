@@ -26,7 +26,7 @@ const isExpoGo = Constants.appOwnership === 'expo';
 // The `test_...` key works with the RevenueCat Test Store sandbox —
 // no real App Store / Play Store plumbing needed.
 const KEYS = {
-  ios: 'test_KuExfCyARynQtsDJQpcIkWnfgWk',
+  ios: 'appl_pNZCewIqWuHLumEciqHVrTJhcBC',
   android: 'test_KuExfCyARynQtsDJQpcIkWnfgWk',
 };
 
