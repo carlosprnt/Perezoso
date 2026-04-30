@@ -8,6 +8,9 @@ export interface PaymentMethod {
 }
 
 interface PaymentMethodsStore {
+  isOpen: boolean;
+  openSheet: () => void;
+  closeSheet: () => void;
   methods: PaymentMethod[];
   addMethod: (label: string) => void;
   removeMethod: (id: string) => void;
@@ -16,6 +19,9 @@ interface PaymentMethodsStore {
 export const usePaymentMethodsStore = create<PaymentMethodsStore>()(
   persist(
     (set) => ({
+      isOpen: false,
+      openSheet: () => set({ isOpen: true }),
+      closeSheet: () => set({ isOpen: false }),
       methods: [],
       addMethod: (label) =>
         set((s) => {
@@ -34,6 +40,7 @@ export const usePaymentMethodsStore = create<PaymentMethodsStore>()(
     {
       name: 'perezoso-payment-methods',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ methods: state.methods }),
     },
   ),
 );

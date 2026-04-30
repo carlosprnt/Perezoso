@@ -20,6 +20,7 @@ export const resources = {
       'settings.appearance.auto': 'Automático',
       'settings.language': 'Idioma',
       'settings.tags': 'Categorías',
+      'settings.paymentMethods': 'Métodos de pago',
       'settings.demo': 'Demo',
       'settings.review': 'Dejar una reseña',
       'settings.share': 'Compartir con un amigo',
@@ -412,6 +413,8 @@ export const resources = {
       'categoryPicker.add': 'Añadir',
 
       // ── Payment methods ──
+      'settingsPaymentMethods.title': 'Métodos de pago',
+      'settingsPaymentMethods.subtitle': 'Crea métodos de pago para asignar a tus suscripciones.',
       'paymentMethods.title': 'Método de pago',
       'paymentMethods.subtitle': 'Selecciona o crea un método de pago.',
       'paymentMethods.newPlaceholder': 'Nuevo método',
@@ -554,6 +557,7 @@ export const resources = {
       'settings.appearance.auto': 'Automatic',
       'settings.language': 'Language',
       'settings.tags': 'Categories',
+      'settings.paymentMethods': 'Payment methods',
       'settings.demo': 'Demo',
       'settings.review': 'Leave a review',
       'settings.share': 'Share with a friend',
@@ -972,6 +976,8 @@ export const resources = {
       'categoryPicker.add': 'Add',
 
       // ── Payment methods ──
+      'settingsPaymentMethods.title': 'Payment methods',
+      'settingsPaymentMethods.subtitle': 'Create payment methods to assign to your subscriptions.',
       'paymentMethods.title': 'Payment method',
       'paymentMethods.subtitle': 'Select or create a payment method.',
       'paymentMethods.newPlaceholder': 'New method',
