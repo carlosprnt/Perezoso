@@ -111,6 +111,9 @@ export const PLATFORMS: Platform[] = [
   { id: 'headspace', name: 'Headspace', domain: 'headspace.com', category: 'education' },
   { id: 'calm', name: 'Calm', domain: 'calm.com', category: 'education' },
 
+  // ─── Delivery ───────────────────────────────────────────
+  { id: 'rappi', name: 'Rappi', domain: 'rappi.com', category: 'other', brandColor: '#FF441F', aliases: ['rappi prime', 'rappi pro'] },
+
   // ─── Finance ────────────────────────────────────────────
   { id: 'revolut', name: 'Revolut', domain: 'revolut.com', category: 'other' },
   { id: 'wise', name: 'Wise', domain: 'wise.com', category: 'other', brandColor: '#9FE870' },

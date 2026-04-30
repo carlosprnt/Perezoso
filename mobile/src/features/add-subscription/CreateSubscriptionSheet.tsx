@@ -205,6 +205,18 @@ function nextMonth(d: Date): Date {
   n.setMonth(n.getMonth() + 1);
   return n;
 }
+
+function nextDateForPeriod(from: Date, period: string): Date {
+  const d = new Date(from);
+  d.setHours(0, 0, 0, 0);
+  switch (period) {
+    case 'yearly':     d.setFullYear(d.getFullYear() + 1); break;
+    case 'quarterly':  d.setMonth(d.getMonth() + 3); break;
+    case 'weekly':     d.setDate(d.getDate() + 7); break;
+    default:           d.setMonth(d.getMonth() + 1); break;
+  }
+  return d;
+}
 function makeInitialForm(prefill: { name?: string; logoUrl?: string; category?: string } | null, defaultCurrency = 'EUR'): FormState {
   const today = new Date();
   return {
@@ -655,10 +667,11 @@ export function CreateSubscriptionSheet() {
                 {/* ── Billing period ── */}
                 <RenewalToggle
                   isMonthly={form.billingPeriod === 'monthly'}
-                  onToggle={() => setForm((f) => ({
-                    ...f,
-                    billingPeriod: f.billingPeriod === 'monthly' ? 'yearly' : 'monthly',
-                  }))}
+                  onToggle={() => {
+                    const newPeriod = form.billingPeriod === 'monthly' ? 'yearly' : 'monthly';
+                    setForm((f) => ({ ...f, billingPeriod: newPeriod }));
+                    setRenewalDate(nextDateForPeriod(new Date(), newPeriod));
+                  }}
                   compact={kbHeight > 0}
                 />
 
@@ -1110,7 +1123,14 @@ export function CreateSubscriptionSheet() {
         anchor={pickerAnchor}
         options={billingOptions}
         selected={t(BILLING_DISPLAY_KEYS[form.billingPeriod] ?? 'form.billing.monthly')}
-        onSelect={(v) => setForm((f) => ({ ...f, billingPeriod: billingLabelToKey[v] ?? 'monthly' }))}
+        onSelect={(v) => setForm((f) => {
+          const newPeriod = billingLabelToKey[v] ?? 'monthly';
+          return {
+            ...f,
+            billingPeriod: newPeriod,
+            nextPaymentDate: nextDateForPeriod(f.startDate, newPeriod),
+          };
+        })}
         onClose={() => setOpenPicker(null)}
       />
       <CategoryPickerSheet
