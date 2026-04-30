@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamily, fontSize } from '../../../design/typography';
+import { useTheme } from '../../../design/useTheme';
 import { haptic } from '../../../lib/haptics';
 
 const TICKS_PER_DAY = 4;
@@ -71,6 +72,7 @@ interface Props {
 }
 
 export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }: Props) {
+  const { isDark, colors } = useTheme();
   const prevIdx = useRef(0);
   const [halfWidth, setHalfWidth] = useState(0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -123,12 +125,17 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
   const indicatorH = compact ? 32 : 56;
   const rulerH = compact ? 40 : 64;
 
+  const textColor = isDark ? '#FFFFFF' : '#000000';
+  const tickColor = isDark ? 'rgba(255,255,255,0.35)' : TICK_COLOR;
+  const fadeBg = colors.surface;
+  const fadeBgTransparent = isDark ? 'rgba(28,28,30,0)' : 'rgba(255,255,255,0)';
+
   return (
     <View style={[styles.container, compact && { paddingTop: 2 }]}>
       <Pressable onPress={onTapLabel} style={[styles.dateTapArea, compact && { paddingVertical: 4 }]}>
         <View style={styles.dateRow}>
-          <Text style={[styles.dayNumber, { fontSize: dateFontSize }]}>{value.getDate()}</Text>
-          <Text style={[styles.monthLabel, { fontSize: dateFontSize }]}>{capitalMonth}</Text>
+          <Text style={[styles.dayNumber, { fontSize: dateFontSize, color: textColor }]}>{value.getDate()}</Text>
+          <Text style={[styles.monthLabel, { fontSize: dateFontSize, color: textColor }]}>{capitalMonth}</Text>
         </View>
         <Text style={[styles.renewalLabel, compact && { fontSize: fontSize[13], marginBottom: 12 }]}>
           Próxima renovación
@@ -155,25 +162,25 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
               >
                 {ticks.map((_, i) => (
                   <View key={i} style={styles.tickCol}>
-                    <View style={[styles.tick, { height: tickH }]} />
+                    <View style={[styles.tick, { height: tickH, backgroundColor: tickColor }]} />
                   </View>
                 ))}
               </ScrollView>
             </Animated.View>
 
             <View style={styles.indicatorWrap} pointerEvents="none">
-              <View style={[styles.indicator, { height: indicatorH }]} />
+              <View style={[styles.indicator, { height: indicatorH, backgroundColor: textColor }]} />
             </View>
 
             <LinearGradient
-              colors={['#FFFFFF', 'rgba(255,255,255,0)']}
+              colors={[fadeBg, fadeBgTransparent]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.fadeLeft}
               pointerEvents="none"
             />
             <LinearGradient
-              colors={['rgba(255,255,255,0)', '#FFFFFF']}
+              colors={[fadeBgTransparent, fadeBg]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.fadeRight}

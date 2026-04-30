@@ -440,7 +440,7 @@ export function DashboardScreen() {
                   but without the dismiss link. */}
               {savingsDismissed && savingsSuggestions.length > 0 && (
                 <StaggeredItem index={5}>
-                  <View style={[styles.savingsCard, { backgroundColor: colors.surface }, shadows.cardSm]}>
+                  <View style={[styles.savingsCard, { backgroundColor: colors.surface }]}>
                     <View style={styles.savingsCardBody}>
                       <LinearGradient
                         colors={['#FEF3C7', '#FDE68A']}
