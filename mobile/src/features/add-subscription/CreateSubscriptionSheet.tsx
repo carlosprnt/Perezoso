@@ -52,6 +52,7 @@ import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionM
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import type { Currency } from '../settings/CurrencySheet';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
+import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
@@ -266,21 +267,23 @@ function formIsEqual(a: FormState, b: FormState): boolean {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────
-function FormDivider() { return <View style={styles.divider} />; }
+function FormDivider({ color }: { color?: string }) {
+  return <View style={[styles.divider, color ? { backgroundColor: color } : undefined]} />;
+}
 
-function DatePillBtn({ date, onPress }: { date: Date; onPress: () => void }) {
+function DatePillBtn({ date, onPress, bg, fg }: { date: Date; onPress: () => void; bg?: string; fg?: string }) {
   return (
-    <Pressable style={styles.datePill} onPress={onPress} hitSlop={8}>
-      <Text style={styles.datePillText}>{formatDate(date)}</Text>
+    <Pressable style={[styles.datePill, bg ? { backgroundColor: bg } : undefined]} onPress={onPress} hitSlop={8}>
+      <Text style={[styles.datePillText, fg ? { color: fg } : undefined]}>{formatDate(date)}</Text>
     </Pressable>
   );
 }
 
-function DropdownBtn({ value, onPress }: { value: string; onPress: () => void }) {
+function DropdownBtn({ value, onPress, fg, iconColor }: { value: string; onPress: () => void; fg?: string; iconColor?: string }) {
   return (
     <Pressable style={styles.dropdownRow} onPress={onPress} hitSlop={8}>
-      <Text style={styles.dropdownText}>{value}</Text>
-      <ChevronsUpDown size={14} color="#8E8E93" strokeWidth={2.5} />
+      <Text style={[styles.dropdownText, fg ? { color: fg } : undefined]}>{value}</Text>
+      <ChevronsUpDown size={14} color={iconColor ?? '#8E8E93'} strokeWidth={2.5} />
     </Pressable>
   );
 }
@@ -288,7 +291,7 @@ function DropdownBtn({ value, onPress }: { value: string; onPress: () => void })
 // ─── Renewal period toggle with vertical slide animation ────────────
 const TOGGLE_H = 28;
 
-function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; onToggle: () => void; compact?: boolean }) {
+function RenewalToggle({ isMonthly, onToggle, compact, bg, labelColor, valueColor }: { isMonthly: boolean; onToggle: () => void; compact?: boolean; bg?: string; labelColor?: string; valueColor?: string }) {
   const t = useT();
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -331,10 +334,10 @@ function RenewalToggle({ isMonthly, onToggle, compact }: { isMonthly: boolean; o
 
   return (
     <Pressable onPress={animateToggle}>
-      <Animated.View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }, containerAnimStyle]}>
-        <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }]}>{t('form.renewal')}</Text>
+      <Animated.View style={[styles.renewalRow, compact && { marginTop: 10, paddingVertical: 10 }, bg ? { backgroundColor: bg } : undefined, containerAnimStyle]}>
+        <Text style={[styles.renewalRowLabel, compact && { fontSize: fontSize[14] }, labelColor ? { color: labelColor } : undefined]}>{t('form.renewal')}</Text>
         <View style={[styles.renewalValueWrap, { height: h }]}>
-          <Animated.Text style={[styles.renewalValue, compact && { fontSize: fontSize[16] }, labelAnimStyle]}>
+          <Animated.Text style={[styles.renewalValue, compact && { fontSize: fontSize[16] }, valueColor ? { color: valueColor } : undefined, labelAnimStyle]}>
             {displayKey ? t('form.renewalMonth') : t('form.renewalYear')}
           </Animated.Text>
         </View>
@@ -352,6 +355,7 @@ export function CreateSubscriptionSheet() {
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
   const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
   const defaultCurrency = currencyCodeFromLabel(globalCurrencyLabel);
+  const { colors, isDark } = useTheme();
   const t = useT();
 
   // Translated option arrays for FloatingOptionMenu
@@ -599,25 +603,25 @@ export function CreateSubscriptionSheet() {
       <View
         style={[
           styles.sheet,
-          { paddingBottom: insets.bottom > 0 ? 14 : 10 },
+          { paddingBottom: insets.bottom > 0 ? 14 : 10, backgroundColor: colors.surface },
         ]}
       >
           {step === 1 ? (
             <Animated.View style={[{ flex: 1 }, kbHeight > 0 && { paddingBottom: kbHeight - insets.bottom + 16 }, step1AnimStyle]}>
               {/* ── Step 1: Quick Add ── */}
               <View style={styles.handleWrap}>
-                <View style={styles.handle} />
+                <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
               </View>
               <View style={styles.quickHeader}>
-                <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
-                  <X size={15} color="#3C3C43" strokeWidth={2.5} />
+                <Pressable style={[styles.closeBtn, { backgroundColor: colors.surfaceSecondary }]} onPress={requestClose} hitSlop={10}>
+                  <X size={15} color={isDark ? '#F2F2F7' : '#3C3C43'} strokeWidth={2.5} />
                 </Pressable>
               </View>
 
               {error && (
-                <View style={styles.errorBanner}>
-                  <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
-                  <Text style={styles.errorText}>{error}</Text>
+                <View style={[styles.errorBanner, isDark && { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
+                  <AlertCircle size={16} color={isDark ? '#F87171' : '#B91C1C'} strokeWidth={2.5} />
+                  <Text style={[styles.errorText, isDark && { color: '#F87171' }]}>{error}</Text>
                 </View>
               )}
 
@@ -628,36 +632,36 @@ export function CreateSubscriptionSheet() {
                 keyboardDismissMode="on-drag"
                 showsVerticalScrollIndicator={false}
               >
-                <View style={styles.quickInputCard}>
+                <View style={[styles.quickInputCard, { backgroundColor: colors.surfaceSecondary }]}>
                   <TextInput
-                    style={styles.quickNameInput}
+                    style={[styles.quickNameInput, { color: colors.textPrimary }]}
                     value={form.name}
                     onChangeText={(t) => {
                       const logo = matchPlatformLogo(t);
                       setForm((f) => ({ ...f, name: t, logoUrl: logo }));
                     }}
                     placeholder={t('form.subscriptionPlaceholder')}
-                    placeholderTextColor="#C7C7CC"
+                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                     returnKeyType="done"
                     autoCorrect={false}
                     autoFocus={!prefill?.name}
                   />
                   <View style={styles.quickPriceRow}>
                     <Pressable
-                      style={styles.quickCurrencyPill}
+                      style={[styles.quickCurrencyPill, { backgroundColor: colors.surfaceTertiary }]}
                       onPress={() => setCurrencySheetOpen(true)}
                       hitSlop={8}
                     >
-                      <Text style={styles.quickCurrencyText}>{currencySymbol(form.currency)}</Text>
-                      <ChevronDown size={14} color="#8E8E93" strokeWidth={2.5} />
+                      <Text style={[styles.quickCurrencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
+                      <ChevronDown size={14} color={colors.textMuted} strokeWidth={2.5} />
                     </Pressable>
                     <TextInput
                       ref={priceInputRef}
-                      style={styles.quickPriceInput}
+                      style={[styles.quickPriceInput, { color: colors.textPrimary }]}
                       value={form.price}
                       onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
                       placeholder="0.00"
-                      placeholderTextColor="#C7C7CC"
+                      placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                       keyboardType="decimal-pad"
                       inputAccessoryViewID={PRICE_ACCESSORY_ID}
                     />
@@ -673,6 +677,9 @@ export function CreateSubscriptionSheet() {
                     setRenewalDate(nextDateForPeriod(new Date(), newPeriod));
                   }}
                   compact={kbHeight > 0}
+                  bg={colors.surfaceSecondary}
+                  labelColor={colors.textMuted}
+                  valueColor={colors.textPrimary}
                 />
 
                 <View style={{ flex: 1 }} />
@@ -685,52 +692,52 @@ export function CreateSubscriptionSheet() {
                 />
               </ScrollView>
 
-              <View style={styles.footer}>
+              <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <Pressable
-                  style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
+                  style={({ pressed }) => [styles.cancelBtn, { borderColor: colors.border, backgroundColor: colors.surface }, pressed && { opacity: 0.7 }]}
                   onPress={goToMoreOptions}
                   disabled={isSubmitting}
                 >
-                  <Text style={styles.cancelBtnText}>{t('form.moreOptions')}</Text>
+                  <Text style={[styles.cancelBtnText, { color: colors.textPrimary }]}>{t('form.moreOptions')}</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [
                     styles.createBtn,
-                    { flex: 1 },
+                    { flex: 1, backgroundColor: colors.accent },
                     (pressed || isSubmitting) && { opacity: 0.85 },
                   ]}
                   onPress={handleQuickSave}
                   disabled={isSubmitting}
                 >
                   {isSubmitting
-                    ? <ActivityIndicator color="#FFFFFF" size="small" />
-                    : <Text style={styles.createBtnText}>{t('common.save')}</Text>
+                    ? <ActivityIndicator color={colors.accentFg} size="small" />
+                    : <Text style={[styles.createBtnText, { color: colors.accentFg }]}>{t('common.save')}</Text>
                   }
                 </Pressable>
               </View>
             </Animated.View>
           ) : (
-            <Animated.View style={[{ flex: 1, backgroundColor: '#FFFFFF' }, step2AnimStyle]}>
+            <Animated.View style={[{ flex: 1, backgroundColor: colors.surface }, step2AnimStyle]}>
             <KeyboardAvoidingView
               style={{ flex: 1 }}
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
           {/* ── iOS-style drag handle + header (title + X) ── */}
             <View style={styles.handleWrap}>
-              <View style={styles.handle} />
+              <View style={[styles.handle, { backgroundColor: isDark ? '#4A4A4C' : '#D4D4D4' }]} />
             </View>
             <View style={styles.header}>
-              <Text style={styles.title}>{t('form.createTitle')}</Text>
-              <Pressable style={styles.closeBtn} onPress={requestClose} hitSlop={10}>
-                <X size={15} color="#3C3C43" strokeWidth={2.5} />
+              <Text style={[styles.title, { color: colors.textPrimary }]}>{t('form.createTitle')}</Text>
+              <Pressable style={[styles.closeBtn, { backgroundColor: colors.surfaceSecondary }]} onPress={requestClose} hitSlop={10}>
+                <X size={15} color={isDark ? '#F2F2F7' : '#3C3C43'} strokeWidth={2.5} />
               </Pressable>
             </View>
 
             {/* ── Error banner (no stroke) ── */}
             {error && (
-              <View style={styles.errorBanner}>
-                <AlertCircle size={16} color="#B91C1C" strokeWidth={2.5} />
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={[styles.errorBanner, isDark && { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
+                <AlertCircle size={16} color={isDark ? '#F87171' : '#B91C1C'} strokeWidth={2.5} />
+                <Text style={[styles.errorText, isDark && { color: '#F87171' }]}>{error}</Text>
               </View>
             )}
 
@@ -743,34 +750,34 @@ export function CreateSubscriptionSheet() {
               keyboardDismissMode="on-drag"
             >
               {/* Platform card */}
-              <View style={styles.platformCard}>
+              <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
                 <TextInput
-                  style={styles.platformName}
+                  style={[styles.platformName, { color: colors.textPrimary }]}
                   value={form.name}
                   onChangeText={(t) => {
                     const logo = matchPlatformLogo(t);
                     setForm((f) => ({ ...f, name: t, logoUrl: logo }));
                   }}
                   placeholder={t('form.namePlaceholder')}
-                  placeholderTextColor="#C7C7CC"
+                  placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                   returnKeyType="done"
                   autoCorrect={false}
                 />
                 <View style={styles.priceRow}>
                   <Pressable
-                    style={styles.currencyPill}
+                    style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
                     onPress={() => setCurrencySheetOpen(true)}
                     hitSlop={8}
                   >
-                    <Text style={styles.currencyText}>{currencySymbol(form.currency)}</Text>
-                    <ChevronDown size={12} color="#8E8E93" strokeWidth={2.5} />
+                    <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
+                    <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
                   </Pressable>
                   <TextInput
-                    style={styles.priceInput}
+                    style={[styles.priceInput, { color: colors.textPrimary }]}
                     value={form.price}
                     onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
                     placeholder="0.00"
-                    placeholderTextColor="#C7C7CC"
+                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                     keyboardType="decimal-pad"
                     returnKeyType="done"
                   />
@@ -778,31 +785,33 @@ export function CreateSubscriptionSheet() {
               </View>
 
               {/* Dates + billing */}
-              <View style={styles.group}>
+              <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.startDate')}</Text>
-                  <DatePillBtn date={form.startDate} onPress={() => setOpenDate('start')} />
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.startDate')}</Text>
+                  <DatePillBtn date={form.startDate} onPress={() => setOpenDate('start')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
                 </View>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.nextPayment')}</Text>
-                  <DatePillBtn date={form.nextPaymentDate} onPress={() => setOpenDate('next')} />
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.nextPayment')}</Text>
+                  <DatePillBtn date={form.nextPaymentDate} onPress={() => setOpenDate('next')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
                 </View>
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.billingPeriod')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.billingPeriod')}</Text>
                   <View ref={billingRef} collapsable={false}>
                     <DropdownBtn
                       value={t(BILLING_DISPLAY_KEYS[form.billingPeriod] ?? 'form.billing.monthly')}
                       onPress={() => openPickerAt(billingRef, 'billing')}
+                      fg={colors.textPrimary}
+                      iconColor={colors.textMuted}
                     />
                   </View>
                 </View>
                 {form.billingPeriod === 'custom' && (
                   <>
-                    <FormDivider />
+                    <FormDivider color={colors.border} />
                     <View style={styles.customSection}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.every')}</Text>
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.every')}</Text>
                       <View style={styles.customIntervalRow}>
                         <View style={styles.stepper}>
                           <Pressable
@@ -811,24 +820,26 @@ export function CreateSubscriptionSheet() {
                             disabled={form.customCount <= 1}
                             style={({ pressed }) => [
                               styles.stepperBtn,
+                              { backgroundColor: colors.surfaceSecondary },
                               form.customCount <= 1 && styles.stepperBtnDisabled,
                               pressed && { opacity: 0.6 },
                             ]}
                           >
-                            <Minus size={14} color="#000000" strokeWidth={2.5} />
+                            <Minus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                           </Pressable>
-                          <Text style={styles.stepperValue}>{form.customCount}</Text>
+                          <Text style={[styles.stepperValue, { color: colors.textPrimary }]}>{form.customCount}</Text>
                           <Pressable
                             onPress={() => setForm((f) => ({ ...f, customCount: Math.min(99, f.customCount + 1) }))}
                             hitSlop={6}
                             disabled={form.customCount >= 99}
                             style={({ pressed }) => [
                               styles.stepperBtn,
+                              { backgroundColor: colors.surfaceSecondary },
                               form.customCount >= 99 && styles.stepperBtnDisabled,
                               pressed && { opacity: 0.6 },
                             ]}
                           >
-                            <Plus size={14} color="#000000" strokeWidth={2.5} />
+                            <Plus size={14} color={colors.textPrimary} strokeWidth={2.5} />
                           </Pressable>
                         </View>
                         <View style={styles.customUnitRow}>
@@ -838,12 +849,14 @@ export function CreateSubscriptionSheet() {
                               onPress={() => setForm((f) => ({ ...f, customUnit: u }))}
                               style={[
                                 styles.customUnitPill,
-                                form.customUnit === u && styles.customUnitPillActive,
+                                { backgroundColor: colors.surfaceSecondary },
+                                form.customUnit === u && { backgroundColor: colors.accent },
                               ]}
                             >
                               <Text style={[
                                 styles.customUnitText,
-                                form.customUnit === u && styles.customUnitTextActive,
+                                { color: colors.textMuted },
+                                form.customUnit === u && { color: colors.accentFg },
                               ]}>
                                 {t(`form.unit.${u}` as any)}
                               </Text>
@@ -854,21 +867,21 @@ export function CreateSubscriptionSheet() {
                     </View>
                   </>
                 )}
-                <FormDivider />
+                <FormDivider color={colors.border} />
                 <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{t('form.endSubscription')}</Text>
+                  <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{t('form.endSubscription')}</Text>
                   <Switch
                     value={form.endEnabled}
                     onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
-                    trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
                   />
                 </View>
                 {form.endEnabled && (
                   <>
-                    <FormDivider />
+                    <FormDivider color={colors.border} />
                     <View style={styles.row}>
-                      <Text style={[styles.rowLabel, styles.rowLabelMuted]}>{t('form.endDateLabel')}</Text>
-                      <DatePillBtn date={form.endDate} onPress={() => setOpenDate('end')} />
+                      <Text style={[styles.rowLabel, styles.rowLabelMuted, { color: colors.textMuted }]}>{t('form.endDateLabel')}</Text>
+                      <DatePillBtn date={form.endDate} onPress={() => setOpenDate('end')} bg={colors.surfaceSecondary} fg={colors.textPrimary} />
                     </View>
                   </>
                 )}
