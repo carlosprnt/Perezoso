@@ -19,7 +19,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import type { Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '../../services/supabase';
-import { deleteAllSubscriptions } from '../../services/subscriptionsApi';
+
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -163,13 +163,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { ok: false, error: 'No hay sesión activa' };
     }
     try {
-      await deleteAllSubscriptions(userId);
+      const { error } = await supabase.rpc('delete_own_account');
+      if (error) throw error;
     } catch (e: any) {
       return { ok: false, error: e?.message ?? 'Error borrando datos' };
     }
-    // Sign out — the auth.users row remains (needs a Supabase RPC with
-    // SECURITY DEFINER to remove it), but all app data is gone, so the
-    // next sign-in lands on an empty account.
     await supabase.auth.signOut();
     return { ok: true };
   },
