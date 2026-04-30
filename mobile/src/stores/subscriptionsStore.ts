@@ -268,17 +268,30 @@ useAuthStore.subscribe((state, prev) => {
 
 // ── Widget data sync ────────────────────────────────────────────────
 // Push subscription data to the App Group container whenever the list
-// changes so WidgetKit can display up-to-date information.
+// or the currency preference changes so WidgetKit stays up-to-date.
 let widgetSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
-useSubscriptionsStore.subscribe((state, prev) => {
-  if (state.subscriptions === prev.subscriptions) return;
-  if (state.mode === 'demo') return;
-
+function scheduleWidgetSync() {
   if (widgetSyncTimer) clearTimeout(widgetSyncTimer);
   widgetSyncTimer = setTimeout(() => {
+    const state = useSubscriptionsStore.getState();
+    if (state.mode === 'demo') return;
     const { usePreferencesStore } = require('../features/settings/useSettingsStore');
     const cur = currencyCodeFromLabel(usePreferencesStore.getState().currency);
     void syncWidgetData(state.subscriptions, cur);
   }, 500);
+}
+
+useSubscriptionsStore.subscribe((state, prev) => {
+  if (state.subscriptions === prev.subscriptions) return;
+  if (state.mode === 'demo') return;
+  scheduleWidgetSync();
 });
+
+// Also sync when the user changes currency in Settings
+const { usePreferencesStore } = require('../features/settings/useSettingsStore');
+usePreferencesStore.subscribe(
+  (state: any, prev: any) => {
+    if (state.currency !== prev.currency) scheduleWidgetSync();
+  },
+);
