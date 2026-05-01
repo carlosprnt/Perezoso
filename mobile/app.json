@@ -45,6 +45,12 @@
       "expo-font",
       "expo-apple-authentication",
       [
+        "expo-notifications",
+        {
+          "color": "#0F0F10"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#F7F8FA"

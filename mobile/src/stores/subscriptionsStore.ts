@@ -37,6 +37,41 @@ import {
 } from '../services/purchases';
 import { isReviewAccount, REVIEW_SEED_SUBSCRIPTIONS } from '../lib/reviewAccount';
 import { currencyCodeFromLabel } from '../lib/formatting';
+import {
+  scheduleRenewalReminder,
+  cancelRenewalReminder,
+  rescheduleAllReminders,
+  type ScheduleArgs,
+} from '../services/notifications';
+
+// ─── Reminder side-effects ──────────────────────────────────────────
+// We call into expo-notifications from within the data-mutation actions
+// so a single store call ("add this subscription") is enough — components
+// don't have to remember to schedule manually. The lookups for
+// `notificationsEnabled` / `reminderDaysBefore` use a runtime require to
+// avoid a hard module-load cycle with the settings store (which already
+// imports this file).
+function getReminderArgs(): ScheduleArgs | null {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { usePreferencesStore } = require('../features/settings/useSettingsStore');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useLanguageStore } = require('../lib/i18n/useLanguageStore');
+  const prefs = usePreferencesStore.getState();
+  if (!prefs.notificationsEnabled) return null;
+  const language = useLanguageStore.getState().language as string;
+  return {
+    daysBefore: prefs.reminderDaysBefore as number,
+    locale: language === 'en' ? 'en' : 'es',
+  };
+}
+
+function scheduleIfEnabled(sub: Subscription) {
+  const args = getReminderArgs();
+  if (!args) return;
+  // Fire-and-forget — don't block the optimistic UI on a notification
+  // round-trip, and never let an OS-level failure surface as a store error.
+  void scheduleRenewalReminder(sub, args).catch(() => {});
+}
 
 export type Mode = 'real' | 'demo';
 
@@ -103,6 +138,13 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     try {
       const subs = await fetchSubscriptions(user.id);
       set({ subscriptions: subs, loading: false });
+      // Resync the OS reminder queue: a sub may have renewed since we
+      // last scheduled, so any pending reminder is now stale. Cheaper
+      // than diffing — we just rebuild the queue from the fresh list.
+      const args = getReminderArgs();
+      if (args) {
+        void rescheduleAllReminders(subs, args).catch(() => {});
+      }
     } catch (e: any) {
       set({ loading: false, error: e?.message ?? 'Error cargando suscripciones' });
     }
@@ -147,6 +189,7 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     if (inserted.billing_period === 'yearly') {
       useReminderDismissalsStore.getState().clear('reminder');
     }
+    scheduleIfEnabled(inserted);
   },
 
   updateSubscription: async (sub) => {
@@ -160,6 +203,10 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     set((state) => ({
       subscriptions: state.subscriptions.map((s) => (s.id === updated.id ? updated : s)),
     }));
+    // scheduleRenewalReminder cancels any prior reminder for this sub
+    // before scheduling, so a single call covers both "edit a date" and
+    // "pause an active sub" (the latter ends up not scheduling anything).
+    scheduleIfEnabled(updated);
   },
 
   deleteSubscription: async (id) => {
@@ -173,6 +220,7 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     set((state) => ({
       subscriptions: state.subscriptions.filter((s) => s.id !== id),
     }));
+    void cancelRenewalReminder(id).catch(() => {});
   },
 
   enableRemindersOnAnnuals: () => {
@@ -188,6 +236,16 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
         };
       }),
     }));
+    // Actually schedule the OS notifications for those annuals. The
+    // pref toggle is expected to have been flipped on by the caller
+    // already (typically via the dashboard's "Avísame" handler).
+    const args = getReminderArgs();
+    if (args) {
+      const annuals = get().subscriptions.filter((s) => s.billing_period === 'yearly');
+      for (const sub of annuals) {
+        void scheduleRenewalReminder(sub, args).catch(() => {});
+      }
+    }
     return count;
   },
 }));

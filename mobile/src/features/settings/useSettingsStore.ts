@@ -34,12 +34,19 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
 export type AppearanceMode = 'Claro' | 'Oscuro' | 'Automático';
 
+// Days before next_billing_date to fire the renewal reminder. Picked to
+// give the user enough time to cancel/downgrade if they want.
+export type ReminderDaysBefore = 1 | 3 | 7 | 14;
+
 interface PreferencesStore {
   currency: string;              // e.g. "€ EUR"
   notificationsEnabled: boolean;
+  /** How many days before each renewal the reminder fires. */
+  reminderDaysBefore: ReminderDaysBefore;
   appearance: AppearanceMode;
   setCurrency: (c: string) => void;
   setNotificationsEnabled: (v: boolean) => void;
+  setReminderDaysBefore: (d: ReminderDaysBefore) => void;
   setAppearance: (a: AppearanceMode) => void;
 }
 
@@ -48,10 +55,13 @@ export const usePreferencesStore = create<PreferencesStore>()(
     (set) => ({
       currency: '€ EUR',
       notificationsEnabled: false,
+      reminderDaysBefore: 7,
       appearance: 'Claro',
       setCurrency: (currency) => set({ currency }),
       setNotificationsEnabled: (notificationsEnabled) =>
         set({ notificationsEnabled }),
+      setReminderDaysBefore: (reminderDaysBefore) =>
+        set({ reminderDaysBefore }),
       setAppearance: (appearance) => set({ appearance }),
     }),
     {

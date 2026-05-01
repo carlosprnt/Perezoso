@@ -46,6 +46,11 @@ import {
 } from './useDashboardReveal';
 import { SharedProfileHeader } from './SharedProfileHeader';
 import { useSettingsStore, usePreferencesStore } from '../settings/useSettingsStore';
+import {
+  requestPermission as requestNotificationPermission,
+  getPermissionStatus as getNotificationPermissionStatus,
+} from '../../services/notifications';
+import { Alert, Linking } from 'react-native';
 import { useAuthStore } from '../auth/useAuthStore';
 import { useSavingsSuggestionsStore } from '../savings-suggestions/useSavingsSuggestionsStore';
 import { useToastStore } from '../../components/useToastStore';
@@ -201,6 +206,12 @@ export function DashboardScreen() {
   // "Avísame" CTA — enable 7-day-before reminders on every annual sub and
   // confirm via a green success toast. The store action returns how many
   // subscriptions were touched so the toast can tailor the copy.
+  //
+  // The OS permission request and actual scheduling run async in the
+  // background so the carousel can advance instantly. If iOS ends up
+  // denying the permission we surface a follow-up toast pointing to
+  // Settings — the user opted in so we owe them an explanation.
+  const setNotificationsEnabled = usePreferencesStore((s) => s.setNotificationsEnabled);
   const handleActivateReminder = useCallback(() => {
     if (!isPlusActive) {
       openPaywall('renewal_reminders');
@@ -212,8 +223,30 @@ export function DashboardScreen() {
         ? t('dashboard.reminder.activated')
         : t('dashboard.reminder.activatedPlural', { count });
     useToastStore.getState().show('success', message);
+
+    // Request OS permission opportunistically — this is the user's
+    // first explicit "yes please notify me" so it's the right moment.
+    void (async () => {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+      } else {
+        const status = await getNotificationPermissionStatus();
+        if (status === 'denied') {
+          Alert.alert(
+            t('dashboard.reminder.permissionDeniedTitle'),
+            t('dashboard.reminder.permissionDenied'),
+            [
+              { text: t('common.cancel'), style: 'cancel' },
+              { text: t('common.openSettings'), onPress: () => Linking.openSettings() },
+            ],
+          );
+        }
+      }
+    })();
+
     return true;
-  }, [enableRemindersOnAnnuals, isPlusActive, openPaywall]);
+  }, [enableRemindersOnAnnuals, isPlusActive, openPaywall, setNotificationsEnabled, t]);
 
   // Reuse the reveal hook's scroll tracking for the hero fade — single
   // source of truth for "where is the user in the scroll view".
