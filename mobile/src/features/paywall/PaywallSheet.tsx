@@ -383,11 +383,11 @@ export function PaywallSheet() {
               {t('paywall.legalAutoRenew')}
             </Text>
             <View style={styles.legalLinks}>
-              <Pressable onPress={() => Linking.openURL('https://perezoso.app/privacy').catch(() => {})} hitSlop={6}>
+              <Pressable onPress={() => Linking.openURL('https://perezoso.vercel.app/privacy').catch(() => {})} hitSlop={6}>
                 <Text style={styles.legalLink}>{t('paywall.legalPrivacy')}</Text>
               </Pressable>
               <Text style={styles.legalSep}>·</Text>
-              <Pressable onPress={() => Linking.openURL('https://perezoso.app/terms').catch(() => {})} hitSlop={6}>
+              <Pressable onPress={() => Linking.openURL('https://perezoso.vercel.app/terms').catch(() => {})} hitSlop={6}>
                 <Text style={styles.legalLink}>{t('paywall.legalTerms')}</Text>
               </Pressable>
               <Text style={styles.legalSep}>·</Text>

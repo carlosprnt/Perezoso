@@ -33,11 +33,11 @@ export default function LoginRoute() {
   }, [signInWithApple, t]);
 
   const onPressTerms = useCallback(() => {
-    Linking.openURL('https://perezoso.app/terms').catch(() => {});
+    Linking.openURL('https://perezoso.vercel.app/terms').catch(() => {});
   }, []);
 
   const onPressPrivacy = useCallback(() => {
-    Linking.openURL('https://perezoso.app/privacy').catch(() => {});
+    Linking.openURL('https://perezoso.vercel.app/privacy').catch(() => {});
   }, []);
 
   return (
