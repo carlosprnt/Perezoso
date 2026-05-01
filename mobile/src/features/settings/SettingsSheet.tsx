@@ -67,6 +67,11 @@ import { openManageSubscriptions } from '../../services/purchases';
 import { useReminderDismissalsStore } from '../dashboard/useReminderDismissalsStore';
 import { useLanguageStore } from '../../lib/i18n/useLanguageStore';
 import { useT } from '../../lib/i18n/LocaleProvider';
+import {
+  requestPermission as requestNotificationPermission,
+  rescheduleAllReminders,
+  cancelAllReminders,
+} from '../../services/notifications';
 
 const TWITTER_HANDLE = '@carlosprnt';
 const CONTACT_EMAIL  = 'hello@carlospariente.com';
@@ -129,6 +134,38 @@ export function SettingsSheet() {
   }, [isPlusActive, openPaywall, close]);
 
   const handleCurrency = useCallback(() => setCurrencySheetOpen(true), []);
+
+  // Notifications toggle: turning ON requires OS permission and schedules
+  // reminders for every active subscription. Turning OFF cancels every
+  // pending reminder so we don't leave stale notifications in the queue.
+  const reminderDaysBefore = usePreferencesStore((s) => s.reminderDaysBefore);
+  const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
+  const language = useLanguageStore((s) => s.language);
+  const handleToggleNotifications = useCallback(async (next: boolean) => {
+    if (next) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        Alert.alert(
+          t('settings.notifications.permissionDeniedTitle'),
+          t('settings.notifications.permissionDenied'),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('common.openSettings'), onPress: () => Linking.openSettings() },
+          ],
+        );
+        return;
+      }
+      setNotificationsEnabled(true);
+      const locale: 'es' | 'en' = language === 'en' ? 'en' : 'es';
+      void rescheduleAllReminders(subscriptions, {
+        daysBefore: reminderDaysBefore,
+        locale,
+      }).catch(() => {});
+    } else {
+      setNotificationsEnabled(false);
+      void cancelAllReminders().catch(() => {});
+    }
+  }, [t, setNotificationsEnabled, subscriptions, reminderDaysBefore, language]);
 
   const handleAppearance = useCallback(() => {
     const next = appearance === 'Claro' ? 'Oscuro' : appearance === 'Oscuro' ? 'Automático' : 'Claro';
@@ -281,7 +318,7 @@ export function SettingsSheet() {
                 icon={<Bell size={20} color={iconColor} strokeWidth={2} />}
                 label={t('settings.notifications')}
                 switchValue={notificationsEnabled}
-                onSwitchChange={setNotificationsEnabled}
+                onSwitchChange={handleToggleNotifications}
               />
             </SettingsSectionCard>
 
