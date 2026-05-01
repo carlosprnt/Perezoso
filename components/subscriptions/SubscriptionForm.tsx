@@ -395,8 +395,6 @@ export default function SubscriptionForm({
         billing_period: payload.billing_period,
         is_shared: payload.is_shared,
         category: payload.category,
-        amount: payload.price_amount,
-        currency: payload.currency,
         source: platformPreset ? 'detected' as const : 'manual' as const,
       }
       haptics.success()
