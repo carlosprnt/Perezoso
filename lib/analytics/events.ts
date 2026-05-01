@@ -79,8 +79,6 @@ interface SubscriptionProps {
   billing_period?: string
   is_shared?: boolean
   category?: string
-  amount?: number
-  currency?: string
   source?: SubscriptionSource
 }
 
