@@ -12,6 +12,7 @@ struct PerezosoApp: App {
     @State private var auth = AuthStore()
     @State private var subscriptions = SubscriptionsStore()
     @State private var preferences = PreferencesStore()
+    @State private var proMembership = ProMembershipStore()
 
     init() {
         #if DEBUG
@@ -26,9 +27,12 @@ struct PerezosoApp: App {
                 .environment(auth)
                 .environment(subscriptions)
                 .environment(preferences)
+                .environment(proMembership)
                 .tint(Color.accent)
                 .task {
-                    await auth.bootstrap()
+                    async let authBoot: Void = auth.bootstrap()
+                    async let proBoot: Void = proMembership.bootstrap()
+                    _ = await (authBoot, proBoot)
                 }
         }
     }

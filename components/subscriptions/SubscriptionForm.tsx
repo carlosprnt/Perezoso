@@ -3,7 +3,6 @@
 import { useState, useTransition, useRef, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSubscription, updateSubscription, deleteSubscription } from '@/app/(dashboard)/subscriptions/actions'
-import { AnalyticsEvents } from '@/lib/analytics'
 import { createClient } from '@/lib/supabase/client'
 import haptics from '@/lib/haptics'
 import { CATEGORIES } from '@/lib/constants/categories'
@@ -387,26 +386,15 @@ export default function SubscriptionForm({
         }
         setError(result.error)
         haptics.error()
-        AnalyticsEvents.errorShown('subscription_form', result.error)
         return
-      }
-      const analyticsProps = {
-        subscription_name: payload.name,
-        billing_period: payload.billing_period,
-        is_shared: payload.is_shared,
-        category: payload.category,
-        source: platformPreset ? 'detected' as const : 'manual' as const,
       }
       haptics.success()
       if (mode === 'create') {
-        // isFirst is derived in PostHog via a first-time-event cohort.
-        AnalyticsEvents.subscriptionCreated(analyticsProps, false)
         subscriptionToastBus.emit('created')
         onCancel?.()
         const newId = (result as { id?: string })?.id
         router.push(successRedirect ?? `/subscriptions?new=${newId ?? ''}`)
       } else {
-        AnalyticsEvents.subscriptionUpdated({ subscription_id: subscription!.id, ...analyticsProps })
         subscriptionToastBus.emit('updated')
         onCancel?.()
         router.push('/subscriptions')
@@ -421,14 +409,8 @@ export default function SubscriptionForm({
       if (result?.error) {
         setError(result.error)
         haptics.error()
-        AnalyticsEvents.errorShown('subscription_form', result.error)
         return
       }
-      AnalyticsEvents.subscriptionDeleted({
-        subscription_id: subscription!.id,
-        subscription_name: subscription!.name,
-        category: subscription!.category,
-      })
       subscriptionToastBus.emit('deleted')
       // Navigate after the toast has had a moment to show.
       // The host component in the layout survives the navigation.

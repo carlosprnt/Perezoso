@@ -3,6 +3,7 @@ import Observation
 import Supabase
 import AuthenticationServices
 import UIKit
+import RevenueCat
 
 /// Observable auth state for the whole app.
 ///
@@ -62,6 +63,7 @@ final class AuthStore: @unchecked Sendable {
                 return result
             }
             await fetchProfile()
+            await syncRevenueCatIdentity()
             state = .signedIn
         } catch {
             session = nil
@@ -78,10 +80,12 @@ final class AuthStore: @unchecked Sendable {
                 case .signedIn:
                     self.session = newSession
                     await self.fetchProfile()
+                    await self.syncRevenueCatIdentity()
                     self.state = .signedIn
                 case .signedOut:
                     self.session = nil
                     self.profile = nil
+                    await self.clearRevenueCatIdentity()
                     self.state = .signedOut
                 default:
                     break
@@ -108,6 +112,7 @@ final class AuthStore: @unchecked Sendable {
         )
         self.session = session
         await fetchProfile()
+        await syncRevenueCatIdentity()
         state = .signedIn
     }
 
@@ -149,6 +154,7 @@ final class AuthStore: @unchecked Sendable {
         let newSession = try await SupabaseManager.requireClient.auth.session(from: callbackURL)
         self.session = newSession
         await fetchProfile()
+        await syncRevenueCatIdentity()
         state = .signedIn
     }
 
@@ -158,7 +164,25 @@ final class AuthStore: @unchecked Sendable {
         try? await SupabaseManager.requireClient.auth.signOut()
         session = nil
         profile = nil
+        await clearRevenueCatIdentity()
         state = .signedOut
+    }
+
+    // MARK: - RevenueCat identity
+
+    /// Links the current Supabase user id to RevenueCat so that purchases
+    /// made on this device fire webhooks against the right `app_user_id`,
+    /// which `app/api/revenuecat/webhook/route.ts` uses to keep
+    /// `profiles.is_pro` in sync. Without this call RevenueCat would use
+    /// an anonymous id and the webhook update would target nothing.
+    private func syncRevenueCatIdentity() async {
+        guard !AppEnvironment.shared.isPreview, let userId = session?.user.id else { return }
+        _ = try? await Purchases.shared.logIn(userId.uuidString)
+    }
+
+    private func clearRevenueCatIdentity() async {
+        guard !AppEnvironment.shared.isPreview else { return }
+        _ = try? await Purchases.shared.logOut()
     }
 
     // MARK: - Profile

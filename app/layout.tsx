@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/ThemeProvider'
-import AnalyticsProvider from '@/lib/analytics/AnalyticsProvider'
 
 export const metadata: Metadata = {
   title: {
@@ -130,7 +129,7 @@ export default async function RootLayout({
         {/* Fallback for any iPhone not matched above */}
         <link rel="apple-touch-startup-image" href="/Splash.png" />
       </head>
-      <body><ThemeProvider><AnalyticsProvider>{children}</AnalyticsProvider></ThemeProvider></body>
+      <body><ThemeProvider>{children}</ThemeProvider></body>
     </html>
   )
 }
