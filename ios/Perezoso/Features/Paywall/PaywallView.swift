@@ -1,17 +1,27 @@
 import SwiftUI
+import RevenueCat
 
 /// Pro upgrade paywall sheet.
 ///
-/// Lists Perezoso Pro features and offers a purchase CTA.
-/// Uses rounded typography and adaptive accent matching the web.
-/// RevenueCat integration is stubbed.
+/// Loads RevenueCat offerings on appear, lets the user pick the
+/// monthly or annual package, and runs a real StoreKit purchase via
+/// `Purchases.shared.purchase(package:)`. Prices come from the
+/// store-localized string so they always match what Apple charges.
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(ProMembershipStore.self) private var proMembership
 
-    @State private var selectedPlan: PlanOption = .yearly
+    @State private var offering: Offering?
+    @State private var selectedPackage: Package?
+    @State private var loadError: String?
+
+    @State private var isLoadingOfferings = true
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var errorMessage: String?
+
+    private var monthlyPackage: Package? { offering?.monthly ?? offering?.availablePackages.first(where: { $0.packageType == .monthly }) }
+    private var annualPackage: Package? { offering?.annual ?? offering?.availablePackages.first(where: { $0.packageType == .annual }) }
 
     // MARK: - Body
 
@@ -42,6 +52,7 @@ struct PaywallView: View {
                     }
                 }
             }
+            .task { await loadOfferings() }
         }
     }
 
@@ -113,10 +124,39 @@ struct PaywallView: View {
 
     private var planPicker: some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(PlanOption.allCases) { plan in
-                PlanCard(plan: plan, isSelected: selectedPlan == plan) {
-                    Haptics.selection()
-                    selectedPlan = plan
+            if isLoadingOfferings {
+                ProgressView()
+                    .controlSize(.regular)
+                    .tint(Color.textMuted)
+                    .padding(.vertical, Spacing.xl)
+            } else if let loadError {
+                Text(loadError)
+                    .font(.caption)
+                    .foregroundStyle(Color.danger)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, Spacing.lg)
+            } else {
+                if let annual = annualPackage {
+                    PlanCard(
+                        title: "Anual",
+                        priceLabel: "\(annual.storeProduct.localizedPriceString)/año",
+                        badge: monthlyPackage.flatMap { savingsBadge(annual: annual, monthly: $0) },
+                        isSelected: selectedPackage?.identifier == annual.identifier,
+                    ) {
+                        Haptics.selection()
+                        selectedPackage = annual
+                    }
+                }
+                if let monthly = monthlyPackage {
+                    PlanCard(
+                        title: "Mensual",
+                        priceLabel: "\(monthly.storeProduct.localizedPriceString)/mes",
+                        badge: nil,
+                        isSelected: selectedPackage?.identifier == monthly.identifier,
+                    ) {
+                        Haptics.selection()
+                        selectedPackage = monthly
+                    }
                 }
             }
         }
@@ -134,10 +174,9 @@ struct PaywallView: View {
             }
 
             PrimaryButton(
-                title: selectedPlan == .yearly
-                    ? "Empezar por \(PlanOption.yearly.price)/año"
-                    : "Empezar por \(PlanOption.monthly.price)/mes",
-                isLoading: isPurchasing
+                title: ctaTitle,
+                isLoading: isPurchasing,
+                isDisabled: selectedPackage == nil || isRestoring
             ) {
                 Task { await purchase() }
             }
@@ -157,6 +196,12 @@ struct PaywallView: View {
             }
             .disabled(isRestoring || isPurchasing)
         }
+    }
+
+    private var ctaTitle: String {
+        guard let pkg = selectedPackage else { return "Empezar" }
+        let suffix = pkg.packageType == .annual ? "/año" : "/mes"
+        return "Empezar por \(pkg.storeProduct.localizedPriceString)\(suffix)"
     }
 
     // MARK: - Legal
@@ -180,25 +225,50 @@ struct PaywallView: View {
         .padding(.top, Spacing.sm)
     }
 
-    // MARK: - Actions (RevenueCat stubs)
+    // MARK: - Actions
+
+    private func loadOfferings() async {
+        guard !AppEnvironment.shared.isPreview else {
+            isLoadingOfferings = false
+            loadError = "Previsualización: las suscripciones no están disponibles."
+            return
+        }
+        isLoadingOfferings = true
+        loadError = nil
+        do {
+            let offerings = try await Purchases.shared.offerings()
+            offering = offerings.current
+            // Default to annual if available, otherwise monthly.
+            selectedPackage = annualPackage ?? monthlyPackage
+            if offering == nil || (annualPackage == nil && monthlyPackage == nil) {
+                loadError = "No hay suscripciones disponibles. Inténtalo de nuevo más tarde."
+            }
+        } catch {
+            loadError = "No se han podido cargar los planes. Comprueba tu conexión."
+        }
+        isLoadingOfferings = false
+    }
 
     private func purchase() async {
+        guard let package = selectedPackage else { return }
         isPurchasing = true
         errorMessage = nil
         defer { isPurchasing = false }
 
-        // TODO: integrate RevenueCat
-        // let offerings = try await Purchases.shared.offerings()
-        // guard let package = selectedPlan == .yearly
-        //     ? offerings.current?.annual
-        //     : offerings.current?.monthly
-        // else { return }
-        // let result = try await Purchases.shared.purchase(package: package)
-        // if !result.userCancelled { dismiss() }
-
-        try? await Task.sleep(for: .milliseconds(800))
-        Haptics.notification(.success)
-        dismiss()
+        do {
+            let result = try await Purchases.shared.purchase(package: package)
+            if result.userCancelled { return }
+            proMembership.refresh(with: result.customerInfo)
+            if result.customerInfo.entitlements[ProMembershipStore.entitlementID]?.isActive == true {
+                Haptics.notification(.success)
+                dismiss()
+            } else {
+                errorMessage = "La compra se ha procesado pero no se ha activado el acceso. Si el problema persiste, contacta con soporte."
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            Haptics.notification(.error)
+        }
     }
 
     private func restore() async {
@@ -206,43 +276,37 @@ struct PaywallView: View {
         errorMessage = nil
         defer { isRestoring = false }
 
-        // TODO: let customerInfo = try await Purchases.shared.restorePurchases()
-        try? await Task.sleep(for: .milliseconds(600))
-        Haptics.notification(.success)
+        do {
+            let info = try await Purchases.shared.restorePurchases()
+            proMembership.refresh(with: info)
+            if info.entitlements[ProMembershipStore.entitlementID]?.isActive == true {
+                Haptics.notification(.success)
+                dismiss()
+            } else {
+                errorMessage = "No hemos encontrado compras previas con tu cuenta de Apple."
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            Haptics.notification(.error)
+        }
+    }
+
+    private func savingsBadge(annual: Package, monthly: Package) -> String? {
+        let yearlyAtMonthly = monthly.storeProduct.price * 12
+        guard yearlyAtMonthly > 0, annual.storeProduct.price < yearlyAtMonthly else { return nil }
+        let saved = (yearlyAtMonthly - annual.storeProduct.price) / yearlyAtMonthly
+        let percent = Int((saved * 100).rounded())
+        guard percent > 0 else { return nil }
+        return "Ahorra un \(percent)%"
     }
 }
 
-// MARK: - Plan Options
-
-private enum PlanOption: CaseIterable, Identifiable {
-    case yearly, monthly
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .yearly:  "Anual"
-        case .monthly: "Mensual"
-        }
-    }
-
-    var price: String {
-        switch self {
-        case .yearly:  "29,99 €"
-        case .monthly: "3,99 €"
-        }
-    }
-
-    var badge: String? {
-        switch self {
-        case .yearly:  "Ahorra un 37%"
-        case .monthly: nil
-        }
-    }
-}
+// MARK: - Plan Card
 
 private struct PlanCard: View {
-    let plan: PlanOption
+    let title: String
+    let priceLabel: String
+    let badge: String?
     let isSelected: Bool
     let action: () -> Void
 
@@ -251,10 +315,10 @@ private struct PlanCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     HStack(spacing: Spacing.sm) {
-                        Text(plan.title)
+                        Text(title)
                             .font(.bodyMedium)
                             .foregroundStyle(Color.textPrimary)
-                        if let badge = plan.badge {
+                        if let badge {
                             Text(badge)
                                 .font(.micro)
                                 .foregroundStyle(Color.accentForeground)
@@ -263,7 +327,7 @@ private struct PlanCard: View {
                                 .background(Color.accent, in: Capsule())
                         }
                     }
-                    Text(plan == .yearly ? "\(plan.price)/año" : "\(plan.price)/mes")
+                    Text(priceLabel)
                         .font(.caption)
                         .foregroundStyle(Color.textSecondary)
                 }
@@ -337,4 +401,5 @@ private enum ProFeature: CaseIterable, Identifiable {
 
 #Preview {
     PaywallView()
+        .environment(ProMembershipStore.preview())
 }

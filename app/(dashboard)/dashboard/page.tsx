@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getUpcomingRenewals, getTopExpensiveSubscriptions } from '@/lib/calculations/subscriptions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
@@ -124,7 +123,6 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
       {/* Mobile: two-layer draggable surface. Tapping the avatar (or
           dragging the foreground down) reveals the dark backdrop layer
           which contains the account menu items (settings, share, logout,

@@ -18,12 +18,21 @@ struct SettingsView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(SubscriptionsStore.self) private var store
     @Environment(PreferencesStore.self) private var prefs
+    @Environment(ProMembershipStore.self) private var proMembership
 
     @State private var showPaywall = false
     @State private var showDeleteConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var notificationsEnabled = true
     @State private var selectedAppearance: AppearanceMode = .system
+
+    /// Until a RevenueCat → Supabase webhook syncs back to `profile.is_pro`,
+    /// the on-device entitlement is the ground truth. We OR with the
+    /// profile flag so a server-side override (manual grant, beta access)
+    /// still works.
+    private var isPro: Bool {
+        proMembership.isActive || (auth.profile?.isPro ?? false)
+    }
 
     var body: some View {
         ScrollView {
@@ -37,8 +46,10 @@ struct SettingsView: View {
                 }
                 .padding(.bottom, Spacing.sm)
 
-                // Perezoso Plus banner
-                if !(auth.profile?.isPro ?? false) {
+                // Perezoso Plus banner / Manage subscription row
+                if isPro {
+                    manageSubscriptionRow
+                } else {
                     proBanner
                 }
 
@@ -129,6 +140,33 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Manage Subscription
+
+    /// Required by Apple for any app that sells auto-renewable
+    /// subscriptions: an in-app affordance that takes the user to
+    /// Apple's subscription management screen.
+    private var manageSubscriptionRow: some View {
+        SettingsCard {
+            Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
+                HStack(spacing: Spacing.md) {
+                    VStack(alignment: .leading, spacing: Spacing.xxs) {
+                        Text("Perezoso Plus")
+                            .font(.rounded(.bold, size: 20))
+                            .foregroundStyle(Color.textPrimary)
+                        Text("Gestiona o cancela tu suscripción")
+                            .font(.rounded(.regular, size: 13))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(hex: "#C7C7CC"))
+                }
+                .padding(Spacing.xl)
+            }
+        }
+    }
+
     // MARK: - User Card
 
     private var userCard: some View {
@@ -157,7 +195,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                if auth.profile?.isPro == true {
+                if isPro {
                     ProBadge()
                 }
             }
@@ -500,4 +538,5 @@ private struct ProBadge: View {
         .environment(AuthStore.preview())
         .environment(SubscriptionsStore.preview())
         .environment(PreferencesStore())
+        .environment(ProMembershipStore.preview())
 }

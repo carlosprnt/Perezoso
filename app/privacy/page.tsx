@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Privacy Policy' }
 
-const LAST_UPDATED = 'April 6, 2026'
+const LAST_UPDATED = 'May 4, 2026'
 
 export default function PrivacyPage() {
   return (
@@ -29,8 +29,8 @@ export default function PrivacyPage() {
             <li><strong>Account</strong>: email, name and avatar URL provided by your sign-in provider (e.g. Google).</li>
             <li><strong>Subscriptions you create</strong>: name, price, billing period, category, notes and other fields you enter.</li>
             <li><strong>Preferences</strong>: theme, preferred currency, custom categories, notification toggles.</li>
-            <li><strong>Product analytics</strong>: anonymised events about which screens and features you use (PostHog). No raw inputs, emails or Gmail contents are sent.</li>
           </ul>
+          <p className="mt-2">We do <strong>not</strong> run third-party analytics, advertising or tracking SDKs. We do not link the data you give us with any third-party data for advertising purposes.</p>
         </section>
 
         <section>
@@ -54,7 +54,6 @@ export default function PrivacyPage() {
             <li>Display your subscriptions and renewal dates inside the app.</li>
             <li>Calculate totals and insights shown on your dashboard.</li>
             <li>Remember your preferences across sessions.</li>
-            <li>Understand aggregated product usage to improve Perezoso.</li>
           </ul>
           <p className="mt-2">We do <strong>not</strong> sell, rent or share your data with advertisers.</p>
         </section>
@@ -62,9 +61,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-2">4. Storage and processing</h2>
           <p>
-            Your account and subscription data are stored with Supabase (EU region). Product
-            analytics events are stored with PostHog Cloud EU. Both providers are GDPR
-            compliant. Data is encrypted in transit (TLS) and at rest.
+            Your account and subscription data are stored with Supabase (EU region), which is
+            GDPR compliant. Data is encrypted in transit (TLS) and at rest.
           </p>
         </section>
 
