@@ -78,7 +78,7 @@ function DetailRow({
     <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? '' : 'border-b border-[#EBEBEB] dark:border-[#2C2C2E]'}`}>
       <span className="text-[#C0C0C0] dark:text-[#8E8E93] flex-shrink-0">{icon}</span>
       <span className="text-sm text-[#737373] dark:text-[#AEAEB2] flex-1 leading-tight">{label}</span>
-      <span className="text-sm font-medium text-[#121212] dark:text-[#F2F2F7] text-right leading-tight">{value}</span>
+      <span className="text-sm font-medium text-[#000000] dark:text-[#F2F2F7] text-right leading-tight">{value}</span>
     </div>
   )
 }
@@ -138,10 +138,15 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
    */
   const content = (
     <motion.div
-      // Overlay — full screen fixed container, sheet sits at the bottom
+      // Overlay — full screen fixed container, sheet sits at the bottom.
+      // `bottom` is overridden to bleed into the iOS PWA bottom safe
+      // area (see the canonical comment in components/ui/BottomSheet.tsx).
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',
@@ -180,7 +185,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
           <button
             onClick={onClose}
             style={{ position: 'absolute', top: 16, right: 16, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-            className="w-11 h-11 rounded-full bg-white/50 dark:bg-[#2C2C2E]/50 flex items-center justify-center text-black dark:text-white active:opacity-60 transition-opacity"
+            className="w-11 h-11 rounded-full bg-white/50 dark:bg-[#2C2C2E]/50 flex items-center justify-center text-[#000000] dark:text-white active:opacity-60 transition-opacity"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -191,6 +196,10 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
          * Uses explicit max-height (reference pattern) instead of flex-1/min-h-0
          * so iOS Safari always has an unambiguous, fixed scroll boundary.
          * -webkit-overflow-scrolling:touch re-enables momentum scroll on iOS.
+         *
+         * paddingBottom: env(safe-area-inset-bottom) compensates the bleed
+         * applied to the outer overlay above, so the bottom of the scroll
+         * content (the edit CTA) still lands above the home indicator.
          */}
         <div
           ref={scrollRef}
@@ -199,6 +208,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             overflowY: 'auto',
             overscrollBehavior: 'contain',
             WebkitOverflowScrolling: 'touch',
+            paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))',
           }}
         >
 
@@ -210,7 +220,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
               size="xl"
               corner="rounded-[8px]"
             />
-            <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
+            <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] mt-4 mb-3 leading-tight">
               {sub.name}
             </h1>
             <div className="flex items-center flex-wrap justify-center gap-2">
@@ -235,13 +245,13 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             <div className="bg-[#F7F8FA] dark:bg-[#232325] rounded-2xl border border-[#F0F0F0] dark:border-[#2C2C2E] p-4">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-3xl font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-none">
+                  <p className="text-3xl font-bold text-[#000000] dark:text-[#F2F2F7] tabular-nums leading-none">
                     {formatCurrency(sub.my_monthly_cost, sub.currency)}
                   </p>
                   <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.perMonth')}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-semibold text-[#121212] dark:text-[#F2F2F7] tabular-nums">
+                  <p className="text-lg font-semibold text-[#000000] dark:text-[#F2F2F7] tabular-nums">
                     {formatCurrency(sub.my_annual_cost, sub.currency)}
                   </p>
                   <p className="text-sm text-[#737373] dark:text-[#AEAEB2] mt-1">{t('detail.annually')}</p>
@@ -292,7 +302,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   />
                 </div>
                 {/* Countdown */}
-                <p className="text-xs font-semibold text-[#121212] dark:text-[#F2F2F7] mt-2">{daysLabel}</p>
+                <p className="text-xs font-semibold text-[#000000] dark:text-[#F2F2F7] mt-2">{daysLabel}</p>
               </div>
             )}
 
@@ -331,7 +341,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
                   <p className="text-[11px] font-semibold text-[#A0A0A0] dark:text-[#8E8E93] uppercase tracking-wider">{t('detail.notes')}</p>
                 </div>
                 <div className="border-t border-[#EBEBEB] dark:border-[#2C2C2E] px-4 py-4">
-                  <p className="text-sm text-[#424242] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
+                  <p className="text-sm text-[#000000] dark:text-[#AEAEB2] whitespace-pre-wrap leading-relaxed">{sub.notes}</p>
                 </div>
               </div>
             )}
@@ -340,7 +350,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
             <div className="pb-4">
               <button
                 onClick={() => setEditOpen(true)}
-                className="w-full h-12 rounded-full bg-[#3D3BF3] text-white text-sm font-semibold active:opacity-80 transition-opacity"
+                className="w-full h-12 rounded-full bg-[#000000] text-white text-sm font-semibold active:opacity-80 transition-opacity"
               >
                 {t('detail.edit')}
               </button>

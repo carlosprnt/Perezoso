@@ -34,7 +34,7 @@ export default function GmailSubscriptionResultItem({ candidate, selected, onTog
       className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-colors duration-100 text-left"
       style={{
         background: selected ? 'rgba(61,59,243,0.08)' : 'transparent',
-        border: `1.5px solid ${selected ? '#3D3BF3' : 'var(--border-result-item)'}`,
+        border: `1.5px solid ${selected ? '#000000' : 'var(--border-result-item)'}`,
       }}
     >
       {/* Avatar */}
@@ -48,7 +48,7 @@ export default function GmailSubscriptionResultItem({ candidate, selected, onTog
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">
+        <p className="text-[14px] font-semibold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">
           {candidate.name}
         </p>
         <p className="text-[12px] text-[#A0A0A0] dark:text-[#8E8E93] mt-0.5 leading-snug truncate">
@@ -62,7 +62,7 @@ export default function GmailSubscriptionResultItem({ candidate, selected, onTog
         <div className="text-right">
           {hasPriceData ? (
             <>
-              <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-none">
+              <p className="text-[14px] font-semibold text-[#000000] dark:text-[#F2F2F7] tabular-nums leading-none">
                 {formatCurrency(candidate.price_amount!, candidate.currency ?? 'EUR')}
               </p>
               <p className="text-[11px] text-[#AAAAAA] dark:text-[#8E8E93] mt-0.5 leading-none">
@@ -78,8 +78,8 @@ export default function GmailSubscriptionResultItem({ candidate, selected, onTog
         <div
           className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-100"
           style={{
-            background: selected ? '#3D3BF3' : 'transparent',
-            border: `2px solid ${selected ? '#3D3BF3' : '#D4D4D4'}`,
+            background: selected ? '#000000' : 'transparent',
+            border: `2px solid ${selected ? '#000000' : '#D4D4D4'}`,
           }}
         >
           {selected && <Check size={12} strokeWidth={3} className="text-white" />}

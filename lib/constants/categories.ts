@@ -17,8 +17,8 @@ export interface CategoryMeta {
 export const CATEGORIES: CategoryMeta[] = [
   { value: 'streaming',    label: 'Streaming',    icon: Tv,        color: 'bg-red-100',    textColor: 'text-red-800'    },
   { value: 'music',        label: 'Music',        icon: Music,     color: 'bg-green-100',  textColor: 'text-green-800'  },
-  { value: 'productivity', label: 'Productivity', icon: Zap,       color: 'bg-blue-100',   textColor: 'text-blue-800'   },
-  { value: 'cloud',        label: 'Cloud',        icon: Cloud,     color: 'bg-sky-100',    textColor: 'text-sky-800'    },
+  { value: 'productivity', label: 'Productivity', icon: Zap,       color: 'bg-neutral-200',textColor: 'text-neutral-800'},
+  { value: 'cloud',        label: 'Cloud',        icon: Cloud,     color: 'bg-stone-200',  textColor: 'text-stone-800'  },
   { value: 'ai',           label: 'AI',           icon: Bot,       color: 'bg-violet-100', textColor: 'text-violet-800' },
   { value: 'health',       label: 'Health',       icon: Heart,     color: 'bg-emerald-100',textColor: 'text-emerald-800'},
   { value: 'gaming',       label: 'Gaming',       icon: Gamepad2,  color: 'bg-orange-100', textColor: 'text-orange-800' },

@@ -14,7 +14,6 @@ import BottomSheet from '@/components/ui/BottomSheet'
 import CalendarView from '@/components/calendar/CalendarView'
 import SubscriptionAvatar from '@/components/subscriptions/SubscriptionAvatar'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
-import { AnalyticsEvents } from '@/lib/analytics'
 import haptics from '@/lib/haptics'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
 import { formatCurrency } from '@/lib/utils/currency'
@@ -187,7 +186,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
           />
 
           <div className="flex-1 min-w-0">
-            <p className="text-[16px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug truncate">{sub.name}</p>
+            <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-snug truncate">{sub.name}</p>
             <p className="text-[14px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
               {t(`categories.${sub.category}` as Parameters<typeof t>[0])}
             </p>
@@ -201,12 +200,12 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
               </div>
             ) : (
               <>
-                <p className="text-[16px] font-bold text-[#121212] dark:text-[#F2F2F7] tabular-nums leading-snug">
+                <p className="text-[16px] font-bold text-[#000000] dark:text-[#F2F2F7] tabular-nums leading-snug">
                   {viewMode === 'monthly'
                     ? formatCurrency(sub.my_monthly_cost, sub.currency)
                     : formatCurrency(sub.my_annual_cost, sub.currency)}
                   <span className="text-[13px] font-normal text-[#737373] dark:text-[#8E8E93] ml-0.5">
-                    {viewMode === 'monthly' ? t('subscriptions.perMonth') : t('subscriptions.perYear')}
+                    {viewMode === 'monthly' ? '/mes' : '/año'}
                   </span>
                 </p>
                 {sub.status !== 'active' && (
@@ -321,7 +320,7 @@ function InactiveCard({
         size="md"
         corner="rounded-xl"
       />
-      <p className="text-[14px] font-bold text-[#121212] dark:text-[#F2F2F7] truncate flex-1 leading-snug">{sub.name}</p>
+      <p className="text-[14px] font-bold text-[#000000] dark:text-[#F2F2F7] truncate flex-1 leading-snug">{sub.name}</p>
       <p
         className="text-[12px] font-medium flex-shrink-0"
         style={{ color: STATUS_COLOR[sub.status] ?? '#9CA3AF' }}
@@ -343,7 +342,7 @@ function InactiveCardsRow({
   if (subscriptions.length === 0) return null
   return (
     <div className="mt-8">
-      <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3 px-1">
+      <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
         {t('subscriptions.inactive')}
       </p>
       <div className="flex flex-col gap-2">
@@ -355,7 +354,141 @@ function InactiveCardsRow({
   )
 }
 
-// ─── Filter bottom sheet ───────────────────────────────────────────────────
+// ─── Filter dropdown ──────────────────────────────────────────────────────
+function FilterDropdown({
+  currentStatus,
+  currentCategory,
+}: {
+  currentStatus: string
+  currentCategory: string
+}) {
+  const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const hasActive = (currentStatus && currentStatus !== 'all') || (currentCategory && currentCategory !== 'all')
+
+  const statusOptions: { value: string; label: string }[] = [
+    { value: 'active',    label: t('status.active') },
+    { value: 'trial',     label: t('status.trial') },
+    { value: 'paused',    label: t('status.paused') },
+    { value: 'cancelled', label: t('status.cancelled') },
+  ]
+
+  const categoryOptions = CATEGORIES.map(cat => ({
+    value: cat.value,
+    label: t(`categories.${cat.value}` as Parameters<typeof t>[0]),
+  }))
+
+  function applyFilter(key: 'status' | 'category', value: string) {
+    const p = new URLSearchParams()
+    // Preserve the OTHER filter if set.
+    if (key === 'status') {
+      if (value !== currentStatus) p.set('status', value)
+      if (currentCategory && currentCategory !== 'all') p.set('category', currentCategory)
+    } else {
+      if (currentStatus && currentStatus !== 'all') p.set('status', currentStatus)
+      if (value !== currentCategory) p.set('category', value)
+    }
+    router.push(`${pathname}${p.size ? '?' + p.toString() : ''}`, { scroll: false })
+    setOpen(false)
+  }
+
+  function clearAll() {
+    router.push(pathname, { scroll: false })
+    setOpen(false)
+  }
+
+  // Close on outside click or scroll
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    function onScroll() { setOpen(false) }
+    if (open) {
+      document.addEventListener('mousedown', onMouseDown)
+      window.addEventListener('scroll', onScroll, { passive: true })
+    }
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [open])
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 active:opacity-60 transition-opacity"
+      >
+        <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">Filtrar</span>
+        {hasActive && <span className="w-2 h-2 rounded-full bg-[#000000]" />}
+        <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#8E8E93] ml-0.5" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full right-0 mt-2 w-48 max-h-[320px] overflow-y-auto bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E8E8E8] dark:border-[#2C2C2E] shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-50 animate-fade-in-scale">
+          <div className="p-2">
+            {/* Status section */}
+            <p className="text-[11px] font-semibold text-[#737373] dark:text-[#8E8E93] uppercase tracking-wider px-3 pt-1.5 pb-1">{t('subscriptions.filterStatus')}</p>
+            {statusOptions.map(({ value, label }) => {
+              const active = currentStatus === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => applyFilter('status', value)}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                >
+                  {label}
+                  {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}
+                </button>
+              )
+            })}
+
+            {/* Divider */}
+            <div className="h-px bg-[#E8E8E8] dark:bg-[#2C2C2E] mx-2 my-1.5" />
+
+            {/* Category section */}
+            <p className="text-[11px] font-semibold text-[#737373] dark:text-[#8E8E93] uppercase tracking-wider px-3 pt-1.5 pb-1">{t('subscriptions.filterCategory')}</p>
+            {categoryOptions.map(({ value, label }) => {
+              const active = currentCategory === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => applyFilter('category', value)}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                >
+                  {label}
+                  {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}
+                </button>
+              )
+            })}
+
+            {/* Clear all — only when there's an active filter */}
+            {hasActive && (
+              <>
+                <div className="h-px bg-[#E8E8E8] dark:bg-[#2C2C2E] mx-2 my-1.5" />
+                <button
+                  onClick={clearAll}
+                  className="w-full px-3 py-2 text-sm text-[#737373] dark:text-[#8E8E93] text-left rounded-[8px] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors"
+                >
+                  {t('subscriptions.clearFilters')}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Filter bottom sheet (kept for backward compat but no longer
+//     triggered from the main UI — the FilterDropdown above replaces it) ──
 
 interface FilterSheetProps {
   isOpen: boolean
@@ -373,14 +506,8 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
 
   function apply() {
     const p = new URLSearchParams()
-    if (status !== 'all') {
-      p.set('status', status)
-      AnalyticsEvents.filterApplied('status', status)
-    }
-    if (category !== 'all') {
-      p.set('category', category)
-      AnalyticsEvents.filterApplied('category', category)
-    }
+    if (status !== 'all') p.set('status', status)
+    if (category !== 'all') p.set('category', category)
     router.push(`${pathname}${p.size ? '?' + p.toString() : ''}`, { scroll: false })
     onClose()
   }
@@ -399,7 +526,7 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
         {t('subscriptions.reset')}
       </button>
       <button onClick={apply}
-        className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#3D3BF3] hover:bg-[#3230D0] transition-colors active:bg-[#2B29B8]">
+        className="flex-1 h-12 rounded-full text-sm font-semibold text-white bg-[#000000] hover:bg-[#000000] transition-colors active:bg-[#000000]">
         {t('subscriptions.apply')}
       </button>
     </div>
@@ -418,7 +545,7 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
               { value: 'cancelled' as const, label: t('status.cancelled') },
             ] as Array<{ value: SubscriptionStatus | 'all'; label: string }>).map(opt => (
               <button key={opt.value} onClick={() => setStatus(s => s === opt.value ? 'all' : opt.value)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-4 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E8E8E8] dark:border-[#3A3A3C]'}`}>
+                className={`flex-shrink-0 flex items-center gap-1.5 px-4 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${status === opt.value ? 'bg-[#000000] text-white border-[#000000]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E8E8E8] dark:border-[#3A3A3C]'}`}>
                 {status === opt.value && <Check size={12} strokeWidth={3} />}
                 {opt.label}
               </button>
@@ -433,7 +560,7 @@ function FilterSheet({ isOpen, currentStatus, currentCategory, onClose }: Filter
               const active = category === cat.value
               return (
                 <button key={cat.value} onClick={() => setCategory(c => c === cat.value ? 'all' : cat.value)}
-                  className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#3D3BF3] text-white border-[#3D3BF3]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E8E8E8] dark:border-[#3A3A3C]'}`}>
+                  className={`flex items-center gap-2 px-3 h-12 rounded-full text-sm font-medium border transition-colors duration-150 ${active ? 'bg-[#000000] text-white border-[#000000]' : 'bg-white dark:bg-[#2A2A2C] text-[#444444] dark:text-[#AEAEB2] border-[#E8E8E8] dark:border-[#3A3A3C]'}`}>
                   <Icon size={13} strokeWidth={2} />
                   {t(`categories.${cat.value}` as Parameters<typeof t>[0])}
                 </button>
@@ -508,10 +635,10 @@ function SortDropdown({
                 <button
                   key={mode}
                   onClick={() => { onSelect(mode); setOpen(false) }}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#3D3BF3] bg-[#F0F0FF] dark:bg-[#2A2A4A]' : 'text-[#424242] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
-                  {active && <Check size={13} strokeWidth={2.5} className="text-[#3D3BF3] flex-shrink-0" />}
+                  {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}
                 </button>
               )
             })}
@@ -634,15 +761,15 @@ export default function SubscriptionsView({
       {/* ── Sticky header zone — sits BEHIND cards (low z-index)
               fades + blurs as cards scroll over it ─────────────── */}
       <motion.div
-        className="sticky top-0 z-[20] px-1 pb-4"
+        className="sticky top-0 z-[20] pb-4"
         style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
       >
         {/* Title row */}
         <div className="flex items-start justify-between pt-2">
           <div>
-            <h1 className="text-[28px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
+            <h1 className="text-[28px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight">{t('subscriptions.title')}</h1>
             {allCount > 0 && (
-              <p className="text-[18px] font-bold text-black dark:text-[#F2F2F7] mt-1 leading-snug">
+              <p className="text-[18px] font-bold text-[#000000] dark:text-[#F2F2F7] mt-1 leading-snug">
                 Pagas{' '}
                 <button
                   onClick={toggleViewMode}
@@ -650,11 +777,11 @@ export default function SubscriptionsView({
                 >
                   {numSkeleton ? (
                     <span
-                      className="inline-block align-middle rounded-md bg-[#3D3BF3]/20 dark:bg-[#8B89FF]/20 animate-pulse"
+                      className="inline-block align-middle rounded-md bg-[#000000]/20 dark:bg-[#FFFFFF]/20 animate-pulse"
                       style={{ width: '7ch', height: '1em', verticalAlign: 'baseline' }}
                     />
                   ) : (
-                    <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+                    <span className="text-[#000000] dark:text-[#FFFFFF]">
                       {viewMode === 'monthly'
                         ? formatCurrency(stats.total_monthly_cost, 'EUR')
                         : formatCurrency(stats.total_annual_cost, 'EUR')}
@@ -662,7 +789,7 @@ export default function SubscriptionsView({
                   )}
                 </button>
                 {' '}{viewMode === 'monthly' ? 'al mes' : 'al año'} en{' '}
-                <span className="text-[#3D3BF3] dark:text-[#8B89FF]">
+                <span className="text-[#000000] dark:text-[#FFFFFF]">
                   {allCount === 1 ? '1 suscripción activa' : `${allCount} suscripciones activas`}
                 </span>.
               </p>
@@ -675,29 +802,20 @@ export default function SubscriptionsView({
             >
               <CalendarDays size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
             </button>
-            <motion.button
-              onClick={handleFilterTap}
-              animate={filterShake}
-              className="relative w-10 h-10 rounded-full bg-white dark:bg-[#1C1C1E] flex items-center justify-center transition-colors active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E]"
-            >
-              <SlidersHorizontal size={17} strokeWidth={2} className="text-[#333333] dark:text-[#F2F2F7]" />
-              {hasActiveFilters && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#3D3BF3] border-2 border-white" />
-              )}
-            </motion.button>
           </div>
         </div>
       </motion.div>
 
-      {/* Sort control — just above cards. Hidden when there are no subs. */}
+      {/* Sort + Filter control — just above cards. Hidden when there are no subs. */}
       {allCount > 0 && (
-        <div className="relative z-[30] px-1 mt-2 mb-[9px]">
-          <SortDropdown current={sortMode} onSelect={(mode) => { setSortMode(mode); AnalyticsEvents.sortChanged(mode) }} />
+        <div className="relative z-[30] mt-2 mb-[9px] flex items-center justify-between">
+          <SortDropdown current={sortMode} onSelect={setSortMode} />
+          <FilterDropdown currentStatus={currentStatus} currentCategory={currentCategory} />
         </div>
       )}
 
       {/* ── Cards — higher z-index, scroll over the header ────── */}
-      <div className="-mx-1 relative z-[1] space-y-5">
+      <div className="relative z-[1] space-y-5 -mx-2.5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -712,7 +830,7 @@ export default function SubscriptionsView({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.4, filter: 'blur(4px)', y: -6 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
                 >
                   {t(`status.${currentStatus}` as Parameters<typeof t>[0])}
                   <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
@@ -728,7 +846,7 @@ export default function SubscriptionsView({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.4, filter: 'blur(4px)', y: -6 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
+                  className="inline-flex items-center gap-1.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F0F0F0] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[13px] font-medium active:opacity-70 transition-opacity"
                 >
                   {t(`categories.${currentCategory}` as Parameters<typeof t>[0])}
                   <X size={14} strokeWidth={2.5} className="text-[#737373] dark:text-[#AEAEB2]" />
@@ -742,21 +860,11 @@ export default function SubscriptionsView({
         {sortedSubscriptions.length === 0 ? (
           allCount === 0 ? (
             <div className="pt-6">
-              <motion.div
-                style={{ opacity: headerOpacity, filter: headerFilter, pointerEvents: headerPointerEvents }}
-              >
-                <p className="text-[45px] font-extrabold text-[#121212] dark:text-[#F2F2F7] leading-[1.15] tracking-tight mb-2">
-                  Todavía no has añadido ninguna
-                </p>
-                <p className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] leading-snug mb-6">
-                  {t('subscriptions.getStarted')}
-                </p>
-              </motion.div>
               <QuickAddPlatforms />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-sm font-medium text-[#121212] dark:text-[#F2F2F7] mb-1">
+              <p className="text-sm font-medium text-[#000000] dark:text-[#F2F2F7] mb-1">
                 {t('subscriptions.noResults')}
               </p>
               <p className="text-xs text-[#737373] dark:text-[#8E8E93]">
@@ -765,7 +873,7 @@ export default function SubscriptionsView({
               <button
                 type="button"
                 onClick={() => router.push(pathname, { scroll: false })}
-                className="mt-3 text-[13px] font-semibold text-[#3D3BF3] dark:text-[#8B89FF] active:opacity-60 transition-opacity"
+                className="mt-3 text-[13px] font-semibold text-[#000000] dark:text-[#FFFFFF] active:opacity-60 transition-opacity"
               >
                 {t('subscriptions.clearFilters')}
               </button>

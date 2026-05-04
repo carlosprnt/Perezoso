@@ -27,10 +27,10 @@ function RingingBell() {
   return (
     <div
       className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-      style={{ background: 'linear-gradient(135deg,#E8E6FF,#D4CFFF)' }}
+      style={{ background: 'linear-gradient(135deg,#DBEAFE,#BFDBFE)' }}
     >
       <Bell
-        size={20} strokeWidth={2} className="text-[#3D3BF3]"
+        size={20} strokeWidth={2} className="text-[#1E3A5F]"
         style={{ transformOrigin: 'top center', animation: ringing ? 'bell-ring 0.9s ease-in-out forwards' : 'none' }}
       />
     </div>
@@ -176,7 +176,7 @@ function InsightCardShell({
 }) {
   return (
     <div
-      className={`relative w-full rounded-[24px] px-4 pt-4 pb-3 select-none ${
+      className={`relative w-full rounded-[32px] px-4 pt-4 pb-3 select-none ${
         inModal ? 'bg-[#F2F2F7] dark:bg-[#2C2C2E]' : 'bg-white dark:bg-[#1C1C1E]'
       }`}
       style={inModal ? undefined : { boxShadow: '0 1px 5px rgba(0,0,0,0.06)' }}
@@ -186,7 +186,7 @@ function InsightCardShell({
         {icon}
         <div className="min-w-0 pt-0.5" style={{ width: '80%' }}>
           <p
-            className={`text-[14px] text-[#121212] dark:text-[#F2F2F7] ${inModal ? '' : 'line-clamp-3'}`}
+            className={`text-[14px] text-[#000000] dark:text-[#F2F2F7] ${inModal ? '' : 'line-clamp-3'}`}
             style={{ lineHeight: '1.45', ...(inModal ? {} : { minHeight: 'calc(3 * 1.45 * 14px)' }) }}
           ><BoldNumbers text={body} /></p>
         </div>
@@ -204,7 +204,7 @@ function InsightCardShell({
         )}
         <button
           onClick={onCta}
-          className={`flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#121212] dark:text-[#F2F2F7] ${
+          className={`flex-1 h-9 rounded-full text-[13px] font-semibold active:opacity-70 transition-opacity text-[#000000] dark:text-[#F2F2F7] ${
             inModal ? 'bg-white dark:bg-[#3A3A3C]' : 'bg-[#F2F2F7] dark:bg-[#2C2C2E]'
           }`}
         >

@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { enrichSubscriptions, getDashboardStats } from '@/lib/calculations/subscriptions'
 import type { Subscription, SubscriptionStatus, Category } from '@/types'
 import SubscriptionsView from '@/components/subscriptions/SubscriptionsView'
-import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import AddSubscriptionFlow from '@/components/subscriptions/AddSubscriptionFlow'
 import type { Metadata } from 'next'
 
@@ -35,7 +34,6 @@ export default async function SubscriptionsPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <ScreenTracker kind="subscriptions" subscriptionCount={allSubs.length} />
       <SubscriptionsView
         subscriptions={filtered}
         allCount={allSubs.length}

@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import ScreenTracker from '@/lib/analytics/ScreenTracker'
 import { enrichSubscriptions, getDashboardStats, getTopSpendCategories, getUpcomingRenewals, getTopExpensiveSubscriptions } from '@/lib/calculations/subscriptions'
 import { formatCurrency } from '@/lib/utils/currency'
 import { resolveSubscriptionLogoUrl } from '@/lib/constants/platforms'
@@ -15,6 +14,9 @@ import CalendarModalButton from '@/components/dashboard/CalendarModalButton'
 import Insights from '@/components/dashboard/Insights'
 import DashboardReminderCards from '@/components/dashboard/DashboardReminderCards'
 import QuickAddPlatforms from '@/components/dashboard/QuickAddPlatforms'
+import AccountMenuPanel from '@/components/dashboard/AccountMenuPanel'
+import DashboardFixedGreeting from '@/components/dashboard/DashboardFixedGreeting'
+import DraggableSurface from '@/components/ui/DraggableSurface'
 import { getServerT } from '@/lib/i18n/server'
 import type { Metadata } from 'next'
 
@@ -53,6 +55,11 @@ export default async function DashboardPage() {
     .map(s => resolveSubscriptionLogoUrl(s.name, s.logo_url))
     .filter((u): u is string => !!u)
 
+  const sharedLogoUrls = subs
+    .filter(s => s.is_shared && (s.status === 'active' || s.status === 'trial'))
+    .map(s => resolveSubscriptionLogoUrl(s.name, s.logo_url))
+    .filter((u): u is string => !!u)
+
   const shareText = `My monthly subscriptions: ${formatCurrency(stats.total_monthly_cost, 'EUR')} across ${subs.length} subscriptions — tracked with Perezoso 🦥`
 
   const categoryRows = topCategories.map(({ category, monthly_cost }) => ({
@@ -61,9 +68,8 @@ export default async function DashboardPage() {
     pct: stats.total_monthly_cost > 0 ? (monthly_cost / stats.total_monthly_cost) * 100 : 0,
   }))
 
-  return (
-    <div>
-      <ScreenTracker kind="dashboard" subscriptionCount={subs.length} />
+  const dashboardContent = (
+    <>
       {isEmpty ? (
         <EmptyDashboardHero firstName={firstName} shareText={shareText} />
       ) : (
@@ -73,6 +79,7 @@ export default async function DashboardPage() {
           sharedCount={sharedCount}
           shareText={shareText}
           logoUrls={activeLogoUrls}
+          sharedLogoUrls={sharedLogoUrls}
         />
       )}
 
@@ -102,7 +109,7 @@ export default async function DashboardPage() {
             </div>
             {top3.length > 0 && (
               <div className="overflow-x-hidden mt-3">
-                <h3 className="text-[17px] font-bold text-[#121212] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
+                <h3 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
                   {t('dashboard.topExpensive')}
                 </h3>
                 <TopExpensiveSection subscriptions={top3} />
@@ -111,6 +118,23 @@ export default async function DashboardPage() {
           </>
         )}
       </DashboardCardStack>
+    </>
+  )
+
+  return (
+    <div>
+      {/* Mobile: two-layer draggable surface. Tapping the avatar (or
+          dragging the foreground down) reveals the dark backdrop layer
+          which contains the account menu items (settings, share, logout,
+          admin, etc.) — replacing the popover dropdown on mobile.
+          Desktop (lg+): passthrough — dashboardContent renders in-place
+          and the avatar uses its default dropdown popover. */}
+      <DraggableSurface
+        backdrop={<AccountMenuPanel shareText={shareText} />}
+        fixedHeader={<DashboardFixedGreeting firstName={firstName} shareText={shareText} />}
+      >
+        {dashboardContent}
+      </DraggableSurface>
     </div>
   )
 }

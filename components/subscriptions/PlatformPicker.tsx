@@ -25,7 +25,7 @@ export default function PlatformPicker({ onSelect }: PlatformPickerProps) {
                 size="md48"
                 corner="rounded-2xl"
               />
-              <span className="text-base font-medium text-[#121212] dark:text-[#F2F2F7]">{platform.name}</span>
+              <span className="text-base font-medium text-[#000000] dark:text-[#F2F2F7]">{platform.name}</span>
             </button>
           ))}
         </div>

@@ -37,7 +37,9 @@ export default function SubscriptionAvatar({
   const { bg, fg } = getAvatarPastel(name)
   const initials = getInitials(name)
 
-  // Resolve which URL to attempt (explicit URL wins over slug-derived URL)
+  // Resolve which URL to attempt (explicit URL wins over slug-derived URL).
+  // Simple Icons CDN serves brand-coloured logos by default — no need to
+  // append a colour suffix unless we want to override it.
   const resolvedUrl = logoUrl
     ? logoUrl
     : simpleIconSlug
@@ -45,24 +47,15 @@ export default function SubscriptionAvatar({
       : null
 
   if (resolvedUrl && !imgError) {
-    // SVG-based sources (Simple Icons + SVGL) need a bg + inset padding.
-    // Rasterized sources (Clearbit, custom URLs) fill edge-to-edge.
-    const needsPadding =
-      resolvedUrl.includes('cdn.simpleicons.org') ||
-      resolvedUrl.includes('svgl.app') ||
-      resolvedUrl.includes('wikimedia.org')
-
     return (
       <div
-        className={`${cls} ${corner} overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white dark:bg-white`}
+        className={`${cls} ${corner} overflow-hidden flex-shrink-0 flex items-center justify-center border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white p-1.5`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={resolvedUrl}
           alt={name}
-          width={SIZE[size].px}
-          height={SIZE[size].px}
-          className="w-[82%] h-[82%] object-contain"
+          className="block w-full h-full object-contain"
           onError={() => setImgError(true)}
           loading="lazy"
         />

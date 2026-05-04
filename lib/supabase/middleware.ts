@@ -1,10 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { detectLocale } from '@/lib/i18n/translations'
 
 /**
  * Refreshes the Supabase session from the middleware.
  * This is necessary to keep the session alive across server-rendered pages.
+ *
+ * NOTE: locale detection was moved OUT of middleware and into the
+ * dashboard layout to keep the middleware bundle small and edge-compatible.
  */
 export async function updateSession(request: NextRequest) {
   // If env vars are missing (e.g. not yet configured in Vercel), let the
@@ -16,6 +18,8 @@ export async function updateSession(request: NextRequest) {
   ) {
     return NextResponse.next({ request })
   }
+
+  try {
 
   let supabaseResponse = NextResponse.next({ request })
 
@@ -66,25 +70,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Persist detected locale in a cookie so Server Components can read it
-  if (user) {
-    // Prefer Google account locale from OAuth metadata; fall back to browser
-    // Accept-Language (which mirrors the device/OS language, matching Gmail's UI)
-    const googleLocale =
-      user.user_metadata?.locale ??
-      user.user_metadata?.language ??
-      request.headers.get('accept-language') ??
-      null
-    const detectedLocale = detectLocale(googleLocale)
-    const currentLocale = request.cookies.get('perezoso_locale')?.value
-    if (currentLocale !== detectedLocale) {
-      supabaseResponse.cookies.set('perezoso_locale', detectedLocale, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 365,
-        sameSite: 'lax',
-      })
-    }
-  }
+  // Locale detection now happens in the dashboard layout (server-side)
+  // instead of middleware to keep the edge bundle lean.
 
   return supabaseResponse
+  } catch {
+    // If the middleware fails (e.g. Supabase timeout, edge runtime
+    // issue), let the request pass through rather than returning a 500.
+    return NextResponse.next({ request })
+  }
 }
