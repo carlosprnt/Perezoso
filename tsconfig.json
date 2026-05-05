@@ -36,8 +36,6 @@
   ],
   "exclude": [
     "node_modules",
-    "mobile",
-    "ios",
-    "figma-plugin"
+    "mobile"
   ]
 }
