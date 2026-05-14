@@ -134,9 +134,9 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
               selected={plan === 'annual'}
               onClick={() => setPlan('annual')}
               label="Anual"
-              price="19,99€ / año"
+              price="9,99€ / año"
               badge="Más popular"
-              perMonth="1,66€/mes"
+              perMonth="0,83€/mes"
             />
             <PlanCard
               selected={plan === 'monthly'}
