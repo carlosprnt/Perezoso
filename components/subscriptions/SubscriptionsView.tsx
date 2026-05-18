@@ -441,7 +441,7 @@ function FilterDropdown({
                 <button
                   key={value}
                   onClick={() => applyFilter('status', value)}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] dark:text-[#F2F2F7] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}
@@ -460,7 +460,7 @@ function FilterDropdown({
                 <button
                   key={value}
                   onClick={() => applyFilter('category', value)}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] dark:text-[#F2F2F7] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}
@@ -635,7 +635,7 @@ function SortDropdown({
                 <button
                   key={mode}
                   onClick={() => { onSelect(mode); setOpen(false) }}
-                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
+                  className={`w-full flex items-center justify-between gap-4 px-3 py-2 text-sm transition-colors text-left rounded-[8px] ${active ? 'text-[#000000] dark:text-[#F2F2F7] bg-[#F5F5F5] dark:bg-[#2C2C2E]' : 'text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E]'}`}
                 >
                   {label}
                   {active && <Check size={13} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7] flex-shrink-0" />}

@@ -829,8 +829,8 @@ export default function SubscriptionForm({
           </div>
         </Section>
 
-        {/* ── Status change (active mode — paused/cancelled) ──────────── */}
-        {status === 'active' && (
+        {/* ── Status change (active/trial mode) ───────────────────────── */}
+        {(status === 'active' || status === 'trial') && (
           <div className="mx-5 mb-3 bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden border border-[#F0F0F0] dark:border-[#2C2C2E]">
             <SelectRow
               label={t('form.status')}
@@ -843,6 +843,7 @@ export default function SubscriptionForm({
                 className={selectCls}
               >
                 <option value="active">{t('status.active')}</option>
+                <option value="trial">{t('status.trial')}</option>
                 <option value="paused">{t('status.paused')}</option>
                 <option value="cancelled">{t('status.cancelled')}</option>
               </select>
