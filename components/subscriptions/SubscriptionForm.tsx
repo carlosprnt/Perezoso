@@ -7,14 +7,20 @@ import { createClient } from '@/lib/supabase/client'
 import haptics from '@/lib/haptics'
 import { CATEGORIES } from '@/lib/constants/categories'
 import { CURRENCIES, BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
-import { AlertCircle, Bell, ChevronsUpDown, X } from 'lucide-react'
+import { AlertCircle, Bell, ChevronsUpDown, Loader2, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { subscriptionToastBus } from '@/lib/subscriptionToastBus'
 import type { Subscription, BillingPeriod, SubscriptionStatus, UserShareMode, Category } from '@/types'
 import type { PlatformPreset } from '@/lib/constants/platforms'
-import { getPrefilledPlatformValues } from '@/lib/constants/platforms'
+import {
+  findPlatformMatch,
+  getPrefilledPlatformValues,
+  resolvePlatformLogoUrl,
+} from '@/lib/constants/platforms'
+import { guessSimpleIconUrl } from '@/lib/utils/logos'
+import SubscriptionAvatar, { type AvatarLoadStatus } from './SubscriptionAvatar'
 
 interface SubscriptionFormProps {
   subscription?: Subscription
@@ -240,6 +246,15 @@ export default function SubscriptionForm({
   const [logoUrl, setLogoUrl] = useState(
     subscription?.logo_url ?? prefill?.logoUrl ?? '',
   )
+  // Tracks whether the user has explicitly taken control of the logo (cleared
+  // the suggestion, typed a manual URL, or is editing an existing subscription
+  // that already had one). When true, we stop auto-suggesting from the name.
+  const [logoOverridden, setLogoOverridden] = useState<boolean>(
+    Boolean(subscription?.logo_url ?? prefill?.logoUrl ?? ''),
+  )
+  // Load state of the avatar's image — used to drive the status text below
+  // the name input (spinner while loading the CDN attempt, etc.).
+  const [avatarLoadStatus, setAvatarLoadStatus] = useState<AvatarLoadStatus>('idle')
   const [status, setStatus] = useState<SubscriptionStatus>(
     subscription?.status ?? 'active',
   )
@@ -277,6 +292,21 @@ export default function SubscriptionForm({
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Fetch the user's existing subscription names so we can warn about
+  // duplicates as they type. Only relevant when creating.
+  const [existingNames, setExistingNames] = useState<string[]>([])
+  useEffect(() => {
+    if (mode !== 'create') return
+    const supabase = createClient()
+    supabase
+      .from('subscriptions')
+      .select('name')
+      .then(({ data }) => {
+        if (!data) return
+        setExistingNames(data.map(s => (s.name as string).trim().toLowerCase()))
+      })
+  }, [mode])
 
   // ── Dirty state detection ────────────────────────────────────────────────
   const initialSnapshot = useRef({
@@ -338,11 +368,58 @@ export default function SubscriptionForm({
     ? t(`categories.${categoryMeta.value}` as Parameters<typeof t>[0])
     : category
 
+  // Auto-suggest a logo from the typed name unless the user has taken over.
+  // - Tier 1: catalog match (curated list of ~80 platforms)
+  // - Tier 2: Simple Icons CDN guess from a slug derived from the name
+  const autoSuggestion = useMemo(() => {
+    if (logoOverridden) return null
+    const trimmed = name.trim()
+    if (trimmed.length < 2) return null
+    const match = findPlatformMatch(trimmed)
+    if (match) {
+      const url = resolvePlatformLogoUrl(match.platform)
+      if (url) return { source: 'catalog' as const, url, platformName: match.platform.name }
+    }
+    const guess = guessSimpleIconUrl(trimmed)
+    if (guess) return { source: 'cdn' as const, url: guess, platformName: null }
+    return null
+  }, [name, logoOverridden])
+
+  // The URL actually shown in the avatar and persisted on save.
+  const effectiveLogoUrl = logoOverridden ? logoUrl : (autoSuggestion?.url ?? '')
+
+  // Duplicate detection — purely informational, never blocks save.
+  const normalizedName = name.trim().toLowerCase()
+  const isDuplicate = mode === 'create'
+    && normalizedName.length > 0
+    && existingNames.includes(normalizedName)
+
+  // Status text shown under the name input in the hero card.
+  // Order: duplicate warning > CDN load state > catalog match > nothing/initials.
+  let logoStatus: { kind: 'duplicate' | 'searching' | 'found' | 'notFound', platform?: string } | null = null
+  if (isDuplicate) {
+    logoStatus = { kind: 'duplicate' }
+  } else if (autoSuggestion) {
+    if (autoSuggestion.source === 'catalog') {
+      logoStatus = { kind: 'found', platform: autoSuggestion.platformName ?? undefined }
+    } else if (avatarLoadStatus === 'loaded') {
+      logoStatus = { kind: 'found', platform: 'Simple Icons' }
+    } else if (avatarLoadStatus === 'error') {
+      logoStatus = { kind: 'notFound' }
+    } else {
+      logoStatus = { kind: 'searching' }
+    }
+  } else if (name.trim().length >= 2 && !logoOverridden) {
+    logoStatus = { kind: 'notFound' }
+  } else if (logoOverridden && !effectiveLogoUrl) {
+    logoStatus = { kind: 'notFound' }
+  }
+
   // ── Submit ────────────────────────────────────────────────────────────────
   function buildPayload() {
     return {
       name: name.trim(),
-      logo_url: logoUrl.trim() || null,
+      logo_url: effectiveLogoUrl.trim() || null,
       card_color: null,
       // Send the real (possibly custom) category. The server action
       // retries with 'other' automatically if the DB still has the
@@ -455,18 +532,63 @@ export default function SubscriptionForm({
           </div>
         )}
 
-        {/* ── Hero card: name + price (no avatar) ─────────────────────── */}
+        {/* ── Hero card: avatar + name + status, then price ───────────── */}
         <div className="mx-5 mb-3 bg-[#F5F5F5] dark:bg-[#1C1C1E] rounded-2xl px-4 py-4 border border-[#F0F0F0] dark:border-[#2C2C2E]">
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder={t('form.subscriptionName')}
-            autoFocus={false}
-            className="w-full bg-transparent text-[17px] font-semibold text-[#000000] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none leading-snug"
-            style={{ fontSize: 17 }}
-          />
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-start gap-3">
+            <div className="relative flex-shrink-0">
+              <SubscriptionAvatar
+                name={name || ' '}
+                logoUrl={effectiveLogoUrl || null}
+                size="md48"
+                onLoadStatus={setAvatarLoadStatus}
+              />
+              {effectiveLogoUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogoOverridden(true)
+                    setLogoUrl('')
+                  }}
+                  aria-label="Clear logo"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#000000] text-white flex items-center justify-center shadow-sm active:bg-[#2C2C2E] transition-colors"
+                >
+                  <X size={11} strokeWidth={3} />
+                </button>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={t('form.subscriptionName')}
+                autoFocus={false}
+                className="w-full bg-transparent text-[17px] font-semibold text-[#000000] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none leading-snug"
+                style={{ fontSize: 17 }}
+              />
+              {logoStatus && (
+                <div
+                  className={`mt-1 flex items-center gap-1.5 text-[13px] leading-tight ${
+                    logoStatus.kind === 'duplicate'
+                      ? 'text-[#D97706] dark:text-[#F59E0B]'
+                      : 'text-[#737373] dark:text-[#8E8E93]'
+                  }`}
+                >
+                  {logoStatus.kind === 'searching' && (
+                    <Loader2 size={12} className="animate-spin flex-shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {logoStatus.kind === 'duplicate' && t('form.alreadyHaveSubscription')}
+                    {logoStatus.kind === 'searching' && t('form.logoSearching')}
+                    {logoStatus.kind === 'found' &&
+                      t('form.logoFoundFrom', { platform: logoStatus.platform ?? '' })}
+                    {logoStatus.kind === 'notFound' && t('form.logoNotFound')}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E8E8E8] dark:border-[#2C2C2E]">
             {/* Currency — tappable pill with transparent select overlay */}
             <div className="relative flex-shrink-0">
               <span className="bg-[#E8E8E8] dark:bg-[#2C2C2E] text-[#555555] dark:text-[#AEAEB2] text-[15px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-0.5">
@@ -659,15 +781,21 @@ export default function SubscriptionForm({
           <Row label={t('form.logoUrl')}>
             <input
               type="url"
-              value={logoUrl}
-              onChange={e => setLogoUrl(e.target.value)}
+              value={logoOverridden ? logoUrl : (autoSuggestion?.url ?? '')}
+              onChange={e => {
+                setLogoOverridden(true)
+                setLogoUrl(e.target.value)
+              }}
               placeholder="https://…"
               className="bg-transparent text-[16px] text-[#555555] dark:text-[#AEAEB2] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none text-right w-40 truncate" style={{ fontSize: 16 }}
             />
-            {logoUrl && (
+            {effectiveLogoUrl && (
               <button
                 type="button"
-                onClick={() => setLogoUrl('')}
+                onClick={() => {
+                  setLogoOverridden(true)
+                  setLogoUrl('')
+                }}
                 className="ml-1 flex-shrink-0 text-[#BBBBBB] dark:text-[#8E8E93] active:text-[#737373] transition-colors"
               >
                 <X size={15} strokeWidth={2.5} />
