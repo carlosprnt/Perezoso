@@ -182,6 +182,11 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
     setCurrency(code)
     haptics.selection()
     startTransition(() => { setPreferredCurrency(code) })
+    // Dismiss the soft keyboard if a text input on this screen (e.g. the
+    // "new category" field) still holds focus when the user picks a value.
+    if (typeof document !== 'undefined') {
+      (document.activeElement as HTMLElement | null)?.blur()
+    }
   }
 
   function handleNotifications() {
@@ -518,7 +523,7 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
           <button
             onClick={handleAddCategory}
             disabled={!newCategory.trim()}
-            className="text-[15px] font-semibold text-[#000000] disabled:opacity-30"
+            className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7] disabled:opacity-30"
           >
             Añadir
           </button>

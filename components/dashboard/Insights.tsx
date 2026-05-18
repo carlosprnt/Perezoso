@@ -101,7 +101,7 @@ export default function Insights({ subscriptions, stats }: InsightsProps) {
       {/* ② Top category */}
       <InsightCell
         icon={CatIcon ? <CatIcon size={20} /> : null}
-        iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#000000]'}
+        iconCls={catMeta ? `${catMeta.color} ${catMeta.textColor}` : 'bg-[#F5F5F5] text-[#000000] dark:bg-[#2C2C2E] dark:text-[#E5E5EA]'}
         label={t('dashboard.topCategory')}
         value={topCat ? t(`categories.${topCat.category}` as Parameters<typeof t>[0]) : '—'}
         rightTop={topCat ? `${formatCurrency(topCat.monthly_cost, dominantCurrency, locale)} /mes` : undefined}
