@@ -162,11 +162,11 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
   }
 
   const DEMO_MODES = [
-    { label: 'Sin suscripciones', count: 0 },
-    { label: '1 suscripción',     count: 1 },
-    { label: '2 suscripciones',   count: 2 },
-    { label: '3 suscripciones',   count: 3 },
-    { label: '20 suscripciones',  count: 20 },
+    { label: t('settings.demoNoSubs'),                                                count: 0 },
+    { label: t('settings.demoOneSub'),                                                count: 1 },
+    { label: t('settings.demoManySubs').replace('{count}', '2'),                      count: 2 },
+    { label: t('settings.demoManySubs').replace('{count}', '3'),                      count: 3 },
+    { label: t('settings.demoManySubs').replace('{count}', '20'),                     count: 20 },
   ] as const
 
   function handleDemoMode(count: number) {
@@ -223,7 +223,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
             >
               <span className="flex items-center gap-3">
                 <RotateCcw size={15} />
-                Volver a producción
+                {t('settings.demoRestore')}
               </span>
               {isPending ? <Loader2 size={13} className="animate-spin text-[#8E8E93]" /> : null}
             </button>
@@ -241,7 +241,7 @@ export default function UserAvatarMenu({ shareText, onTap, flipped }: UserAvatar
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#000000] dark:text-[#AEAEB2] hover:bg-[#F5F5F5] dark:hover:bg-[#2C2C2E] transition-colors text-left"
             >
               <Settings size={15} className="text-[#616161] dark:text-[#8E8E93]" />
-              Ajustes
+              {t('settings.title')}
             </button>
             <button
               onClick={handleShare}

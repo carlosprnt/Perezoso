@@ -205,7 +205,7 @@ function WalletCard({ sub, isNew, index, velocityMv, isSelected, onOpen, viewMod
                     ? formatCurrency(sub.my_monthly_cost, sub.currency)
                     : formatCurrency(sub.my_annual_cost, sub.currency)}
                   <span className="text-[13px] font-normal text-[#737373] dark:text-[#8E8E93] ml-0.5">
-                    {viewMode === 'monthly' ? '/mes' : '/año'}
+                    {viewMode === 'monthly' ? t('subscriptions.perMonthShort') : t('subscriptions.perYearShort')}
                   </span>
                 </p>
                 {sub.status !== 'active' && (
@@ -425,7 +425,7 @@ function FilterDropdown({
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-1 active:opacity-60 transition-opacity"
       >
-        <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">Filtrar</span>
+        <span className="text-[13px] text-[#737373] dark:text-[#8E8E93]">{t('subscriptions.filter')}</span>
         {hasActive && <span className="w-2 h-2 rounded-full bg-[#000000]" />}
         <ChevronsUpDown size={11} className="text-[#BBBBBB] dark:text-[#8E8E93] ml-0.5" />
       </button>
@@ -788,9 +788,9 @@ export default function SubscriptionsView({
                     </span>
                   )}
                 </button>
-                {' '}{viewMode === 'monthly' ? 'al mes' : 'al año'} en{' '}
+                {' '}{viewMode === 'monthly' ? t('subscriptions.totalPerMonth') : t('subscriptions.totalPerYear')}{' '}
                 <span className="text-[#000000] dark:text-[#FFFFFF]">
-                  {allCount === 1 ? '1 suscripción activa' : `${allCount} suscripciones activas`}
+                  {allCount === 1 ? t('subscriptions.activeOne') : t('subscriptions.activeMany').replace('{count}', String(allCount))}
                 </span>.
               </p>
             )}

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { RefreshCw } from 'lucide-react'
+import { useT } from '@/lib/i18n/LocaleProvider'
 
 interface ErrorStateProps {
   title?: string
@@ -11,10 +12,13 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  title = 'Algo ha ido mal',
-  message = 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.',
+  title,
+  message,
   onRetry,
 }: ErrorStateProps) {
+  const t = useT()
+  const resolvedTitle = title ?? t('errors.defaultTitle')
+  const resolvedMessage = message ?? t('errors.defaultMessage')
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
       <Image
@@ -25,8 +29,8 @@ export function ErrorState({
         className="mb-6 select-none"
         draggable={false}
       />
-      <h2 className="text-base font-semibold text-[#000000] dark:text-[#F2F2F7] mb-1">{title}</h2>
-      <p className="text-sm text-[#737373] dark:text-[#8E8E93] max-w-xs mb-5">{message}</p>
+      <h2 className="text-base font-semibold text-[#000000] dark:text-[#F2F2F7] mb-1">{resolvedTitle}</h2>
+      <p className="text-sm text-[#737373] dark:text-[#8E8E93] max-w-xs mb-5">{resolvedMessage}</p>
       {onRetry && (
         <Button
           variant="secondary"
@@ -34,7 +38,7 @@ export function ErrorState({
           icon={<RefreshCw size={13} />}
           onClick={onRetry}
         >
-          Reintentar
+          {t('errors.retry')}
         </Button>
       )}
     </div>
@@ -49,11 +53,12 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const t = useT()
   return (
     <div className="min-h-dvh bg-[#F7F8FA] dark:bg-[#000000] flex items-center justify-center px-4">
       <ErrorState
-        title="Error de página"
-        message={error.message || 'No se ha podido cargar esta página.'}
+        title={t('errors.pageTitle')}
+        message={error.message || t('errors.pageMessage')}
         onRetry={reset}
       />
     </div>

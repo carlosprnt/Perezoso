@@ -154,12 +154,12 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
   }
 
   const DEMO_MODES = [
-    { label: 'Sin suscripciones', count: 0,  isPro: false },
-    { label: '1 suscripción',     count: 1,  isPro: false },
-    { label: '2 suscripciones',   count: 2,  isPro: false },
-    { label: '3 suscripciones',   count: 3,  isPro: false },
-    { label: '10 suscripciones + Pro', count: 10, isPro: true },
-    { label: '20 suscripciones',  count: 20, isPro: false },
+    { label: t('settings.demoNoSubs'),                                     count: 0,  isPro: false },
+    { label: t('settings.demoOneSub'),                                     count: 1,  isPro: false },
+    { label: t('settings.demoManySubs').replace('{count}', '2'),           count: 2,  isPro: false },
+    { label: t('settings.demoManySubs').replace('{count}', '3'),           count: 3,  isPro: false },
+    { label: `${t('settings.demoManySubs').replace('{count}', '10')} + Pro`, count: 10, isPro: true },
+    { label: t('settings.demoManySubs').replace('{count}', '20'),          count: 20, isPro: false },
   ] as const
 
   async function handleDeleteAccount() {
@@ -476,7 +476,7 @@ export default function SettingsView({ preferences, profile, onClose }: Props) {
                 className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
               >
                 <IconTile bg="#737373"><Sparkles size={15} /></IconTile>
-                <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">Volver a producción</span>
+                <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{t('settings.demoRestore')}</span>
               </button>
             </>
           ) : (

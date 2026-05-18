@@ -15,13 +15,7 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { formatRelativeDate } from '@/lib/utils/dates'
 import { getCategoryMeta } from '@/lib/constants/categories'
 import { useTheme } from '@/components/ui/ThemeProvider'
-import { BILLING_PERIOD_LABELS } from '@/lib/constants/currencies'
 import { useBrandTint } from '@/lib/hooks/useBrandTint'
-
-const BILLING_PERIOD_LABELS_ES: Record<string, string> = {
-  monthly: 'Mensual', yearly: 'Anual', quarterly: 'Trimestral',
-  weekly: 'Semanal', custom: 'Personalizado',
-}
 import { useT, useLocale } from '@/lib/i18n/LocaleProvider'
 import type { SubscriptionWithCosts } from '@/types'
 
@@ -119,7 +113,7 @@ export default function SubscriptionDetailOverlay({ sub, onClose }: Props) {
     color: isDark ? statusCfg.darkColor : statusCfg.color,
     bg:    isDark ? statusCfg.darkBg    : statusCfg.bg,
   }
-  const billingLabel = (locale === 'es' ? BILLING_PERIOD_LABELS_ES : BILLING_PERIOD_LABELS)[sub.billing_period] ?? sub.billing_period
+  const billingLabel = t(`billing.${sub.billing_period}` as Parameters<typeof t>[0])
 
   const daysLabel =
     daysLeft === 0 ? t('dashboard.dueToday')

@@ -108,8 +108,8 @@ const en = {
     perYearShort: '/yr',
     activeOne: '1 active subscription',
     activeMany: '{count} active subscriptions',
-    totalPerMonth: 'per month',
-    totalPerYear: 'per year',
+    totalPerMonth: 'per month across',
+    totalPerYear: 'per year across',
   },
   detail: {
     category: 'Category',
@@ -500,8 +500,8 @@ const es: typeof en = {
     perYearShort: '/año',
     activeOne: '1 suscripción activa',
     activeMany: '{count} suscripciones activas',
-    totalPerMonth: 'al mes',
-    totalPerYear: 'al año',
+    totalPerMonth: 'al mes en',
+    totalPerYear: 'al año en',
   },
   detail: {
     category: 'Categoría',
