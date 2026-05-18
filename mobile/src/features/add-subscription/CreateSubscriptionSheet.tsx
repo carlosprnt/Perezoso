@@ -49,6 +49,7 @@ import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { DayRulerPicker } from './pickers/DayRulerPicker';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
+import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import type { Currency } from '../settings/CurrencySheet';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
@@ -617,37 +618,46 @@ export function CreateSubscriptionSheet() {
                 showsVerticalScrollIndicator={false}
               >
                 <View style={[styles.quickInputCard, { backgroundColor: colors.surfaceSecondary }]}>
-                  <TextInput
-                    style={[styles.quickNameInput, { color: colors.textPrimary }]}
-                    value={form.name}
-                    onChangeText={(t) => {
-                      setForm((f) => ({ ...f, name: t }));
-                    }}
-                    placeholder={t('form.subscriptionPlaceholder')}
-                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                    returnKeyType="done"
-                    autoCorrect={false}
-                    autoFocus={!prefill?.name}
-                  />
-                  <View style={styles.quickPriceRow}>
-                    <Pressable
-                      style={[styles.quickCurrencyPill, { backgroundColor: colors.surfaceTertiary }]}
-                      onPress={() => setCurrencySheetOpen(true)}
-                      hitSlop={8}
-                    >
-                      <Text style={[styles.quickCurrencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
-                      <ChevronDown size={14} color={colors.textMuted} strokeWidth={2.5} />
-                    </Pressable>
-                    <TextInput
-                      ref={priceInputRef}
-                      style={[styles.quickPriceInput, { color: colors.textPrimary }]}
-                      value={form.price}
-                      onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
-                      placeholder="0.00"
-                      placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                      keyboardType="decimal-pad"
-                      inputAccessoryViewID={PRICE_ACCESSORY_ID}
+                  <View style={styles.quickLogoRow}>
+                    <SubscriptionAvatar
+                      name={form.name}
+                      logoUrl={form.logoUrl || null}
+                      size="lg"
                     />
+                    <View style={styles.quickInputCol}>
+                      <TextInput
+                        style={[styles.quickNameInput, { color: colors.textPrimary }]}
+                        value={form.name}
+                        onChangeText={(t) => {
+                          setForm((f) => ({ ...f, name: t }));
+                        }}
+                        placeholder={t('form.subscriptionPlaceholder')}
+                        placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                        returnKeyType="done"
+                        autoCorrect={false}
+                        autoFocus={!prefill?.name}
+                      />
+                      <View style={styles.quickPriceRow}>
+                        <Pressable
+                          style={[styles.quickCurrencyPill, { backgroundColor: colors.surfaceTertiary }]}
+                          onPress={() => setCurrencySheetOpen(true)}
+                          hitSlop={8}
+                        >
+                          <Text style={[styles.quickCurrencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
+                          <ChevronDown size={14} color={colors.textMuted} strokeWidth={2.5} />
+                        </Pressable>
+                        <TextInput
+                          ref={priceInputRef}
+                          style={[styles.quickPriceInput, { color: colors.textPrimary }]}
+                          value={form.price}
+                          onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
+                          placeholder="0.00"
+                          placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                          keyboardType="decimal-pad"
+                          inputAccessoryViewID={PRICE_ACCESSORY_ID}
+                        />
+                      </View>
+                    </View>
                   </View>
                 </View>
 
@@ -734,35 +744,44 @@ export function CreateSubscriptionSheet() {
             >
               {/* Platform card */}
               <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
-                <TextInput
-                  style={[styles.platformName, { color: colors.textPrimary }]}
-                  value={form.name}
-                  onChangeText={(t) => {
-                    setForm((f) => ({ ...f, name: t }));
-                  }}
-                  placeholder={t('form.namePlaceholder')}
-                  placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                  returnKeyType="done"
-                  autoCorrect={false}
-                />
-                <View style={styles.priceRow}>
-                  <Pressable
-                    style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
-                    onPress={() => setCurrencySheetOpen(true)}
-                    hitSlop={8}
-                  >
-                    <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
-                    <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
-                  </Pressable>
-                  <TextInput
-                    style={[styles.priceInput, { color: colors.textPrimary }]}
-                    value={form.price}
-                    onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
-                    placeholder="0.00"
-                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                    keyboardType="decimal-pad"
-                    returnKeyType="done"
+                <View style={styles.platformLogoRow}>
+                  <SubscriptionAvatar
+                    name={form.name}
+                    logoUrl={form.logoUrl || null}
+                    size="md48"
                   />
+                  <View style={styles.platformInputCol}>
+                    <TextInput
+                      style={[styles.platformName, { color: colors.textPrimary }]}
+                      value={form.name}
+                      onChangeText={(t) => {
+                        setForm((f) => ({ ...f, name: t }));
+                      }}
+                      placeholder={t('form.namePlaceholder')}
+                      placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                      returnKeyType="done"
+                      autoCorrect={false}
+                    />
+                    <View style={styles.priceRow}>
+                      <Pressable
+                        style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
+                        onPress={() => setCurrencySheetOpen(true)}
+                        hitSlop={8}
+                      >
+                        <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(form.currency)}</Text>
+                        <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
+                      </Pressable>
+                      <TextInput
+                        style={[styles.priceInput, { color: colors.textPrimary }]}
+                        value={form.price}
+                        onChangeText={(t) => setForm((f) => ({ ...f, price: t }))}
+                        placeholder="0.00"
+                        placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                        keyboardType="decimal-pad"
+                        returnKeyType="done"
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
 
@@ -1208,6 +1227,15 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 22,
   },
+  quickLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  quickInputCol: {
+    flex: 1,
+    minWidth: 0,
+  },
   quickNameInput: {
     ...fontFamily.semiBold,
     fontSize: fontSize[32],
@@ -1343,6 +1371,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 11,
     paddingBottom: 13,
+  },
+  platformLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  platformInputCol: {
+    flex: 1,
+    minWidth: 0,
   },
   platformName: {
     ...fontFamily.semiBold,
