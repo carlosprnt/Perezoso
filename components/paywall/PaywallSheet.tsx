@@ -10,6 +10,7 @@ import { PAYWALL_COPY, PAYWALL_BENEFITS, type PaywallTrigger } from '@/lib/reven
 import { RC_CONFIG } from '@/lib/revenuecat/config'
 import { purchasePackage, restorePurchases, getCurrentOffering } from '@/lib/revenuecat/client'
 import { isCapacitor } from '@/lib/platform'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import Image from 'next/image'
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 type PricingPlan = 'annual' | 'monthly'
 
 export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Props) {
+  const t = useT()
   const [plan, setPlan]         = useState<PricingPlan>('annual')
   const [loading, setLoading]   = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -31,7 +33,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
   async function handlePurchase() {
     if (!isCapacitor()) {
       // Web: redirect to web checkout (future)
-      setError('La compra está disponible en la app de iOS o Android')
+      setError(t('paywall.webOnlyError'))
       return
     }
     setLoading(true)
@@ -41,7 +43,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
       await purchasePackage(packageId)
       onPurchaseSuccess()
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al procesar la compra'
+      const msg = e instanceof Error ? e.message : t('paywall.purchaseErrorDefault')
       // User cancelled — don't show error
       if (!msg.toLowerCase().includes('cancel')) setError(msg)
     } finally {
@@ -58,10 +60,10 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
       if (info && RC_CONFIG.ENTITLEMENT_PRO in (info.customerInfo?.entitlements?.active ?? {})) {
         onPurchaseSuccess()
       } else {
-        setError('No encontramos ninguna compra activa para restaurar')
+        setError(t('paywall.restoreNotFound'))
       }
     } catch {
-      setError('No se pudo restaurar la compra')
+      setError(t('paywall.restoreFailed'))
     } finally {
       setRestoring(false)
     }
@@ -133,15 +135,15 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
             <PlanCard
               selected={plan === 'annual'}
               onClick={() => setPlan('annual')}
-              label="Anual"
+              label={t('paywall.yearly')}
               price="19,99€ / año"
-              badge="Más popular"
-              perMonth="1,66€/mes"
+              badge={t('paywall.mostPopular')}
+              perMonth={t('paywall.perMonthShort').replace('{amount}', '1,66€')}
             />
             <PlanCard
               selected={plan === 'monthly'}
               onClick={() => setPlan('monthly')}
-              label="Mensual"
+              label={t('paywall.monthly')}
               price="2,99€ / mes"
             />
           </div>
@@ -161,7 +163,7 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
           >
             {loading
               ? <Loader2 size={18} className="animate-spin" />
-              : 'Continuar con Pro'}
+              : t('paywall.continue')}
           </button>
 
           {/* Restore */}
@@ -171,12 +173,12 @@ export default function PaywallSheet({ trigger, onClose, onPurchaseSuccess }: Pr
               disabled={restoring}
               className="w-full h-10 text-[13px] text-[#000000] font-medium disabled:opacity-50"
             >
-              {restoring ? 'Restaurando…' : 'Restaurar compra'}
+              {restoring ? t('paywall.restoring') : t('paywall.restore')}
             </button>
           )}
 
           <p className="text-[11px] text-[#8E8E93] text-center mt-1">
-            Cancela en cualquier momento desde Ajustes
+            {t('paywall.cancelInfo')}
           </p>
         </div>
       </motion.div>

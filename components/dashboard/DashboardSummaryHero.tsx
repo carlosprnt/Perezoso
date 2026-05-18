@@ -458,7 +458,7 @@ export default function DashboardSummaryHero({
             <button
               onClick={handleSavingsTap}
               className="inline align-baseline cursor-pointer select-none active:scale-95 transition-transform"
-              aria-label="Cambiar entre ahorro mensual y anual"
+              aria-label={t('dashboard.toggleSavingsAria')}
             >
               {showSkeleton ? (
                 <span

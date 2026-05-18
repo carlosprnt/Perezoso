@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/lib/i18n/LocaleProvider'
+import type { getT } from '@/lib/i18n/translations'
 import haptics from '@/lib/haptics'
 
 // ─── Floating logos (slide 0 hero) ───────────────────────────────────────────
@@ -71,28 +73,14 @@ interface Slide {
   body: string
 }
 
-const SLIDES: Slide[] = [
-  {
-    image: '/onboarding/01.png',
-    title: 'Todas tus suscripciones en un solo sitio',
-    body: 'Cuánto pagas al mes, qué se renueva esta semana y dónde puedes ahorrar.',
-  },
-  {
-    image: '/onboarding/02.png',
-    title: 'Calendario con próximas renovaciones',
-    body: 'Visualiza de un vistazo todo lo que se va a cobrar en los próximos días y meses.',
-  },
-  {
-    image: '/onboarding/03.png',
-    title: 'Anticípate a cada renovación',
-    body: 'Consulta tus próximos cobros y recibe avisos antes de que se renueven.',
-  },
-  {
-    image: '/onboarding/04.png',
-    title: 'Insights de gasto y sugerencias de ahorro',
-    body: 'Descubre patrones y recomendaciones para reducir lo que pagas cada mes sin renunciar a lo que importa.',
-  },
-]
+function buildSlides(t: ReturnType<typeof getT>): Slide[] {
+  return [
+    { image: '/onboarding/01.png', title: t('login.slide0Title'), body: t('login.slide0Body') },
+    { image: '/onboarding/02.png', title: t('login.slide1Title'), body: t('login.slide1Body') },
+    { image: '/onboarding/03.png', title: t('login.slide2Title'), body: t('login.slide2Body') },
+    { image: '/onboarding/04.png', title: t('login.slide3Title'), body: t('login.slide3Body') },
+  ]
+}
 
 // ─── Google button + SVG ─────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -110,10 +98,12 @@ function AuthButtons({
   isLoading,
   error,
   onGoogle,
+  t,
 }: {
   isLoading: boolean
   error: string | null
   onGoogle: () => void
+  t: ReturnType<typeof getT>
 }) {
   return (
     <div className="space-y-2">
@@ -125,7 +115,7 @@ function AuthButtons({
         {isLoading
           ? <span className="w-5 h-5 border-2 border-[#E8E8E8] border-t-[#000000] rounded-full animate-spin" />
           : <GoogleIcon />}
-        {isLoading ? 'Iniciando sesión…' : 'Continuar con Google'}
+        {isLoading ? t('login.continueGoogleLoading') : t('login.continueGoogle')}
       </button>
 
       <button
@@ -135,7 +125,7 @@ function AuthButtons({
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.05 12.536c-.024-2.422 1.977-3.586 2.068-3.643-1.127-1.65-2.881-1.875-3.505-1.9-1.495-.15-2.917.879-3.676.879-.757 0-1.933-.857-3.176-.833-1.635.025-3.142.948-3.984 2.411-1.697 2.94-.434 7.29 1.222 9.685.81 1.172 1.77 2.489 3.034 2.443 1.218-.05 1.679-.79 3.153-.79 1.474 0 1.888.79 3.178.764 1.311-.024 2.14-1.196 2.945-2.372.927-1.36 1.308-2.68 1.333-2.748-.03-.013-2.561-.983-2.592-3.896zm-2.39-7.168c.677-.821 1.135-1.956 1.009-3.091-.978.04-2.162.651-2.862 1.472-.627.728-1.176 1.891-1.028 3.007 1.091.085 2.203-.567 2.881-1.388z" />
         </svg>
-        Continuar con Apple
+        {t('login.continueApple')}
       </button>
 
       {error && (
@@ -143,9 +133,9 @@ function AuthButtons({
       )}
 
       <p className="text-[11px] text-[#8E8E93] text-center leading-relaxed pt-1">
-        Al continuar aceptas nuestros{' '}
-        <a href="/terms" className="underline">Términos</a>{' '}y la{' '}
-        <a href="/privacy" className="underline">Política de privacidad</a>.
+        {t('login.termsPrefix')}{' '}
+        <a href="/terms" className="underline">{t('login.termsLink')}</a>{' '}{t('login.privacyConjunction')}{' '}
+        <a href="/privacy" className="underline">{t('login.privacyLink')}</a>.
       </p>
     </div>
   )
@@ -153,6 +143,8 @@ function AuthButtons({
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function LoginScreen() {
+  const t = useT()
+  const SLIDES = buildSlides(t)
   const [slide, setSlide] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -656,10 +648,10 @@ export default function LoginScreen() {
                   transition={{ duration: 0.2 }}
                 >
                   <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">
-                    Empieza ahora
+                    {t('login.startNow')}
                   </h1>
                   <p className="text-[15px] text-[#000000] leading-relaxed mb-5">
-                    Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
+                    {t('login.startBody')}
                   </p>
                 </motion.div>
               )}
@@ -672,7 +664,7 @@ export default function LoginScreen() {
               <button
                 key={i}
                 onClick={() => goTo(i)}
-                aria-label={`Ir a la pantalla ${i + 1}`}
+                aria-label={t('login.pageDotAria').replace('{n}', String(i + 1))}
                 className="rounded-full transition-all"
                 style={{
                   width: i === slide ? 24 : 4,
@@ -690,13 +682,13 @@ export default function LoginScreen() {
                 onClick={openSignIn}
                 className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#000000] active:bg-[#F2F2F7] transition-colors"
               >
-                Iniciar sesión
+                {t('login.signInButton')}
               </button>
               <button
                 onClick={next}
                 className="flex-1 h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold active:bg-[#000000] transition-colors flex items-center justify-center gap-1.5"
               >
-                Continuar
+                {t('login.continueButton')}
                 <motion.span
                   animate={slide === 0 ? { x: [0, 5, 0] } : { x: 0 }}
                   transition={slide === 0 ? { duration: 2.8, repeat: Infinity, ease: 'easeInOut' } : {}}
@@ -756,17 +748,17 @@ export default function LoginScreen() {
         >
           <div className="w-full max-w-xl mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[17px] font-semibold text-[#000000]">Iniciar sesión</h3>
+              <h3 className="text-[17px] font-semibold text-[#000000]">{t('login.signInModalTitle')}</h3>
               <button
                 onClick={() => setSheetOpen(false)}
                 disabled={isLoading}
                 className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#616161] active:bg-[#E8E8E8] transition-colors"
-                aria-label="Cerrar"
+                aria-label={t('login.closeAria')}
               >
                 <X size={16} strokeWidth={2.5} />
               </button>
             </div>
-            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} t={t} />
           </div>
         </motion.div>
       )}

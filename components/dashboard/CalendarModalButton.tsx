@@ -23,7 +23,7 @@ export default function CalendarModalButton({
       <button
         onClick={() => setOpen(true)}
         className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F5F5F5] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#AEAEB2] active:opacity-70 transition-opacity"
-        aria-label="Abrir calendario"
+        aria-label="Open calendar"
       >
         <CalendarDays size={16} strokeWidth={2} />
       </button>

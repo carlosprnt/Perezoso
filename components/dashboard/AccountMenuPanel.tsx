@@ -74,7 +74,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
         <div className="grid grid-cols-2 gap-2">
           <DarkTile
             icon={<Settings size={22} strokeWidth={2} />}
-            label="Ajustes"
+            label={t('settings.title')}
             onClick={handleSettings}
           />
           <DarkTile
@@ -92,14 +92,14 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
                   Perezoso Plus
                 </p>
                 <p className="text-[13px] text-white/70 mt-1 leading-snug">
-                  Desbloquea todas las features
+                  {t('settings.upgradeSubtitle')}
                 </p>
               </div>
               <button
                 onClick={handleUpgrade}
                 className="h-10 px-5 rounded-full bg-white text-black text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
               >
-                Mejorar
+                {t('settings.upgradeButton')}
               </button>
             </div>
           ) : (
@@ -110,31 +110,31 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
                     Perezoso Plus
                   </p>
                   <p className="text-[13px] text-white/50 mt-1 leading-snug">
-                    Ya tienes la versión Pro
+                    {t('settings.proActive')}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowProManage(!showProManage)}
                   className="h-10 px-5 rounded-full bg-white/10 text-white text-[14px] font-semibold flex-shrink-0 active:bg-white/20 transition-colors"
                 >
-                  Gestionar
+                  {t('settings.proManage')}
                 </button>
               </div>
 
               {showProManage && (
                 <div className="mt-5 pt-5 border-t border-white/10">
                   <p className="text-[13px] font-semibold text-white mb-3">
-                    Tu plan incluye
+                    {t('settings.proYourPlanIncludes')}
                   </p>
                   <ul className="space-y-2.5 mb-5">
                     {[
-                      'Suscripciones ilimitadas',
-                      'Alertas de renovación personalizadas',
-                      'Recomendaciones de ahorro avanzadas',
-                      'Categorías personalizadas',
-                      'Calendario de pagos completo',
-                      'Detección de suscripciones por Gmail',
-                      'Soporte prioritario',
+                      t('settings.proBenefitUnlimited'),
+                      t('settings.proBenefitAlerts'),
+                      t('settings.proBenefitSavings'),
+                      t('settings.proBenefitCategories'),
+                      t('settings.proBenefitCalendar'),
+                      t('settings.proBenefitGmail'),
+                      t('settings.proBenefitSupport'),
                     ].map(benefit => (
                       <li key={benefit} className="flex items-start gap-2.5">
                         <Check size={14} strokeWidth={3} className="text-[#34C759] mt-0.5 flex-shrink-0" />
@@ -150,7 +150,7 @@ export default function AccountMenuPanel({ shareText }: { shareText?: string }) 
                     }}
                     className="w-full h-12 rounded-full text-[14px] font-semibold text-[#FCA5A5] bg-[#FCA5A5]/10 active:bg-[#FCA5A5]/20 transition-colors"
                   >
-                    Cancelar suscripción
+                    {t('settings.proCancel')}
                   </button>
                 </div>
               )}
