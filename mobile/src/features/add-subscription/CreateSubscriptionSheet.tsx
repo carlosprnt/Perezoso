@@ -15,7 +15,7 @@
 //  · Validation: name + price required; inline error banner above scroll
 //  · Submit: spinner → celebration card (fired 380ms after Modal closes)
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -43,7 +43,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
+import { AlertCircle, ChevronsUpDown, ChevronDown, Loader2, Minus, Plus, X } from 'lucide-react-native';
 
 import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
@@ -61,7 +61,8 @@ import { currencyCodeFromLabel } from '../../lib/formatting';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
-import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
+import { logoUrlFromDomain, findPlatformMatch } from '../../lib/constants/platforms';
+import { SubscriptionAvatar, type AvatarLoadStatus } from '../../components/SubscriptionAvatar';
 import * as Clipboard from 'expo-clipboard';
 import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
 import { CategoryPickerSheet } from '../../components/CategoryPickerSheet';
@@ -74,18 +75,12 @@ import type {
 } from '../subscriptions/types';
 
 // ─── Logo matching ──────────────────────────────────────────────────
-function matchPlatformLogo(name: string): string {
-  const q = name.trim().toLowerCase();
-  if (!q) return '';
-  for (const p of PLATFORMS) {
-    if (p.name.toLowerCase() === q) return logoUrlFromDomain(p.domain);
-    if (p.aliases?.some((a) => a.toLowerCase() === q)) return logoUrlFromDomain(p.domain);
-  }
-  for (const p of PLATFORMS) {
-    if (p.name.toLowerCase().includes(q) || q.includes(p.name.toLowerCase())) return logoUrlFromDomain(p.domain);
-    if (p.aliases?.some((a) => a.toLowerCase().includes(q) || q.includes(a.toLowerCase()))) return logoUrlFromDomain(p.domain);
-  }
-  return '';
+// Resolves a logo URL + the matched platform name (for the status text)
+// from a free-text query. Returns empty fields when no match.
+function matchPlatformLogo(name: string): { logoUrl: string; platformName: string } {
+  const match = findPlatformMatch(name);
+  if (!match) return { logoUrl: '', platformName: '' };
+  return { logoUrl: logoUrlFromDomain(match.platform.domain), platformName: match.platform.name };
 }
 
 const PRICE_ACCESSORY_ID = 'price-input-hide-bar';
@@ -393,6 +388,16 @@ export function CreateSubscriptionSheet() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Logo auto-suggest state ───────────────────────────────────────
+  // logoOverridden: true when the user has explicitly taken control of the
+  // logo (cleared the suggestion or pasted a manual URL). When true, we
+  // stop auto-suggesting from the typed name.
+  const [logoOverridden, setLogoOverridden] = useState<boolean>(Boolean(prefill?.logoUrl));
+  const [avatarLoadStatus, setAvatarLoadStatus] = useState<AvatarLoadStatus>('idle');
+  // Read existing subscription names from the store to warn about duplicates.
+  const existingSubs = useSubscriptionsStore((s) => s.subscriptions);
+  const existingNamesNorm = existingSubs.map((s) => s.name.trim().toLowerCase());
+
   // ── Step transition animation ─────────────────────────────────────
   const step1Opacity = useSharedValue(1);
   const step2TranslateY = useSharedValue(0);
@@ -415,6 +420,44 @@ export function CreateSubscriptionSheet() {
     [form],
   );
 
+  // ── Auto-suggest derived values ───────────────────────────────────
+  // Match the typed name against the catalog so the status text can name
+  // the matched platform. When the user has overridden the logo we still
+  // show the duplicate warning, but never re-suggest from the catalog.
+  const currentMatch = useMemo(() => {
+    if (logoOverridden) return null;
+    const trimmed = form.name.trim();
+    if (trimmed.length < 2) return null;
+    return findPlatformMatch(trimmed);
+  }, [form.name, logoOverridden]);
+
+  const normalizedName = form.name.trim().toLowerCase();
+  const isDuplicate = normalizedName.length > 0
+    && existingNamesNorm.includes(normalizedName);
+
+  // Status text below the name input. Order: duplicate > catalog match >
+  // image-loading > no-logo.
+  type LogoStatus =
+    | { kind: 'duplicate' }
+    | { kind: 'searching' }
+    | { kind: 'found'; platform: string }
+    | { kind: 'notFound' }
+    | null;
+  let logoStatus: LogoStatus = null;
+  if (isDuplicate) {
+    logoStatus = { kind: 'duplicate' };
+  } else if (currentMatch) {
+    if (avatarLoadStatus === 'error') {
+      logoStatus = { kind: 'notFound' };
+    } else if (avatarLoadStatus === 'loading') {
+      logoStatus = { kind: 'searching' };
+    } else {
+      logoStatus = { kind: 'found', platform: currentMatch.platform.name };
+    }
+  } else if (form.name.trim().length >= 2) {
+    logoStatus = { kind: 'notFound' };
+  }
+
   // ── Reset form whenever the sheet re-opens ────────────────────────
   // No custom animation — native iOS pageSheet owns the slide-up.
   useEffect(() => {
@@ -432,6 +475,8 @@ export function CreateSubscriptionSheet() {
       setIsSubmitting(false);
       setOpenDate(null);
       setOpenPicker(null);
+      setLogoOverridden(Boolean(prefill?.logoUrl));
+      setAvatarLoadStatus('idle');
       step1Opacity.value = 1;
       step2TranslateY.value = 0;
       if (prefill?.name) {
@@ -633,20 +678,73 @@ export function CreateSubscriptionSheet() {
                 showsVerticalScrollIndicator={false}
               >
                 <View style={[styles.quickInputCard, { backgroundColor: colors.surfaceSecondary }]}>
-                  <TextInput
-                    style={[styles.quickNameInput, { color: colors.textPrimary }]}
-                    value={form.name}
-                    onChangeText={(t) => {
-                      const logo = matchPlatformLogo(t);
-                      setForm((f) => ({ ...f, name: t, logoUrl: logo }));
-                    }}
-                    placeholder={t('form.subscriptionPlaceholder')}
-                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                    returnKeyType="done"
-                    autoCorrect={false}
-                    autoFocus={!prefill?.name}
-                  />
-                  <View style={styles.quickPriceRow}>
+                  <View style={styles.heroNameRow}>
+                    <View style={styles.heroAvatarWrap}>
+                      <SubscriptionAvatar
+                        name={form.name || ' '}
+                        logoUrl={form.logoUrl || null}
+                        size="md48"
+                        onLoadStatus={setAvatarLoadStatus}
+                      />
+                      {form.logoUrl ? (
+                        <Pressable
+                          onPress={() => {
+                            setLogoOverridden(true);
+                            setForm((f) => ({ ...f, logoUrl: '' }));
+                          }}
+                          hitSlop={8}
+                          accessibilityLabel="Clear logo"
+                          style={[styles.heroAvatarClear, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]}
+                        >
+                          <X size={9} color={isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
+                        </Pressable>
+                      ) : null}
+                    </View>
+                    <View style={styles.heroNameCol}>
+                      <TextInput
+                        style={[styles.quickNameInput, { color: colors.textPrimary }]}
+                        value={form.name}
+                        onChangeText={(t) => {
+                          if (logoOverridden) {
+                            setForm((f) => ({ ...f, name: t }));
+                          } else {
+                            const { logoUrl } = matchPlatformLogo(t);
+                            setForm((f) => ({ ...f, name: t, logoUrl }));
+                          }
+                        }}
+                        placeholder={t('form.subscriptionPlaceholder')}
+                        placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                        returnKeyType="done"
+                        autoCorrect={false}
+                        autoFocus={!prefill?.name}
+                      />
+                      {logoStatus && (
+                        <View style={styles.heroStatusRow}>
+                          {logoStatus.kind === 'searching' && (
+                            <Loader2 size={12} color={colors.textMuted} strokeWidth={2.5} />
+                          )}
+                          <Text
+                            numberOfLines={1}
+                            style={[
+                              styles.heroStatusText,
+                              {
+                                color:
+                                  logoStatus.kind === 'duplicate'
+                                    ? (isDark ? '#F59E0B' : '#D97706')
+                                    : colors.textMuted,
+                              },
+                            ]}
+                          >
+                            {logoStatus.kind === 'duplicate' && t('form.alreadyHaveSubscription')}
+                            {logoStatus.kind === 'searching' && t('form.logoSearching')}
+                            {logoStatus.kind === 'found' && t('form.logoFoundFrom', { platform: logoStatus.platform })}
+                            {logoStatus.kind === 'notFound' && t('form.logoNotFound')}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <View style={[styles.quickPriceRow, styles.heroPriceRowSpacing]}>
                     <Pressable
                       style={[styles.quickCurrencyPill, { backgroundColor: colors.surfaceTertiary }]}
                       onPress={() => setCurrencySheetOpen(true)}
@@ -751,19 +849,72 @@ export function CreateSubscriptionSheet() {
             >
               {/* Platform card */}
               <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
-                <TextInput
-                  style={[styles.platformName, { color: colors.textPrimary }]}
-                  value={form.name}
-                  onChangeText={(t) => {
-                    const logo = matchPlatformLogo(t);
-                    setForm((f) => ({ ...f, name: t, logoUrl: logo }));
-                  }}
-                  placeholder={t('form.namePlaceholder')}
-                  placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                  returnKeyType="done"
-                  autoCorrect={false}
-                />
-                <View style={styles.priceRow}>
+                <View style={styles.heroNameRow}>
+                  <View style={styles.heroAvatarWrap}>
+                    <SubscriptionAvatar
+                      name={form.name || ' '}
+                      logoUrl={form.logoUrl || null}
+                      size="md48"
+                      onLoadStatus={setAvatarLoadStatus}
+                    />
+                    {form.logoUrl ? (
+                      <Pressable
+                        onPress={() => {
+                          setLogoOverridden(true);
+                          setForm((f) => ({ ...f, logoUrl: '' }));
+                        }}
+                        hitSlop={8}
+                        accessibilityLabel="Clear logo"
+                        style={[styles.heroAvatarClear, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]}
+                      >
+                        <X size={9} color={isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  <View style={styles.heroNameCol}>
+                    <TextInput
+                      style={[styles.platformName, { color: colors.textPrimary }]}
+                      value={form.name}
+                      onChangeText={(t) => {
+                        if (logoOverridden) {
+                          setForm((f) => ({ ...f, name: t }));
+                        } else {
+                          const { logoUrl } = matchPlatformLogo(t);
+                          setForm((f) => ({ ...f, name: t, logoUrl }));
+                        }
+                      }}
+                      placeholder={t('form.namePlaceholder')}
+                      placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                      returnKeyType="done"
+                      autoCorrect={false}
+                    />
+                    {logoStatus && (
+                      <View style={styles.heroStatusRow}>
+                        {logoStatus.kind === 'searching' && (
+                          <Loader2 size={12} color={colors.textMuted} strokeWidth={2.5} />
+                        )}
+                        <Text
+                          numberOfLines={1}
+                          style={[
+                            styles.heroStatusText,
+                            {
+                              color:
+                                logoStatus.kind === 'duplicate'
+                                  ? (isDark ? '#F59E0B' : '#D97706')
+                                  : colors.textMuted,
+                            },
+                          ]}
+                        >
+                          {logoStatus.kind === 'duplicate' && t('form.alreadyHaveSubscription')}
+                          {logoStatus.kind === 'searching' && t('form.logoSearching')}
+                          {logoStatus.kind === 'found' && t('form.logoFoundFrom', { platform: logoStatus.platform })}
+                          {logoStatus.kind === 'notFound' && t('form.logoNotFound')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <View style={[styles.priceRow, styles.heroPriceRowSpacing]}>
                   <Pressable
                     style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
                     onPress={() => setCurrencySheetOpen(true)}
@@ -1007,7 +1158,10 @@ export function CreateSubscriptionSheet() {
                       <Pressable
                         onPress={async () => {
                           const clip = await Clipboard.getStringAsync();
-                          if (clip) setForm((f) => ({ ...f, logoUrl: clip.trim() }));
+                          if (clip) {
+                            setLogoOverridden(true);
+                            setForm((f) => ({ ...f, logoUrl: clip.trim() }));
+                          }
                         }}
                         hitSlop={8}
                       >
@@ -1018,7 +1172,10 @@ export function CreateSubscriptionSheet() {
                         <TextInput
                           style={[styles.urlInput, { color: colors.textPrimary }]}
                           value={form.logoUrl}
-                          onChangeText={(t) => setForm((f) => ({ ...f, logoUrl: t }))}
+                          onChangeText={(t) => {
+                            setLogoOverridden(true);
+                            setForm((f) => ({ ...f, logoUrl: t }));
+                          }}
                           placeholder="https://..."
                           placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
                           keyboardType="url"
@@ -1027,7 +1184,10 @@ export function CreateSubscriptionSheet() {
                           returnKeyType="done"
                         />
                         <Pressable
-                          onPress={() => setForm((f) => ({ ...f, logoUrl: '' }))}
+                          onPress={() => {
+                            setLogoOverridden(true);
+                            setForm((f) => ({ ...f, logoUrl: '' }));
+                          }}
                           hitSlop={8}
                           style={styles.urlClear}
                         >
@@ -1228,10 +1388,9 @@ const styles = StyleSheet.create({
   },
   quickNameInput: {
     ...fontFamily.semiBold,
-    fontSize: fontSize[32],
+    fontSize: fontSize[24],
     color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 14,
+    letterSpacing: -0.5,
     padding: 0,
   },
   quickPriceRow: {
@@ -1362,12 +1521,55 @@ const styles = StyleSheet.create({
     paddingTop: 11,
     paddingBottom: 13,
   },
+
+  // Shared hero-card pieces (avatar + name + status) used by both
+  // Quick Add (step 1) and the full form (step 2).
+  heroNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  heroAvatarWrap: {
+    position: 'relative',
+  },
+  heroAvatarClear: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  heroNameCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  heroStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  heroStatusText: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    flexShrink: 1,
+  },
+  heroPriceRowSpacing: {
+    marginTop: 12,
+  },
   platformName: {
     ...fontFamily.semiBold,
     fontSize: fontSize[20],
     color: '#000000',
     letterSpacing: -0.3,
-    marginBottom: 10,
     padding: 0,
   },
   priceRow: {

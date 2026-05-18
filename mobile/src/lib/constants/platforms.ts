@@ -165,6 +165,60 @@ export function findPlatform(query: string): Platform | undefined {
   return _idIndex.get(q) ?? _nameIndex.get(q);
 }
 
+export type PlatformMatchType = 'exact' | 'prefix' | 'contains';
+
+export interface PlatformMatch {
+  platform: Platform;
+  matchType: PlatformMatchType;
+}
+
+/**
+ * Tiered fuzzy match for a free-text query against the platform catalog.
+ * Returns null for queries shorter than 2 characters to avoid spurious matches.
+ * Tiers (in order): exact → prefix → contains.
+ */
+export function findPlatformMatch(query: string): PlatformMatch | null {
+  _buildIndex();
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return null;
+
+  // Tier 1: exact match (name, id, alias).
+  const exact = _idIndex.get(q) ?? _nameIndex.get(q);
+  if (exact) return { platform: exact, matchType: 'exact' };
+
+  // Tier 2: prefix match. Platform name (or alias) starts with query, or
+  // — when query is long enough — query starts with platform name.
+  for (const p of PLATFORMS) {
+    const name = p.name.toLowerCase();
+    if (name.startsWith(q)) return { platform: p, matchType: 'prefix' };
+    if (p.aliases?.some((a) => a.toLowerCase().startsWith(q))) {
+      return { platform: p, matchType: 'prefix' };
+    }
+    if (q.length >= 4) {
+      if (q.startsWith(name)) return { platform: p, matchType: 'prefix' };
+      if (p.aliases?.some((a) => q.startsWith(a.toLowerCase()))) {
+        return { platform: p, matchType: 'prefix' };
+      }
+    }
+  }
+
+  // Tier 3: contains. Only when query is at least 3 chars.
+  if (q.length >= 3) {
+    for (const p of PLATFORMS) {
+      const name = p.name.toLowerCase();
+      if (name.includes(q) || q.includes(name)) return { platform: p, matchType: 'contains' };
+      if (p.aliases?.some((a) => {
+        const al = a.toLowerCase();
+        return al.includes(q) || q.includes(al);
+      })) {
+        return { platform: p, matchType: 'contains' };
+      }
+    }
+  }
+
+  return null;
+}
+
 /**
  * Resolve the best logo URL for a subscription.
  * Priority: explicit logoUrl > platform catalog match > null (initials fallback)

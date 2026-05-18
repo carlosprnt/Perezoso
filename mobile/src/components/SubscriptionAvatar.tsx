@@ -8,7 +8,7 @@
 // With image: border border-[#E8E8E8] dark:border-[#3A3A3C] bg-white p-1.5
 // Initials: deterministic pastel, same border
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, Image, type ViewStyle, type StyleProp } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { fontFamily, fontSize } from '../design/typography';
@@ -16,6 +16,8 @@ import { radius } from '../design/radius';
 import { borderWidth } from '../design/borders';
 import { getAvatarPastel, getInitials } from './LogoAvatar';
 import { resolvePlatformLogoUrl } from '../lib/constants/platforms';
+
+export type AvatarLoadStatus = 'idle' | 'loading' | 'loaded' | 'error';
 
 type AvatarSize = 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl';
 
@@ -41,6 +43,8 @@ interface SubscriptionAvatarProps {
   /** Override corner radius. Default: radius.xl (12px) */
   cornerRadius?: number;
   style?: StyleProp<ViewStyle>;
+  /** Notify parent when the image load state changes. */
+  onLoadStatus?: (status: AvatarLoadStatus) => void;
 }
 
 export function SubscriptionAvatar({
@@ -50,6 +54,7 @@ export function SubscriptionAvatar({
   size = 'md',
   cornerRadius = radius.xl,
   style,
+  onLoadStatus,
 }: SubscriptionAvatarProps) {
   const { isDark } = useTheme();
   const config = SIZE_CONFIG[size];
@@ -59,6 +64,16 @@ export function SubscriptionAvatar({
   const resolvedUrl = useMemo(() => {
     return resolvePlatformLogoUrl(name, logoUrl, simpleIconSlug);
   }, [name, logoUrl, simpleIconSlug]);
+
+  // Reset the error flag when the URL changes so we re-attempt with the new
+  // source. Also emit the load transitions to the parent when subscribed.
+  useEffect(() => {
+    setImgError(false);
+  }, [resolvedUrl]);
+  useEffect(() => {
+    if (!onLoadStatus) return;
+    onLoadStatus(resolvedUrl ? 'loading' : 'idle');
+  }, [resolvedUrl, onLoadStatus]);
 
   const borderColor = isDark ? '#3A3A3C' : '#E8E8E8';
 
@@ -96,7 +111,11 @@ export function SubscriptionAvatar({
             height: imageSize,
           }}
           resizeMode="contain"
-          onError={() => setImgError(true)}
+          onLoad={() => onLoadStatus?.('loaded')}
+          onError={() => {
+            setImgError(true);
+            onLoadStatus?.('error');
+          }}
         />
       </View>
     );
