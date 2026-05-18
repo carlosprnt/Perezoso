@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
-
-export type AvatarLoadStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
 interface SubscriptionAvatarProps {
   name: string
@@ -14,8 +12,6 @@ interface SubscriptionAvatarProps {
   size?: 'sm' | 'sm40' | 'md' | 'md48' | 'lg' | 'xl'
   /** Override corner radius class. Defaults to 'rounded-xl' (12px). Use e.g. 'rounded-[8px]' for 8px. */
   corner?: string
-  /** Notify parent when the image load state changes. */
-  onLoadStatus?: (status: AvatarLoadStatus) => void
 }
 
 const SIZE = {
@@ -35,8 +31,8 @@ export default function SubscriptionAvatar({
   simpleIconSlug,
   size = 'md',
   corner = 'rounded-xl',
-  onLoadStatus,
 }: SubscriptionAvatarProps) {
+  const [imgError, setImgError] = useState(false)
   const { cls, text } = SIZE[size]
   const { bg, fg } = getAvatarPastel(name)
   const initials = getInitials(name)
@@ -50,17 +46,6 @@ export default function SubscriptionAvatar({
       ? `${SIMPLE_ICONS_CDN}/${simpleIconSlug}`
       : null
 
-  // Reset the error flag whenever the URL we attempt changes so the parent
-  // (and this component) re-tries with the new source.
-  const [imgError, setImgError] = useState(false)
-  useEffect(() => { setImgError(false) }, [resolvedUrl])
-
-  // Emit load-state transitions to the parent when a callback is provided.
-  useEffect(() => {
-    if (!onLoadStatus) return
-    onLoadStatus(resolvedUrl ? 'loading' : 'idle')
-  }, [resolvedUrl, onLoadStatus])
-
   if (resolvedUrl && !imgError) {
     return (
       <div
@@ -71,11 +56,7 @@ export default function SubscriptionAvatar({
           src={resolvedUrl}
           alt={name}
           className="block w-full h-full object-contain"
-          onLoad={() => onLoadStatus?.('loaded')}
-          onError={() => {
-            setImgError(true)
-            onLoadStatus?.('error')
-          }}
+          onError={() => setImgError(true)}
           loading="lazy"
         />
       </div>

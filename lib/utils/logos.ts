@@ -43,24 +43,3 @@ export function getAvatarPastel(name: string): { bg: string; fg: string } {
 export function getAvatarColor(name: string): string {
   return getAvatarPastel(name).bg
 }
-
-const SIMPLE_ICONS_CDN = 'https://cdn.simpleicons.org'
-
-/**
- * Derives a Simple Icons CDN slug from a subscription name.
- * "Photoshop" → "photoshop", "Apple Music" → "applemusic".
- * Returns an empty string when normalisation produces nothing usable.
- */
-export function deriveSimpleIconSlug(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
-}
-
-/**
- * Best-effort guess at a Simple Icons CDN URL for an arbitrary subscription name.
- * The CDN responds 404 for unknown slugs; callers should handle the error.
- */
-export function guessSimpleIconUrl(name: string): string | null {
-  const slug = deriveSimpleIconSlug(name)
-  if (slug.length < 2) return null
-  return `${SIMPLE_ICONS_CDN}/${slug}`
-}
