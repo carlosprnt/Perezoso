@@ -422,6 +422,61 @@ export function resolvePlatformFromSubscriptionName(name: string): PlatformPrese
   })
 }
 
+export type PlatformMatchType = 'exact' | 'prefix' | 'contains'
+
+export interface PlatformMatch {
+  platform: PlatformPreset
+  matchType: PlatformMatchType
+}
+
+/**
+ * Tiered fuzzy match for a free-text query against the platform catalog.
+ * Returns null for queries shorter than 2 characters to avoid spurious matches.
+ * Tiers (in order): exact → prefix → contains.
+ */
+export function findPlatformMatch(query: string): PlatformMatch | null {
+  const q = query.trim().toLowerCase()
+  if (q.length < 2) return null
+
+  // Tier 1: exact match on name or any searchTerm.
+  for (const p of PLATFORMS) {
+    if (p.name.toLowerCase() === q) return { platform: p, matchType: 'exact' }
+    if (p.searchTerms?.some(t => t.toLowerCase() === q)) return { platform: p, matchType: 'exact' }
+  }
+
+  // Tier 2: prefix match. Platform name (or searchTerm) starts with query, or
+  // — when query is long enough — query starts with platform name.
+  for (const p of PLATFORMS) {
+    const name = p.name.toLowerCase()
+    if (name.startsWith(q)) return { platform: p, matchType: 'prefix' }
+    if (p.searchTerms?.some(t => t.toLowerCase().startsWith(q))) {
+      return { platform: p, matchType: 'prefix' }
+    }
+    if (q.length >= 4) {
+      if (q.startsWith(name)) return { platform: p, matchType: 'prefix' }
+      if (p.searchTerms?.some(t => q.startsWith(t.toLowerCase()))) {
+        return { platform: p, matchType: 'prefix' }
+      }
+    }
+  }
+
+  // Tier 3: contains. Only when query is at least 3 chars.
+  if (q.length >= 3) {
+    for (const p of PLATFORMS) {
+      const name = p.name.toLowerCase()
+      if (name.includes(q) || q.includes(name)) return { platform: p, matchType: 'contains' }
+      if (p.searchTerms?.some(t => {
+        const tl = t.toLowerCase()
+        return tl.includes(q) || q.includes(tl)
+      })) {
+        return { platform: p, matchType: 'contains' }
+      }
+    }
+  }
+
+  return null
+}
+
 /**
  * Resolve the best logo URL for a subscription given its stored logo_url and name.
  * Priority: stored URL → catalog match via name → null (renders initials)

@@ -175,6 +175,10 @@ const en = {
     reminderDay: 'day',
     reminderDays: 'days',
     subscriptionName: 'Subscription name',
+    logoFoundFrom: 'This logo was gotten from {platform}',
+    logoSearching: 'Searching for logo…',
+    logoNotFound: "We couldn't find a logo, so we used initials",
+    alreadyHaveSubscription: 'You already have this subscription',
   },
   picker: {
     searchGmail: 'Search in Gmail',
@@ -469,6 +473,10 @@ const es: typeof en = {
     reminderDay: 'día',
     reminderDays: 'días',
     subscriptionName: 'Nombre suscripción',
+    logoFoundFrom: 'Este logo se obtuvo de {platform}',
+    logoSearching: 'Buscando logo…',
+    logoNotFound: 'No encontramos un logo, usamos iniciales',
+    alreadyHaveSubscription: 'Ya tienes esta suscripción',
   },
   picker: {
     searchGmail: 'Buscar en Gmail',
