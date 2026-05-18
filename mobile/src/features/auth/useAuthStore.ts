@@ -13,7 +13,6 @@
 //      sign-out events flow back into the UI.
 
 import { create } from 'zustand';
-import { Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -53,19 +52,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       scheme: 'perezoso',
       path: 'auth/callback',
     });
-
-    // DEBUG: show the exact redirectTo on screen so we can whitelist it
-    // in Supabase. Wait for the user to dismiss before proceeding.
-    await new Promise<void>((resolve) => {
-      Alert.alert(
-        'DEBUG redirectTo',
-        redirectTo,
-        [{ text: 'OK', onPress: () => resolve() }],
-        { cancelable: false },
-      );
-    });
-
-    console.log('[auth] redirectTo =', redirectTo);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
