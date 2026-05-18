@@ -618,6 +618,10 @@ export function CreateSubscriptionSheet() {
                 showsVerticalScrollIndicator={false}
               >
                 <View style={[styles.quickInputCard, { backgroundColor: colors.surfaceSecondary }]}>
+                  {/* DEBUG MARKER — remove after confirming new bundle loads */}
+                  <View style={{ backgroundColor: '#FF00AA', padding: 8, marginBottom: 8 }}>
+                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 }}>NUEVO BUILD · LOGO PREVIEW v1</Text>
+                  </View>
                   <View style={styles.quickLogoRow}>
                     <SubscriptionAvatar
                       name={form.name}
@@ -744,6 +748,10 @@ export function CreateSubscriptionSheet() {
             >
               {/* Platform card */}
               <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
+                {/* DEBUG MARKER — remove after confirming new bundle loads */}
+                <View style={{ backgroundColor: '#FF00AA', padding: 6, marginBottom: 6 }}>
+                  <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 12 }}>NUEVO BUILD · STEP 2</Text>
+                </View>
                 <View style={styles.platformLogoRow}>
                   <SubscriptionAvatar
                     name={form.name}
