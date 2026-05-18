@@ -63,14 +63,21 @@ func loadWidgetData() -> WidgetSharedData? {
 
 // MARK: - Sample data for previews
 
+private func sampleDate(daysFromNow: Int) -> String {
+    let fmt = DateFormatter()
+    fmt.dateFormat = "yyyy-MM-dd"
+    let date = Calendar.current.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
+    return fmt.string(from: date)
+}
+
 let sampleSubscriptions: [WidgetSubscription] = [
-    WidgetSubscription(id: "1", name: "Netflix", price: 15.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: "2026-04-28", status: "active", category: "streaming", cardColor: nil, monthlyEquivalent: 15.99, logoUrl: nil),
-    WidgetSubscription(id: "2", name: "Spotify", price: 9.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: "2026-05-01", status: "active", category: "music", cardColor: nil, monthlyEquivalent: 9.99, logoUrl: nil),
-    WidgetSubscription(id: "3", name: "iCloud+", price: 2.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: "2026-05-03", status: "active", category: "cloud", cardColor: nil, monthlyEquivalent: 2.99, logoUrl: nil),
-    WidgetSubscription(id: "4", name: "ChatGPT Plus", price: 20.00, currency: "EUR", billingPeriod: "monthly", nextBillingDate: "2026-05-05", status: "active", category: "ai", cardColor: nil, monthlyEquivalent: 20.00, logoUrl: nil),
+    WidgetSubscription(id: "1", name: "Netflix", price: 15.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: sampleDate(daysFromNow: 3), status: "active", category: "streaming", cardColor: nil, monthlyEquivalent: 15.99, logoUrl: nil),
+    WidgetSubscription(id: "2", name: "Spotify", price: 9.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: sampleDate(daysFromNow: 7), status: "active", category: "music", cardColor: nil, monthlyEquivalent: 9.99, logoUrl: nil),
+    WidgetSubscription(id: "3", name: "iCloud+", price: 2.99, currency: "EUR", billingPeriod: "monthly", nextBillingDate: sampleDate(daysFromNow: 12), status: "active", category: "cloud", cardColor: nil, monthlyEquivalent: 2.99, logoUrl: nil),
+    WidgetSubscription(id: "4", name: "ChatGPT Plus", price: 20.00, currency: "EUR", billingPeriod: "monthly", nextBillingDate: sampleDate(daysFromNow: 18), status: "active", category: "ai", cardColor: nil, monthlyEquivalent: 20.00, logoUrl: nil),
 ]
 
-let sampleData = WidgetSharedData(subscriptions: sampleSubscriptions, currency: "EUR", updatedAt: "2026-04-23T12:00:00Z")
+let sampleData = WidgetSharedData(subscriptions: sampleSubscriptions, currency: "EUR", updatedAt: ISO8601DateFormatter().string(from: Date()))
 
 // MARK: - Logo downloading for widgets
 

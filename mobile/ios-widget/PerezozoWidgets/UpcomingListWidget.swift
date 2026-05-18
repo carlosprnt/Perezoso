@@ -18,6 +18,7 @@ struct UpcomingListProvider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (UpcomingListEntry) -> Void) {
         let data = loadWidgetData()
         let subs = Array((data?.subscriptions ?? sampleSubscriptions)
+            .filter { $0.daysUntilNext >= 0 }
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
             .prefix(3))
         downloadLogos(for: subs) { logos in
@@ -28,6 +29,7 @@ struct UpcomingListProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<UpcomingListEntry>) -> Void) {
         let data = loadWidgetData()
         let subs = Array((data?.subscriptions ?? [])
+            .filter { $0.daysUntilNext >= 0 }
             .sorted { $0.daysUntilNext < $1.daysUntilNext }
             .prefix(3))
         downloadLogos(for: subs) { logos in
