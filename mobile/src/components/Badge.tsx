@@ -12,6 +12,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { fontFamily, fontSize, lineHeight } from '../design/typography';
 import { radius } from '../design/radius';
 import { borderWidth } from '../design/borders';
+import { useT } from '../lib/i18n/LocaleProvider';
 
 // ─── Status Badge ───────────────────────────────────────────────────
 
@@ -49,15 +50,10 @@ const STATUS_COLORS: Record<SubscriptionStatus, {
   },
 };
 
-const STATUS_LABELS: Record<SubscriptionStatus, string> = {
-  active: 'Activa',
-  trial: 'Prueba',
-  paused: 'Pausada',
-  cancelled: 'Cancelada',
-};
-
 export function StatusBadge({ status }: StatusBadgeProps) {
   const colors = STATUS_COLORS[status];
+  const t = useT();
+  const label = t(`status.${status}`);
 
   return (
     <View
@@ -70,7 +66,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       ]}
     >
       <Text style={[styles.badgeText, { color: colors.text }]}>
-        {STATUS_LABELS[status]}
+        {label}
       </Text>
     </View>
   );

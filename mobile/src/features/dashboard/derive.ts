@@ -113,20 +113,9 @@ export function deriveHighestCost(subs: Subscription[]): TopSubscription | null 
 }
 
 // ─── Top category summary for the InsightCards row ──────────────────
-const CATEGORY_LABELS: Record<string, string> = {
-  streaming: 'Streaming',
-  music: 'Música',
-  productivity: 'Productividad',
-  cloud: 'Cloud',
-  ai: 'IA',
-  health: 'Salud',
-  gaming: 'Gaming',
-  education: 'Educación',
-  mobility: 'Movilidad',
-  home: 'Hogar',
-  other: 'Otros',
-};
-
+// `name` is set to the raw category key; consumers are expected to
+// translate via t(`category.${name}`) so the label follows the active
+// locale.
 export function deriveTopCategory(subs: Subscription[], currency = 'EUR'): {
   name: string;
   category: string;
@@ -139,7 +128,7 @@ export function deriveTopCategory(subs: Subscription[], currency = 'EUR'): {
   const top = cats[0];
   const count = activeOnly(subs).filter((s) => s.category === top.category).length;
   return {
-    name: CATEGORY_LABELS[top.category] ?? top.category,
+    name: top.category,
     category: top.category,
     monthlyCost: top.monthlyCost,
     currency,

@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamily, fontSize } from '../../../design/typography';
 import { useTheme } from '../../../design/useTheme';
 import { haptic } from '../../../lib/haptics';
+import { useT } from '../../../lib/i18n/LocaleProvider';
 
 const TICKS_PER_DAY = 4;
 const TICK_W = 8;
@@ -73,6 +74,7 @@ interface Props {
 
 export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }: Props) {
   const { isDark, colors } = useTheme();
+  const t = useT();
   const prevIdx = useRef(0);
   const [halfWidth, setHalfWidth] = useState(0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -138,7 +140,7 @@ export function DayRulerPicker({ value, onChange, onTapLabel, compact = false }:
           <Text style={[styles.monthLabel, { fontSize: dateFontSize, color: textColor }]}>{capitalMonth}</Text>
         </View>
         <Text style={[styles.renewalLabel, compact && { fontSize: fontSize[13], marginBottom: 12 }]}>
-          Próxima renovación
+          {t('create.nextRenewal')}
         </Text>
       </Pressable>
 

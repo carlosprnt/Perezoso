@@ -27,7 +27,6 @@ import { LogoAvatar } from '../../components/LogoAvatar';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
-import { STATUS_LABELS, CATEGORY_LABELS } from '../subscriptions/types';
 import type { Subscription } from '../subscriptions/types';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import {
@@ -37,7 +36,6 @@ import {
   billingProgress,
   daysUntil,
   daysLabel,
-  BILLING_PERIOD_LABELS,
   billingFrequencyLabel,
   toYearly,
   toMonthly,
@@ -185,7 +183,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
           {/* Status badge */}
           <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22` }]}>
             <Text style={[styles.statusBadgeText, { color: statusColor }]}>
-              {STATUS_LABELS[sub.status]}
+              {t(`status.${sub.status}`)}
             </Text>
           </View>
         </View>
@@ -288,7 +286,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
             <DataRow
               icon={<Tag size={iconSize} color={iconColor} strokeWidth={2} />}
               label={t('form.category')}
-              value={CATEGORY_LABELS[sub.category] ?? sub.category}
+              value={t(`category.${sub.category}`)}
               valueBold
               labelColor={colors.textMuted}
               valueColor={colors.textPrimary}

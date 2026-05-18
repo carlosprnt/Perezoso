@@ -10,6 +10,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Lock } from 'lucide-react-native';
 import { useTheme } from '../../design/useTheme';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { fontFamily, fontSize, lineHeight } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { shadows } from '../../design/shadows';
@@ -19,7 +20,6 @@ import { haptic } from '../../lib/haptics';
 import { formatPrice, billingLabel, daysUntilDate, renewalText, formatBillingDate, currencyCodeFromLabel } from '../../lib/formatting';
 import { usePreferencesStore } from '../settings/useSettingsStore';
 import type { Subscription } from './types';
-import { CATEGORY_LABELS, STATUS_LABELS } from './types';
 
 interface WalletCardProps {
   subscription: Subscription;
@@ -42,6 +42,7 @@ function billingProgress(period: string, intervalCount: number, nextDate: string
 
 export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   const { colors, isDark } = useTheme();
+  const t = useT();
   const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
   const displayCurrency = sub.currency || globalCurrency;
   const days = daysUntilDate(sub.next_billing_date);
@@ -83,19 +84,19 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           </Text>
           <View style={styles.metaRow}>
             <Text style={[styles.category, { color: colors.textMuted }]}>
-              {CATEGORY_LABELS[sub.category] ?? sub.category}
+              {t(`category.${sub.category}`)}
             </Text>
             {sub.status !== 'active' && (
               <>
                 <Text style={[styles.metaSeparator, { color: colors.textMuted }]}> · </Text>
                 <Text style={[styles.statusLabel, { color: statusColor }]}>
-                  {STATUS_LABELS[sub.status]}
+                  {t(`status.${sub.status}`)}
                 </Text>
               </>
             )}
             {sub.is_shared && (
               <Text style={[styles.shared, { color: colors.textMuted }]}>
-                {' '}· Compartida
+                {' '}· {t('wallet.shared')}
               </Text>
             )}
           </View>
@@ -122,7 +123,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           <View style={styles.progressSection}>
             <View style={styles.renewalRow}>
               <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-                Siguiente cobro
+                {t('wallet.nextCharge')}
               </Text>
               <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
                 {formatBillingDate(sub.next_billing_date)}
@@ -158,6 +159,7 @@ interface LockedWalletCardProps {
 
 export function LockedWalletCard({ subscription: sub, onPress }: LockedWalletCardProps) {
   const { colors, isDark } = useTheme();
+  const t = useT();
 
   return (
     <Pressable
@@ -184,14 +186,14 @@ export function LockedWalletCard({ subscription: sub, onPress }: LockedWalletCar
             {sub.name}
           </Text>
           <Text style={[styles.category, { color: isDark ? '#3A3A3C' : '#C7C7CC' }]}>
-            Suscripción bloqueada
+            {t('wallet.locked')}
           </Text>
         </View>
         <Lock size={18} color={isDark ? '#48484A' : '#AEAEB2'} strokeWidth={2.2} />
       </View>
       <View style={lockedStyles.ctaRow}>
         <Text style={[lockedStyles.ctaText, { color: isDark ? '#8E8E93' : '#6B6B6B' }]}>
-          Hazte Pro para desbloquear
+          {t('wallet.unlockPro')}
         </Text>
       </View>
     </Pressable>

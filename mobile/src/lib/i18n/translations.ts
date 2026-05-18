@@ -554,6 +554,27 @@ export const resources = {
       'reminder.1day': '1 día antes',
       'reminder.3days': '3 días antes',
       'reminder.7days': '7 días antes',
+
+      // ── Demo sheet ──
+      'demo.real.title': 'Mi cuenta',
+      'demo.real.description': 'Tus suscripciones reales. Añadir, editar y eliminar se guarda en tu cuenta.',
+      'demo.empty.title': 'Demo · Vacío',
+      'demo.empty.description': 'Sin suscripciones. Estado inicial tras el registro.',
+      'demo.basic.title': 'Demo · Básico',
+      'demo.basic.description': '10 suscripciones activas, sin Perezoso Plus.',
+      'demo.pro.title': 'Demo · Pro',
+      'demo.pro.description': '20 suscripciones activas con Perezoso Plus.',
+
+      // ── Wallet card ──
+      'wallet.shared': 'Compartida',
+      'wallet.nextCharge': 'Siguiente cobro',
+      'wallet.locked': 'Suscripción bloqueada',
+      'wallet.unlockPro': 'Hazte Pro para desbloquear',
+
+      // ── Savings paywall ──
+      'savings.moreOne': 'sugerencia más',
+      'savings.moreMany': 'sugerencias más',
+      'savings.paywallTeaser': 'Hazte Pro para desbloquear todas las recomendaciones de ahorro',
     },
   },
   en: {
@@ -1083,6 +1104,24 @@ export const resources = {
       'reminder.1day': '1 day before',
       'reminder.3days': '3 days before',
       'reminder.7days': '7 days before',
+
+      'demo.real.title': 'My account',
+      'demo.real.description': 'Your real subscriptions. Adding, editing and deleting is saved to your account.',
+      'demo.empty.title': 'Demo · Empty',
+      'demo.empty.description': 'No subscriptions. Initial state after sign-up.',
+      'demo.basic.title': 'Demo · Basic',
+      'demo.basic.description': '10 active subscriptions, no Perezoso Plus.',
+      'demo.pro.title': 'Demo · Pro',
+      'demo.pro.description': '20 active subscriptions with Perezoso Plus.',
+
+      'wallet.shared': 'Shared',
+      'wallet.nextCharge': 'Next charge',
+      'wallet.locked': 'Subscription locked',
+      'wallet.unlockPro': 'Go Pro to unlock',
+
+      'savings.moreOne': 'more suggestion',
+      'savings.moreMany': 'more suggestions',
+      'savings.paywallTeaser': 'Go Pro to unlock all savings recommendations',
     },
   },
 } as const;

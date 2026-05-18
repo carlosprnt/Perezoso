@@ -45,24 +45,3 @@ export type SortMode =
   | 'recently_added'
   | 'next_renewal';
 
-export const CATEGORY_LABELS: Record<string, string> = {
-  streaming: 'Streaming',
-  music: 'Música',
-  productivity: 'Productividad',
-  cloud: 'Cloud',
-  ai: 'IA',
-  health: 'Salud',
-  gaming: 'Gaming',
-  education: 'Educación',
-  mobility: 'Movilidad',
-  home: 'Hogar',
-  other: 'Otros',
-};
-
-export const STATUS_LABELS: Record<string, string> = {
-  active: 'Activa',
-  trial: 'Prueba',
-  paused: 'Pausada',
-  cancelled: 'Cancelada',
-  ended: 'Finalizado',
-};

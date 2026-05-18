@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from 'react';
 import {
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -46,6 +47,7 @@ export interface Currency {
 const MOST_USED_CODES = ['EUR', 'USD', 'GBP', 'JPY', 'CAD'];
 
 const ALL_CURRENCIES: Currency[] = [
+  { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ', label: 'د.إ AED' },
   { code: 'ARS', name: 'Argentine Peso', symbol: '$',   label: '$ ARS' },
   { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', label: 'A$ AUD' },
   { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', label: 'R$ BRL' },
@@ -139,6 +141,7 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
 
   const handleSelect = (c: Currency) => {
     haptic.selection();
+    Keyboard.dismiss();
     setPending(c);
   };
 
@@ -212,7 +215,7 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
         {showMostUsed && (
           <>
             <Text style={[styles.sectionHeader, { color: sectionHeaderColor }]}>
-              Más usadas
+              {t('currency.mostUsed')}
             </Text>
             {MOST_USED.map((c, idx) => (
               <Row
@@ -229,14 +232,14 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
               />
             ))}
             <Text style={[styles.sectionHeader, { color: sectionHeaderColor, marginTop: 18 }]}>
-              Todas
+              {t('currency.all')}
             </Text>
           </>
         )}
 
         {filtered.length === 0 ? (
           <Text style={[styles.emptyState, { color: sectionHeaderColor }]}>
-            Sin resultados
+            {t('currency.noResults')}
           </Text>
         ) : (
           filtered.map((c, idx) => (
@@ -274,7 +277,7 @@ export function CurrencySheet({ visible, onClose, selectedCode, onSelectCurrency
               { color: pending ? '#FFFFFF' : isDark ? '#8E8E93' : '#8E8E93' },
             ]}
           >
-            Guardar
+            {t('common.save')}
           </Text>
         </Pressable>
       </View>

@@ -57,11 +57,10 @@ import { fontFamily, fontSize } from '../../design/typography';
 import { radius } from '../../design/radius';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePreferencesStore } from '../settings/useSettingsStore';
-import { currencyCodeFromLabel } from '../../lib/formatting';
+import { currencyCodeFromLabel, toLocalYMD } from '../../lib/formatting';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { haptic } from '../../lib/haptics';
 import { formatDate } from '../../lib/formatting';
-import { PLATFORMS, logoUrlFromDomain } from '../../lib/constants/platforms';
 import * as Clipboard from 'expo-clipboard';
 import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
 import { CategoryPickerSheet } from '../../components/CategoryPickerSheet';
@@ -72,21 +71,6 @@ import type {
   Subscription,
   SubscriptionStatus,
 } from '../subscriptions/types';
-
-// ─── Logo matching ──────────────────────────────────────────────────
-function matchPlatformLogo(name: string): string {
-  const q = name.trim().toLowerCase();
-  if (!q) return '';
-  for (const p of PLATFORMS) {
-    if (p.name.toLowerCase() === q) return logoUrlFromDomain(p.domain);
-    if (p.aliases?.some((a) => a.toLowerCase() === q)) return logoUrlFromDomain(p.domain);
-  }
-  for (const p of PLATFORMS) {
-    if (p.name.toLowerCase().includes(q) || q.includes(p.name.toLowerCase())) return logoUrlFromDomain(p.domain);
-    if (p.aliases?.some((a) => a.toLowerCase().includes(q) || q.includes(a.toLowerCase()))) return logoUrlFromDomain(p.domain);
-  }
-  return '';
-}
 
 const PRICE_ACCESSORY_ID = 'price-input-hide-bar';
 
@@ -168,7 +152,7 @@ function customMonthlyEquivalent(price: number, count: number, unit: CustomUnit)
 
 // ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'monthly' | 'yearly' | 'quarterly' | 'weekly' | 'custom';
-type Status = 'active' | 'paused' | 'cancelled' | 'ended';
+type Status = 'active' | 'trial' | 'paused' | 'cancelled' | 'ended';
 type ReminderDays = '1' | '3' | '7';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
@@ -199,7 +183,7 @@ interface FormState {
 
 // ─── Constants ───────────────────────────────────────────────────────
 const BILLING_PERIODS: BillingPeriod[] = ['monthly', 'yearly', 'quarterly', 'weekly', 'custom'];
-const STATUSES: Status[] = ['active', 'paused', 'cancelled', 'ended'];
+const STATUSES: Status[] = ['active', 'trial', 'paused', 'cancelled', 'ended'];
 const REMINDER_OPTIONS: ReminderDays[] = ['1', '3', '7'];
 function nextMonth(d: Date): Date {
   const n = new Date(d);
@@ -531,7 +515,7 @@ export function CreateSubscriptionSheet() {
         currency: f.currency,
         billing_period: billingKey,
         billing_interval_count: intervalCount,
-        next_billing_date: f.nextPaymentDate.toISOString().split('T')[0],
+        next_billing_date: toLocalYMD(f.nextPaymentDate),
         status: f.status,
         is_shared: f.shared,
         shared_with_count: f.shared ? f.sharedCount : 0,
@@ -543,9 +527,9 @@ export function CreateSubscriptionSheet() {
         reminderEnabled: f.reminderEnabled,
         reminderDays: f.reminderDays,
         notes: f.notes || undefined,
-        start_date: f.startDate.toISOString().split('T')[0],
+        start_date: toLocalYMD(f.startDate),
         end_date: f.endEnabled
-          ? f.endDate.toISOString().split('T')[0]
+          ? toLocalYMD(f.endDate)
           : undefined,
         payment_method: f.paymentMethod || undefined,
       };
@@ -637,8 +621,7 @@ export function CreateSubscriptionSheet() {
                     style={[styles.quickNameInput, { color: colors.textPrimary }]}
                     value={form.name}
                     onChangeText={(t) => {
-                      const logo = matchPlatformLogo(t);
-                      setForm((f) => ({ ...f, name: t, logoUrl: logo }));
+                      setForm((f) => ({ ...f, name: t }));
                     }}
                     placeholder={t('form.subscriptionPlaceholder')}
                     placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
@@ -755,8 +738,7 @@ export function CreateSubscriptionSheet() {
                   style={[styles.platformName, { color: colors.textPrimary }]}
                   value={form.name}
                   onChangeText={(t) => {
-                    const logo = matchPlatformLogo(t);
-                    setForm((f) => ({ ...f, name: t, logoUrl: logo }));
+                    setForm((f) => ({ ...f, name: t }));
                   }}
                   placeholder={t('form.namePlaceholder')}
                   placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}

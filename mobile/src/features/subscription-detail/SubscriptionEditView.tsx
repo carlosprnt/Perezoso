@@ -29,7 +29,7 @@ import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
 import type { Subscription, BillingPeriod, Category, SubscriptionStatus } from '../subscriptions/types';
-import { formatDate } from '../../lib/formatting';
+import { formatDate, toLocalYMD } from '../../lib/formatting';
 import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePickerSheet';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
@@ -334,9 +334,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       currency: draft.currency,
       billing_period: resolvedPeriod,
       billing_interval_count: intervalCount,
-      next_billing_date: draft.nextPaymentDate.toISOString().split('T')[0],
-      start_date: draft.startDate.toISOString().split('T')[0],
-      end_date: draft.endEnabled ? draft.endDate.toISOString().split('T')[0] : undefined,
+      next_billing_date: toLocalYMD(draft.nextPaymentDate),
+      start_date: toLocalYMD(draft.startDate),
+      end_date: draft.endEnabled ? toLocalYMD(draft.endDate) : undefined,
       category: draft.category,
       status: draft.status,
       reminderEnabled: draft.reminderEnabled,
