@@ -54,6 +54,7 @@ import type { SavingsSuggestion } from './deriveSuggestions';
 import { deriveSavingsSuggestions } from './deriveSuggestions';
 import { SavingsSuggestionDetailSheet } from './SavingsSuggestionDetailSheet';
 import { useSavingsSuggestionsStore } from './useSavingsSuggestionsStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { usePreferencesStore } from '../settings/useSettingsStore';
@@ -65,6 +66,7 @@ const ENTER_MS = 280;
 const EXIT_MS = 220;
 
 export function SavingsSuggestionsListSheet() {
+  const t           = useT();
   const isOpen      = useSavingsSuggestionsStore((s) => s.isListOpen);
   const closeList   = useSavingsSuggestionsStore((s) => s.closeList);
   const openDetail  = useSavingsSuggestionsStore((s) => s.openDetail);
@@ -224,10 +226,10 @@ export function SavingsSuggestionsListSheet() {
                     ]}
                   >
                     <Text style={styles.proCardTitle}>
-                      +{suggestions.length - 2} {suggestions.length - 2 === 1 ? 'sugerencia más' : 'sugerencias más'}
+                      +{suggestions.length - 2} {suggestions.length - 2 === 1 ? t('savings.moreOne') : t('savings.moreMany')}
                     </Text>
                     <Text style={styles.proCardBody}>
-                      Hazte Pro para desbloquear todas las recomendaciones de ahorro
+                      {t('savings.paywallTeaser')}
                     </Text>
                   </Pressable>
                 )}

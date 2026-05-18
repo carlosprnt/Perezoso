@@ -6,7 +6,6 @@
 import { findPlatform } from '../../lib/constants/platforms';
 import { currencyToSymbol, isSymbolAfter } from '../../lib/formatting';
 import type { BillingPeriod, Category, Subscription } from '../subscriptions/types';
-export { CATEGORY_LABELS } from '../subscriptions/types';
 
 // ─── Date math ───────────────────────────────────────────────────────
 
@@ -112,13 +111,6 @@ export function toYearly(amount: number, period: BillingPeriod, interval: number
 }
 
 // ─── Labels ──────────────────────────────────────────────────────────
-
-export const BILLING_PERIOD_LABELS: Record<BillingPeriod, string> = {
-  monthly: 'Mensual',
-  yearly: 'Anual',
-  quarterly: 'Trimestral',
-  weekly: 'Semanal',
-};
 
 export const BILLING_PERIOD_LABEL_KEYS: Record<BillingPeriod, string> = {
   monthly: 'detail.billing.monthly',
@@ -239,9 +231,3 @@ export const CATEGORY_PICKER: { value: Category; labelKey: string }[] = [
   { value: 'other', labelKey: 'category.other' },
 ];
 
-export const BILLING_PERIOD_PICKER: { value: BillingPeriod; label: string }[] = [
-  { value: 'monthly', label: 'Mensual' },
-  { value: 'yearly', label: 'Anual' },
-  { value: 'quarterly', label: 'Trimestral' },
-  { value: 'weekly', label: 'Semanal' },
-];

@@ -47,6 +47,7 @@ import { shadows } from '../../design/shadows';
 import { SETTINGS_PALETTE as C } from './components';
 import { useDemoSheetStore } from './useSettingsStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { useT } from '../../lib/i18n/LocaleProvider';
 import type { AppPreset } from '../subscriptions/presets';
 
 // Selector: either a demo preset or the string 'real' to mean "use my
@@ -60,34 +61,19 @@ const EXIT_MS = 220;
 
 interface Option {
   choice: Choice;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
 }
 
 const OPTIONS: Option[] = [
-  {
-    choice: 'real',
-    title: 'Mi cuenta',
-    description: 'Tus suscripciones reales. Añadir, editar y eliminar se guarda en tu cuenta.',
-  },
-  {
-    choice: 'empty',
-    title: 'Demo · Vacío',
-    description: 'Sin suscripciones. Estado inicial tras el registro.',
-  },
-  {
-    choice: 'basic',
-    title: 'Demo · Básico',
-    description: '10 suscripciones activas, sin Perezoso Plus.',
-  },
-  {
-    choice: 'pro',
-    title: 'Demo · Pro',
-    description: '20 suscripciones activas con Perezoso Plus.',
-  },
+  { choice: 'real',  titleKey: 'demo.real.title',  descriptionKey: 'demo.real.description'  },
+  { choice: 'empty', titleKey: 'demo.empty.title', descriptionKey: 'demo.empty.description' },
+  { choice: 'basic', titleKey: 'demo.basic.title', descriptionKey: 'demo.basic.description' },
+  { choice: 'pro',   titleKey: 'demo.pro.title',   descriptionKey: 'demo.pro.description'   },
 ];
 
 export function DemoSheet() {
+  const t             = useT();
   const isOpen        = useDemoSheetStore((s) => s.isOpen);
   const closeSheet    = useDemoSheetStore((s) => s.closeSheet);
   const mode          = useSubscriptionsStore((s) => s.mode);
@@ -237,12 +223,12 @@ export function DemoSheet() {
                     pressed && { opacity: 0.85 },
                   ]}
                   accessibilityRole="button"
-                  accessibilityLabel={opt.title}
+                  accessibilityLabel={t(opt.titleKey)}
                   accessibilityState={{ selected: isActive }}
                 >
                   <View style={styles.optionText}>
-                    <Text style={styles.optionTitle}>{opt.title}</Text>
-                    <Text style={styles.optionDesc}>{opt.description}</Text>
+                    <Text style={styles.optionTitle}>{t(opt.titleKey)}</Text>
+                    <Text style={styles.optionDesc}>{t(opt.descriptionKey)}</Text>
                   </View>
                   <View
                     style={[

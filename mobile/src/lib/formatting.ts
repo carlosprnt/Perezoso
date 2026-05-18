@@ -3,6 +3,17 @@
 // Consolidates duplicated helpers that previously lived in WalletCard,
 // SubscriptionEditView, CreateSubscriptionSheet, and helpers.ts.
 
+// Format a Date as "YYYY-MM-DD" using the LOCAL timezone components.
+// Avoid Date.toISOString() because it converts to UTC, which in any
+// positive UTC offset (e.g. Spain UTC+1/+2) shifts the day backwards
+// when the local time is midnight — leading to off-by-one writes.
+export function toLocalYMD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 // ─── Month abbreviations (Spanish) ─────────────────────────────────
 
 export const MONTHS_ES_SHORT = [
