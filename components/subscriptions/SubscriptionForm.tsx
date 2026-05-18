@@ -45,6 +45,18 @@ function autoSize(el: HTMLTextAreaElement, min = 0) {
   el.style.height = `${Math.max(el.scrollHeight, min)}px`
 }
 
+// Format a Date as "YYYY-MM-DD" using the LOCAL timezone components.
+// We avoid Date.toISOString() because it converts to UTC, which in any
+// positive UTC offset (e.g. Spain UTC+1/+2) shifts the day backwards
+// when the local time is midnight — leading to off-by-one when round-
+// tripping through <input type="date">.
+function toLocalYMD(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 /** Same day-of-month as today, next month (clamped to last day if needed). */
 function defaultNextBillingDate(): string {
   const today = new Date()
@@ -53,7 +65,7 @@ function defaultNextBillingDate(): string {
   const day = today.getDate()
   const lastDayNextMonth = new Date(y, m + 1, 0).getDate()
   const d = new Date(y, m, Math.min(day, lastDayNextMonth))
-  return d.toISOString().split('T')[0]
+  return toLocalYMD(d)
 }
 
 function Row({
@@ -224,7 +236,7 @@ export default function SubscriptionForm({
   )
   const [customCategories, setCustomCategories] = useState<string[]>([])
   const [startDate, setStartDate] = useState(
-    subscription?.start_date ?? new Date().toISOString().split('T')[0],
+    subscription?.start_date ?? toLocalYMD(new Date()),
   )
   const [nextBillingDate, setNextBillingDate] = useState(
     subscription?.next_billing_date ?? defaultNextBillingDate(),
@@ -241,7 +253,7 @@ export default function SubscriptionForm({
     } else {
       return
     }
-    setNextBillingDate(d.toISOString().split('T')[0])
+    setNextBillingDate(toLocalYMD(d))
   }, [startDate, billingPeriod]) // eslint-disable-line react-hooks/exhaustive-deps
   const [logoUrl, setLogoUrl] = useState(
     subscription?.logo_url ?? prefill?.logoUrl ?? '',
