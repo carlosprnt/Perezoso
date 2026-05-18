@@ -109,7 +109,7 @@ export default async function DashboardPage() {
             </div>
             {top3.length > 0 && (
               <div className="overflow-x-hidden mt-3">
-                <h3 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight leading-tight mb-4">
+                <h3 className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] tracking-tight leading-tight mb-8">
                   {t('dashboard.topExpensive')}
                 </h3>
                 <TopExpensiveSection subscriptions={top3} />
