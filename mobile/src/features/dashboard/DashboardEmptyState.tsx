@@ -179,7 +179,7 @@ export function DashboardEmptyState({ scrollY }: Props) {
             style={[
               StyleSheet.absoluteFill,
               heroBlurStyle,
-              { borderRadius: radius.card },
+              { borderRadius: 24 },
             ]}
           />
         </View>
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   hero: {
-    borderRadius: radius.card,
+    borderRadius: 24,
     marginBottom: 32,
     overflow: 'hidden',
   },

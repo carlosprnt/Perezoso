@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     gap: 8, // gap-2
   },
   cell: {
-    borderRadius: radius.card, // 32px
+    borderRadius: 24,
     paddingHorizontal: 16, // px-4
     paddingVertical: 12, // py-3
     flexDirection: 'row',

@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   shell: {
-    borderRadius: radius.card, // 32 px
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,

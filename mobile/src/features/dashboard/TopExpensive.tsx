@@ -12,7 +12,6 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
-import { radius } from '../../design/radius';
 import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
 import { Pressable } from '../../components/Pressable';
 import { currencyToSymbol, currencyCodeFromLabel } from '../../lib/formatting';
@@ -103,7 +102,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 185,
-    borderRadius: radius.card, // 32px
+    borderRadius: 24,
     padding: 16, // p-4
   },
   rank: {

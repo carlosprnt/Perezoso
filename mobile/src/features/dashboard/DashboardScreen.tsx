@@ -562,8 +562,8 @@ const styles = StyleSheet.create({
   surface: {
     flex: 1,
     overflow: 'hidden',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     shadowOffset: { width: 0, height: -12 },
     shadowRadius: 40,
     shadowOpacity: 0.22,
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   savingsCard: {
-    borderRadius: radius.card,
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
