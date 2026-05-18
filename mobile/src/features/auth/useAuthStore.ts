@@ -53,6 +53,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       path: 'auth/callback',
     });
 
+    // DEBUG: print the exact redirectTo so we can whitelist it in Supabase.
+    // Remove once the redirect URL is confirmed working.
+    console.log('[auth] redirectTo =', redirectTo);
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
