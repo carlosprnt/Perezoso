@@ -44,6 +44,8 @@ import { haptic } from '../../lib/haptics';
 import { fontFamily, fontSize, lineHeight, letterSpacing } from '../../design/typography';
 import { radius } from '../../design/radius';
 
+import { useFocusEffect } from 'expo-router';
+
 import { useT } from '../../lib/i18n/LocaleProvider';
 import { WalletCard, LockedWalletCard, FREE_SUBSCRIPTION_LIMIT } from './WalletCard';
 import { usePaywallStore } from '../paywall/usePaywallStore';
@@ -97,8 +99,43 @@ const FILTER_KEYS: Record<FilterValue, string> = {
 };
 const FILTER_OPTIONS: FilterValue[] = ['all', 'active', 'trial', 'paused', 'cancelled', 'ended'];
 
+// Today at local midnight — used as the reference point for advancing
+// stored next_billing_date values that have already passed.
+function todayMidnight(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Resolve the effective next billing date for sorting / display.
+// If the stored date is in the past for an active/trial subscription,
+// roll it forward by billing_period * billing_interval_count until it
+// reaches or surpasses `today`. Cancelled / paused / ended rows keep
+// the stored value — they aren't renewing on their own.
+function effectiveNextBillingTs(sub: Subscription, todayTs: number): number {
+  const stored = new Date(sub.next_billing_date);
+  const storedTs = stored.getTime();
+  if (Number.isNaN(storedTs)) return storedTs;
+  if (sub.status !== 'active' && sub.status !== 'trial') return storedTs;
+  if (storedTs >= todayTs) return storedTs;
+
+  const interval = Math.max(1, sub.billing_interval_count || 1);
+  const d = new Date(stored);
+  // Cap iterations defensively in case of an unknown billing_period.
+  for (let i = 0; i < 1000 && d.getTime() < todayTs; i++) {
+    switch (sub.billing_period) {
+      case 'weekly':    d.setDate(d.getDate() + 7 * interval); break;
+      case 'monthly':   d.setMonth(d.getMonth() + 1 * interval); break;
+      case 'quarterly': d.setMonth(d.getMonth() + 3 * interval); break;
+      case 'yearly':    d.setFullYear(d.getFullYear() + 1 * interval); break;
+      default: return storedTs;
+    }
+  }
+  return d.getTime();
+}
+
 // ─── Sort function ────────────────────────────────────────────────
-function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[] {
+function sortSubscriptions(subs: Subscription[], mode: SortMode, todayTs: number): Subscription[] {
   const sorted = [...subs];
   switch (mode) {
     case 'alphabetical':
@@ -113,7 +150,7 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
       );
     case 'next_renewal':
       return sorted.sort(
-        (a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime(),
+        (a, b) => effectiveNextBillingTs(a, todayTs) - effectiveNextBillingTs(b, todayTs),
       );
     default:
       return sorted;
@@ -395,13 +432,23 @@ export function SubscriptionsScreen() {
     return new Set(byCreation.slice(FREE_SUBSCRIPTION_LIMIT).map((s) => s.id));
   }, [subscriptions, isPlusActive]);
 
+  // Anchor "today" for the next_renewal sort. Refresh on screen focus so a
+  // subscription whose stored date has just passed reorders correctly the
+  // next time the user opens this tab.
+  const [todayTs, setTodayTs] = useState(() => todayMidnight().getTime());
+  useFocusEffect(
+    useCallback(() => {
+      setTodayTs(todayMidnight().getTime());
+    }, []),
+  );
+
   const filtered = useMemo(() => {
     let subs = subscriptions;
     if (filter !== 'all') {
       subs = subs.filter((s) => s.status === filter);
     }
-    return sortSubscriptions(subs, sortMode);
-  }, [subscriptions, sortMode, filter]);
+    return sortSubscriptions(subs, sortMode, todayTs);
+  }, [subscriptions, sortMode, filter, todayTs]);
 
   const activeFiltered = useMemo(
     () => filtered.filter((s) => s.status === 'active' || s.status === 'trial'),
