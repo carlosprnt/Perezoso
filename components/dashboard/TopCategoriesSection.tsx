@@ -57,7 +57,7 @@ export default function TopCategoriesSection({ categories, currency = 'EUR' }: {
   }))
 
   function label(cat: string) {
-    if (cat === '_resto') return 'Resto'
+    if (cat === '_resto') return t('categories.rest')
     return t(`categories.${cat}` as Parameters<typeof t>[0])
   }
 

@@ -48,7 +48,7 @@ export default function CategoryTreemap({ categories, currency = 'EUR' }: { cate
   ].map(cat => ({ ...cat, color: TREEMAP_COLORS[cat.category] ?? '#E5E7EB' }))
 
   function label(cat: string) {
-    if (cat === '_resto') return 'Resto'
+    if (cat === '_resto') return t('categories.rest')
     return t(`categories.${cat}` as Parameters<typeof t>[0])
   }
 
