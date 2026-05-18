@@ -607,7 +607,7 @@ export default function SubscriptionForm({
                   ...(!CATEGORIES.some(c => c.value === category) && category ? [category] : []),
                 ]))
                 return extras.length > 0 && (
-                  <optgroup label="Personalizadas">
+                  <optgroup label={t('form.customCategoriesGroup')}>
                     {extras.map(name => (
                       <option key={name} value={name}>{name}</option>
                     ))}

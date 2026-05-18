@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react'
 import { PLATFORMS, resolvePlatformLogoUrl, type PlatformPreset } from '@/lib/constants/platforms'
 import { getAvatarPastel, getInitials } from '@/lib/utils/logos'
 import { useScrollContainerRef } from '@/lib/hooks/ScrollContainerContext'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import BottomSheet from '@/components/ui/BottomSheet'
 import SubscriptionForm from '@/components/subscriptions/SubscriptionForm'
 
@@ -75,6 +76,7 @@ function PlatformRow({
 }
 
 export default function QuickAddPlatforms() {
+  const t = useT()
   const [selected, setSelected] = useState<PlatformPreset | null | undefined>(undefined)
   const isOpen = selected !== undefined
   const scrollRoot = useScrollContainerRef()
@@ -87,7 +89,7 @@ export default function QuickAddPlatforms() {
     <>
       <div>
         <p className="text-[13px] font-semibold text-[#737373] dark:text-[#8E8E93] mb-3">
-          Añade tu primera suscripción
+          {t('dashboard.addFirstSub')}
         </p>
         <div>
           {QUICK_ADD_PLATFORMS.map((platform, i) => (
@@ -114,7 +116,7 @@ export default function QuickAddPlatforms() {
                 <Plus size={18} strokeWidth={2} className="text-[#8E8E93]" />
               </div>
               <p className="text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7] flex-1">
-                Añadir manualmente
+                {t('dashboard.addManually')}
               </p>
             </button>
           </motion.div>
