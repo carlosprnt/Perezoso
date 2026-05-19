@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
   InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
@@ -49,7 +50,7 @@ import { useCreateSubscriptionStore } from './useCreateSubscriptionStore';
 import { NativeDatePickerSheet } from './pickers/NativeDatePickerSheet';
 import { DayRulerPicker } from './pickers/DayRulerPicker';
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
-import { SubscriptionAvatar } from '../../components/SubscriptionAvatar';
+import { resolvePlatformLogoUrl } from '../../lib/constants/platforms';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import type { Currency } from '../settings/CurrencySheet';
 import { useSubscriptionCelebrationStore } from './useSubscriptionCelebrationStore';
@@ -331,6 +332,79 @@ function RenewalToggle({ isMonthly, onToggle, compact, bg, labelColor, valueColo
   );
 }
 
+// ─── Logo preview box ────────────────────────────────────────────────
+// White square that previews the platform logo auto-detected from the
+// typed name. Shows an X badge so the user can dismiss the suggestion
+// when the auto-match is wrong. Empty (just the white box) when there
+// is nothing to show.
+function LogoPreviewBox({
+  name,
+  logoUrl,
+  suppressed,
+  onClear,
+  isDark,
+  size,
+}: {
+  name: string;
+  logoUrl: string;
+  suppressed: boolean;
+  onClear: () => void;
+  isDark: boolean;
+  size: number;
+}) {
+  const resolvedUrl = suppressed
+    ? null
+    : resolvePlatformLogoUrl(name, logoUrl || null, null);
+  const innerPadding = 6;
+  const imgSize = size - innerPadding * 2 - 2;
+  const borderColor = isDark ? '#3A3A3C' : '#E8E8E8';
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: innerPadding,
+      }}
+    >
+      {resolvedUrl ? (
+        <Image
+          source={{ uri: resolvedUrl }}
+          style={{ width: imgSize, height: imgSize }}
+          resizeMode="contain"
+        />
+      ) : null}
+      {resolvedUrl ? (
+        <Pressable
+          onPress={onClear}
+          hitSlop={10}
+          style={{
+            position: 'absolute',
+            top: -6,
+            right: -6,
+            width: 18,
+            height: 18,
+            borderRadius: 9,
+            backgroundColor: isDark ? '#48484A' : '#8E8E93',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Remove logo"
+        >
+          <X size={10} color="#FFFFFF" strokeWidth={3} />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────
 export function CreateSubscriptionSheet() {
   const isOpen = useCreateSubscriptionStore((s) => s.isOpen);
@@ -365,6 +439,14 @@ export function CreateSubscriptionSheet() {
   });
   const [form, setForm] = useState<FormState>(() => makeInitialForm(null, defaultCurrency));
   const initialFormRef = useRef<FormState>(makeInitialForm(null, defaultCurrency));
+
+  // When the user taps the X on the logo preview, suppress the auto-detected
+  // logo until they next clear or open with a new prefill.
+  const [logoSuppressed, setLogoSuppressed] = useState(false);
+  const clearLogo = useCallback(() => {
+    setLogoSuppressed(true);
+    setForm((f) => ({ ...f, logoUrl: '' }));
+  }, []);
 
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
@@ -407,6 +489,7 @@ export function CreateSubscriptionSheet() {
       const fresh = makeInitialForm(prefill, defaultCurrency);
       initialFormRef.current = fresh;
       setForm(fresh);
+      setLogoSuppressed(false);
       setStep(1);
       const nextMonth = new Date(); nextMonth.setHours(0, 0, 0, 0); nextMonth.setMonth(nextMonth.getMonth() + 1);
       setRenewalDate(nextMonth);
@@ -619,16 +702,12 @@ export function CreateSubscriptionSheet() {
               >
                 <View style={[styles.quickInputCard, { backgroundColor: colors.surfaceSecondary }]}>
                   <View style={styles.quickLogoRow}>
-                    <SubscriptionAvatar
-                      name={form.name}
-                      logoUrl={form.logoUrl || null}
-                      size="lg"
-                    />
                     <View style={styles.quickInputCol}>
                       <TextInput
                         style={[styles.quickNameInput, { color: colors.textPrimary }]}
                         value={form.name}
                         onChangeText={(t) => {
+                          if (t === '') setLogoSuppressed(false);
                           setForm((f) => ({ ...f, name: t }));
                         }}
                         placeholder={t('form.subscriptionPlaceholder')}
@@ -658,6 +737,14 @@ export function CreateSubscriptionSheet() {
                         />
                       </View>
                     </View>
+                    <LogoPreviewBox
+                      name={form.name}
+                      logoUrl={form.logoUrl}
+                      suppressed={logoSuppressed}
+                      onClear={clearLogo}
+                      isDark={isDark}
+                      size={56}
+                    />
                   </View>
                 </View>
 
@@ -745,16 +832,12 @@ export function CreateSubscriptionSheet() {
               {/* Platform card */}
               <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
                 <View style={styles.platformLogoRow}>
-                  <SubscriptionAvatar
-                    name={form.name}
-                    logoUrl={form.logoUrl || null}
-                    size="md48"
-                  />
                   <View style={styles.platformInputCol}>
                     <TextInput
                       style={[styles.platformName, { color: colors.textPrimary }]}
                       value={form.name}
                       onChangeText={(t) => {
+                        if (t === '') setLogoSuppressed(false);
                         setForm((f) => ({ ...f, name: t }));
                       }}
                       placeholder={t('form.namePlaceholder')}
@@ -782,6 +865,14 @@ export function CreateSubscriptionSheet() {
                       />
                     </View>
                   </View>
+                  <LogoPreviewBox
+                    name={form.name}
+                    logoUrl={form.logoUrl}
+                    suppressed={logoSuppressed}
+                    onClear={clearLogo}
+                    isDark={isDark}
+                    size={48}
+                  />
                 </View>
               </View>
 
@@ -1229,7 +1320,7 @@ const styles = StyleSheet.create({
   },
   quickLogoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 14,
   },
   quickInputCol: {
@@ -1374,7 +1465,7 @@ const styles = StyleSheet.create({
   },
   platformLogoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
   },
   platformInputCol: {
