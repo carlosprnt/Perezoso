@@ -63,7 +63,7 @@ import type { Subscription, SubscriptionStatus, SortMode } from './types';
 import { useSubscriptionDetailStore } from '../subscription-detail/useSubscriptionDetailStore';
 import { usePreferencesStore } from '../settings/useSettingsStore';
 import { useSubscriptionsPrefsStore } from './useSubscriptionsPrefsStore';
-import { currencyCodeFromLabel, currencyToSymbol } from '../../lib/formatting';
+import { currencyCodeFromLabel, currencyToSymbol, formatPrice } from '../../lib/formatting';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Tighter stacking — cards overlap more,
@@ -77,6 +77,7 @@ const SORT_KEYS: Record<SortMode, string> = {
   price_high: 'subscriptions.sort.priceHigh',
   price_low: 'subscriptions.sort.priceLow',
   next_renewal: 'subscriptions.sort.nextRenewal',
+  category: 'subscriptions.sort.category',
 };
 const SORT_OPTIONS: SortMode[] = [
   'alphabetical',
@@ -84,6 +85,7 @@ const SORT_OPTIONS: SortMode[] = [
   'price_high',
   'price_low',
   'next_renewal',
+  'category',
 ];
 
 type FilterValue = SubscriptionStatus | 'all';
@@ -114,6 +116,12 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
       return sorted.sort(
         (a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime(),
       );
+    case 'category':
+      return sorted.sort((a, b) => {
+        const cat = (a.category || 'other').localeCompare(b.category || 'other');
+        if (cat !== 0) return cat;
+        return a.name.localeCompare(b.name);
+      });
     default:
       return sorted;
   }
@@ -411,6 +419,27 @@ export function SubscriptionsScreen() {
     [filtered],
   );
 
+  // When sortMode is 'category', group active subs and compute per-group
+  // monthly totals. Groups are ordered by total spend descending so the
+  // most expensive category shows first. Null when not grouping.
+  const activeGrouped = useMemo(() => {
+    if (sortMode !== 'category') return null;
+    const groups = new Map<string, Subscription[]>();
+    for (const sub of activeFiltered) {
+      const cat = sub.category || 'other';
+      const list = groups.get(cat) ?? [];
+      list.push(sub);
+      groups.set(cat, list);
+    }
+    return Array.from(groups.entries())
+      .map(([category, subs]) => ({
+        category,
+        subs,
+        totalMonthly: subs.reduce((sum, s) => sum + s.my_monthly_cost, 0),
+      }))
+      .sort((a, b) => b.totalMonthly - a.totalMonthly);
+  }, [sortMode, activeFiltered]);
+
   // Stats for the subtitle paragraph.
   // Active subs define the headline number; we always sum their
   // monthly-equivalent cost in EUR (my_monthly_cost is pre-converted).
@@ -704,24 +733,55 @@ export function SubscriptionsScreen() {
             listY.value = e.nativeEvent.layout.y;
           }}
         >
-          {activeFiltered.map((sub, index) => (
-            <ScrollCard
-              key={sub.id}
-              scrollY={scrollY}
-              listY={listY}
-              triggerY={triggerY}
-              stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
-            >
-              {lockedIds.has(sub.id) ? (
-                <LockedWalletCard
-                  subscription={sub}
-                  onPress={() => usePaywallStore.getState().open('subscription_limit')}
-                />
-              ) : (
-                <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
-              )}
-            </ScrollCard>
-          ))}
+          {activeGrouped
+            ? activeGrouped.map((group) => (
+                <React.Fragment key={group.category}>
+                  <View style={styles.categoryHeader}>
+                    <Text style={[styles.categoryTitle, { color: colors.textPrimary }]}>
+                      {t(`category.${group.category}`)}
+                    </Text>
+                    <Text style={[styles.categoryTotal, { color: colors.textMuted }]}>
+                      {formatPrice(group.totalMonthly, globalCurrencyCode)}{t('dashboard.perMonth')}
+                    </Text>
+                  </View>
+                  {group.subs.map((sub, index) => (
+                    <ScrollCard
+                      key={sub.id}
+                      scrollY={scrollY}
+                      listY={listY}
+                      triggerY={triggerY}
+                      stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
+                    >
+                      {lockedIds.has(sub.id) ? (
+                        <LockedWalletCard
+                          subscription={sub}
+                          onPress={() => usePaywallStore.getState().open('subscription_limit')}
+                        />
+                      ) : (
+                        <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
+                      )}
+                    </ScrollCard>
+                  ))}
+                </React.Fragment>
+              ))
+            : activeFiltered.map((sub, index) => (
+                <ScrollCard
+                  key={sub.id}
+                  scrollY={scrollY}
+                  listY={listY}
+                  triggerY={triggerY}
+                  stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
+                >
+                  {lockedIds.has(sub.id) ? (
+                    <LockedWalletCard
+                      subscription={sub}
+                      onPress={() => usePaywallStore.getState().open('subscription_limit')}
+                    />
+                  ) : (
+                    <WalletCard subscription={sub} onPress={() => openDetail(sub)} />
+                  )}
+                </ScrollCard>
+              ))}
 
           {inactiveFiltered.length > 0 && (
             <>
@@ -1041,6 +1101,22 @@ const styles = StyleSheet.create({
   separatorLabel: {
     ...fontFamily.medium,
     fontSize: fontSize[13],
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingTop: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 4,
+  },
+  categoryTitle: {
+    ...fontFamily.semiBold,
+    fontSize: fontSize[18],
+  },
+  categoryTotal: {
+    ...fontFamily.medium,
+    fontSize: fontSize[14],
   },
   // Custom dropdown menu — matches web SortDropdown/FilterDropdown.
   // Surface is absolutely positioned in window coords set by the

@@ -43,5 +43,6 @@ export type SortMode =
   | 'price_high'
   | 'price_low'
   | 'recently_added'
-  | 'next_renewal';
+  | 'next_renewal'
+  | 'category';
 
