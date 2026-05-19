@@ -182,9 +182,9 @@ export function SettingsRow({
           <Switch
             value={switchValue}
             onValueChange={onSwitchChange}
-            trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+            trackColor={{ false: p.cardBg === '#F2F2F4' ? '#E5E5EA' : '#48484A', true: '#30D158' }}
             thumbColor="#FFFFFF"
-            ios_backgroundColor="#E5E5EA"
+            ios_backgroundColor={p.cardBg === '#F2F2F4' ? '#E5E5EA' : '#48484A'}
           />
         ) : (
           <>
