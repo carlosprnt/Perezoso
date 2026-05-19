@@ -88,17 +88,29 @@ export async function scheduleRenewalReminder(
   if (sub.status !== 'active' && sub.status !== 'trial') return false;
   if (!sub.next_billing_date) return false;
 
+  // Per-sub opt-out: if the user explicitly disabled the reminder on this
+  // subscription, never schedule it. Undefined → fall back to the global
+  // pref gate handled by the caller (rescheduleAllReminders only runs
+  // when the global toggle is on, so an unset per-sub flag inherits ON).
+  if (sub.reminderEnabled === false) return false;
+
   const renewal = new Date(sub.next_billing_date);
   if (Number.isNaN(renewal.getTime())) return false;
 
+  // Per-sub timing wins over the global default. reminderDays is stored
+  // as a string ('1' | '3' | '7') from the picker; fall back to the
+  // global daysBefore if it's missing or unparseable.
+  const perSub = sub.reminderDays ? parseInt(sub.reminderDays, 10) : NaN;
+  const daysBefore = Number.isFinite(perSub) && perSub > 0 ? perSub : args.daysBefore;
+
   const trigger = new Date(renewal);
-  trigger.setDate(trigger.getDate() - args.daysBefore);
+  trigger.setDate(trigger.getDate() - daysBefore);
   // Fire at 09:00 local time on the trigger day — less startling than 00:00.
   trigger.setHours(9, 0, 0, 0);
 
   if (trigger.getTime() <= Date.now()) return false;
 
-  const { title, body } = buildContent(sub, args.daysBefore, args.locale);
+  const { title, body } = buildContent(sub, daysBefore, args.locale);
   const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title,
