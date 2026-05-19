@@ -22,14 +22,44 @@ struct WidgetSubscription: Codable, Identifiable {
     let monthlyEquivalent: Double
     let logoUrl: String?
 
+    /// Raw next billing date as parsed from the snapshot JSON. May be in
+    /// the past if the app hasn't written a fresh snapshot since the last
+    /// renewal — prefer `effectiveNextDate` for display.
     var nextDate: Date? {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         return fmt.date(from: String(nextBillingDate.prefix(10)))
     }
 
+    /// `nextDate` rolled forward by successive billing periods until it
+    /// lands on or after today. Mirrors `advanceRenewalDate` in
+    /// TypeScript so widgets stay accurate when the app hasn't been
+    /// opened in days. No-op for paused/cancelled subs.
+    var effectiveNextDate: Date? {
+        guard var d = nextDate else { return nil }
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        if cal.startOfDay(for: d) >= today { return d }
+        guard status == "active" || status == "trial" else { return d }
+        var safety = 0
+        while cal.startOfDay(for: d) < today && safety < 1000 {
+            switch billingPeriod {
+            case "weekly":
+                d = cal.date(byAdding: .day, value: 7, to: d) ?? d
+            case "quarterly":
+                d = cal.date(byAdding: .month, value: 3, to: d) ?? d
+            case "yearly":
+                d = cal.date(byAdding: .year, value: 1, to: d) ?? d
+            default: // monthly + any unknown
+                d = cal.date(byAdding: .month, value: 1, to: d) ?? d
+            }
+            safety += 1
+        }
+        return d
+    }
+
     var daysUntilNext: Int {
-        guard let next = nextDate else { return 999 }
+        guard let next = effectiveNextDate else { return 999 }
         return Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: Date()), to: Calendar.current.startOfDay(for: next)).day ?? 999
     }
 
