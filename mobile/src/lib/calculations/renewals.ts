@@ -64,3 +64,11 @@ export function advanceRenewalDate(sub: Subscription): Subscription {
 export function advanceAllRenewals(subs: Subscription[]): Subscription[] {
   return subs.map(advanceRenewalDate);
 }
+
+/** Return the next billing date a sub WOULD have right now, rolling
+ * past dates forward by their billing period. Use this at sort/render
+ * time so the UI is correct even if the store snapshot was loaded
+ * days ago and a renewal has since passed without a reload. */
+export function effectiveNextBillingDate(sub: Subscription): string {
+  return advanceRenewalDate(sub).next_billing_date;
+}

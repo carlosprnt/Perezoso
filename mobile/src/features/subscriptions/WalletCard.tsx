@@ -18,6 +18,7 @@ import { LogoAvatar } from '../../components/LogoAvatar';
 import { Pressable } from '../../components/Pressable';
 import { haptic } from '../../lib/haptics';
 import { formatPrice, billingLabel, daysUntilDate, renewalText, formatBillingDate, currencyCodeFromLabel } from '../../lib/formatting';
+import { effectiveNextBillingDate } from '../../lib/calculations/renewals';
 import { usePreferencesStore } from '../settings/useSettingsStore';
 import type { Subscription } from './types';
 
@@ -45,8 +46,9 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
   const t = useT();
   const globalCurrency = currencyCodeFromLabel(usePreferencesStore((s) => s.currency));
   const displayCurrency = sub.currency || globalCurrency;
-  const days = daysUntilDate(sub.next_billing_date);
-  const progress = billingProgress(sub.billing_period, sub.billing_interval_count, sub.next_billing_date);
+  const effectiveDate = effectiveNextBillingDate(sub);
+  const days = daysUntilDate(effectiveDate);
+  const progress = billingProgress(sub.billing_period, sub.billing_interval_count, effectiveDate);
 
   const statusColor = ({
     active: colors.statusActive,
@@ -126,7 +128,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
                 {t('wallet.nextCharge')}
               </Text>
               <Text style={[styles.renewalLabel, { color: colors.textMuted }]}>
-                {formatBillingDate(sub.next_billing_date)}
+                {formatBillingDate(effectiveDate)}
               </Text>
             </View>
             <View style={[styles.progressBar, { backgroundColor: progressBarBg }]}>
