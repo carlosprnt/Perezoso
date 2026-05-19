@@ -64,6 +64,7 @@ import { useSubscriptionDetailStore } from '../subscription-detail/useSubscripti
 import { usePreferencesStore } from '../settings/useSettingsStore';
 import { useSubscriptionsPrefsStore } from './useSubscriptionsPrefsStore';
 import { currencyCodeFromLabel, currencyToSymbol, formatPrice } from '../../lib/formatting';
+import { effectiveNextBillingDate } from '../../lib/calculations/renewals';
 
 // Wallet-style overlap: each card's visible header (logo + name + price)
 // peeks above the card below it. Tighter stacking — cards overlap more,
@@ -114,7 +115,9 @@ function sortSubscriptions(subs: Subscription[], mode: SortMode): Subscription[]
       );
     case 'next_renewal':
       return sorted.sort(
-        (a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime(),
+        (a, b) =>
+          new Date(effectiveNextBillingDate(a)).getTime() -
+          new Date(effectiveNextBillingDate(b)).getTime(),
       );
     case 'category':
       return sorted.sort((a, b) => {
