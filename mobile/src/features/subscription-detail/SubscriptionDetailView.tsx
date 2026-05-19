@@ -286,7 +286,7 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
             <DataRow
               icon={<Tag size={iconSize} color={iconColor} strokeWidth={2} />}
               label={t('form.category')}
-              value={t(`category.${sub.category}`)}
+              value={t(`category.${sub.category}`, { defaultValue: sub.category })}
               valueBold
               labelColor={colors.textMuted}
               valueColor={colors.textPrimary}

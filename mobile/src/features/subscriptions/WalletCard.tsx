@@ -86,7 +86,7 @@ export function WalletCard({ subscription: sub, onPress }: WalletCardProps) {
           </Text>
           <View style={styles.metaRow}>
             <Text style={[styles.category, { color: colors.textMuted }]}>
-              {t(`category.${sub.category}`)}
+              {t(`category.${sub.category}`, { defaultValue: sub.category })}
             </Text>
             {sub.status !== 'active' && (
               <>
