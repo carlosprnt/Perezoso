@@ -28,6 +28,7 @@ import {
 } from '../features/subscriptions/presets';
 import { useReminderDismissalsStore } from '../features/dashboard/useReminderDismissalsStore';
 import { fetchSubscriptions, insertSubscription, updateSubscription as apiUpdateSubscription, deleteSubscription as apiDeleteSubscription } from '../services/subscriptionsApi';
+import { advanceAllRenewals } from '../lib/calculations/renewals';
 import { useAuthStore } from '../features/auth/useAuthStore';
 import {
   addCustomerInfoListener,
@@ -123,7 +124,7 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     set({
       mode: 'demo',
       preset,
-      subscriptions: PRESET_CONFIG[preset].subscriptions,
+      subscriptions: advanceAllRenewals(PRESET_CONFIG[preset].subscriptions),
       isPlusActive: PRESET_CONFIG[preset].isPlusActive,
       error: null,
     }),
@@ -136,7 +137,8 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     }
     set({ loading: true, error: null });
     try {
-      const subs = await fetchSubscriptions(user.id);
+      const fetched = await fetchSubscriptions(user.id);
+      const subs = advanceAllRenewals(fetched);
       set({ subscriptions: subs, loading: false });
       // Resync the OS reminder queue: a sub may have renewed since we
       // last scheduled, so any pending reminder is now stale. Cheaper
