@@ -163,7 +163,7 @@ export function SummaryHero({
               />
             ) : null}
             <Text style={[styles.supportText, { color: colors.textPrimary }]}>
-              {' '}{t('dashboard.subscriptions')}.
+              {' '}{stats.sharedCount === 1 ? t('dashboard.subscription') : t('dashboard.subscriptions')}.
             </Text>
           </View>
         ) : null}
