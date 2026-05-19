@@ -20,8 +20,8 @@ export const radius = {
   '4xl': 18,
   /** 20px — modal surfaces */
   '5xl': 20,
-  /** 32px — subscription cards, bottom sheets */
-  card: 32,
+  /** 24px — subscription cards, bottom sheets */
+  card: 24,
   /** 9999px — pills, avatars, circular elements */
   full: 9999,
 } as const;
