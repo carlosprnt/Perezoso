@@ -971,9 +971,9 @@ export function CreateSubscriptionSheet() {
                   <Switch
                     value={form.endEnabled}
                     onValueChange={(v) => setForm((f) => ({ ...f, endEnabled: v }))}
-                    trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#48484A' : '#D1D1D6', true: '#30D158' }}
                     thumbColor="#FFFFFF"
-                    ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
+                    ios_backgroundColor={isDark ? '#48484A' : '#D1D1D6'}
                   />
                 </View>
                 {form.endEnabled && (
@@ -1018,9 +1018,9 @@ export function CreateSubscriptionSheet() {
                       setForm((f) => ({ ...f, reminderEnabled: v }));
                     }}
                     disabled={!isPlusActive}
-                    trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#48484A' : '#D1D1D6', true: '#30D158' }}
                     thumbColor="#FFFFFF"
-                    ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
+                    ios_backgroundColor={isDark ? '#48484A' : '#D1D1D6'}
                   />
                 </View>
                 {form.reminderEnabled && (
@@ -1048,9 +1048,9 @@ export function CreateSubscriptionSheet() {
                   <Switch
                     value={form.shared}
                     onValueChange={(v) => setForm((f) => ({ ...f, shared: v }))}
-                    trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                    trackColor={{ false: isDark ? '#48484A' : '#D1D1D6', true: '#30D158' }}
                     thumbColor="#FFFFFF"
-                    ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
+                    ios_backgroundColor={isDark ? '#48484A' : '#D1D1D6'}
                   />
                 </View>
                 {form.shared && (
