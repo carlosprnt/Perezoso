@@ -511,7 +511,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Switch
                 value={draft.endEnabled}
                 onValueChange={(v) => setDraft((f) => ({ ...f, endEnabled: v }))}
-                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                thumbColor="#FFFFFF"
+                ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
               />
             </View>
             {draft.endEnabled && (
@@ -556,7 +558,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                   setDraft((f) => ({ ...f, reminderEnabled: v }));
                 }}
                 disabled={!isPlusActive}
-                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                thumbColor="#FFFFFF"
+                ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
               />
             </View>
             {draft.reminderEnabled && (
@@ -584,7 +588,9 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
               <Switch
                 value={draft.shared}
                 onValueChange={(v) => setDraft((f) => ({ ...f, shared: v }))}
-                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#30D158' }}
+                trackColor={{ false: isDark ? '#48484A' : '#E5E5EA', true: '#30D158' }}
+                thumbColor="#FFFFFF"
+                ios_backgroundColor={isDark ? '#48484A' : '#E5E5EA'}
               />
             </View>
             {draft.shared && (
