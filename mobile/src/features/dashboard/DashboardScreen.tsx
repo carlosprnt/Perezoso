@@ -420,7 +420,7 @@ export function DashboardScreen() {
                       category: highestCost.category ?? '',
                     }}
                     topCategory={{
-                      name: t(`category.${topCategory.category}`),
+                      name: t(`category.${topCategory.category}`, { defaultValue: topCategory.category }),
                       category: topCategory.category,
                       amount: `${formatAmount(topCategory.monthlyCost, globalCurrency)} /mes`,
                       count: topCategory.count,

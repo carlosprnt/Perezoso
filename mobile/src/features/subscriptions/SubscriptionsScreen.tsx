@@ -741,7 +741,7 @@ export function SubscriptionsScreen() {
                 <React.Fragment key={group.category}>
                   <View style={styles.categoryHeader}>
                     <Text style={[styles.categoryTitle, { color: colors.textPrimary }]}>
-                      {t(`category.${group.category}`)}
+                      {t(`category.${group.category}`, { defaultValue: group.category })}
                     </Text>
                     <Text style={[styles.categoryTotal, { color: colors.textMuted }]}>
                       {formatPrice(group.totalMonthly, globalCurrencyCode)}{t('dashboard.perMonth')}
