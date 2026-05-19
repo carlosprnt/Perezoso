@@ -1,6 +1,6 @@
 // Subscription data types — matching web app's data structures
 
-export type SubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'trial' | 'ended';
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'trial';
 export type BillingPeriod = 'monthly' | 'yearly' | 'quarterly' | 'weekly';
 export type Category =
   | 'streaming' | 'music' | 'productivity' | 'cloud' | 'ai'

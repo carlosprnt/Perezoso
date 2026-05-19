@@ -294,7 +294,6 @@ export const resources = {
       'form.status.active': 'Activa',
       'form.status.paused': 'Pausada',
       'form.status.cancelled': 'Cancelada',
-      'form.status.ended': 'Finalizado',
       'form.status.trial': 'Prueba',
       'form.billing.monthly': 'Mensual',
       'form.billing.yearly': 'Anual',
@@ -487,7 +486,6 @@ export const resources = {
       'status.active': 'Activa',
       'status.paused': 'Pausada',
       'status.cancelled': 'Cancelada',
-      'status.ended': 'Finalizado',
       'status.trial': 'Prueba',
 
       // ── Billing periods ──
@@ -525,7 +523,6 @@ export const resources = {
       'subscriptions.filter.trial': 'En prueba',
       'subscriptions.filter.paused': 'Pausadas',
       'subscriptions.filter.cancelled': 'Canceladas',
-      'subscriptions.filter.ended': 'Finalizadas',
       'subscriptions.empty.subtitle': 'Todavía no tienes ninguna. Añade la primera para empezar a ver tu gasto mensual.',
       'subscriptions.empty.suggestions': 'Sugerencia de suscripciones',
 
@@ -764,7 +761,6 @@ export const resources = {
       'subscriptions.filter.trial': 'On trial',
       'subscriptions.filter.paused': 'Paused',
       'subscriptions.filter.cancelled': 'Cancelled',
-      'subscriptions.filter.ended': 'Ended',
       'subscriptions.empty.subtitle': "You don't have any yet. Add the first one to start tracking your monthly spending.",
       'subscriptions.empty.suggestions': 'Subscription suggestions',
 
@@ -896,7 +892,6 @@ export const resources = {
       'form.status.active': 'Active',
       'form.status.paused': 'Paused',
       'form.status.cancelled': 'Cancelled',
-      'form.status.ended': 'Ended',
       'form.status.trial': 'Trial',
       'form.billing.monthly': 'Monthly',
       'form.billing.yearly': 'Yearly',
@@ -1092,7 +1087,6 @@ export const resources = {
       'status.active': 'Active',
       'status.paused': 'Paused',
       'status.cancelled': 'Cancelled',
-      'status.ended': 'Ended',
       'status.trial': 'Trial',
 
       'billing.monthly': 'Monthly',
