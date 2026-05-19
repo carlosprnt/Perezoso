@@ -97,9 +97,9 @@ const BILLING_DISPLAY_KEYS: Record<string, string> = {
 };
 const STATUS_DISPLAY_KEYS: Record<string, string> = {
   active: 'form.status.active',
+  trial: 'form.status.trial',
   paused: 'form.status.paused',
   cancelled: 'form.status.cancelled',
-  ended: 'form.status.ended',
 };
 const CATEGORY_DISPLAY_KEYS: Record<string, string> = {
   streaming: 'category.streaming',
@@ -154,7 +154,7 @@ function customMonthlyEquivalent(price: number, count: number, unit: CustomUnit)
 
 // ─── Types ───────────────────────────────────────────────────────────
 type BillingPeriod = 'monthly' | 'yearly' | 'quarterly' | 'weekly' | 'custom';
-type Status = 'active' | 'trial' | 'paused' | 'cancelled' | 'ended';
+type Status = 'active' | 'trial' | 'paused' | 'cancelled';
 type ReminderDays = '1' | '3' | '7';
 type DateKey = 'start' | 'next' | 'end' | null;
 type PickerKey = 'billing' | 'category' | 'status' | 'reminder' | null;
@@ -185,7 +185,7 @@ interface FormState {
 
 // ─── Constants ───────────────────────────────────────────────────────
 const BILLING_PERIODS: BillingPeriod[] = ['monthly', 'yearly', 'quarterly', 'weekly', 'custom'];
-const STATUSES: Status[] = ['active', 'trial', 'paused', 'cancelled', 'ended'];
+const STATUSES: Status[] = ['active', 'trial', 'paused', 'cancelled'];
 const REMINDER_OPTIONS: ReminderDays[] = ['1', '3', '7'];
 function nextMonth(d: Date): Date {
   const n = new Date(d);
@@ -352,9 +352,15 @@ function LogoPreviewBox({
   isDark: boolean;
   size: number;
 }) {
-  const resolvedUrl = suppressed
-    ? null
-    : resolvePlatformLogoUrl(name, logoUrl || null, null);
+  // Priority:
+  //   1. Manual URL pasted in form.logoUrl — always wins, bypasses suppression
+  //   2. Auto-detected from name — unless user dismissed with X (suppressed)
+  //   3. null → empty box (just the stroke)
+  const resolvedUrl = logoUrl
+    ? logoUrl
+    : suppressed
+      ? null
+      : resolvePlatformLogoUrl(name, null, null);
   const innerPadding = 6;
   const imgSize = size - innerPadding * 2 - 2;
   const borderColor = isDark ? '#3A3A3C' : '#E8E8E8';
@@ -364,7 +370,7 @@ function LogoPreviewBox({
       style={{
         width: size,
         height: size,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'transparent',
         borderRadius: 12,
         borderWidth: 1,
         borderColor,

@@ -137,12 +137,11 @@ function customUnitToSubBilling(unit: CustomUnit): BillingPeriod {
 
 const STATUS_KEYS: Record<string, string> = {
   active: 'form.status.active',
+  trial: 'form.status.trial',
   paused: 'form.status.paused',
   cancelled: 'form.status.cancelled',
-  ended: 'form.status.ended',
-  trial: 'form.status.trial',
 };
-const STATUS_VALUES = ['active', 'paused', 'cancelled', 'ended', 'trial'] as const;
+const STATUS_VALUES = ['active', 'trial', 'paused', 'cancelled'] as const;
 
 const REMINDER_KEYS: Record<string, string> = {
   '1': 'form.reminder.1day',
