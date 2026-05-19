@@ -459,7 +459,7 @@ export function DashboardScreen() {
                   subscriptions for a ranking to be meaningful. */}
               {subscriptions.length > 3 && (
                 <StaggeredItem index={4}>
-                  <View style={{ marginTop: 16 }}>
+                  <View style={{ marginTop: 32 }}>
                     <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                       {t('dashboard.topExpensive')}
                     </Text>
