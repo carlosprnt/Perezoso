@@ -4,6 +4,7 @@
 
 import React, { useCallback } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -172,9 +173,19 @@ export function SubscriptionDetailView({ sub, onClose, onEdit, isPerezosoPro = f
             </Pressable>
           </View>
 
-          {/* Logo */}
+          {/* Logo — for the virtual Perezoso Pro entry we render the
+              brand mark directly instead of LogoAvatar (which would
+              fall back to the "PP" initials). */}
           <View style={styles.heroLogoWrap}>
-            <LogoAvatar name={sub.name} logoUrl={sub.logo_url} size="lg" style={styles.heroLogo} />
+            {isPerezosoPro ? (
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.heroBrandLogo}
+                resizeMode="contain"
+              />
+            ) : (
+              <LogoAvatar name={sub.name} logoUrl={sub.logo_url} size="lg" style={styles.heroLogo} />
+            )}
           </View>
 
           {/* Name */}
@@ -404,6 +415,10 @@ const styles = StyleSheet.create({
   heroLogo: {
     // Override LogoAvatar border so it blends into the card
     borderWidth: 0,
+  },
+  heroBrandLogo: {
+    width: 56,
+    height: 56,
   },
   heroName: {
     ...fontFamily.semiBold,

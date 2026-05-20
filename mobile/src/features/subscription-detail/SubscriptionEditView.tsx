@@ -11,6 +11,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -35,6 +36,11 @@ import { NativeDatePickerSheet } from '../add-subscription/pickers/NativeDatePic
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { useSubscriptionDetailStore } from './useSubscriptionDetailStore';
+import {
+  requestPermission as requestNotificationPermission,
+  getPermissionStatus as getNotificationPermissionStatus,
+} from '../../services/notifications';
+import { usePreferencesStore } from '../settings/useSettingsStore';
 import { PaymentMethodSheet } from '../../components/PaymentMethodSheet';
 import { CategoryPickerSheet } from '../../components/CategoryPickerSheet';
 import { useT } from '../../lib/i18n/LocaleProvider';
@@ -581,7 +587,35 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
                 value={draft.reminderEnabled}
                 onValueChange={(v) => {
                   if (!isPlusActive) return;
-                  setDraft((f) => ({ ...f, reminderEnabled: v }));
+                  // Turning the per-sub reminder OFF: just flip state.
+                  if (!v) {
+                    setDraft((f) => ({ ...f, reminderEnabled: false }));
+                    return;
+                  }
+                  // Turning ON: this is the user's explicit consent, so
+                  // request the OS permission opportunistically — same
+                  // pattern as the dashboard's "Avísame" CTA. If granted,
+                  // mirror the global setting so the rest of the app
+                  // (scheduler, notifications service) actually fires.
+                  void (async () => {
+                    const granted = await requestNotificationPermission();
+                    if (granted) {
+                      usePreferencesStore.getState().setNotificationsEnabled(true);
+                      setDraft((f) => ({ ...f, reminderEnabled: true }));
+                      return;
+                    }
+                    const status = await getNotificationPermissionStatus();
+                    if (status === 'denied') {
+                      Alert.alert(
+                        t('dashboard.reminder.permissionDeniedTitle'),
+                        t('dashboard.reminder.permissionDenied'),
+                        [
+                          { text: t('common.cancel'), style: 'cancel' },
+                          { text: t('common.openSettings'), onPress: () => Linking.openSettings() },
+                        ],
+                      );
+                    }
+                  })();
                 }}
                 disabled={!isPlusActive}
                 trackColor={{ false: isDark ? '#48484A' : '#D1D1D6', true: '#30D158' }}

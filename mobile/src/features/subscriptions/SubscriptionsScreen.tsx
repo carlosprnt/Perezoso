@@ -47,7 +47,7 @@ import { radius } from '../../design/radius';
 import { useT } from '../../lib/i18n/LocaleProvider';
 import { WalletCard, LockedWalletCard, FREE_SUBSCRIPTION_LIMIT } from './WalletCard';
 import { PerezosoProCard } from './PerezosoProCard';
-import { buildProSubscription } from './proSubscription';
+import { buildProSubscription, isPerezosoProSub } from './proSubscription';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
@@ -409,13 +409,37 @@ export function SubscriptionsScreen() {
     return new Set(byCreation.slice(FREE_SUBSCRIPTION_LIMIT).map((s) => s.id));
   }, [subscriptions, isPlusActive]);
 
+  const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
+  const globalCurrencyCode = useMemo(() => currencyCodeFromLabel(globalCurrencyLabel), [globalCurrencyLabel]);
+  const globalCurrencySymbol = useMemo(() => currencyToSymbol(globalCurrencyCode), [globalCurrencyCode]);
+
+  // Virtual Perezoso Pro subscription — injected into the list so the
+  // sort criterion (alphabetical, price, next renewal…) reorders it
+  // alongside the user's real subscriptions. Lives outside the
+  // `subscriptions` array so it never contaminates totals/counters.
+  // Hidden when the user filters by paused/cancelled — Perezoso Pro is
+  // always 'active'.
+  const proSub = useMemo(() => {
+    if (!isPlusActive) return null;
+    if (filter !== 'all' && filter !== 'active' && filter !== 'trial') return null;
+    return buildProSubscription({
+      plan: proPlan ?? 'monthly',
+      purchaseDate: proPurchaseDate ?? new Date().toISOString(),
+      currency: globalCurrencyCode,
+    });
+  }, [isPlusActive, proPlan, proPurchaseDate, globalCurrencyCode, filter]);
+
   const filtered = useMemo(() => {
-    let subs = subscriptions;
+    // Inject the virtual Perezoso Pro entry into the list so the sort
+    // (alphabetical, price, next renewal, etc.) reorders it alongside
+    // the user's real subscriptions. It still lives outside the data
+    // store, so totals/counters remain unaffected.
+    let subs = proSub ? [proSub, ...subscriptions] : subscriptions;
     if (filter !== 'all') {
       subs = subs.filter((s) => s.status === filter);
     }
     return sortSubscriptions(subs, sortMode);
-  }, [subscriptions, sortMode, filter]);
+  }, [subscriptions, sortMode, filter, proSub]);
 
   const activeFiltered = useMemo(
     () => filtered.filter((s) => s.status === 'active' || s.status === 'trial'),
@@ -454,25 +478,6 @@ export function SubscriptionsScreen() {
     () => subscriptions.filter((s) => s.status === 'active'),
     [subscriptions],
   );
-  const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
-  const globalCurrencyCode = useMemo(() => currencyCodeFromLabel(globalCurrencyLabel), [globalCurrencyLabel]);
-  const globalCurrencySymbol = useMemo(() => currencyToSymbol(globalCurrencyCode), [globalCurrencyCode]);
-
-  // Virtual Perezoso Pro subscription — rendered with a holographic card
-  // at the top of the active list. Lives outside the `subscriptions`
-  // array so it never contaminates totals/counters (those should reflect
-  // only third-party services the user is paying for). Hidden when the
-  // user filters by paused/cancelled — Perezoso Pro is always 'active'.
-  const proSub = useMemo(() => {
-    if (!isPlusActive) return null;
-    if (filter !== 'all' && filter !== 'active' && filter !== 'trial') return null;
-    return buildProSubscription({
-      plan: proPlan ?? 'monthly',
-      purchaseDate: proPurchaseDate ?? new Date().toISOString(),
-      currency: globalCurrencyCode,
-    });
-  }, [isPlusActive, proPlan, proPurchaseDate, globalCurrencyCode, filter]);
-
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
   const totalForPeriod = period === 'monthly' ? totalMonthly : totalMonthly * 12;
@@ -756,22 +761,8 @@ export function SubscriptionsScreen() {
             listY.value = e.nativeEvent.layout.y;
           }}
         >
-          {/* Perezoso Pro holographic card — always at the top of the
-              active list when the user has the entitlement. Rendered
-              outside the `subscriptions` array so totals stay clean. */}
-          {proSub && (
-            <ScrollCard
-              scrollY={scrollY}
-              listY={listY}
-              triggerY={triggerY}
-              stackMargin={0}
-            >
-              <PerezosoProCard subscription={proSub} onPress={() => openDetail(proSub)} />
-            </ScrollCard>
-          )}
-
           {activeGrouped
-            ? activeGrouped.map((group, groupIndex) => (
+            ? activeGrouped.map((group) => (
                 <React.Fragment key={group.category}>
                   <View style={styles.categoryHeader}>
                     <Text style={[styles.categoryTitle, { color: colors.textPrimary }]}>
@@ -787,9 +778,11 @@ export function SubscriptionsScreen() {
                       scrollY={scrollY}
                       listY={listY}
                       triggerY={triggerY}
-                      stackMargin={index === 0 && groupIndex === 0 && !proSub ? 0 : STACK_MARGIN_PX}
+                      stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
                     >
-                      {lockedIds.has(sub.id) ? (
+                      {isPerezosoProSub(sub) ? (
+                        <PerezosoProCard subscription={sub} onPress={() => openDetail(sub)} />
+                      ) : lockedIds.has(sub.id) ? (
                         <LockedWalletCard
                           subscription={sub}
                           onPress={() => usePaywallStore.getState().open('subscription_limit')}
@@ -807,9 +800,11 @@ export function SubscriptionsScreen() {
                   scrollY={scrollY}
                   listY={listY}
                   triggerY={triggerY}
-                  stackMargin={index === 0 && !proSub ? 0 : STACK_MARGIN_PX}
+                  stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
                 >
-                  {lockedIds.has(sub.id) ? (
+                  {isPerezosoProSub(sub) ? (
+                    <PerezosoProCard subscription={sub} onPress={() => openDetail(sub)} />
+                  ) : lockedIds.has(sub.id) ? (
                     <LockedWalletCard
                       subscription={sub}
                       onPress={() => usePaywallStore.getState().open('subscription_limit')}

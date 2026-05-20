@@ -1,16 +1,16 @@
-// PerezosoProCard — the Perezoso Pro "subscription" rendered at the
-// top of the Suscripciones list when the user has the entitlement.
+// PerezosoProCard — the Perezoso Pro "subscription" rendered inside
+// the Suscripciones list when the user has the entitlement.
 //
-// Same footprint as WalletCard (radius 32, padding 20, gap 16) but the
-// background is built from four absolutely-positioned layers that
-// produce a holographic, parallax effect driven by the device's
-// gyroscope:
+// Footprint matches WalletCard (radius 32, padding 20, gap 16) but the
+// background is a holographic foil composed of four absolutely-
+// positioned layers that move with the device's gyroscope to produce
+// a parallax, "metallic sticker" effect:
 //
-//   layer 0  static dark base       (anchors contrast)
-//   layer 1  iridescent rainbow     (translates at 0.4× tilt — slow)
-//   layer 2  specular highlight     (translates at 1.0× tilt — fast)
-//   layer 3  subtle white stripes   (depth / anti-banding)
-//   content  same rows as WalletCard, white-tinted text
+//   layer 0  silver metallic base       (light, static)
+//   layer 1  pastel iridescent foil     (translates at 0.4× tilt)
+//   layer 2  bright specular highlight  (translates at 1.0× tilt)
+//   layer 3  cool sheen veil            (depth + temperature)
+//   content  WalletCard rows, dark text on the pastel background
 //
 // All animated transforms come from a single pair of SharedValues
 // (tiltX / tiltY ∈ [-1, 1]) so the JS thread does no per-frame work.
@@ -52,28 +52,36 @@ export function PerezosoProCard({ subscription: sub, onPress }: PerezosoProCardP
   const effectiveDate = effectiveNextBillingDate(sub);
   const days = daysUntilDate(effectiveDate);
 
-  // Iridescence (slow parallax): translates and rotates gently.
+  // Iridescent foil: slow parallax + slight rotation.
   const iridescenceStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: tiltX.value * 30 },
-      { translateY: tiltY.value * 20 },
-      { rotate: `${tiltX.value * 6}deg` },
+      { translateX: tiltX.value * 40 },
+      { translateY: tiltY.value * 26 },
+      { rotate: `${tiltX.value * 5}deg` },
     ],
   }));
 
-  // Specular highlight (fast parallax): translates further and brightens
-  // as the device tilts more in either direction.
+  // Bright specular sweep: faster parallax + brightens with magnitude.
   const specularStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: tiltX.value * 60 },
-      { translateY: tiltY.value * 40 },
+      { translateX: tiltX.value * 75 },
+      { translateY: tiltY.value * 50 },
     ],
     opacity: interpolate(
       Math.abs(tiltX.value) + Math.abs(tiltY.value),
       [0, 2],
-      [0.2, 0.6],
+      [0.55, 0.95],
       Extrapolation.CLAMP,
     ),
+  }));
+
+  // Cool sheen veil: subtle counter-translate so the warm and cool
+  // halves of the foil swap as the device tilts.
+  const sheenStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: tiltX.value * -20 },
+      { translateY: tiltY.value * -14 },
+    ],
   }));
 
   return (
@@ -84,59 +92,62 @@ export function PerezosoProCard({ subscription: sub, onPress }: PerezosoProCardP
       }}
       style={[styles.card, shadows.cardSm]}
     >
-      {/* Layer 0 — dark base (static). */}
+      {/* Layer 0 — silver metallic base (static). */}
       <LinearGradient
-        colors={['#1a1530', '#2a1f4a']}
+        colors={['#F5F4FF', '#E6E5F2', '#F8F6FF']}
+        locations={[0, 0.55, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Layer 1 — iridescent rainbow (slow parallax). */}
-      <Animated.View style={[styles.iridescenceWrap, iridescenceStyle]}>
+      {/* Layer 1 — pastel iridescent foil (slow parallax). */}
+      <Animated.View style={[styles.foilWrap, iridescenceStyle]}>
         <LinearGradient
           colors={[
-            '#FF6FD8',
-            '#A78BFA',
-            '#6EE7F0',
-            '#FFD66E',
-            '#FF6FD8',
-            '#A78BFA',
+            '#FFD1E8', // soft pink
+            '#E0CCFF', // lavender
+            '#C5E8FF', // sky
+            '#C8F5DC', // mint
+            '#FFF1B5', // butter
+            '#FFD1E8', // soft pink (loop)
           ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          locations={[0, 0.22, 0.44, 0.66, 0.85, 1]}
+          start={{ x: 0, y: 0.1 }}
+          end={{ x: 1, y: 0.9 }}
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
 
-      {/* Layer 2 — specular highlight (fast parallax). */}
+      {/* Layer 2 — bright specular sweep (fast parallax). */}
       <Animated.View style={[styles.specularWrap, specularStyle]}>
         <LinearGradient
           colors={[
             'rgba(255,255,255,0)',
-            'rgba(255,255,255,0.55)',
+            'rgba(255,255,255,0.85)',
             'rgba(255,255,255,0)',
           ]}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
+          start={{ x: 0.15, y: 0 }}
+          end={{ x: 0.85, y: 1 }}
           locations={[0.35, 0.5, 0.65]}
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
 
-      {/* Layer 3 — fine diagonal stripes for depth. */}
-      <LinearGradient
-        colors={[
-          'rgba(255,255,255,0)',
-          'rgba(255,255,255,0.04)',
-          'rgba(255,255,255,0)',
-          'rgba(255,255,255,0.04)',
-          'rgba(255,255,255,0)',
-        ]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      {/* Layer 3 — cool sheen veil (counter-translates). */}
+      <Animated.View style={[styles.sheenWrap, sheenStyle]} pointerEvents="none">
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,0.4)',
+            'rgba(255,255,255,0)',
+            'rgba(196,217,255,0.35)',
+          ]}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
 
       {/* Content layer. */}
       <View style={styles.content}>
@@ -182,25 +193,28 @@ export function PerezosoProCard({ subscription: sub, onPress }: PerezosoProCardP
   );
 }
 
+const TEXT_PRIMARY = '#1F1B36';
+const TEXT_MUTED = 'rgba(31,27,54,0.62)';
+
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card, // 32px
     padding: 20,
     gap: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(255,255,255,0.85)',
     overflow: 'hidden',
-    backgroundColor: '#1a1530',
+    backgroundColor: '#F2F0FA',
   },
-  // The iridescent layer is oversized so the parallax translation never
-  // exposes the dark base at the edges of the card.
-  iridescenceWrap: {
+  // Foil layer is oversized so parallax translation never exposes
+  // bare base at the card edges.
+  foilWrap: {
     position: 'absolute',
     top: '-50%',
     left: '-50%',
     width: '200%',
     height: '200%',
-    opacity: 0.55,
+    opacity: 0.92,
   },
   specularWrap: {
     position: 'absolute',
@@ -208,6 +222,14 @@ const styles = StyleSheet.create({
     left: '-50%',
     width: '200%',
     height: '200%',
+  },
+  sheenWrap: {
+    position: 'absolute',
+    top: '-50%',
+    left: '-50%',
+    width: '200%',
+    height: '200%',
+    opacity: 0.5,
   },
   content: {
     gap: 16,
@@ -225,6 +247,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
   },
   logoImage: {
     width: 40,
@@ -238,15 +264,13 @@ const styles = StyleSheet.create({
     ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowRadius: 4,
+    color: TEXT_PRIMARY,
   },
   category: {
     ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
-    color: 'rgba(255,255,255,0.78)',
+    color: TEXT_MUTED,
   },
   priceBlock: {
     alignItems: 'flex-end',
@@ -255,15 +279,13 @@ const styles = StyleSheet.create({
     ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.tight,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowRadius: 4,
+    color: TEXT_PRIMARY,
   },
   period: {
     ...fontFamily.semiBold,
     fontSize: fontSize[15],
     lineHeight: fontSize[15] * lineHeight.snug,
-    color: 'rgba(255,255,255,0.78)',
+    color: TEXT_MUTED,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -284,13 +306,12 @@ const styles = StyleSheet.create({
     ...fontFamily.semiBold,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
-    color: 'rgba(255,255,255,0.85)',
+    color: TEXT_MUTED,
   },
   renewalDays: {
     ...fontFamily.semiBold,
     fontSize: fontSize[13],
     lineHeight: fontSize[13] * lineHeight.snug,
-    color: 'rgba(255,255,255,0.9)',
+    color: TEXT_PRIMARY,
   },
 });
-
