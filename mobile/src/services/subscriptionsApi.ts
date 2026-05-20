@@ -32,6 +32,8 @@ interface SubscriptionRow {
   start_date: string | null;
   end_date: string | null;
   payment_method: string | null;
+  reminder_enabled: boolean | null;
+  reminder_days: string | null;
 }
 
 // ── Cost derivation ──────────────────────────────────────────────────
@@ -87,6 +89,8 @@ function rowToSubscription(row: SubscriptionRow): Subscription {
     start_date: row.start_date ?? undefined,
     end_date: row.end_date ?? undefined,
     payment_method: row.payment_method ?? undefined,
+    reminderEnabled: row.reminder_enabled ?? undefined,
+    reminderDays: (row.reminder_days as Subscription['reminderDays']) ?? undefined,
   };
 }
 
@@ -126,6 +130,8 @@ export async function insertSubscription(
     start_date: sub.start_date ?? null,
     end_date: sub.end_date ?? null,
     payment_method: sub.payment_method ?? null,
+    reminder_enabled: sub.reminderEnabled ?? null,
+    reminder_days: sub.reminderDays ?? null,
   };
 
   const { data, error } = await supabase
@@ -158,6 +164,8 @@ export async function updateSubscription(
     start_date: sub.start_date ?? null,
     end_date: sub.end_date ?? null,
     payment_method: sub.payment_method ?? null,
+    reminder_enabled: sub.reminderEnabled ?? null,
+    reminder_days: sub.reminderDays ?? null,
   };
 
   const { data, error } = await supabase
