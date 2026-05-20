@@ -187,6 +187,71 @@ export async function fetchIsPro(): Promise<boolean> {
   }
 }
 
+// ── Pro details (plan + purchase date) ──────────────────────────────
+// The plain `isPro` boolean isn't enough to render the Perezoso Pro
+// card in Suscripciones — we also need to know whether the user is on
+// the monthly or annual product and when they originally subscribed
+// (to compute the next renewal date). Read both from the active
+// entitlement payload that RC ships with every CustomerInfo.
+
+export type ProPlan = 'monthly' | 'annual';
+
+export interface ProDetails {
+  plan: ProPlan;
+  /** ISO timestamp. Falls back to latestPurchaseDate if originalPurchaseDate is absent. */
+  purchaseDate: string;
+  /** Raw product identifier, e.g. 'perezoso_pro_monthly'. */
+  productIdentifier: string;
+}
+
+function deriveProDetails(customerInfo: any): ProDetails | null {
+  const ent = customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID];
+  if (!ent) return null;
+  const productIdentifier: string = ent.productIdentifier ?? '';
+  const plan: ProPlan = productIdentifier.includes('annual') ? 'annual' : 'monthly';
+  const purchaseDate: string =
+    ent.originalPurchaseDate ?? ent.latestPurchaseDate ?? new Date().toISOString();
+  return { plan, purchaseDate, productIdentifier };
+}
+
+/** One-shot read of the active Pro plan + purchase date. Null if not Pro. */
+export async function fetchProDetails(): Promise<ProDetails | null> {
+  const P = loadPurchases();
+  if (!P) return null;
+  try {
+    const info = await P.getCustomerInfo();
+    return deriveProDetails(info);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Subscribe to Pro plan/date changes. Fires whenever the customer info
+ * payload changes (renewal, restore, plan switch). Returns an
+ * unsubscribe fn. Separate from `addCustomerInfoListener` to keep the
+ * existing isPro-only call sites untouched.
+ */
+export function addProDetailsListener(
+  cb: (details: ProDetails | null) => void,
+): () => void {
+  const P = loadPurchases();
+  if (!P) return () => {};
+  const listener = (info: any) => cb(deriveProDetails(info));
+  try {
+    P.addCustomerInfoUpdateListener(listener);
+  } catch {
+    return () => {};
+  }
+  return () => {
+    try {
+      P.removeCustomerInfoUpdateListener(listener);
+    } catch {
+      // removeCustomerInfoUpdateListener isn't exposed on all versions.
+    }
+  };
+}
+
 /**
  * Subscribe to customer info changes. Returns an unsubscribe fn.
  * Keeps `isPlusActive` in the store live across renewals / cancels.

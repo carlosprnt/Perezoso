@@ -46,6 +46,8 @@ import { radius } from '../../design/radius';
 
 import { useT } from '../../lib/i18n/LocaleProvider';
 import { WalletCard, LockedWalletCard, FREE_SUBSCRIPTION_LIMIT } from './WalletCard';
+import { PerezosoProCard } from './PerezosoProCard';
+import { buildProSubscription } from './proSubscription';
 import { usePaywallStore } from '../paywall/usePaywallStore';
 import { SubscriptionsEmptyState } from './SubscriptionsEmptyState';
 import { Skeleton } from '../../components/Skeleton';
@@ -332,6 +334,8 @@ export function SubscriptionsScreen() {
   const openCalendar = useCalendarStore((s) => s.open);
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const isPlusActive = useSubscriptionsStore((s) => s.isPlusActive);
+  const proPlan = useSubscriptionsStore((s) => s.proPlan);
+  const proPurchaseDate = useSubscriptionsStore((s) => s.proPurchaseDate);
   const storeLoading = useSubscriptionsStore((s) => s.loading);
   const isFirstLoad = storeLoading && subscriptions.length === 0;
   const scrollY = useSharedValue(0);
@@ -453,6 +457,22 @@ export function SubscriptionsScreen() {
   const globalCurrencyLabel = usePreferencesStore((s) => s.currency);
   const globalCurrencyCode = useMemo(() => currencyCodeFromLabel(globalCurrencyLabel), [globalCurrencyLabel]);
   const globalCurrencySymbol = useMemo(() => currencyToSymbol(globalCurrencyCode), [globalCurrencyCode]);
+
+  // Virtual Perezoso Pro subscription — rendered with a holographic card
+  // at the top of the active list. Lives outside the `subscriptions`
+  // array so it never contaminates totals/counters (those should reflect
+  // only third-party services the user is paying for). Hidden when the
+  // user filters by paused/cancelled — Perezoso Pro is always 'active'.
+  const proSub = useMemo(() => {
+    if (!isPlusActive) return null;
+    if (filter !== 'all' && filter !== 'active' && filter !== 'trial') return null;
+    return buildProSubscription({
+      plan: proPlan ?? 'monthly',
+      purchaseDate: proPurchaseDate ?? new Date().toISOString(),
+      currency: globalCurrencyCode,
+    });
+  }, [isPlusActive, proPlan, proPurchaseDate, globalCurrencyCode, filter]);
+
   const activeCount = activeSubs.length;
   const totalMonthly = activeSubs.reduce((sum, s) => sum + s.my_monthly_cost, 0);
   const totalForPeriod = period === 'monthly' ? totalMonthly : totalMonthly * 12;
@@ -736,8 +756,22 @@ export function SubscriptionsScreen() {
             listY.value = e.nativeEvent.layout.y;
           }}
         >
+          {/* Perezoso Pro holographic card — always at the top of the
+              active list when the user has the entitlement. Rendered
+              outside the `subscriptions` array so totals stay clean. */}
+          {proSub && (
+            <ScrollCard
+              scrollY={scrollY}
+              listY={listY}
+              triggerY={triggerY}
+              stackMargin={0}
+            >
+              <PerezosoProCard subscription={proSub} onPress={() => openDetail(proSub)} />
+            </ScrollCard>
+          )}
+
           {activeGrouped
-            ? activeGrouped.map((group) => (
+            ? activeGrouped.map((group, groupIndex) => (
                 <React.Fragment key={group.category}>
                   <View style={styles.categoryHeader}>
                     <Text style={[styles.categoryTitle, { color: colors.textPrimary }]}>
@@ -753,7 +787,7 @@ export function SubscriptionsScreen() {
                       scrollY={scrollY}
                       listY={listY}
                       triggerY={triggerY}
-                      stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
+                      stackMargin={index === 0 && groupIndex === 0 && !proSub ? 0 : STACK_MARGIN_PX}
                     >
                       {lockedIds.has(sub.id) ? (
                         <LockedWalletCard
@@ -773,7 +807,7 @@ export function SubscriptionsScreen() {
                   scrollY={scrollY}
                   listY={listY}
                   triggerY={triggerY}
-                  stackMargin={index === 0 ? 0 : STACK_MARGIN_PX}
+                  stackMargin={index === 0 && !proSub ? 0 : STACK_MARGIN_PX}
                 >
                   {lockedIds.has(sub.id) ? (
                     <LockedWalletCard

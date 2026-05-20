@@ -32,9 +32,12 @@ import { advanceAllRenewals } from '../lib/calculations/renewals';
 import { useAuthStore } from '../features/auth/useAuthStore';
 import {
   addCustomerInfoListener,
+  addProDetailsListener,
   configure as configurePurchases,
   fetchIsPro,
+  fetchProDetails,
   logOut as purchasesLogOut,
+  type ProPlan,
 } from '../services/purchases';
 import { isReviewAccount, REVIEW_SEED_SUBSCRIPTIONS } from '../lib/reviewAccount';
 import { currencyCodeFromLabel } from '../lib/formatting';
@@ -82,6 +85,10 @@ interface SubscriptionsStore {
   preset: AppPreset;
   subscriptions: Subscription[];
   isPlusActive: boolean;
+  /** Pro plan tier (monthly/annual). Null until RC reports an active entitlement. */
+  proPlan: ProPlan | null;
+  /** ISO timestamp of the original Pro purchase. Null until RC reports it. */
+  proPurchaseDate: string | null;
   loading: boolean;
   error: string | null;
 
@@ -112,22 +119,43 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
   preset: 'empty',
   subscriptions: [],
   isPlusActive: false,
+  proPlan: null,
+  proPurchaseDate: null,
   loading: false,
   error: null,
 
   useRealMode: async () => {
-    set({ mode: 'real', preset: 'empty', subscriptions: [], isPlusActive: false });
+    set({
+      mode: 'real',
+      preset: 'empty',
+      subscriptions: [],
+      isPlusActive: false,
+      proPlan: null,
+      proPurchaseDate: null,
+    });
     await get().loadFromSupabase();
   },
 
-  useDemoPreset: (preset) =>
+  useDemoPreset: (preset) => {
+    const cfg = PRESET_CONFIG[preset];
+    // Demo: when the preset marks the user as Pro, fabricate plan + a
+    // purchase date 14 days ago so the holographic card has realistic
+    // values to render (next renewal ≈ 16 days from today on monthly).
+    const proDefaults = cfg.isPlusActive
+      ? {
+          proPlan: 'monthly' as ProPlan,
+          proPurchaseDate: new Date(Date.now() - 14 * 86400000).toISOString(),
+        }
+      : { proPlan: null, proPurchaseDate: null };
     set({
       mode: 'demo',
       preset,
-      subscriptions: advanceAllRenewals(PRESET_CONFIG[preset].subscriptions),
-      isPlusActive: PRESET_CONFIG[preset].isPlusActive,
+      subscriptions: advanceAllRenewals(cfg.subscriptions),
+      isPlusActive: cfg.isPlusActive,
+      ...proDefaults,
       error: null,
-    }),
+    });
+  },
 
   loadFromSupabase: async () => {
     const user = useAuthStore.getState().user;
@@ -156,6 +184,8 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
     set({
       subscriptions: [],
       isPlusActive: false,
+      proPlan: null,
+      proPurchaseDate: null,
       loading: false,
       error: null,
     }),
@@ -262,21 +292,41 @@ export const useSubscriptionsStore = create<SubscriptionsStore>((set, get) => ({
 // reinstall / device switch. The entitlement listener pushes any
 // change (renewal, cancellation, restore) straight into `isPlusActive`.
 let unsubscribePurchases: (() => void) | null = null;
+let unsubscribeProDetails: (() => void) | null = null;
 
 function bootstrapPurchases(userId: string | undefined, email?: string | null) {
   const reviewMode = isReviewAccount(email);
   (async () => {
     await configurePurchases(userId);
     if (reviewMode) {
-      useSubscriptionsStore.setState({ isPlusActive: true });
+      // Review accounts get the Pro treatment without hitting RC. Use a
+      // synthetic monthly plan starting today so the holographic card has
+      // valid data to render.
+      useSubscriptionsStore.setState({
+        isPlusActive: true,
+        proPlan: 'monthly',
+        proPurchaseDate: new Date().toISOString(),
+      });
     } else {
-      const isPro = await fetchIsPro();
-      useSubscriptionsStore.setState({ isPlusActive: isPro });
+      const [isPro, details] = await Promise.all([fetchIsPro(), fetchProDetails()]);
+      useSubscriptionsStore.setState({
+        isPlusActive: isPro,
+        proPlan: details?.plan ?? null,
+        proPurchaseDate: details?.purchaseDate ?? null,
+      });
     }
     unsubscribePurchases?.();
     unsubscribePurchases = addCustomerInfoListener((pro) => {
       if (reviewMode) return;
       useSubscriptionsStore.setState({ isPlusActive: pro });
+    });
+    unsubscribeProDetails?.();
+    unsubscribeProDetails = addProDetailsListener((details) => {
+      if (reviewMode) return;
+      useSubscriptionsStore.setState({
+        proPlan: details?.plan ?? null,
+        proPurchaseDate: details?.purchaseDate ?? null,
+      });
     });
   })();
 }
@@ -322,6 +372,8 @@ useAuthStore.subscribe((state, prev) => {
     useSubscriptionsStore.getState().clear();
     unsubscribePurchases?.();
     unsubscribePurchases = null;
+    unsubscribeProDetails?.();
+    unsubscribeProDetails = null;
     void purchasesLogOut();
   }
 });

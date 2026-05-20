@@ -478,6 +478,13 @@ export const resources = {
       'detail.people': '{{count}} personas',
       'detail.editSubscription': 'Editar suscripción',
 
+      // ── Perezoso Pro card ──
+      'pro.cardTitle': 'Perezoso Pro',
+      'pro.manageSubscription': 'Gestionar suscripción',
+      'pro.planMonthly': 'Plan mensual',
+      'pro.planAnnual': 'Plan anual',
+      'pro.notEditable': 'Esta suscripción se gestiona desde el App Store',
+
       // ── Navigation ──
       'nav.createSubscription': 'Crear nueva suscripción',
       'category.rest': 'Resto',
@@ -1077,6 +1084,13 @@ export const resources = {
       'detail.sharedWith': 'Shared with',
       'detail.people': '{{count}} people',
       'detail.editSubscription': 'Edit subscription',
+
+      // ── Perezoso Pro card ──
+      'pro.cardTitle': 'Perezoso Pro',
+      'pro.manageSubscription': 'Manage subscription',
+      'pro.planMonthly': 'Monthly plan',
+      'pro.planAnnual': 'Annual plan',
+      'pro.notEditable': 'This subscription is managed from the App Store',
 
       // ── Navigation ──
       'nav.createSubscription': 'Create new subscription',
