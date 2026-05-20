@@ -31,6 +31,8 @@ import { SubscriptionEditView } from './SubscriptionEditView';
 import { Toast } from '../../components/Toast';
 import { useToastStore } from '../../components/useToastStore';
 import { useSubscriptionsStore } from '../../stores/subscriptionsStore';
+import { isPerezosoProSub } from '../subscriptions/proSubscription';
+import { openManageSubscriptions } from '../../services/purchases';
 import type { Subscription } from '../subscriptions/types';
 
 const FADE_MS = 160;
@@ -72,7 +74,10 @@ export function SubscriptionDetailSheet() {
   const viewStyle  = useAnimatedStyle(() => ({ opacity: viewOpacity.value }));
   const editStyle  = useAnimatedStyle(() => ({ opacity: editOpacity.value }));
 
+  const isPro = isPerezosoProSub(sub);
+
   const handleSave = useCallback(async (updated: Subscription) => {
+    if (isPerezosoProSub(updated)) return;
     try {
       await useSubscriptionsStore.getState().updateSubscription(updated);
       updateSub(updated);
@@ -86,6 +91,7 @@ export function SubscriptionDetailSheet() {
 
   const handleDelete = useCallback(async () => {
     if (!sub) return;
+    if (isPerezosoProSub(sub)) return;
     try {
       await useSubscriptionsStore.getState().deleteSubscription(sub.id);
       deleteSub();
@@ -96,6 +102,10 @@ export function SubscriptionDetailSheet() {
       useToastStore.getState().show('error', t('detail.deleteError'));
     }
   }, [sub, deleteSub, t]);
+
+  const handleManagePro = useCallback(() => {
+    void openManageSubscriptions();
+  }, []);
 
   if (!sub) return null;
 
@@ -115,6 +125,8 @@ export function SubscriptionDetailSheet() {
           sub={sub}
           onClose={close}
           onEdit={enterEdit}
+          isPerezosoPro={isPro}
+          onManagePro={handleManagePro}
         />
       </Animated.View>
 

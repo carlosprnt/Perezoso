@@ -83,9 +83,11 @@ interface Props {
   sub: Subscription;
   onClose: () => void;
   onEdit: () => void;
+  isPerezosoPro?: boolean;
+  onManagePro?: () => void;
 }
 
-export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
+export function SubscriptionDetailView({ sub, onClose, onEdit, isPerezosoPro = false, onManagePro }: Props) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const t = useT();
@@ -308,14 +310,33 @@ export function SubscriptionDetailView({ sub, onClose, onEdit }: Props) {
         </View>
       </ScrollView>
 
-      {/* ── Footer CTA ── */}
+      {/* ── Footer CTA ──
+          For the virtual Perezoso Pro entry we replace the "Editar"
+          flow with a single "Gestionar suscripción" button that opens
+          the App Store / Play Store subscriptions screen. Editing or
+          deleting it from inside the app is meaningless — the source
+          of truth lives in the platform store. */}
       <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: cardBorder }]}>
-        <Pressable
-          style={({ pressed }) => [styles.editBtn, { backgroundColor: colors.accent }, pressed && { opacity: 0.85 }]}
-          onPress={handleEdit}
-        >
-          <Text style={[styles.editBtnText, { color: colors.accentFg }]}>{t('detail.editSubscription')}</Text>
-        </Pressable>
+        {isPerezosoPro ? (
+          <>
+            <Text style={[styles.proNote, { color: colors.textMuted }]}>
+              {t('pro.notEditable')}
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.editBtn, { backgroundColor: colors.accent }, pressed && { opacity: 0.85 }]}
+              onPress={onManagePro}
+            >
+              <Text style={[styles.editBtnText, { color: colors.accentFg }]}>{t('pro.manageSubscription')}</Text>
+            </Pressable>
+          </>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [styles.editBtn, { backgroundColor: colors.accent }, pressed && { opacity: 0.85 }]}
+            onPress={handleEdit}
+          >
+            <Text style={[styles.editBtnText, { color: colors.accentFg }]}>{t('detail.editSubscription')}</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -542,5 +563,12 @@ const styles = StyleSheet.create({
     ...fontFamily.semiBold,
     fontSize: fontSize[16],
     letterSpacing: -0.2,
+  },
+  proNote: {
+    ...fontFamily.medium,
+    fontSize: fontSize[13],
+    lineHeight: fontSize[13] * lineHeight.snug,
+    textAlign: 'center',
+    paddingBottom: 10,
   },
 });
