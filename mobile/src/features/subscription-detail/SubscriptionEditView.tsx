@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, ChevronsUpDown, ChevronDown, Minus, Plus, X } from 'lucide-react-native';
 
 import { FloatingOptionMenu, MenuAnchor } from '../../components/FloatingOptionMenu';
+import { LogoPreviewBox } from '../../components/LogoPreviewBox';
 import { CurrencySheet, currencySymbol } from '../settings/CurrencySheet';
 import { useTheme } from '../../design/useTheme';
 import { fontFamily, fontSize } from '../../design/typography';
@@ -249,6 +250,16 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
   const initialDraft = useRef<EditDraft>(makeDraft(sub));
   const [draft, setDraft] = useState<EditDraft>(() => makeDraft(sub));
   const [error, setError] = useState<string | null>(null);
+
+  // Manual dismiss of the auto-detected logo preview (X badge in the
+  // LogoPreviewBox). Suppresses the platform-catalog match until the
+  // name is cleared. Does NOT affect an explicitly pasted logoUrl —
+  // that always wins.
+  const [logoSuppressed, setLogoSuppressed] = useState(false);
+  const clearLogo = useCallback(() => {
+    setLogoSuppressed(true);
+    setDraft((f) => ({ ...f, logoUrl: '' }));
+  }, []);
   const [openDate, setOpenDate] = useState<DateKey>(null);
   const [openPicker, setOpenPicker] = useState<PickerKey>(null);
   const [pickerAnchor, setPickerAnchor] = useState<MenuAnchor | null>(null);
@@ -392,32 +403,47 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
         >
           {/* Platform card */}
           <View style={[styles.platformCard, { backgroundColor: colors.surfaceSecondary }]}>
-            <TextInput
-              style={[styles.platformName, { color: colors.textPrimary }]}
-              value={draft.name}
-              onChangeText={(txt) => setDraft((f) => ({ ...f, name: txt }))}
-              placeholder={t('form.namePlaceholder')}
-              placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-              returnKeyType="done"
-              autoCorrect={false}
-            />
-            <View style={styles.priceRow}>
-              <Pressable
-                style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
-                onPress={() => setCurrencySheetOpen(true)}
-                hitSlop={8}
-              >
-                <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(draft.currency)}</Text>
-                <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
-              </Pressable>
-              <TextInput
-                style={[styles.priceInput, { color: colors.textPrimary }]}
-                value={draft.price}
-                onChangeText={(txt) => setDraft((f) => ({ ...f, price: txt }))}
-                placeholder="0.00"
-                placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
-                keyboardType="decimal-pad"
-                returnKeyType="done"
+            <View style={styles.platformLogoRow}>
+              <View style={styles.platformInputCol}>
+                <TextInput
+                  style={[styles.platformName, { color: colors.textPrimary }]}
+                  value={draft.name}
+                  onChangeText={(txt) => {
+                    if (txt === '') setLogoSuppressed(false);
+                    setDraft((f) => ({ ...f, name: txt }));
+                  }}
+                  placeholder={t('form.namePlaceholder')}
+                  placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                  returnKeyType="done"
+                  autoCorrect={false}
+                />
+                <View style={styles.priceRow}>
+                  <Pressable
+                    style={[styles.currencyPill, { backgroundColor: colors.surfaceTertiary }]}
+                    onPress={() => setCurrencySheetOpen(true)}
+                    hitSlop={8}
+                  >
+                    <Text style={[styles.currencyText, { color: colors.textPrimary }]}>{currencySymbol(draft.currency)}</Text>
+                    <ChevronDown size={12} color={colors.textMuted} strokeWidth={2.5} />
+                  </Pressable>
+                  <TextInput
+                    style={[styles.priceInput, { color: colors.textPrimary }]}
+                    value={draft.price}
+                    onChangeText={(txt) => setDraft((f) => ({ ...f, price: txt }))}
+                    placeholder="0.00"
+                    placeholderTextColor={isDark ? '#5A5A5E' : '#C7C7CC'}
+                    keyboardType="decimal-pad"
+                    returnKeyType="done"
+                  />
+                </View>
+              </View>
+              <LogoPreviewBox
+                name={draft.name}
+                logoUrl={draft.logoUrl}
+                suppressed={logoSuppressed}
+                onClear={clearLogo}
+                isDark={isDark}
+                size={48}
               />
             </View>
           </View>
@@ -901,6 +927,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 11,
     paddingBottom: 13,
+  },
+  platformLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  platformInputCol: {
+    flex: 1,
+    minWidth: 0,
   },
   platformName: {
     ...fontFamily.semiBold,
