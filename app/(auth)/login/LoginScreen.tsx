@@ -698,7 +698,7 @@ export default function LoginScreen() {
               </button>
             </div>
           ) : (
-            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} t={t} />
           )}
         </div>
       </div>

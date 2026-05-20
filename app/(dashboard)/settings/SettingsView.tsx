@@ -18,6 +18,7 @@ import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscript
 import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
 import haptics from '@/lib/haptics'
 import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 
 interface Props {
@@ -116,6 +117,7 @@ function Group({ children }: { children: React.ReactNode }) {
 // ── Page ────────────────────────────────────────────────────────────────────
 export default function SettingsView({ preferences, profile, onClose }: Props) {
   const router = useRouter()
+  const t = useT()
   const [, startTransition] = useTransition()
   const [isDemoPending, startDemoTransition] = useTransition()
   const { preference, setPreference } = useTheme()
