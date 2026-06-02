@@ -1,33 +1,14 @@
-// Calendar date helpers — port of the webapp's `CalendarView.tsx`.
+// Calendar date helpers — figure out which day of a given (year, month)
+// a subscription bills on by walking its `next_billing_date` forward or
+// backward by full billing cycles.
 //
-// Given a set of subscriptions and a target (year, month), compute which
-// day each subscription's billing falls on inside that month. We walk
-// the stored `next_billing_date` forward/backward by the full billing
-// cycle (weekly 7, monthly 30, quarterly 91, yearly 365 — multiplied by
-// the interval count) until we land within the target month or decide
-// it doesn't touch that month at all.
-//
-// Note: 30 / 91 / 365 match the webapp exactly. The calendar's only
-// role is "does this sub bill on day N of this month"; it's not an
-// accrual engine, so day-drift across long-horizon yearly plans is
-// acceptable and matches the web behavior.
+// We use calendar-correct cycle math (`shiftByCycle`) so 29/30/31
+// renewals don't drift — a sub that bills on the 11th shows up on the
+// 11th of every month, and a sub on the 31st clamps to the 30th in
+// 30-day months while returning to the 31st in 31-day months.
 
 import type { Subscription } from '../subscriptions/types';
-
-const MS_PER_DAY = 86_400_000;
-
-export function billingPeriodDays(
-  period: string,
-  intervalCount: number,
-): number {
-  const base: Record<string, number> = {
-    weekly: 7,
-    monthly: 30,
-    quarterly: 91,
-    yearly: 365,
-  };
-  return (base[period] ?? 30) * Math.max(1, intervalCount);
-}
+import { shiftByCycle } from '../../lib/calculations/billingCycle';
 
 /** Returns the day-of-month number (1..31) this sub bills on within
  *  the given year/month, or null if it doesn't bill that month. */
@@ -40,19 +21,22 @@ export function getBillingDayInMonth(
   if (sub.status === 'cancelled' || sub.status === 'paused') return null;
 
   const [ny, nm, nd] = sub.next_billing_date.split('-').map(Number);
+  if (!ny || !nm || !nd) return null;
+
+  const preferredDay = sub.preferred_billing_day ?? nd;
   let date = new Date(ny, nm - 1, nd);
   const monthStart = new Date(year, month, 1);
   const monthEnd = new Date(year, month + 1, 0);
-  const periodDays = billingPeriodDays(
-    sub.billing_period,
-    sub.billing_interval_count,
-  );
+  const interval = Math.max(1, sub.billing_interval_count ?? 1);
 
-  while (date > monthEnd && periodDays > 0) {
-    date = new Date(date.getTime() - periodDays * MS_PER_DAY);
+  let safety = 0;
+  while (date > monthEnd && safety < 1000) {
+    date = shiftByCycle(date, sub.billing_period, interval, preferredDay, -1);
+    safety++;
   }
-  while (date < monthStart && periodDays > 0) {
-    date = new Date(date.getTime() + periodDays * MS_PER_DAY);
+  while (date < monthStart && safety < 1000) {
+    date = shiftByCycle(date, sub.billing_period, interval, preferredDay, 1);
+    safety++;
   }
 
   if (date >= monthStart && date <= monthEnd) return date.getDate();

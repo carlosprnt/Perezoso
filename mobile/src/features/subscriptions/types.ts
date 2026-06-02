@@ -31,6 +31,11 @@ export interface Subscription {
   reminderDays?: '1' | '3' | '7';
   // Optional notes
   notes?: string;
+  // Day-of-month (1-31) the user picked at create/edit time. Used by
+  // advanceRenewalDate to clamp 29/30/31 to the last day of short
+  // months without losing the user's preference. Falls back to the
+  // day component of next_billing_date when absent (legacy rows).
+  preferred_billing_day?: number;
   // Optional edit-form metadata — not yet persisted server-side but
   // surfaced in Create / Edit sheets so the user input round-trips.
   start_date?: string;      // YYYY-MM-DD

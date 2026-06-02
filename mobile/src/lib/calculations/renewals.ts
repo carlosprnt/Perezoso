@@ -12,49 +12,41 @@
 // successive billing periods until it lands in the future. Memory-only
 // — we don't write back to Supabase, the next real renewal write
 // happens server-side or via the user's edits.
+//
+// Day-of-month preservation: each subscription carries a
+// `preferred_billing_day` (the day the user chose when creating or
+// editing it). For 29/30/31 subscriptions in short months we clamp to
+// the last day of the destination month but keep the preference, so
+// the cycle returns to 31 in months that have 31 days. Legacy rows
+// without the column fall back to the day component of the stored
+// `next_billing_date`.
 
-import type { BillingPeriod, Subscription } from '../../features/subscriptions/types';
+import type { Subscription } from '../../features/subscriptions/types';
 import { toLocalYMD } from '../formatting';
-
-function addPeriod(date: Date, period: BillingPeriod, count: number): Date {
-  const next = new Date(date);
-  const n = Math.max(1, count);
-  switch (period) {
-    case 'weekly':
-      next.setDate(next.getDate() + 7 * n);
-      break;
-    case 'monthly':
-      next.setMonth(next.getMonth() + 1 * n);
-      break;
-    case 'quarterly':
-      next.setMonth(next.getMonth() + 3 * n);
-      break;
-    case 'yearly':
-      next.setFullYear(next.getFullYear() + 1 * n);
-      break;
-  }
-  return next;
-}
+import { shiftByCycle } from './billingCycle';
 
 /** Return a copy of `sub` with `next_billing_date` advanced into the future
- * if it has fallen behind. No-op for paused/cancelled/ended subs or for
+ * if it has fallen behind. No-op for paused/cancelled subs or for
  * dates already today or later. */
 export function advanceRenewalDate(sub: Subscription): Subscription {
   if (!sub.next_billing_date) return sub;
   if (sub.status !== 'active' && sub.status !== 'trial') return sub;
 
+  const [yOrig, mOrig, dOrig] = sub.next_billing_date.split('-').map(Number);
+  if (!yOrig || !mOrig || !dOrig) return sub;
+
+  const preferredDay = sub.preferred_billing_day ?? dOrig;
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  let next = new Date(sub.next_billing_date);
-  next.setHours(0, 0, 0, 0);
-
+  let next = new Date(yOrig, mOrig - 1, dOrig);
   if (next.getTime() >= today.getTime()) return sub;
 
   const interval = Math.max(1, sub.billing_interval_count ?? 1);
   let safety = 0;
   while (next.getTime() < today.getTime() && safety < 1000) {
-    next = addPeriod(next, sub.billing_period, interval);
+    next = shiftByCycle(next, sub.billing_period, interval, preferredDay, 1);
     safety++;
   }
 

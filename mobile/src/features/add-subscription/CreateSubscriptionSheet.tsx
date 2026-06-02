@@ -542,6 +542,7 @@ export function CreateSubscriptionSheet() {
           ? toLocalYMD(f.endDate)
           : undefined,
         payment_method: f.paymentMethod || undefined,
+        preferred_billing_day: f.nextPaymentDate.getDate(),
       };
       await useSubscriptionsStore.getState().addSubscription(newSub);
 
