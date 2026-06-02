@@ -34,6 +34,7 @@ interface SubscriptionRow {
   payment_method: string | null;
   reminder_enabled: boolean | null;
   reminder_days: string | null;
+  preferred_billing_day: number | null;
 }
 
 // ── Cost derivation ──────────────────────────────────────────────────
@@ -91,6 +92,7 @@ function rowToSubscription(row: SubscriptionRow): Subscription {
     payment_method: row.payment_method ?? undefined,
     reminderEnabled: row.reminder_enabled ?? undefined,
     reminderDays: (row.reminder_days as Subscription['reminderDays']) ?? undefined,
+    preferred_billing_day: row.preferred_billing_day ?? undefined,
   };
 }
 
@@ -132,6 +134,7 @@ export async function insertSubscription(
     payment_method: sub.payment_method ?? null,
     reminder_enabled: sub.reminderEnabled ?? null,
     reminder_days: sub.reminderDays ?? null,
+    preferred_billing_day: sub.preferred_billing_day ?? null,
   };
 
   const { data, error } = await supabase
@@ -166,6 +169,7 @@ export async function updateSubscription(
     payment_method: sub.payment_method ?? null,
     reminder_enabled: sub.reminderEnabled ?? null,
     reminder_days: sub.reminderDays ?? null,
+    preferred_billing_day: sub.preferred_billing_day ?? null,
   };
 
   const { data, error } = await supabase

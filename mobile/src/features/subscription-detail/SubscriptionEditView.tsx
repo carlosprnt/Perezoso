@@ -351,6 +351,7 @@ export function SubscriptionEditView({ sub, onSave, onCancel, onDelete }: Props)
       billing_period: resolvedPeriod,
       billing_interval_count: intervalCount,
       next_billing_date: toLocalYMD(draft.nextPaymentDate),
+      preferred_billing_day: draft.nextPaymentDate.getDate(),
       start_date: toLocalYMD(draft.startDate),
       end_date: draft.endEnabled ? toLocalYMD(draft.endDate) : undefined,
       category: draft.category,
