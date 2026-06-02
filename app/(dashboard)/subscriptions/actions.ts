@@ -31,6 +31,27 @@ export async function createSubscription(formData: SubscriptionFormData, success
 
   if (!user) redirect('/login')
 
+  // ── Pro gate: enforce 15-subscription limit for free users ────────────────
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', user.id)
+    .single()
+
+  const isPro = !!(profile as { is_pro?: boolean } | null)?.is_pro
+
+  if (!isPro) {
+    const { count } = await supabase
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    if ((count ?? 0) >= 15) {
+      return { error: 'subscription_limit_reached' }
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const payload = { ...formData, user_id: user.id }
   let result = await supabase
     .from('subscriptions')

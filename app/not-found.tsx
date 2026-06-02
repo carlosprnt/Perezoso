@@ -3,20 +3,25 @@ import Image from 'next/image'
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <Image src="/logo.png" alt="Perezoso" width={72} height={72} className="rounded-2xl opacity-50" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Page not found</h1>
-        <p className="text-sm text-gray-400 mb-6">
-          The page you&apos;re looking for doesn&apos;t exist.
+    <main className="min-h-dvh flex items-center justify-center bg-[#F7F8FA] dark:bg-[#000000] px-6">
+      <div className="flex flex-col items-center text-center">
+        <Image
+          src="/image-error.png"
+          alt=""
+          width={180}
+          height={180}
+          className="mb-6 select-none"
+          draggable={false}
+        />
+        <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7] mb-1">Página no encontrada</h1>
+        <p className="text-sm text-[#737373] dark:text-[#8E8E93] mb-6">
+          La página que buscas no existe.
         </p>
         <Link
           href="/dashboard"
-          className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]"
         >
-          Go to dashboard →
+          Ir al inicio →
         </Link>
       </div>
     </main>

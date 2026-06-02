@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2 } from 'lucide-react'
+import { ChevronRight, Plus, X, Bell, Star, Share2, Mail, Moon, Coins, Tag, Trash2, ShieldCheck, Sparkles, Check } from 'lucide-react'
 import { CURRENCIES } from '@/lib/constants/currencies'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import {
@@ -13,10 +14,25 @@ import {
   deleteAccount,
   type UserPreferences,
 } from './actions'
+import { setDemoMode, restoreProductionState } from '@/app/(dashboard)/subscriptions/demo-action'
+import { getInitials, getAvatarPastel } from '@/lib/utils/logos'
 import haptics from '@/lib/haptics'
+import { useSubscription } from '@/lib/revenuecat/SubscriptionProvider'
+import { useT } from '@/lib/i18n/LocaleProvider'
+import { useFeatureGate } from '@/lib/revenuecat/useFeatureGate'
 
 interface Props {
   preferences: UserPreferences
+  profile: {
+    name: string | null
+    email: string | null
+    avatarUrl: string | null
+  }
+  /** Called when the user dismisses the view. When provided, the close
+      button dispatches this (used when rendered inside a modal). When
+      absent, falls back to `router.back()` for the standalone /settings
+      route. */
+  onClose?: () => void
 }
 
 // lucide-react dropped the Twitter glyph, so we inline the X/Twitter mark.
@@ -28,12 +44,16 @@ function TwitterIcon({ size = 17, className }: { size?: number; className?: stri
   )
 }
 
-// iOS-style coloured icon tile
-function IconTile({ bg, children }: { bg: string; children: React.ReactNode }) {
+// Monochrome icon tile — 40x40 white background with a black icon.
+// The optional `bg` prop only applies the danger-zone light red
+// (#FEE2E2). Any other colour passed in from old call sites is
+// discarded so every section stays on the same monochrome palette.
+function IconTile({ bg, children }: { bg?: string; children: React.ReactNode }) {
+  const resolvedBg = bg === '#FEE2E2' ? '#FEE2E2' : '#FFFFFF'
   return (
     <div
-      className="w-7 h-7 rounded-[7px] flex items-center justify-center flex-shrink-0 text-white"
-      style={{ backgroundColor: bg }}
+      className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-[#000000]"
+      style={{ backgroundColor: resolvedBg }}
     >
       {children}
     </div>
@@ -41,6 +61,8 @@ function IconTile({ bg, children }: { bg: string; children: React.ReactNode }) {
 }
 
 // Single row inside a grouped card. Separator drawn automatically unless `last`.
+// Vertical padding matches horizontal padding (px-4 py-4 → 16px all around)
+// so each row's breathing room is consistent with the card edges.
 function Row({
   icon,
   label,
@@ -59,9 +81,9 @@ function Row({
   href?: string
 }) {
   const inner = (
-    <div className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
+    <div className={`flex items-center gap-3 px-4 py-4 ${last ? '' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'}`}>
       {icon}
-      <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{label}</span>
+      <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{label}</span>
       {value && <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">{value}</span>}
       {right}
     </div>
@@ -93,10 +115,14 @@ function Group({ children }: { children: React.ReactNode }) {
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export default function SettingsView({ preferences }: Props) {
+export default function SettingsView({ preferences, profile, onClose }: Props) {
   const router = useRouter()
+  const t = useT()
   const [, startTransition] = useTransition()
+  const [isDemoPending, startDemoTransition] = useTransition()
   const { preference, setPreference } = useTheme()
+  const { isPro, openPaywall } = useSubscription()
+  const gate = useFeatureGate()
 
   const [currency, setCurrency] = useState(preferences.preferred_currency)
   const [notifications, setNotifications] = useState(preferences.notifications_enabled)
@@ -105,6 +131,38 @@ export default function SettingsView({ preferences }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [demoOpen, setDemoOpen] = useState(false)
+  const [avatarImgError, setAvatarImgError] = useState(false)
+  const [showProManage, setShowProManage] = useState(false)
+
+  const isAdmin = profile.email === 'carlosprnt@gmail.com'
+
+  const displayName = profile.name || profile.email?.split('@')[0] || 'Account'
+  const { bg: avatarBg, fg: avatarFg } = getAvatarPastel(displayName)
+  const avatarInitials = getInitials(displayName)
+
+  function handleDemoMode(count: number, isPro: boolean = false) {
+    startDemoTransition(async () => {
+      await setDemoMode(count, isPro)
+      setDemoOpen(false)
+    })
+  }
+
+  function handleRestoreProduction() {
+    startDemoTransition(async () => {
+      await restoreProductionState()
+      setDemoOpen(false)
+    })
+  }
+
+  const DEMO_MODES = [
+    { label: t('settings.demoNoSubs'),                                     count: 0,  isPro: false },
+    { label: t('settings.demoOneSub'),                                     count: 1,  isPro: false },
+    { label: t('settings.demoManySubs').replace('{count}', '2'),           count: 2,  isPro: false },
+    { label: t('settings.demoManySubs').replace('{count}', '3'),           count: 3,  isPro: false },
+    { label: `${t('settings.demoManySubs').replace('{count}', '10')} + Pro`, count: 10, isPro: true },
+    { label: t('settings.demoManySubs').replace('{count}', '20'),          count: 20, isPro: false },
+  ] as const
 
   async function handleDeleteAccount() {
     setIsDeleting(true)
@@ -126,6 +184,11 @@ export default function SettingsView({ preferences }: Props) {
     setCurrency(code)
     haptics.selection()
     startTransition(() => { setPreferredCurrency(code) })
+    // Dismiss the soft keyboard if a text input on this screen (e.g. the
+    // "new category" field) still holds focus when the user picks a value.
+    if (typeof document !== 'undefined') {
+      (document.activeElement as HTMLElement | null)?.blur()
+    }
   }
 
   function handleNotifications() {
@@ -138,10 +201,20 @@ export default function SettingsView({ preferences }: Props) {
   function handleAddCategory() {
     const trimmed = newCategory.trim()
     if (!trimmed || categories.includes(trimmed)) return
+    // Pro gate: custom categories are a Pro-only feature.
+    if (!gate.requirePro('custom_categories')) return
     setCategories([...categories, trimmed])
     setNewCategory('')
     haptics.success()
-    startTransition(() => { addCustomCategory(trimmed) })
+    startTransition(async () => {
+      const result = await addCustomCategory(trimmed)
+      // Defensive: if the server rejects (e.g. stale Pro state), roll
+      // back the optimistic update and open the paywall.
+      if (result?.error === 'custom_categories_pro_required') {
+        setCategories(prev => prev.filter(c => c !== trimmed))
+        openPaywall('custom_categories')
+      }
+    })
   }
 
   function handleRemoveCategory(name: string) {
@@ -161,54 +234,162 @@ export default function SettingsView({ preferences }: Props) {
   }
 
   const THEMES = [
-    { key: 'light', label: 'Claro' },
-    { key: 'dark', label: 'Oscuro' },
-    { key: 'system', label: 'Sistema' },
+    { key: 'light', label: t('settings.themeLight') },
+    { key: 'dark', label: t('settings.themeDark') },
+    { key: 'system', label: t('settings.themeSystem') },
   ] as const
 
+  const handleClose = onClose ?? (() => router.back())
+
   return (
-    <div className="min-h-screen -mx-4 sm:-mx-6 -my-6 lg:-my-8 pb-4">
-      {/* Sticky header */}
-      <div
-        className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3 bg-[#F7F8FA] dark:bg-[#121212]"
-        style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
-      >
+    <div className="pb-8">
+      {/* Header — title on the left, X-in-a-circle dismiss button on
+          the right. The X uses `onClose` when provided (modal) and
+          falls back to `router.back()` for the standalone route. */}
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-[22px] font-bold text-[#000000] dark:text-[#F2F2F7]">{t('settings.title')}</h1>
         <button
-          onClick={() => router.back()}
-          className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center active:bg-[#E5E5EA] dark:active:bg-[#2C2C2E] transition-colors"
-          aria-label="Atrás"
+          onClick={handleClose}
+          className="w-9 h-9 -mr-1 rounded-full flex items-center justify-center bg-[#F0F0F0] dark:bg-[#2C2C2E] active:bg-[#E5E5EA] dark:active:bg-[#3A3A3C] transition-colors"
+          aria-label={t('settings.closeAria')}
         >
-          <ArrowLeft size={20} className="text-[#121212] dark:text-[#F2F2F7]" />
+          <X size={16} strokeWidth={2.5} className="text-[#000000] dark:text-[#F2F2F7]" />
         </button>
-        <h1 className="text-[22px] font-bold text-[#121212] dark:text-[#F2F2F7]">Ajustes</h1>
       </div>
-      <div className="px-5">
+      <div>
 
       {/* ── Perezoso Plus ──────────────────────────────────────────────── */}
+      {isPro ? (
+        /* Pro active — no shimmer, static gray card with Activo tag + Gestionar */
+        <div className="mb-3 bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+                  Perezoso Plus
+                </p>
+              </div>
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+                {t('settings.proActive')}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowProManage(!showProManage)}
+              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+            >
+              {t('settings.proManage')}
+            </button>
+          </div>
+
+          {/* Expandable Pro management section */}
+          {showProManage && (
+            <div className="mt-5 pt-5 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
+              <p className="text-[13px] font-semibold text-[#000000] dark:text-[#F2F2F7] mb-3">
+                {t('settings.proYourPlanIncludes')}
+              </p>
+              <ul className="space-y-2.5 mb-5">
+                {[
+                  t('settings.proBenefitUnlimited'),
+                  t('settings.proBenefitAlerts'),
+                  t('settings.proBenefitSavings'),
+                  t('settings.proBenefitCategories'),
+                  t('settings.proBenefitCalendar'),
+                  t('settings.proBenefitGmail'),
+                  t('settings.proBenefitSupport'),
+                ].map(benefit => (
+                  <li key={benefit} className="flex items-start gap-2.5">
+                    <Check size={14} strokeWidth={3} className="text-[#34C759] mt-0.5 flex-shrink-0" />
+                    <span className="text-[14px] text-[#000000] dark:text-[#F2F2F7] leading-snug">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => {
+                  // For web demo, just open the App Store subscription management.
+                  // In production with Capacitor this would call RevenueCat's manage URL.
+                  if (typeof window !== 'undefined') {
+                    window.open('https://apps.apple.com/account/subscriptions', '_blank')
+                  }
+                }}
+                className="w-full h-12 rounded-full text-[14px] font-semibold text-[#DC2626] bg-[#DC2626]/10 active:bg-[#DC2626]/20 transition-colors"
+              >
+                {t('settings.proCancel')}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Not Pro — shimmer border + upgrade CTA */
+        <div
+          className="relative mb-3 rounded-[18px] p-[2px]"
+          style={{
+            background: 'conic-gradient(from var(--shimmer-angle, 0deg), transparent 0%, transparent 55%, rgba(59,130,246,0.95) 72%, rgba(96,165,250,0.55) 82%, transparent 92%, transparent 100%)',
+            animation: 'shimmer-rotate 3s linear infinite',
+          }}
+        >
+          <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-2xl px-5 py-5 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-[20px] font-bold text-[#000000] dark:text-[#F2F2F7] leading-tight">
+                Perezoso Plus
+              </p>
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-1 leading-snug">
+                {t('settings.upgradeSubtitle')}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                haptics.tap()
+                openPaywall('general')
+              }}
+              className="h-10 px-5 rounded-full bg-[#000000] text-white text-[14px] font-semibold flex-shrink-0 active:opacity-80 transition-opacity"
+            >
+              {t('settings.upgradeButton')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── User card (avatar · name · email) ──────────────────────────── */}
       <Group>
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="w-11 h-11 rounded-[10px] overflow-hidden flex-shrink-0 bg-white">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Perezoso" className="w-full h-full object-cover" />
+        <div className="flex items-center gap-4 px-4 py-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+            {profile.avatarUrl && !avatarImgError ? (
+              <Image
+                src={profile.avatarUrl}
+                alt={displayName}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+                unoptimized
+                onError={() => setAvatarImgError(true)}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-[16px] font-semibold"
+                style={{ backgroundColor: avatarBg, color: avatarFg }}
+              >
+                {avatarInitials}
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-semibold text-[#121212] dark:text-[#F2F2F7] leading-tight">Perezoso Plus</p>
-            <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] mt-0.5">Próximamente features únicas</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7] truncate leading-tight">
+              {displayName}
+            </p>
+            {profile.email && (
+              <p className="text-[13px] text-[#737373] dark:text-[#8E8E93] truncate mt-0.5">
+                {profile.email}
+              </p>
+            )}
           </div>
-          <button
-            disabled
-            className="h-8 px-4 rounded-full bg-[#3D3BF3] text-white text-[13px] font-semibold opacity-40 cursor-not-allowed flex-shrink-0"
-          >
-            Mejorar
-          </button>
         </div>
       </Group>
 
       {/* ── Currency + Notifications ───────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
+        <div className="relative flex items-center gap-3 px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <IconTile bg="#16A34A"><Coins size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Moneda</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{t('settings.currency')}</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
             {CURRENCIES.find(c => c.code === currency)?.symbol} {currency}
           </span>
@@ -218,16 +399,16 @@ export default function SettingsView({ preferences }: Props) {
             onChange={handleCurrency}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none"
             style={{ fontSize: 16 }}
-            aria-label="Moneda preferida"
+            aria-label={t('settings.currencyAria')}
           >
             {CURRENCIES.map(c => (
               <option key={c.code} value={c.code}>{c.symbol} {c.code} — {c.name}</option>
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="flex items-center gap-3 px-4 py-4">
           <IconTile bg="#EF4444"><Bell size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Notificaciones</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{t('settings.notifications')}</span>
           <button
             role="switch"
             aria-checked={notifications}
@@ -244,11 +425,11 @@ export default function SettingsView({ preferences }: Props) {
 
       {/* ── Appearance ─────────────────────────────────────────────────── */}
       <Group>
-        <div className="relative flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="relative flex items-center gap-3 px-4 py-4">
           <IconTile bg="#374151"><Moon size={15} /></IconTile>
-          <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">Apariencia</span>
+          <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{t('settings.appearance')}</span>
           <span className="text-[15px] text-[#737373] dark:text-[#8E8E93]">
-            {THEMES.find(t => t.key === preference)?.label ?? 'Sistema'}
+            {THEMES.find(th => th.key === preference)?.label ?? t('settings.themeSystem')}
           </span>
           <ChevronRight size={15} className="text-[#C7C7CC]" />
           <select
@@ -256,50 +437,97 @@ export default function SettingsView({ preferences }: Props) {
             onChange={e => { haptics.selection(); setPreference(e.target.value as typeof preference) }}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none"
             style={{ fontSize: 16 }}
-            aria-label="Apariencia"
+            aria-label={t('settings.appearanceAria')}
           >
-            {THEMES.map(t => (
-              <option key={t.key} value={t.key}>{t.label}</option>
+            {THEMES.map(th => (
+              <option key={th.key} value={th.key}>{th.label}</option>
             ))}
           </select>
         </div>
       </Group>
+
+      {/* ── Admin & Demo (gated) ───────────────────────────────────────── */}
+      {isAdmin && (
+        <Group>
+          <Row
+            icon={<IconTile bg="#000000"><ShieldCheck size={15} /></IconTile>}
+            label="Admin"
+            right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
+            onClick={() => router.push('/admin/style-audit')}
+          />
+          {demoOpen ? (
+            <>
+              {DEMO_MODES.map(({ label, count, isPro: pro }, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => handleDemoMode(count, pro)}
+                  disabled={isDemoPending}
+                  className={`w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50 ${
+                    i < DEMO_MODES.length - 1 ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]'
+                  }`}
+                >
+                  <IconTile bg="#6366F1"><Sparkles size={15} /></IconTile>
+                  <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleRestoreProduction}
+                disabled={isDemoPending}
+                className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors disabled:opacity-50"
+              >
+                <IconTile bg="#737373"><Sparkles size={15} /></IconTile>
+                <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{t('settings.demoRestore')}</span>
+              </button>
+            </>
+          ) : (
+            <Row
+              icon={<IconTile bg="#6366F1"><Sparkles size={15} /></IconTile>}
+              label="Demo"
+              right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
+              onClick={() => setDemoOpen(true)}
+              last
+            />
+          )}
+        </Group>
+      )}
 
       {/* ── Custom categories ──────────────────────────────────────────── */}
       <Group>
         {categories.map((cat, i) => (
           <div
             key={cat}
-            className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
+            className={`flex items-center gap-3 px-4 py-4 ${i < categories.length ? 'border-b border-[#E5E5EA] dark:border-[#2C2C2E]' : ''}`}
           >
             <IconTile bg="#8B5CF6"><Tag size={15} /></IconTile>
-            <span className="flex-1 text-[15px] text-[#121212] dark:text-[#F2F2F7]">{cat}</span>
+            <span className="flex-1 text-[15px] font-medium text-[#000000] dark:text-[#F2F2F7]">{cat}</span>
             <button
               onClick={() => handleRemoveCategory(cat)}
               className="w-7 h-7 rounded-full flex items-center justify-center text-[#8E8E93] active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
-              aria-label="Eliminar"
+              aria-label={t('settings.customCategoryDeleteAria')}
             >
               <X size={14} />
             </button>
           </div>
         ))}
-        <div className="flex items-center gap-3 px-4 min-h-[44px] py-2.5">
+        <div className="flex items-center gap-3 px-4 py-4">
           <IconTile bg="#8B5CF6"><Plus size={15} /></IconTile>
           <input
             type="text"
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory() } }}
-            placeholder="Nueva categoría"
-            className="flex-1 bg-transparent text-[15px] text-[#121212] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none"
+            placeholder={t('settings.customCategoryPlaceholder')}
+            className="flex-1 bg-transparent text-[15px] text-[#000000] dark:text-[#F2F2F7] placeholder:text-[#BBBBBB] dark:placeholder:text-[#636366] outline-none"
             style={{ fontSize: 16 }}
           />
           <button
             onClick={handleAddCategory}
             disabled={!newCategory.trim()}
-            className="text-[15px] font-semibold text-[#3D3BF3] disabled:opacity-30"
+            className="text-[15px] font-semibold text-[#000000] dark:text-[#F2F2F7] disabled:opacity-30"
           >
-            Añadir
+            {t('settings.customCategoryAdd')}
           </button>
         </div>
       </Group>
@@ -308,13 +536,13 @@ export default function SettingsView({ preferences }: Props) {
       <Group>
         <Row
           icon={<IconTile bg="#F59E0B"><Star size={15} /></IconTile>}
-          label="Dejar una reseña"
+          label={t('settings.leaveReview')}
           right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
           onClick={() => { if (typeof window !== 'undefined') window.open('https://perezoso.app', '_blank') }}
         />
         <Row
-          icon={<IconTile bg="#3D3BF3"><Share2 size={15} /></IconTile>}
-          label="Compartir con un amigo"
+          icon={<IconTile bg="#000000"><Share2 size={15} /></IconTile>}
+          label={t('settings.shareWithFriend')}
           right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
           onClick={handleShare}
           last
@@ -330,7 +558,7 @@ export default function SettingsView({ preferences }: Props) {
           href="https://twitter.com/carlosprnt"
         />
         <Row
-          icon={<IconTile bg="#3D3BF3"><Mail size={15} /></IconTile>}
+          icon={<IconTile bg="#000000"><Mail size={15} /></IconTile>}
           label="hello@carlospariente.com"
           right={<ChevronRight size={15} className="text-[#C7C7CC]" />}
           href="mailto:hello@carlospariente.com"
@@ -343,31 +571,39 @@ export default function SettingsView({ preferences }: Props) {
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
-          className="w-full flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-[#F0F0F0] dark:active:bg-[#2C2C2E] transition-colors"
         >
-          <IconTile bg="#DC2626"><Trash2 size={15} /></IconTile>
-          <span className="flex-1 text-[15px] font-medium text-[#DC2626]">Eliminar cuenta</span>
+          <IconTile bg="#FEE2E2">
+            <Trash2 size={15} className="text-[#DC2626]" />
+          </IconTile>
+          <span className="flex-1 text-[15px] font-medium text-[#DC2626]">{t('settings.deleteAccount')}</span>
         </button>
       </Group>
       </div>
 
-      {/* Delete confirmation half-modal */}
+      {/* Delete confirmation half-modal — safe-area bleed pattern
+          (see components/ui/BottomSheet.tsx for the canonical
+          explanation). Overlay bleeds, inner sheet compensates with
+          extra padding-bottom. */}
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center"
-          style={{ background: 'rgba(0,0,0,0.45)' }}
+          style={{
+            background: 'rgba(0,0,0,0.45)',
+            bottom: 'calc(var(--safe-bleed-bottom, 34px) * -1)',
+          }}
           onClick={() => !isDeleting && setShowDeleteConfirm(false)}
         >
           <div
             className="w-full max-w-xl bg-white dark:bg-[#1C1C1E] rounded-t-[32px] px-5 pt-5 pb-6"
-            style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+            style={{ paddingBottom: 'calc(16px + var(--safe-bleed-bottom, 34px))' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-[17px] font-semibold text-[#121212] dark:text-[#F2F2F7] mb-1">
-              ¿Eliminar tu cuenta?
+            <h3 className="text-[17px] font-semibold text-[#000000] dark:text-[#F2F2F7] mb-1">
+              {t('settings.deleteAccountTitle')}
             </h3>
             <p className="text-[14px] text-[#737373] dark:text-[#AEAEB2] mb-5">
-              Se borrarán permanentemente tus suscripciones, preferencias y tu cuenta. Esta acción no se puede deshacer.
+              {t('settings.deleteAccountBody')}
             </p>
             {deleteError && (
               <p className="mb-3 text-[13px] text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl px-3 py-2">
@@ -381,15 +617,15 @@ export default function SettingsView({ preferences }: Props) {
                 disabled={isDeleting}
                 className="w-full h-12 rounded-full bg-red-500 text-white text-[15px] font-semibold active:opacity-80 transition-opacity disabled:opacity-40"
               >
-                {isDeleting ? 'Eliminando…' : 'Sí, eliminar mi cuenta'}
+                {isDeleting ? t('settings.deleteAccountConfirming') : t('settings.deleteAccountConfirm')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="w-full h-12 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#121212] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity disabled:opacity-40"
+                className="w-full h-12 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#000000] dark:text-[#F2F2F7] text-[15px] font-medium active:opacity-80 transition-opacity disabled:opacity-40"
               >
-                Volver
+                {t('settings.deleteAccountCancel')}
               </button>
             </div>
           </div>

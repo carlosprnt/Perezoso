@@ -1,0 +1,13 @@
+// Copy this file to Config.xcconfig and fill in your real values.
+// Config.xcconfig is gitignored — never commit keys.
+//
+// These same values exist in the web app's .env.local — the iOS app
+// talks to the same Supabase instance and the same RevenueCat
+// entitlement.
+
+// Supabase — same URL / anon key as the web app
+SUPABASE_URL = https:/$()/YOUR_PROJECT_REF.supabase.co
+SUPABASE_ANON_KEY = YOUR_ANON_KEY
+
+// RevenueCat — use the iOS SDK key, not the web one
+REVENUECAT_IOS_KEY = appl_YOUR_IOS_KEY

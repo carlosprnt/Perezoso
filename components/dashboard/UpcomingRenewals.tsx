@@ -57,16 +57,15 @@ export default function UpcomingRenewals({ renewals }: Props) {
               corner="rounded-[8px]"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold text-[#121212] dark:text-[#F2F2F7] truncate leading-snug">
+              <p className="text-[17px] font-bold text-[#000000] dark:text-[#F2F2F7] truncate leading-snug">
                 {r.subscription.name}
               </p>
               <p className="text-[12px] text-[#737373] dark:text-[#8E8E93] mt-0.5">
-                {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)}
-                {' '}{t('dashboard.perMonth')}
+                {formatCurrency(r.subscription.my_monthly_cost, r.subscription.currency)} /mes
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-[14px] font-medium tabular-nums text-[#737373] dark:text-[#AEAEB2]">
+              <p className="text-[14px] font-normal tabular-nums text-[#737373] dark:text-[#AEAEB2]">
                 {daysLabel(r.days_until)}
               </p>
             </div>

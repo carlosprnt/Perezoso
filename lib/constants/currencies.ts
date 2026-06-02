@@ -17,6 +17,7 @@ export const CURRENCIES: CurrencyMeta[] = [
   { code: 'DKK', symbol: 'kr', name: 'Danish Krone' },
   { code: 'MXN', symbol: '$', name: 'Mexican Peso' },
   { code: 'BRL', symbol: 'R$', name: 'Brazilian Real' },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
 ]
 
 export const BILLING_PERIOD_LABELS: Record<string, string> = {

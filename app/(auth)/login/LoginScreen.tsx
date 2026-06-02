@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowRight, X } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/platform'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/lib/i18n/LocaleProvider'
+import type { getT } from '@/lib/i18n/translations'
 import haptics from '@/lib/haptics'
 
 // ─── Floating logos (slide 0 hero) ───────────────────────────────────────────
@@ -71,28 +73,14 @@ interface Slide {
   body: string
 }
 
-const SLIDES: Slide[] = [
-  {
-    image: '/onboarding/01.png',
-    title: 'Todas tus suscripciones en un solo sitio',
-    body: 'Cuánto pagas al mes, qué se renueva esta semana y dónde puedes ahorrar.',
-  },
-  {
-    image: '/onboarding/02.png',
-    title: 'Calendario con próximas renovaciones',
-    body: 'Visualiza de un vistazo todo lo que se va a cobrar en los próximos días y meses.',
-  },
-  {
-    image: '/onboarding/03.png',
-    title: 'Anticípate a cada renovación',
-    body: 'Consulta tus próximos cobros y recibe avisos antes de que se renueven.',
-  },
-  {
-    image: '/onboarding/04.png',
-    title: 'Insights de gasto y sugerencias de ahorro',
-    body: 'Descubre patrones y recomendaciones para reducir lo que pagas cada mes sin renunciar a lo que importa.',
-  },
-]
+function buildSlides(t: ReturnType<typeof getT>): Slide[] {
+  return [
+    { image: '/onboarding/01.png', title: t('login.slide0Title'), body: t('login.slide0Body') },
+    { image: '/onboarding/02.png', title: t('login.slide1Title'), body: t('login.slide1Body') },
+    { image: '/onboarding/03.png', title: t('login.slide2Title'), body: t('login.slide2Body') },
+    { image: '/onboarding/04.png', title: t('login.slide3Title'), body: t('login.slide3Body') },
+  ]
+}
 
 // ─── Google button + SVG ─────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -110,32 +98,34 @@ function AuthButtons({
   isLoading,
   error,
   onGoogle,
+  t,
 }: {
   isLoading: boolean
   error: string | null
   onGoogle: () => void
+  t: ReturnType<typeof getT>
 }) {
   return (
     <div className="space-y-2">
       <button
         onClick={onGoogle}
         disabled={isLoading}
-        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#121212] active:bg-[#F2F2F7] transition-colors disabled:opacity-60"
+        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#000000] active:bg-[#F2F2F7] transition-colors disabled:opacity-60"
       >
         {isLoading
-          ? <span className="w-5 h-5 border-2 border-[#E8E8E8] border-t-[#3D3BF3] rounded-full animate-spin" />
+          ? <span className="w-5 h-5 border-2 border-[#E8E8E8] border-t-[#000000] rounded-full animate-spin" />
           : <GoogleIcon />}
-        {isLoading ? 'Iniciando sesión…' : 'Continuar con Google'}
+        {isLoading ? t('login.continueGoogleLoading') : t('login.continueGoogle')}
       </button>
 
       <button
         disabled
-        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#121212] opacity-40 cursor-not-allowed"
+        className="w-full h-12 flex items-center justify-center gap-3 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-medium text-[#000000] opacity-40 cursor-not-allowed"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.05 12.536c-.024-2.422 1.977-3.586 2.068-3.643-1.127-1.65-2.881-1.875-3.505-1.9-1.495-.15-2.917.879-3.676.879-.757 0-1.933-.857-3.176-.833-1.635.025-3.142.948-3.984 2.411-1.697 2.94-.434 7.29 1.222 9.685.81 1.172 1.77 2.489 3.034 2.443 1.218-.05 1.679-.79 3.153-.79 1.474 0 1.888.79 3.178.764 1.311-.024 2.14-1.196 2.945-2.372.927-1.36 1.308-2.68 1.333-2.748-.03-.013-2.561-.983-2.592-3.896zm-2.39-7.168c.677-.821 1.135-1.956 1.009-3.091-.978.04-2.162.651-2.862 1.472-.627.728-1.176 1.891-1.028 3.007 1.091.085 2.203-.567 2.881-1.388z" />
         </svg>
-        Continuar con Apple
+        {t('login.continueApple')}
       </button>
 
       {error && (
@@ -143,9 +133,9 @@ function AuthButtons({
       )}
 
       <p className="text-[11px] text-[#8E8E93] text-center leading-relaxed pt-1">
-        Al continuar aceptas nuestros{' '}
-        <a href="/terms" className="underline">Términos</a>{' '}y la{' '}
-        <a href="/privacy" className="underline">Política de privacidad</a>.
+        {t('login.termsPrefix')}{' '}
+        <a href="/terms" className="underline">{t('login.termsLink')}</a>{' '}{t('login.privacyConjunction')}{' '}
+        <a href="/privacy" className="underline">{t('login.privacyLink')}</a>.
       </p>
     </div>
   )
@@ -153,6 +143,8 @@ function AuthButtons({
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function LoginScreen() {
+  const t = useT()
+  const SLIDES = buildSlides(t)
   const [slide, setSlide] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -186,12 +178,178 @@ export default function LoginScreen() {
   const imgY      = useTransform(panY, [-400, 0], [-400, 0])
   const imgRotate = useTransform(panY, [-400, 0], [15, 0])
 
+  /*
+   * iOS PWA standalone cold-launch gate.
+   *
+   * Symptom we're fixing: the very first visible frame of /login on a
+   * cold PWA launch (opened from the Home Screen after the app was
+   * fully killed) has the Perezoso hero logo at the wrong Y and the
+   * bottom panel short of the physical screen edge. After navigating
+   * (login → dashboard → logout → /login) the same screen renders
+   * correctly. Evidence from DebugViewport showed that between the
+   * two states, `env(safe-area-inset-*)` flipped from 0 to the real
+   * value AND the layout viewport grew. iOS does not fully initialize
+   * its safe-area constants by the time of the first paint on a cold
+   * PWA launch — it stabilizes a short time later, and any navigation
+   * that causes a re-render picks up the stabilized values.
+   *
+   * Fix strategy: don't render the real layout until env() has
+   * stabilized. A `ready` gate holds the component on a blank
+   * #F7F8FA screen (matching the app background) while a rAF
+   * poll probes env() every frame. As soon as env() reports a
+   * non-zero value the measured insets are committed to state and
+   * `ready` flips to true, causing React to render the full
+   * LoginScreen with the correct positioning on its first visible
+   * paint. A hard 350ms timeout releases the gate even if env() is
+   * still zero (covers non-notched devices — iPhone SE, Android,
+   * desktop browser mode, etc — where env is legitimately 0 and
+   * waiting forever would deadlock the UI).
+   */
+  const [ready, setReady] = useState(false)
+  const [safeTop, setSafeTop] = useState(0)
+  /*
+   * `screenH` is the physical screen height in CSS pixels as reported
+   * by `window.screen.height`. Unlike `window.innerHeight` / `100dvh`
+   * which in iOS PWA standalone with a cached / stale configuration
+   * can return the layout viewport (e.g. 793 px when it should be
+   * 852), `window.screen.height` returns the actual device screen
+   * height regardless of the current webview frame. Used as the
+   * explicit height of the outer fullscreen surface so its background
+   * always matches the physical screen bounds, not the (possibly
+   * smaller) CSS layout viewport.
+   */
+  const [screenH, setScreenH] = useState(0)
+
+  /*
+   * Measures the tallest slide text block and locks the visible text
+   * container to that height, so the panel doesn't jump on swipe.
+   *
+   * `ready` is in the deps on purpose: when the splash gate is still
+   * closed (ready=false) we return a plain <div> and measureRef never
+   * attaches, so this effect has to re-run once ready flips to true
+   * and the real DOM is committed. Without `ready` here, textHeight
+   * stays `undefined`, the `relative` wrapper collapses to 0 (its
+   * only child is a `position:absolute` motion.div), and the dots
+   * and buttons visually overlap the title/body text.
+   */
   useLayoutEffect(() => {
     if (!measureRef.current) return
     const els = measureRef.current.querySelectorAll<HTMLDivElement>('[data-measure]')
     let max = 0
     els.forEach(el => { max = Math.max(max, el.offsetHeight) })
-    setTextHeight(max + 8)
+    setTextHeight(max)
+  }, [ready])
+  useLayoutEffect(() => {
+    let stopped = false
+    let rafId = 0
+    const startedAt = Date.now()
+
+    const probeTop = (): number => {
+      try {
+        const el = document.createElement('div')
+        el.style.cssText =
+          'position:fixed;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none'
+        document.body.appendChild(el)
+        const t = parseFloat(getComputedStyle(el).paddingTop) || 0
+        el.remove()
+        return t
+      } catch {
+        return 0
+      }
+    }
+
+    const commit = (t: number) => {
+      setSafeTop(prev => (prev === t ? prev : t))
+      // window.screen.height is the full device screen height in CSS
+      // pixels. On iOS PWA standalone it stays the actual screen size
+      // even when the layout viewport (window.innerHeight / 100dvh)
+      // is reporting a smaller number due to a cached webview config.
+      // Use the larger of the two so screenH is always >= innerHeight.
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
+      if (!ready) setReady(true)
+    }
+
+    const tick = () => {
+      if (stopped) return
+      const t = probeTop()
+      // Success: iOS has initialized env. Commit immediately.
+      if (t > 0) {
+        commit(t)
+        return
+      }
+      // Timeout: 350ms elapsed, assume env is legitimately 0 (non-notch).
+      if (Date.now() - startedAt >= 350) {
+        commit(t)
+        return
+      }
+      // Otherwise keep polling on the next frame.
+      rafId = requestAnimationFrame(tick)
+    }
+    tick()
+
+    // Long-lived updaters: keep safeTop + screenH in sync if iOS
+    // changes them later (orientation change, etc).
+    const sync = () => {
+      const t = probeTop()
+      setSafeTop(prev => (prev === t ? prev : t))
+      const inner = window.innerHeight || 0
+      const phys = window.screen?.height || 0
+      const sh = Math.max(phys, inner)
+      setScreenH(prev => (prev === sh ? prev : sh))
+    }
+    window.addEventListener('load', sync)
+    window.addEventListener('resize', sync)
+    window.addEventListener('orientationchange', sync)
+    return () => {
+      stopped = true
+      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('load', sync)
+      window.removeEventListener('resize', sync)
+      window.removeEventListener('orientationchange', sync)
+    }
+    // `ready` intentionally omitted — we only want to flip it once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /*
+   * Bleed amount for fixed bottom-aligned elements. We need the panel
+   * / modal backgrounds to extend past the layout viewport bottom all
+   * the way to the physical screen edge, because in iOS PWA
+   * standalone with a cached webview config those two are not the
+   * same point. `screenH - innerHeight` is the exact vertical gap
+   * (0 when the webview is already the full screen). Floor at 34 to
+   * handle the typical home indicator inset on devices that don't
+   * expose a gap via window.screen.
+   */
+  const bleed = (() => {
+    if (!ready) return 34
+    const inner = typeof window !== 'undefined' ? window.innerHeight : 0
+    const gap = screenH > inner ? screenH - inner : 0
+    return Math.max(gap, 34)
+  })()
+
+  /*
+   * Lock document scroll while the onboarding is mounted to suppress
+   * iOS PWA rubber-band. Because globals.css now pins html/body to
+   * 100dvh with `overscroll-behavior: none`, we only need a temporary
+   * `overflow: hidden` on both elements — NO position:fixed on body,
+   * which used to interact poorly with the fixed-bottom sheets below
+   * and isn't needed anymore.
+   */
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+    }
   }, [])
 
 
@@ -241,10 +399,49 @@ export default function LoginScreen() {
     setTouchStart(null)
   }
 
+  /*
+   * Splash gate. Held until env() has stabilized (or 350ms timeout).
+   * Matches the app background so the user sees "the app is loading"
+   * rather than a visibly wrong intermediate layout. See the useLayoutEffect
+   * above for the rationale.
+   */
+  if (!ready) {
+    return (
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#F7F8FA',
+          zIndex: 9999,
+        }}
+      />
+    )
+  }
+
   return (
     <>
+    {/*
+     * Outer fullscreen surface. Sized with `height: ${screenH}px`
+     * where screenH comes from `window.screen.height` (JS-measured),
+     * NOT from `100dvh` / `inset-0`. In iOS PWA standalone with a
+     * cached / stale configuration the layout viewport can be 59 px
+     * shorter than the physical screen and every CSS viewport unit
+     * (`vh`, `dvh`, `svh`, `lvh`) agrees with that shorter value,
+     * so any CSS-based sizing leaves a gap. `window.screen.height`
+     * reports the actual device pixel height regardless of the
+     * webview frame and gives us an explicit height that reaches
+     * the physical screen bottom.
+     *
+     * Fallback to `100dvh` if screenH hasn't been measured yet
+     * (before the ready gate opens the splash covers anyway).
+     */}
     <div
-      className="fixed inset-0 overflow-hidden bg-[#F7F8FA]"
+      className="fixed left-0 right-0 top-0 overflow-hidden bg-[#F7F8FA]"
+      style={{ height: screenH ? `${screenH}px` : '100dvh' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -254,6 +451,8 @@ export default function LoginScreen() {
           // eslint-disable-next-line @next/next/no-img-element
           <img key={s.image} src={s.image} alt="" />
         ))}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/onboarding/05.png" alt="" />
       </div>
 
       {/* ── Image / logo – absolute, sits behind the fixed bottom panel ── */}
@@ -321,18 +520,23 @@ export default function LoginScreen() {
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
           ) : (
-            <motion.div
+            <motion.img
               key="img-login"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            >
-              <div className="w-24 h-24 rounded-[26px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-                <Image src="/logo.png" alt="Perezoso" width={96} height={96} className="w-full h-full object-cover" />
-              </div>
-            </motion.div>
+              src="/onboarding/05.png"
+              alt=""
+              custom={direction}
+              variants={{
+                enter: (dir: number) => ({ opacity: 0, x: `${dir * 100}%`, filter: 'blur(12px)' }),
+                center: { opacity: 1, x: 0, filter: 'blur(0px)' },
+                exit: (dir: number) => ({ opacity: 0, x: `${dir * -100}%`, filter: 'blur(12px)' }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.42, 0, 0.58, 1] }}
+              className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+            />
           )}
         </AnimatePresence>
       </motion.div>
@@ -350,9 +554,16 @@ export default function LoginScreen() {
                * override it, pushing the logo off-center.
                * Instead compute the top-left corner directly:
                *   horizontal: 50vw − 44px  (half of 88 px logo)
-               *   vertical:   safe-area-top + (visible height − 260px panel) / 2 − 44px
+               *   vertical:   safeTop + (visible height − 260px panel) / 2 − 44px
+               *
+               * `safeTop` is the JS-measured env(safe-area-inset-top) kept
+               * in component state and refreshed via useLayoutEffect. See
+               * the effect above for why — relying on CSS `env()` directly
+               * produced the "wrong Y on cold PWA launch, correct after
+               * navigation" symptom because iOS had not yet initialized
+               * the env() constants by the time of the first paint.
                */
-              top:  'calc(env(safe-area-inset-top) + (100vh - env(safe-area-inset-top) - 260px) / 2 - 44px)',
+              top:  `calc(${safeTop}px + (100dvh - ${safeTop}px - 260px) / 2 - 44px)`,
               left: 'calc(50% - 44px)',
             }}
             initial={{ opacity: 0, scale: 0.55 }}
@@ -366,13 +577,33 @@ export default function LoginScreen() {
         )}
       </AnimatePresence>
 
-      {/* ── Fixed bottom panel: title + body + dots + buttons ── */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-6 pt-6 z-10 rounded-t-[40px]"
-        style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}
-      >
+    </div>
+
+    {/* ── Bottom panel ─────────────────────────────────────────
+        `bottom: 0` anchored directly at the physical screen edge
+        (the splash gate above guarantees iOS has stabilized env()
+        by the time this renders). No safe-area bleed, no extra
+        safe-area padding — `paddingBottom: 16px` is a flat content
+        clearance per user preference. The CTA buttons end 16px
+        above the physical bottom regardless of home indicator. */}
+    <div
+      className="fixed left-0 right-0 bg-white px-6 pt-5 z-10 rounded-t-[40px] max-h-[100dvh]"
+      style={{
+        /* Dynamic bleed: the exact gap between layout viewport bottom
+         * and the physical screen bottom (or 34 as a floor). See the
+         * `bleed` derivation above. Compensated in paddingBottom so
+         * buttons sit 16px above the layout viewport bottom. */
+        bottom: `-${bleed}px`,
+        paddingBottom: `${16 + bleed}px`,
+      }}
+    >
         <div className="w-full max-w-sm mx-auto">
-          {/* Hidden measurement: render all 4 slide texts in-flow (correct width), h-0 so no space taken */}
+          {/* Hidden measurement: render all 4 slide texts in-flow (correct
+              width) so we can lock the visible text block to the tallest
+              slide height (avoids a height jump on swipe). The classes here
+              MUST match the rendered text classes exactly — any margin
+              difference leaks as invisible empty space inside the text
+              container, which visually pushes everything below further up. */}
           <div
             ref={measureRef}
             style={{ height: 0, overflow: 'visible', visibility: 'hidden', pointerEvents: 'none' }}
@@ -380,8 +611,8 @@ export default function LoginScreen() {
           >
             {SLIDES.map((s, i) => (
               <div key={i} data-measure>
-                <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">{s.title}</h1>
-                <p className="text-[15px] text-[#424242] leading-relaxed mb-10">{s.body}</p>
+                <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">{s.title}</h1>
+                <p className="text-[15px] text-[#000000] leading-relaxed mb-5">{s.body}</p>
               </div>
             ))}
           </div>
@@ -401,10 +632,10 @@ export default function LoginScreen() {
                   transition={{ duration: 0.2 }}
                   className="absolute top-0 left-0 right-0"
                 >
-                  <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
+                  <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">
                     {SLIDES[slide].title}
                   </h1>
-                  <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
+                  <p className="text-[15px] text-[#000000] leading-relaxed mb-5">
                     {SLIDES[slide].body}
                   </p>
                 </motion.div>
@@ -416,11 +647,11 @@ export default function LoginScreen() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="text-[28px] font-extrabold text-[#121212] leading-tight mb-3">
-                    Empieza ahora
+                  <h1 className="text-[28px] font-extrabold text-[#000000] leading-tight mb-3">
+                    {t('login.startNow')}
                   </h1>
-                  <p className="text-[15px] text-[#424242] leading-relaxed mb-5">
-                    Inicia sesión y vuelca todas tus suscripciones en un solo sitio.
+                  <p className="text-[15px] text-[#000000] leading-relaxed mb-5">
+                    {t('login.startBody')}
                   </p>
                 </motion.div>
               )}
@@ -433,12 +664,12 @@ export default function LoginScreen() {
               <button
                 key={i}
                 onClick={() => goTo(i)}
-                aria-label={`Ir a la pantalla ${i + 1}`}
+                aria-label={t('login.pageDotAria').replace('{n}', String(i + 1))}
                 className="rounded-full transition-all"
                 style={{
                   width: i === slide ? 24 : 4,
                   height: 4,
-                  backgroundColor: i === slide ? '#3D3BF3' : '#E8E8E8',
+                  backgroundColor: i === slide ? '#000000' : '#E8E8E8',
                 }}
               />
             ))}
@@ -449,15 +680,15 @@ export default function LoginScreen() {
             <div className="flex items-center gap-3">
               <button
                 onClick={openSignIn}
-                className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#121212] active:bg-[#F2F2F7] transition-colors"
+                className="flex-1 h-12 rounded-full border border-[#E8E8E8] bg-white text-[15px] font-semibold text-[#000000] active:bg-[#F2F2F7] transition-colors"
               >
-                Iniciar sesión
+                {t('login.signInButton')}
               </button>
               <button
                 onClick={next}
-                className="flex-1 h-12 rounded-full bg-[#3D3BF3] text-white text-[15px] font-semibold active:bg-[#3230D0] transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 h-12 rounded-full bg-[#000000] text-white text-[15px] font-semibold active:bg-[#000000] transition-colors flex items-center justify-center gap-1.5"
               >
-                Continuar
+                {t('login.continueButton')}
                 <motion.span
                   animate={slide === 0 ? { x: [0, 5, 0] } : { x: 0 }}
                   transition={slide === 0 ? { duration: 2.8, repeat: Infinity, ease: 'easeInOut' } : {}}
@@ -467,12 +698,10 @@ export default function LoginScreen() {
               </button>
             </div>
           ) : (
-            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} t={t} />
           )}
         </div>
       </div>
-
-    </div>
 
     {/*
       ── Sign-in modal ──────────────────────────────────────────────────────
@@ -488,7 +717,8 @@ export default function LoginScreen() {
       animations are reliable on iOS; only opacity/filter ones are flaky).
     */}
 
-    {/* Backdrop: CSS transition, always mounted */}
+    {/* Backdrop: CSS transition, always mounted. Plain fixed inset-0
+        — splash gate ensures iOS viewport is stable. */}
     <div
       className="fixed inset-0 z-[200] bg-black/50"
       style={{
@@ -508,23 +738,27 @@ export default function LoginScreen() {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-          className="fixed bottom-0 left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4"
-          style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}
+          className="fixed left-0 right-0 z-[201] bg-white rounded-t-[40px] px-5 pt-4 max-h-[100dvh]"
+          style={{
+            /* Same dynamic bleed as the onboarding panel. */
+            bottom: `-${bleed}px`,
+            paddingBottom: `${16 + bleed}px`,
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="w-full max-w-xl mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[17px] font-semibold text-[#121212]">Iniciar sesión</h3>
+              <h3 className="text-[17px] font-semibold text-[#000000]">{t('login.signInModalTitle')}</h3>
               <button
                 onClick={() => setSheetOpen(false)}
                 disabled={isLoading}
                 className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#616161] active:bg-[#E8E8E8] transition-colors"
-                aria-label="Cerrar"
+                aria-label={t('login.closeAria')}
               >
                 <X size={16} strokeWidth={2.5} />
               </button>
             </div>
-            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} />
+            <AuthButtons isLoading={isLoading} error={error} onGoogle={handleGoogleLogin} t={t} />
           </div>
         </motion.div>
       )}
